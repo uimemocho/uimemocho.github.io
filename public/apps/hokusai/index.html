@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#0b1b26">
+  <title>HOKUSAI — Survive the Great Wave</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Noto+Serif+JP:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app">
+    <section id="titleScreen" class="screen title-screen active" aria-label="Title">
+      <div class="title-art"></div>
+      <div class="title-vignette"></div>
+      <header class="museum-mark"><span>北斎</span><i></i><small>THE FLOATING WORLD</small></header>
+      <div class="title-copy">
+        <p class="eyebrow">AN UKIYO-E SURVIVAL</p>
+        <h1>HOKUSAI</h1>
+        <p class="subtitle">Survive the Great Wave</p>
+        <p class="title-jp" data-i18n="tagline">荒波を越え、失われた名画を取り戻せ。</p>
+      </div>
+      <nav class="title-actions">
+        <button class="paper-button primary" data-action="play"><span>PLAY</span><small data-i18n="begin">航海を始める</small></button>
+        <div class="split-actions">
+          <button class="line-button" data-action="gallery">GALLERY <small data-i18n="collection">収蔵品</small></button>
+          <button class="line-button" data-action="settings">SETTINGS <small data-i18n="settings">設定</small></button>
+        </div>
+      </nav>
+      <footer class="title-footer"><span>ONE VOYAGE · 01:00</span><span id="titleProgress">0 / 3 WORKS</span></footer>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen" aria-label="Game">
+      <canvas id="gameCanvas" width="720" height="1280"></canvas>
+      <div class="game-hud">
+        <div class="top-hud">
+          <button class="icon-button" data-action="pause" aria-label="Pause">Ⅱ</button>
+          <div class="run-title"><small>VOYAGE I</small><strong id="timer">01:00</strong></div>
+          <div class="score-box"><small>SCORE</small><strong id="score">000000</strong></div>
+        </div>
+        <div class="health-row"><span>NAGI</span><div class="health-track"><i id="healthFill"></i></div><em id="levelLabel">LV. 01</em></div>
+        <div class="xp-track"><i id="xpFill"></i></div>
+      </div>
+      <div id="waveWarning" class="wave-warning"><span>大波接近</span><strong>GREAT WAVE</strong><small>MOVE TO THE PALE WATER</small></div>
+      <div id="perfectWave" class="perfect-wave"><small>波を読む</small><strong>PERFECT WAVE</strong><span>+ 1,000</span></div>
+      <div id="chapterBanner" class="chapter-banner" aria-hidden="true"><small id="chapterKicker">THE OPEN SEA</small><strong id="chapterTitle">SURVIVE</strong></div>
+      <div id="bossDead" class="boss-dead" aria-hidden="true"><small>RAGING SEA DRAGON</small><strong>DEAD</strong><span>荒海大龍・滅</span></div>
+      <div id="specialCutin" class="special-cutin" aria-hidden="true"><div class="cutin-art"></div><div class="cutin-copy"><small>ULTIMATE IMPRESSION</small><strong>FUGAKU STRIKE</strong><span>富嶽一閃</span></div></div>
+      <button id="specialButton" class="special-button" data-action="special" aria-label="Fugaku Strike"><i></i><span>富嶽一閃</span><strong>FUGAKU</strong><small>STRIKE</small></button>
+      <div class="drag-hint" id="dragHint"><i>✣</i><span data-i18n="drag">ドラッグして全方向へ移動</span></div>
+    </section>
+
+    <section id="galleryScreen" class="screen paper-screen" aria-label="Gallery">
+      <header class="section-header">
+        <button class="back-button" data-action="title">←</button>
+        <div><p>THE FLOATING WORLD</p><h2>GALLERY</h2></div>
+        <button class="lang-button" data-action="language">EN / 日</button>
+      </header>
+      <div class="gallery-intro"><p data-i18n="galleryIntro">海より拾い上げた、失われた色彩。</p><span id="galleryCount">00 / 03</span></div>
+      <div id="galleryGrid" class="gallery-grid"></div>
+      <p class="rarity-note">Rarity represents in-game discovery difficulty, not artistic value.</p>
+    </section>
+
+    <section id="detailScreen" class="screen paper-screen detail-screen" aria-label="Artwork detail">
+      <header class="section-header compact"><button class="back-button" data-action="gallery">←</button><div><p>HOKUSAI COLLECTION</p><h2>OBJECT RECORD</h2></div><span class="seal">蔵</span></header>
+      <article id="artDetail"></article>
+    </section>
+
+    <section id="resultScreen" class="screen paper-screen result-screen" aria-label="Result">
+      <header class="result-header"><p>VOYAGE RECORD</p><h2>THE SEA<br>REMEMBERS</h2><i></i></header>
+      <div id="resultStatus" class="result-status">VOYAGE COMPLETE</div>
+      <dl class="result-stats">
+        <div><dt>Survival Time</dt><dd id="resultTime">01:00</dd></div>
+        <div><dt>Yokai Defeated</dt><dd id="resultKills">000</dd></div>
+        <div><dt>Perfect Waves</dt><dd id="resultWaves">00</dd></div>
+        <div class="score"><dt>Score</dt><dd id="resultScore">000000</dd></div>
+      </dl>
+      <div class="result-actions"><button class="paper-button primary" data-action="restore"><span>RESTORE</span><small data-i18n="restore">版木を復元する</small></button><button class="line-button dark" data-action="title">RETURN TO PORT</button></div>
+    </section>
+
+    <div id="rewardOverlay" class="reward-overlay" aria-hidden="true">
+      <div id="woodblockFound" class="woodblock-found reward-popup hidden">
+        <i class="reward-halo"></i>
+        <small class="reward-overline">LOST COLOR RECOVERED</small>
+        <div class="reward-artwork"><img id="foundArtworkImage" alt="Discovered Hokusai artwork"><i></i></div>
+        <span id="woodblockLabel">NEW WOODBLOCK FOUND</span>
+        <strong id="foundTitle">神奈川沖浪裏</strong>
+        <small id="foundRarity">MASTERPIECE DISCOVERY</small>
+        <button class="reward-claim" data-action="dismissReward"><span>RECEIVE</span><small>報酬を受け取る</small></button>
+      </div>
+    </div>
+
+    <section id="restoreScreen" class="screen restore-screen" aria-label="Restoration">
+      <div class="restore-noise"></div>
+      <header><p>WOODBLOCK RESTORATION</p><span id="restoreStep">INK PLATE · 墨</span></header>
+      <div class="restore-stage">
+        <div class="plate-shadow"></div>
+        <img id="restoreImage" alt="Restored Hokusai artwork">
+        <canvas id="restoreCanvas" width="640" height="520"></canvas>
+        <div class="restore-stamp">復</div>
+      </div>
+      <div class="restore-copy"><small>01 — 04</small><h2 id="restoreTitle">Under the Wave off Kanagawa</h2><p id="restoreTitleJp">神奈川沖浪裏</p></div>
+      <button id="collectionUpdated" class="paper-button primary hidden" data-action="gallery"><span>COLLECTION UPDATED</span><small>図鑑に収蔵されました</small></button>
+    </section>
+
+    <section id="levelOverlay" class="overlay" aria-label="Level up">
+      <div class="level-sheet"><header><span>LEVEL UP</span><h2 data-i18n="choose">版をひとつ選ぶ</h2><p>SELECT ONE IMPRESSION</p></header><div id="upgradeChoices" class="upgrade-choices"></div></div>
+    </section>
+
+    <section id="settingsOverlay" class="overlay" aria-label="Settings">
+      <div class="settings-sheet"><button class="close-button" data-action="closeSettings">×</button><p>GAME SETTINGS</p><h2 data-i18n="settings">設定</h2><label><span>LANGUAGE</span><button class="toggle-button" data-action="language"><b id="langValue">日本語</b></button></label><label><span>MASTER VOLUME</span><input id="volumeSlider" type="range" min="0" max="1" step="0.05" value="0.7"></label><button class="paper-button primary" data-action="closeSettings"><span>APPLY</span><small>設定を保存</small></button></div>
+    </section>
+
+    <section id="pauseOverlay" class="overlay" aria-label="Pause">
+      <div class="settings-sheet pause-sheet"><p>THE SEA IS STILL</p><h2>PAUSED</h2><button class="paper-button primary" data-action="resume"><span>CONTINUE</span><small>航海を続ける</small></button><button class="line-button dark" data-action="quit">RETURN TO PORT</button></div>
+    </section>
+  </main>
+  <script src="assets/artworks/artworks-data.js?v=20260718"></script>
+  <script src="src/main.js?v=20260718-chrome-fix"></script>
+</body>
+</html>
