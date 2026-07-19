@@ -43,6 +43,24 @@ function projectDetail(project) {
   return project.detail || "ブラウザですぐ使える、小さな作品です。";
 }
 
+function sortProjectsByRecent(items) {
+  return items
+    .map((project, index) => {
+      const value = project.updatedAt || project.publishedAt;
+      const timestamp = typeof value === "string" ? Date.parse(value) : Number.NaN;
+      return { project, index, timestamp };
+    })
+    .sort((left, right) => {
+      const leftHasDate = Number.isFinite(left.timestamp);
+      const rightHasDate = Number.isFinite(right.timestamp);
+      if (leftHasDate && rightHasDate) return right.timestamp - left.timestamp || left.index - right.index;
+      if (leftHasDate) return -1;
+      if (rightHasDate) return 1;
+      return left.index - right.index;
+    })
+    .map(({ project }) => project);
+}
+
 function createTextElement(tag, className, text) {
   const element = document.createElement(tag);
   if (className) element.className = className;
@@ -121,7 +139,7 @@ async function loadProjects() {
     if (!response.ok) throw new Error(`Catalog request failed: ${response.status}`);
     const catalog = await response.json();
     if (!Array.isArray(catalog)) throw new Error("Catalog is not an array");
-    projects = catalog;
+    projects = sortProjectsByRecent(catalog);
   } catch (error) {
     console.warn("Using the built-in catalog fallback.", error);
   }
