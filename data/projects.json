@@ -88,5 +88,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-07-19T12:10:48Z",
     "updatedAt": "2026-07-19T12:10:48Z"
+  },
+  {
+    "slug": "ginbukuro-maker",
+    "title": "銀袋イラストメーカー",
+    "kind": "tool",
+    "description": "銀色のお菓子袋へモノクロイラストを描き、正方形PNGとして保存できるツール。",
+    "url": "/apps/ginbukuro-maker/",
+    "thumbnail": null,
+    "sourceFolder": "260711_モノクロポテチアート",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-07-19T12:32:33Z",
+    "updatedAt": "2026-07-19T12:32:33Z"
   }
 ]
