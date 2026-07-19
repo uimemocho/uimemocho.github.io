@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#050303">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta name="description" content="三択で運命を殴る、世紀末ドーパミンゲーム「世紀末ジャン拳」。">
+  <title>世紀末ジャン拳</title>
+  <link rel="icon" href="assets/images/logo/logo.webp" type="image/webp">
+  <link rel="stylesheet" href="css/styles.css?v=20260715-2332">
+</head>
+<body>
+  <main id="game" class="game" aria-label="世紀末ジャン拳" data-state="boot">
+    <div class="screen-noise" aria-hidden="true"></div>
+    <div id="screen-flash" class="screen-flash" hidden aria-hidden="true"></div>
+    <div id="particle-layer" class="particle-layer" aria-hidden="true"></div>
+
+    <section id="title-screen" class="title-screen" aria-label="タイトル画面">
+      <div class="title-screen__poster" aria-hidden="true"></div>
+      <button id="title-settings-button" class="title-settings-button ui-image-button" type="button" aria-label="デバッグ設定を開く">
+        <span aria-hidden="true">⚙</span><small>SETTING</small>
+      </button>
+      <div class="title-screen__content">
+        <button id="start-button" class="start-button" type="button">
+          <span>死合を始める</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="debug-settings" class="debug-settings" hidden aria-modal="true" role="dialog" aria-labelledby="debug-settings-title">
+      <div class="debug-settings__panel">
+        <small>UNDERGROUND CONTROL</small>
+        <h2 id="debug-settings-title">設定 / DEBUG</h2>
+        <label class="debug-field">
+          <span>難易度</span>
+          <select id="difficulty-select" aria-label="難易度">
+            <option value="easy">EASY　勝利寄り</option>
+            <option value="normal">NORMAL　完全ランダム</option>
+            <option value="hard">HARD　敗北寄り</option>
+          </select>
+        </label>
+        <label class="debug-toggle">
+          <input id="force-win-toggle" type="checkbox">
+          <span>すべて勝利する</span>
+          <b>DEBUG GOD MODE</b>
+        </label>
+        <button id="debug-settings-close" class="debug-close ui-image-button" type="button">設定を刻む</button>
+      </div>
+    </section>
+
+    <section id="ending-screen" class="ending-screen" hidden aria-label="エンディング画面">
+      <div class="ending-screen__poster" aria-hidden="true"></div>
+      <div class="ending-screen__content ui-image-panel">
+        <div class="ending-screen__logo" role="img" aria-label="世紀末ジャン拳"></div>
+        <small>ALL FOUR FATES DESTROYED</small>
+        <h2>四天、陥落。</h2>
+        <p>確率は膝をつき、地下闘技場に新たな覇者が誕生した。</p>
+        <dl>
+          <div><dt>FINAL CHAIN</dt><dd id="ending-streak">0</dd></div>
+          <div><dt>FINAL DOPA</dt><dd id="ending-dopa">0</dd></div>
+        </dl>
+        <button id="ending-return" class="ending-return ui-image-button" type="button">新たな運命へ</button>
+      </div>
+    </section>
+
+    <header class="topbar game-header">
+      <div class="logo game-logo" role="img" aria-label="世紀末ジャン拳">
+        <span class="sr-only">世紀末ジャン拳</span>
+      </div>
+
+      <section class="stats hud-stats" aria-label="戦績">
+        <div class="stat stat-item">
+          <span class="stat-label">CHAIN</span>
+          <span class="stat-value"><b id="streak">0</b><small>連勝</small></span>
+        </div>
+        <div class="stat stat-item">
+          <span class="stat-label">DOPA</span>
+          <span class="stat-value" id="dopa">0</span>
+        </div>
+        <div class="stat stat-item">
+          <span class="stat-label">BEST CHAIN</span>
+          <span class="stat-value"><b id="best-streak">0</b><small>連</small></span>
+        </div>
+        <div class="stat stat-item">
+          <span class="stat-label">MAX DOPA</span>
+          <span class="stat-value" id="best-dopa">0</span>
+        </div>
+      </section>
+
+      <nav class="settings settings-controls" aria-label="設定">
+        <button id="sound-toggle" class="icon-btn setting-btn" type="button" aria-pressed="true" aria-label="音量 ON" title="音量 ON/OFF">
+          <span aria-hidden="true">♪</span><span class="sr-only" data-setting-label>音量 ON</span>
+        </button>
+        <button id="shake-toggle" class="icon-btn setting-btn" type="button" aria-pressed="false" aria-label="揺れ 標準" title="画面揺れ軽減">
+          <span aria-hidden="true">≋</span><span class="sr-only" data-setting-label>揺れ 標準</span>
+        </button>
+      </nav>
+    </header>
+
+    <section class="enemy-stage battle-stage" aria-live="polite">
+      <div id="enemy-position-anchor">
+        <div id="enemy-character" class="enemy-sprite pose-idle" data-character="galdo" data-pose="idle" role="img" aria-label="対戦相手"></div>
+      </div>
+
+      <div id="entry-cut" class="intro-cutin enemy-intro" hidden aria-hidden="true">
+        <small id="entry-title" class="intro-kicker">第七処刑区代表</small>
+        <strong id="entry-name" class="intro-name">拳王ガルド</strong>
+        <span id="entry-quote" class="intro-quote">「敗北という言葉を知らない」</span>
+      </div>
+
+      <div id="round-cutin" class="round-cutin" hidden aria-hidden="true">
+        <small>UNDERGROUND BOUT</small>
+        <strong id="round-number">ROUND 1</strong>
+      </div>
+
+      <div id="chant-overlay" class="chant-overlay" hidden aria-hidden="true">
+        <img id="chant-image" src="assets/images/ui/chant-jan.webp" alt="">
+      </div>
+
+      <div id="rush-emblem" class="rush-emblem" hidden aria-hidden="true">
+        <small>DOPAMINE OVERDRIVE</small>世紀末RUSH
+      </div>
+
+      <div id="result-banner" class="result-banner" hidden aria-live="assertive">
+        <strong id="result-title" class="result-title"></strong>
+        <span id="result-text" class="result-message"></span>
+      </div>
+
+      <div class="combat-readout" aria-label="勝負情報">
+        <span class="combat-side combat-side--player">
+          <span class="combat-scoreline">YOU <i id="player-round-wins">0</i><em>/3</em></span>
+          <b id="player-choice">—</b>
+        </span>
+        <strong id="round-text">闘士来襲中…</strong>
+        <span class="combat-side combat-side--enemy">
+          <span class="combat-scoreline">ENEMY <i id="enemy-round-wins">0</i><em>/3</em></span>
+          <b id="enemy-choice">—</b>
+        </span>
+      </div>
+
+      <div class="enemy-card enemy-info">
+        <div class="enemy-label enemy-nameplate">
+          <small id="enemy-title" class="enemy-title">第七処刑区代表</small>
+          <strong id="enemy-name">拳王ガルド</strong>
+        </div>
+        <p id="enemy-quote" class="enemy-dialogue">三択だと？ 俺には勝利しか見えん。
+        </p>
+      </div>
+    </section>
+
+    <section class="choice-panel choices" aria-label="出す手を選ぶ">
+      <button class="choice-btn rock" type="button" data-choice="rock" disabled>
+        <img class="choice-icon" src="assets/images/ui/hand-rock.webp" alt="" aria-hidden="true">
+        <strong class="choice-label">グー</strong>
+        <small class="choice-sub">BREAK</small>
+      </button>
+      <button class="choice-btn scissors" type="button" data-choice="scissors" disabled>
+        <img class="choice-icon" src="assets/images/ui/hand-scissors.webp" alt="" aria-hidden="true">
+        <strong class="choice-label">チョキ</strong>
+        <small class="choice-sub">SEVER</small>
+      </button>
+      <button class="choice-btn paper" type="button" data-choice="paper" disabled>
+        <img class="choice-icon" src="assets/images/ui/hand-paper.webp" alt="" aria-hidden="true">
+        <strong class="choice-label">パー</strong>
+        <small class="choice-sub">BURY</small>
+      </button>
+    </section>
+
+    <p class="sr-only" aria-live="polite">数字キー1でグー、2でチョキ、3でパー。</p>
+  </main>
+  <audio id="bgm" src="assets/audio/santaku-souken.mp3" loop preload="auto"></audio>
+  <script src="js/game.js?v=20260715-2332"></script>
+</body>
+</html>

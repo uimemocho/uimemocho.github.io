@@ -52,5 +52,17 @@
     "detail": "よく使う計算だけを、すぐ終わらせるための道具。",
     "url": null,
     "thumbnail": null
+  },
+  {
+    "slug": "seikimatsu-janken",
+    "title": "世紀末ジャン拳",
+    "kind": "game",
+    "description": "三択で運命を殴る、世紀末ドーパミンじゃんけんゲーム。",
+    "url": "/apps/seikimatsu-janken/",
+    "thumbnail": "/project-thumbnails/seikimatsu-janken.webp",
+    "sourceFolder": "260715_世紀末ジャン拳",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-07-19T11:07:25Z",
+    "updatedAt": "2026-07-19T11:07:25Z"
   }
 ]
