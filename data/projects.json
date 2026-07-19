@@ -64,5 +64,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-07-19T11:07:25Z",
     "updatedAt": "2026-07-19T11:07:25Z"
+  },
+  {
+    "slug": "uho-man",
+    "title": "ウホーマン",
+    "kind": "game",
+    "description": "虫カゴのジャングルに住むゴリラの賢者へ悩みを相談するゲーム。",
+    "url": "/apps/uho-man/",
+    "thumbnail": null,
+    "sourceFolder": "260719_ウホーマン",
+    "sourceEntry": "uho-man_v1.2.html",
+    "publishedAt": "2026-07-19T11:51:46Z",
+    "updatedAt": "2026-07-19T11:51:46Z"
   }
 ]

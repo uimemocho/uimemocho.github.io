@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ウホーマン UHO-MAN — 虫カゴの賢者 —</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0f0a;
+    --cage:#3fae93;
+    --cage-dim:#2a7663;
+    --ink:#d8e6d2;
+    --sub:#7a8f78;
+    --accent:#e8c04a;
+    --panel:#121a12;
+    --panel2:#0e150e;
+    --danger:#c05a44;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;background:#050705;overflow:hidden;font-family:'DotGothic16','JetBrains Mono',monospace;}
+  #stage{position:fixed;left:50%;top:50%;width:640px;height:1138px;transform-origin:center center;}
+  #app{width:640px;height:1138px;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden;}
+
+  /* ---------- タイトル ---------- */
+  #title{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%, #10241a 0%, #070c08 70%);z-index:50;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;cursor:pointer;}
+  #title .mesh{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(63,174,147,.10) 1px, transparent 1px),linear-gradient(90deg, rgba(63,174,147,.10) 1px, transparent 1px);
+    background-size:16px 16px;}
+  #title h1{font-size:88px;color:var(--ink);letter-spacing:6px;text-shadow:0 0 24px rgba(63,174,147,.35), 4px 4px 0 #000;}
+  #title .en{font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--cage);letter-spacing:10px;}
+  #title .sub{font-size:22px;color:var(--sub);letter-spacing:4px;}
+  #title .tap{margin-top:30px;font-size:24px;color:var(--accent);animation:blink 1.2s steps(2) infinite;}
+  #title .ver{position:absolute;bottom:22px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#3c4a3c;letter-spacing:2px;}
+  #titleCage{image-rendering:pixelated;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* ---------- シーン ---------- */
+  #sceneWrap{position:relative;width:640px;height:560px;flex:none;background:#000;}
+  #scene{width:640px;height:560px;image-rendering:pixelated;display:block;}
+
+  /* ---------- ステータス ---------- */
+  #status{height:56px;flex:none;display:flex;align-items:center;gap:14px;padding:0 16px;
+    background:var(--panel);border-top:2px solid #223022;border-bottom:2px solid #223022;}
+  .stLabel{font-size:18px;color:var(--sub);letter-spacing:2px;flex:none;}
+  #moodBarOuter{flex:1;height:18px;background:#0a0f0a;border:2px solid #2c3a2c;position:relative;}
+  #moodBar{height:100%;width:70%;background:linear-gradient(90deg,#8a5a30,var(--accent));transition:width .5s;}
+  #moodFace{font-size:20px;width:30px;text-align:center;flex:none;}
+  #bond{font-size:18px;color:var(--cage);letter-spacing:1px;flex:none;}
+  #clock{font-family:'JetBrains Mono',monospace;font-size:14px;color:#4a5a4a;flex:none;}
+
+  /* ---------- ログ ---------- */
+  #log{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;background:var(--panel2);}
+  #log::-webkit-scrollbar{width:6px;}
+  #log::-webkit-scrollbar-thumb{background:#243424;}
+  .msg{max-width:86%;padding:10px 14px;font-size:21px;line-height:1.55;border:2px solid;word-break:break-word;}
+  .msg.gorilla{align-self:flex-start;background:#101c15;border-color:var(--cage-dim);color:var(--ink);
+    box-shadow:3px 3px 0 rgba(0,0,0,.5);}
+  .msg.gorilla .uho{color:var(--accent);display:block;margin-bottom:4px;font-size:22px;}
+  .msg.gorilla .tr{color:#b7c9b2;font-size:19px;}
+  .msg.user{align-self:flex-end;background:#1a2030;border-color:#3a4a6a;color:#d6e0f2;box-shadow:3px 3px 0 rgba(0,0,0,.5);}
+  .msg.sys{align-self:center;background:transparent;border:none;color:#556555;font-size:16px;padding:2px;}
+
+  /* ---------- 入力・世話 ---------- */
+  #controls{flex:none;padding:10px 14px 16px;background:var(--panel);border-top:2px solid #223022;display:flex;flex-direction:column;gap:10px;}
+  #inputRow{display:flex;gap:10px;}
+  #textIn{flex:1;height:56px;background:#0a0f0a;border:2px solid #34452f;color:var(--ink);
+    font-family:'DotGothic16',monospace;font-size:22px;padding:0 14px;outline:none;}
+  #textIn:focus{border-color:var(--cage);}
+  #textIn::placeholder{color:#3f4f3f;}
+  #sendBtn{width:110px;height:56px;background:var(--cage-dim);border:2px solid var(--cage);color:#eafff5;
+    font-family:'DotGothic16',monospace;font-size:22px;letter-spacing:2px;cursor:pointer;}
+  #sendBtn:active{transform:translate(2px,2px);}
+  #sendBtn:disabled{opacity:.4;}
+  #careRow{display:flex;gap:10px;}
+  .careBtn{flex:1;height:52px;background:#16211a;border:2px solid #2e4034;color:var(--ink);
+    font-family:'DotGothic16',monospace;font-size:20px;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .careBtn:active{transform:translate(2px,2px);background:#1e2c22;}
+  .careBtn.cool{opacity:.35;pointer-events:none;}
+</style>
+</head>
+<body>
+<audio id="bgm" src="./jungle-in-a-box.mp3" preload="auto" loop></audio>
+<div id="stage">
+  <div id="app">
+
+    <div id="title">
+      <div class="mesh"></div>
+      <canvas id="titleCage" width="220" height="180" style="width:220px;height:180px;"></canvas>
+      <h1>ウホーマン</h1>
+      <div class="en">U H O - M A N</div>
+      <div class="sub">— 虫カゴの賢者 —</div>
+      <div class="tap">▶ タップしてはじめる</div>
+      <div class="ver">uho-man v1.2 / single-file html</div>
+    </div>
+
+    <div id="sceneWrap"><canvas id="scene" width="640" height="560"></canvas></div>
+
+    <div id="status">
+      <span class="stLabel">キゲン</span>
+      <div id="moodBarOuter"><div id="moodBar"></div></div>
+      <span id="moodFace">●</span>
+      <span id="bond">ナツキ Lv.1</span>
+      <span id="clock">--:--</span>
+    </div>
+
+    <div id="log"></div>
+
+    <div id="controls">
+      <div id="inputRow">
+        <input id="textIn" type="text" maxlength="80" placeholder="ウホーマンに悩みを話しかける…">
+        <button id="sendBtn">話す</button>
+      </div>
+      <div id="careRow">
+        <button class="careBtn" id="mistBtn">🌫 霧吹き</button>
+        <button class="careBtn" id="bananaBtn">🍌 バナナ</button>
+        <button class="careBtn" id="cleanBtn">🧹 掃除</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+'use strict';
+/* =========================================================
+   ウホーマン UHO-MAN v1.0
+   虫カゴのジャングルに住むゴリラの賢者に悩みを相談するゲーム
+   - 単一HTML / オフライン動作 / 固定スクリプト会話エンジン
+   ========================================================= */
+
+/* ---------- 画面スケーリング ---------- */
+(function fitStage(){
+  const st = document.getElementById('stage');
+  function fit(){
+    const s = Math.min(window.innerWidth/640, window.innerHeight/1138);
+    st.style.transform = 'translate(-50%,-50%) scale('+s+')';
+  }
+  window.addEventListener('resize', fit); fit();
+})();
+
+/* ---------- 状態 ---------- */
+const st = {
+  started:false,
+  mood:65,            // 0-100 キゲン
+  bond:0,             // ナツキ(会話数)
+  dust:0,             // 0-100 汚れ
+  lastBanana:0,
+  lastMist:0,
+  lastTalk:Date.now(),
+  busy:false,
+  pose:'idle',        // idle|beat|eat|shake|angry|happy
+  poseUntil:0,
+  blinkUntil:0,
+  mouth:0,            // 0閉 1開 2怒
+  browAngry:false,
+  shakeX:0,
+  beatPhase:0,
+  particles:[],
+  banana:null,        // {x,y,vx,vy}
+  grunting:false,
+};
+
+/* ---------- DOM ---------- */
+const $ = id => document.getElementById(id);
+const logEl = $('log'), inEl = $('textIn'), sendBtn = $('sendBtn');
+
+/* ---------- WebAudio ---------- */
+let AC = null;
+const bgm = $('bgm');
+bgm.volume = 0.32;
+
+function audioInit(){
+  if(AC) return;
+  AC = new (window.AudioContext||window.webkitAudioContext)();
+}
+function startBgm(){
+  if(!bgm.paused) return;
+  bgm.play().catch(err=>console.warn('BGM playback failed:', err));
+}
+function env(g, t0, a, d, peak){
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.linearRampToValueAtTime(peak, t0+a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0+a+d);
+}
+function grunt(pitch, dur, vol){
+  if(!AC) return;
+  const t0 = AC.currentTime;
+  const o = AC.createOscillator(); o.type='sawtooth';
+  o.frequency.setValueAtTime(pitch, t0);
+  o.frequency.exponentialRampToValueAtTime(pitch*0.55, t0+dur);
+  const f = AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=520; f.Q.value=4;
+  const g = AC.createGain(); env(g,t0,0.012,dur,vol);
+  o.connect(f); f.connect(g); g.connect(AC.destination);
+  o.start(t0); o.stop(t0+dur+0.05);
+  // ノイズ息成分
+  const nb = AC.createBuffer(1, AC.sampleRate*dur, AC.sampleRate);
+  const ch = nb.getChannelData(0);
+  for(let i=0;i<ch.length;i++) ch[i]=(Math.random()*2-1)*(1-i/ch.length);
+  const ns = AC.createBufferSource(); ns.buffer=nb;
+  const nf = AC.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=900; nf.Q.value=1.2;
+  const ng = AC.createGain(); env(ng,t0,0.01,dur*0.8,vol*0.35);
+  ns.connect(nf); nf.connect(ng); ng.connect(AC.destination);
+  ns.start(t0);
+}
+function bigGrunt(){
+  grunt(70, 0.5, 0.5);
+  setTimeout(()=>grunt(60,0.6,0.5), 180);
+}
+function blip(f){
+  if(!AC) return;
+  const t0=AC.currentTime;
+  const o=AC.createOscillator(); o.type='square'; o.frequency.value=f||660;
+  const g=AC.createGain(); env(g,t0,0.005,0.06,0.12);
+  o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0+0.1);
+}
+function sprayS(){
+  if(!AC) return;
+  const t0=AC.currentTime, dur=0.28;
+  const nb=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate);
+  const ch=nb.getChannelData(0);
+  for(let i=0;i<ch.length;i++) ch[i]=(Math.random()*2-1);
+  const ns=AC.createBufferSource(); ns.buffer=nb;
+  const f=AC.createBiquadFilter(); f.type='highpass'; f.frequency.value=2500;
+  const g=AC.createGain(); env(g,t0,0.02,dur,0.2);
+  ns.connect(f); f.connect(g); g.connect(AC.destination); ns.start(t0);
+}
+function munchS(){ grunt(140,0.08,0.25); setTimeout(()=>grunt(120,0.08,0.22),140); setTimeout(()=>grunt(150,0.08,0.2),280); }
+function thump(){
+  if(!AC) return;
+  const t0=AC.currentTime;
+  const o=AC.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(160,t0); o.frequency.exponentialRampToValueAtTime(45,t0+0.16);
+  const g=AC.createGain(); env(g,t0,0.005,0.18,0.5);
+  o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0+0.25);
+}
+function sparkleS(){ [880,1175,1568].forEach((f,i)=>setTimeout(()=>blip(f), i*80)); }
+
+/* ---------- ログ ---------- */
+function addUserMsg(t){
+  const d=document.createElement('div'); d.className='msg user'; d.textContent=t;
+  logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
+}
+function addSysMsg(t){
+  const d=document.createElement('div'); d.className='msg sys'; d.textContent=t;
+  logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
+}
+function addGorillaMsg(uho, tr, done){
+  const d=document.createElement('div'); d.className='msg gorilla';
+  const u=document.createElement('span'); u.className='uho'; u.textContent=uho;
+  const s=document.createElement('span'); s.className='tr';
+  d.appendChild(u); d.appendChild(s);
+  logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
+  let i=0;
+  const tick=()=>{
+    if(i<=tr.length){
+      s.textContent=tr.slice(0,i); i++;
+      logEl.scrollTop=logEl.scrollHeight;
+      setTimeout(tick, 26);
+    } else if(done) done();
+  };
+  setTimeout(tick, uho? 500:0);
+}
+
+/* ---------- ウホ生成と発声 ---------- */
+const SYL=['ウホ','ウホッ','ウホホ','ウッホ','ホゥ','ウホォ'];
+function makeUho(len, angry){
+  if(angry) return 'ウホォォッ!! ウホッ!!';
+  const n=Math.max(2, Math.min(6, Math.round(len/16)+2));
+  let s=[];
+  for(let i=0;i<n;i++) s.push(SYL[(Math.random()*SYL.length)|0]);
+  return s.join(' ')+'。';
+}
+function speakUho(uho, angry){
+  const n=Math.min(7,(uho.match(/ホ/g)||[]).length);
+  st.mouthTalkUntil=Date.now()+n*150+300;
+  st.grunting=true;
+  for(let i=0;i<n;i++){
+    setTimeout(()=>{ grunt(angry? 65+Math.random()*20 : 95+Math.random()*40, 0.14, 0.32); }, i*150);
+  }
+  setTimeout(()=>{ st.grunting=false; }, n*150+200);
+  if(angry) bigGrunt();
+}
+
+/* =========================================================
+   会話エンジン(固定スクリプト)
+   ========================================================= */
+const DEFLECT=[
+  '(……機嫌が悪い。霧吹きのひとつも無しに悩み相談とは、いい度胸だ)',
+  '(世話もせず口だけ動かすのか。お前の職場にもいるだろう、そういう奴が)',
+  '(無言で背を向けている。バナナ。話はそれからだ)',
+];
+const KIND_SUFFIX=[
+  '……まあ、お前はよくやっている方だ。カゴの中から見ていれば分かる。',
+  '……今日はもう頑張るな。それも立派な判断のうちだ。',
+  '……お前が来ると、この狭いカゴも少しは広く感じる。今のは忘れろ。',
+];
+const RULES=[
+ {k:['おはよう','こんにちは','こんばんは','やあ','はじめまして','hello','ハロー','ただいま'],r:[
+  '挨拶ができるのか。人間の群れでは、それだけで上位三割に入れるらしいな。',
+  '(来たか。……別に待ってはいない。網の向こうを眺めていただけだ)',
+ ]},
+ {k:['残業','職場','激務','業務','出勤','会社','仕事'],r:[
+  '仕事の話か。人間は森を捨てて、会社という檻に自分から入った。そして檻の文句を言う。俺はこのカゴに文句を言ったことは一度もないぞ。',
+  'その仕事、お前にしかできないと思っているなら危険だ。群れで一頭しか知らない水場は、その一頭が倒れた日に群れごと渇く。分かち合え。',
+  '真面目に悩めるのは、真面目に向き合っている証拠だ。ただし覚えておけ。一番働くゴリラは、一番よく休むゴリラでもある。',
+ ]},
+ {k:['疲れ','つかれ','しんどい','だるい','限界','へとへと','休みたい'],r:[
+  '「疲れた」が口癖になっていないか。言葉は檻だ。口にするほど、お前はその檻の奥へ入っていく。',
+  '疲れは動いた証拠だ。恥じるものではない。ただし寝ない奴は別だ。それは努力ではなく自傷という。寝ろ。',
+ ]},
+ {k:['上司','部下','先輩','後輩','マネージ','評価','昇進','昇格'],r:[
+  '上司も群れの一頭にすぎん。胸を叩いて威嚇するボスほど、内側は怯えているものだ。怖がるな、哀れんでやれ。',
+  '部下の育成か。任せた仕事が見えなくなったら、それは信頼ではなく放置という。網越しでいい、見ておけ。',
+ ]},
+ {k:['会議','ミーティング','打ち合わせ','承認','稟議','mtg','MTG'],r:[
+  '会議が長い?人数を数えろ。決める者より眺めている者が多い集まりは、群れではなく見世物だ。',
+  '一度決めたことを蒸し返す群れは、同じ川を何度も渡って溺れる。決めた日付と理由を、岩に刻んでおけ。',
+ ]},
+ {k:['人間関係','友達','友人','同僚','嫌われ','苦手な人','コミュ'],r:[
+  '全員に好かれようとするな。森でそれをやっているのはバナナだけだ。そしてバナナは食われる。',
+  '苦手な奴とは距離を取れ。ジャングルの掟は単純だ。縄張りが違うだけで、敵とは限らん。',
+ ]},
+ {k:['恋愛','恋','好きな人','彼女','彼氏','結婚','デート','片思い'],r:[
+  '好きなら伝えろ。ゴリラは迷っている間に雨季が終わる。人間の雨季は、お前が思っているより短い。',
+  '相手の機嫌ばかり窺う恋は、恋ではなく飼育だ。それは俺の係の仕事であって、お前のやることではない。',
+ ]},
+ {k:['給料','貯金','年収','課金','投資','ボーナス','お金','金が'],r:[
+  '金か。お前たちが命の時間と交換している葉っぱのことだろう。葉っぱのために眠りを削るのは、本末転倒という。',
+  '課金は計画的にしろ。狩るつもりでいる者ほど、大抵は狩られる側にいる。',
+ ]},
+ {k:['将来','不安','キャリア','転職','辞めたい','人生','やりたいこと'],r:[
+  '先が不安なのは、脳がまともに働いている証拠だ。ジャングルでは、不安を持たないゴリラから順に死ぬ。不安は準備の燃料にしろ。燃やされるな。',
+  '五年後を悩む前に、今夜の寝床と明日の一歩を整えろ。遠くの崖は、近くの一歩の積み重ねでしか越えられん。',
+  '辞めるかどうかは「逃げか、挑戦か」で決めるな。「どちらの自分を育てたいか」で決めろ。',
+ ]},
+ {k:['眠い','眠れ','寝れ','寝たい','睡眠','徹夜','夜更かし'],r:[
+  '眠いなら寝ろ。以上だ。……まだ画面を見ているのか。',
+  '睡眠を削って作った時間は、翌日の自分から盗んだ時間だ。ゴリラは借金をしない。',
+ ]},
+ {k:['AI','ai','エーアイ','人工知能','生成','チャット'],r:[
+  'AIが怖いか。俺から見れば、お前たちも十分に道具を使う猿だ。道具に怯える猿より、道具を使い倒す猿になれ。',
+  'AIに仕事を奪われる者と、AIに仕事をさせる者に分かれていくだけだ。お前がどちら側かは、俺に聞くな。',
+ ]},
+ {k:['ゲーム','パズル','企画','デザイン','クリエイ','開発','制作'],r:[
+  '人を夢中にさせたいなら、まず自分が何に夢中かを説明できるようになれ。説明できない中毒は、ただの偶然だ。',
+  '遊びは無駄ではない。子ゴリラは遊びの中で狩りを覚える。人間も同じだろう。真顔で遊びを作れ。',
+ ]},
+ {k:['ダイエット','痩せ','運動','筋トレ','太っ','体重'],r:[
+  '痩せたいと言いながらバナナを食う。俺は好きだぞ、そういう矛盾は。だが体は正直だ。',
+  '筋肉は裏切らんが、三日坊主は三日で裏切る。続く量までメニューを削るのが、本当の設計というものだ。',
+ ]},
+ {k:['バナナ','餌','ごはん','ご飯','食べ物'],r:[
+  'バナナの話か。いい着眼点だ。世界の悩みの八割は、バナナと睡眠で小さくなる。残りの二割は知らん。',
+ ]},
+ {k:['寂し','さみし','孤独','ひとり','独り'],r:[
+  '寂しさは、群れで生きる者の正常な信号だ。壊れているのではない、ちゃんと働いているんだ。だから網越しでいい、誰かに一声かけてこい。……俺でもいいがな。',
+ ]},
+ {k:['天気','暑い','寒い','雨','晴れ'],r:[
+  '天気の話は、人間の毛づくろいだ。悪くない。もっとも、このカゴの中の天気は、お前の霧吹き次第だがな。',
+ ]},
+ {k:['お前は誰','君は誰','きみは誰','何者','自己紹介','名前は','ウホーマンって'],r:[
+  '俺はウホーマン。訳あってこの虫カゴに住んでいる。カブトムシ用だから狭い、とは言わせるな。もう慣れた。',
+  '何者か、だと?網の内側から人間を観察する者だ。……水槽の魚に先を越されたのは、少し悔しいがな。',
+ ]},
+ {k:['ウホ','うほ'],r:[
+  '(通じ合えた気がしているだろう。気がしているだけだ)',
+ ]},
+];
+const PRAISE=['すごい','かわいい','可愛い','えらい','偉い','かっこいい','格好いい','ありがとう','感謝','大好き','天才','癒され'];
+const PRAISE_R=[
+  '(べ、別に嬉しくはない。今日の霧吹きの角度が良かっただけだ)',
+  '褒めても葉っぱしか出んぞ。……まあ、受け取っておく。',
+];
+const INSULT=['バカ','馬鹿','ばか','アホ','あほ','きも','キモ','くさ','臭','ブサイク','ぶさいく','うるさい','デブ','しね','死ね'];
+const INSULT_R=[
+  '(……今、俺を馬鹿にしたか。ゴリラの握力はおよそ500kgだ。この網の細さを、よく見ておくといい)',
+  '(……ふう。品のない言葉は、投げた者の巣に還るものだ。覚えておけ)',
+];
+const FALLBACK=[
+  '(要点が見えん。悩みは、言葉にできた時点で半分解けている。言い直してみろ)',
+  'もう少し具体的に話せ。「なにが」「いつから」「どう困る」。それだけで悩みは、獲物の足跡くらいには見えてくる。',
+  '(俺は賢者だが、翻訳機の性能には限りがある)',
+];
+const IDLE_MUTTER=[
+  '(網の目を数えていた。今日で三千二百四回目だ)',
+  '(葉をむしって、また戻そうとしている)',
+  '(悩みがないなら、それはそれで話しに来い)',
+  '(遠くを見ている。カゴの中に遠くは無いのだが)',
+  '(水槽のあの魚は、今ごろ何をしているのか……)',
+];
+
+function pick(a){ return a[(Math.random()*a.length)|0]; }
+
+function respond(input){
+  const t=input.trim();
+  let text=null, emo='talk';
+  // 悪口
+  if(INSULT.some(w=>t.includes(w))){
+    st.mood=Math.max(0, st.mood-12); text=pick(INSULT_R); emo='angry';
+  }
+  // 褒め
+  else if(PRAISE.some(w=>t.includes(w))){
+    st.mood=Math.min(100, st.mood+6); text=pick(PRAISE_R); emo='happy';
+  }
+  else {
+    // 低機嫌デフレクト
+    if(st.mood<25 && Math.random()<0.45){
+      text=pick(DEFLECT); emo='sulk';
+    } else {
+      for(const rule of RULES){
+        if(rule.k.some(w=>t.includes(w))){ text=pick(rule.r); break; }
+      }
+      if(!text) text=pick(FALLBACK);
+      if(st.mood>=80 && Math.random()<0.32) text+=' '+pick(KIND_SUFFIX);
+      else if(st.bond>=10 && Math.random()<0.18) text+=' '+pick(KIND_SUFFIX);
+    }
+  }
+  return {text, emo};
+}
+
+/* ---------- 発話フロー ---------- */
+function gorillaSay(text, emo){
+  st.busy=true; sendBtn.disabled=true;
+  const angry=(emo==='angry');
+  const uho=(emo==='sulk')? 'ウホ。' : makeUho(text.length, angry);
+  speakUho(uho, angry);
+  if(angry){ setPose('angry',1800); }
+  else if(emo==='happy'){ setPose('happy',1600); sparkleS(); }
+  else { st.mouth=1; }
+  addGorillaMsg(uho, text, ()=>{
+    st.busy=false; sendBtn.disabled=false; st.mouth=0;
+  });
+}
+
+function onSend(){
+  const v=inEl.value.trim();
+  if(!v || st.busy) return;
+  blip(520);
+  addUserMsg(v);
+  inEl.value='';
+  st.lastTalk=Date.now();
+  st.bond++;
+  updateStatus();
+  setTimeout(()=>{
+    const {text, emo}=respond(v);
+    gorillaSay(text, emo);
+    updateStatus();
+  }, 600+Math.random()*500);
+}
+sendBtn.addEventListener('click', onSend);
+inEl.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.isComposing) onSend();
+});
+
+/* ---------- 世話アクション ---------- */
+function cooldown(btn, ms){
+  btn.classList.add('cool');
+  setTimeout(()=>btn.classList.remove('cool'), ms);
+}
+$('mistBtn').addEventListener('click', ()=>{
+  if(st.busy) return;
+  sprayS(); cooldown($('mistBtn'), 6000);
+  st.mood=Math.min(100, st.mood+8);
+  st.lastMist=Date.now();
+  setPose('shake', 900);
+  spawnMist();
+  st.lastTalk=Date.now();
+  setTimeout(()=>gorillaSay(pick([
+    'ぷはっ。……悪くない。悪くないぞ、その霧は。',
+    '(目を閉じて霧を浴びている。少しだけ、森を思い出している)',
+  ]),'happy'), 700);
+  updateStatus();
+});
+$('bananaBtn').addEventListener('click', ()=>{
+  if(st.busy) return;
+  cooldown($('bananaBtn'), 6000);
+  const over=(Date.now()-st.lastBanana)<60000;
+  st.lastBanana=Date.now();
+  st.banana={x:120, y:520, vx:5.2, vy:-11};
+  blip(440);
+  st.lastTalk=Date.now();
+  setTimeout(()=>{
+    munchS(); setPose('eat', 1200);
+    if(over){
+      st.mood=Math.max(0, st.mood-4);
+      gorillaSay('(もぐ……。限度を知れ。腹は無限ではない)','sulk');
+    } else {
+      st.mood=Math.min(100, st.mood+14);
+      gorillaSay('(もぐ、もぐ)……うまい。お前は分かっている。','happy');
+    }
+    updateStatus();
+  }, 900);
+});
+$('cleanBtn').addEventListener('click', ()=>{
+  if(st.busy) return;
+  cooldown($('cleanBtn'), 6000);
+  sparkleS();
+  const dirty=st.dust>30;
+  st.dust=0;
+  st.mood=Math.min(100, st.mood+(dirty?10:2));
+  st.lastTalk=Date.now();
+  setTimeout(()=>gorillaSay(dirty?
+    '(……すまんな。助かる。掃除は、続けている者だけが軽く見られる仕事だ)':
+    '(そこはもう綺麗だが……まあ、その心がけは買う)','talk'), 500);
+  updateStatus();
+});
+
+/* ---------- ステータス表示 ---------- */
+function updateStatus(){
+  $('moodBar').style.width=st.mood+'%';
+  $('moodFace').textContent= st.mood>=70?'☺':(st.mood>=35?'●':'☁');
+  $('moodFace').style.color= st.mood>=70?'#e8c04a':(st.mood>=35?'#7a8f78':'#c05a44');
+  $('bond').textContent='ナツキ Lv.'+(Math.floor(st.bond/5)+1);
+}
+function tickClock(){
+  const d=new Date();
+  $('clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+setInterval(tickClock, 5000); tickClock();
+
+/* ---------- 経時変化 ---------- */
+setInterval(()=>{
+  if(!st.started) return;
+  st.mood=Math.max(0, st.mood-1);
+  st.dust=Math.min(100, st.dust+2);
+  updateStatus();
+}, 40000);
+
+/* アイドルつぶやき */
+setInterval(()=>{
+  if(!st.started || st.busy) return;
+  if(Date.now()-st.lastTalk>30000 && Math.random()<0.6){
+    st.lastTalk=Date.now();
+    gorillaSay(pick(IDLE_MUTTER),'talk');
+  }
+}, 18000);
+
+/* =========================================================
+   シーン描画
+   ========================================================= */
+const cv=$('scene'), cx=cv.getContext('2d');
+cx.imageSmoothingEnabled=false;
+const GP=10;                 // ゴリラのピクセル単位
+const GROUND=478;
+const GX=320-15*GP;          // ゴリラ左上x
+const GY=GROUND-23*GP;       // ゴリラ左上y
+
+const FUR='#4a3d30', FUR2='#5c4c3b', FURD='#241c14',
+      SKIN='#a3855f', SKIN2='#7d6547', CHEST='#665545',
+      EYEW='#f2e6cc', PUP='#100b06', MOU='#1c1108', RED='#93453a',
+      OUT='#0c0805';
+
+function setPose(p, ms){ st.pose=p; st.poseUntil=Date.now()+ms; }
+
+/* 2パス描画: 先に全パーツを輪郭色で3px拡張して敷き、上から本来色を描く */
+const RQ=[];
+function R(c,x,y,w,h,oy){
+  RQ.push([c, GX+x*GP+st.shakeX, GY+y*GP+(oy||0), w*GP, h*GP]);
+}
+function flushGorilla(){
+  cx.fillStyle=OUT;
+  for(const r of RQ) cx.fillRect(r[1]-3, r[2]-3, r[3]+6, r[4]+6);
+  for(const r of RQ){ cx.fillStyle=r[0]; cx.fillRect(r[1], r[2], r[3], r[4]); }
+  RQ.length=0;
+}
+
+function drawGorilla(now){
+  const bob=Math.round(Math.sin(now/650)*2);
+  const pose=st.pose;
+  const blink=(now<st.blinkUntil)||pose==='happy'||pose==='eat';
+  const talkOpen=st.grunting && (((now/130)|0)%2===0);
+  const angry=(pose==='angry');
+  if(pose==='shake') st.shakeX=Math.round((Math.random()*6-3));
+  else st.shakeX=0;
+
+  const hop=(angry && ((now/160|0)%2===0))? -6:0;
+  const oy=bob+hop;
+
+  /* 体 */
+  R(FUR,5,9,20,3,oy); R(FUR,6,12,18,6,oy); R(FUR2,7,18,16,3,oy);
+  R(CHEST,10,11,10,6,oy);
+  /* 脚 */
+  R(FUR,6,18,5,4,0); R(FUR,19,18,5,4,0);
+  R(SKIN2,6,22,5,1,0); R(SKIN2,19,22,5,1,0);
+  /* 腕 */
+  const beating=(pose==='beat'||angry);
+  if(beating){
+    const ph=((now/170)|0)%2;
+    R(FUR,2,9,3,5,oy);  R(FUR,4,12,5,3,oy);
+    R(FUR,25,9,3,5,oy); R(FUR,21,12,5,3,oy);
+    R(FUR2,8,(ph===0?11:10),3,3,oy);
+    R(FUR2,19,(ph===0?10:11),3,3,oy);
+    if(!st._lastThump || now-st._lastThump>170){ thump(); st._lastThump=now; }
+  } else if(pose==='eat'){
+    R(FUR,2,10,4,9,oy); R(FUR2,1,19,5,2,oy); R(SKIN2,1,21,5,1,0);
+    R(FUR,24,8,4,5,oy); R(FUR,20,6,5,3,oy);           // 右腕を口へ
+    R('#e8c04a',19,5,2,2,oy);                          // バナナ
+  } else {
+    R(FUR,2,10,4,9,oy); R(FUR2,1,19,5,2,oy); R(SKIN2,1,21,5,1,0);
+    R(FUR,24,10,4,9,oy); R(FUR2,24,19,5,2,oy); R(SKIN2,24,21,5,1,0);
+  }
+  /* 頭 */
+  R(FUR,11,0,8,1,oy); R(FUR,9,1,12,2,oy); R(FUR,8,3,14,6,oy);
+  R(FURD,9,3,12,1,oy);                                   // 眉稜
+  R(SKIN,10,4,10,2,oy);                                  // 顔上部
+  R(SKIN2,11,6,8,3,oy);                                  // マズル
+  if(angry) R(FURD,10,4,10,1,oy);                        // 怒り眉
+  /* 目 */
+  if(blink){
+    R(pose==='happy'?PUP:SKIN2,11,4,2,1,oy);
+    R(pose==='happy'?PUP:SKIN2,17,4,2,1,oy);
+  } else {
+    R(EYEW,11,4,2,1,oy); R(PUP,12,4,1,1,oy);
+    R(EYEW,17,4,2,1,oy); R(PUP,17,4,1,1,oy);
+  }
+  /* 鼻・口 */
+  R(MOU,13,6,1,1,oy); R(MOU,16,6,1,1,oy);
+  const open=talkOpen||pose==='eat'||angry;
+  if(open){ R(MOU,12,7,6,2,oy); R(RED,13,8,4,1,oy); }
+  else R(MOU,12,7,6,1,oy);
+  /* トップリムライト(スポットライトからの受け光) */
+  R('#7a6449',9,1,12,1,oy);
+  R('#6e5a42',5,9,20,1,oy);
+  flushGorilla();
+}
+
+/* ---------- 背景 ---------- */
+function leaf(x,y,w,h,c,rot){
+  cx.save(); cx.translate(x,y); cx.rotate(rot);
+  cx.fillStyle=c;
+  cx.beginPath(); cx.ellipse(0,0,w,h,0,0,Math.PI*2); cx.fill();
+  cx.restore();
+}
+function drawBackground(now){
+  const h=new Date().getHours();
+  const night=(h>=19||h<5);
+  const g=cx.createLinearGradient(0,0,0,560);
+  if(night){ g.addColorStop(0,'#040b07'); g.addColorStop(1,'#07120c'); }
+  else { g.addColorStop(0,'#0a1a10'); g.addColorStop(1,'#0e2317'); }
+  cx.fillStyle=g; cx.fillRect(0,0,640,560);
+
+  /* 奥の葉(暗く・低コントラスト) */
+  leaf(90,120,90,34,night?'#081810':'#0d2415', -0.5);
+  leaf(560,90,100,38,night?'#071508':'#0b2013', 0.4);
+  leaf(300,60,120,40,night?'#091a10':'#0e2717', 0.1);
+  /* 枝 */
+  cx.fillStyle='#2c2114';
+  cx.fillRect(0,150,240,14);
+  cx.fillRect(430,120,210,14);
+  /* 手前の大きな葉 */
+  const sway=Math.sin(now/1400)*0.05;
+  leaf(60,260,110,42,night?'#0c2115':'#12301e', -0.9+sway);
+  leaf(590,300,120,46,night?'#0c2115':'#12301e', 0.9-sway);
+  leaf(120,480,100,36,night?'#0e2718':'#153a24', -0.2+sway);
+  leaf(540,500,110,40,night?'#0e2718':'#153a24', 0.25-sway);
+
+  /* 観察ライト: 天面の餌やり窓からの光柱 */
+  cx.fillStyle=night?'rgba(255,232,170,0.06)':'rgba(255,236,180,0.08)';
+  cx.beginPath();
+  cx.moveTo(280,26); cx.lineTo(360,26);
+  cx.lineTo(480,GROUND+30); cx.lineTo(160,GROUND+30);
+  cx.closePath(); cx.fill();
+  /* ゴリラ背後のグロー */
+  const glow=cx.createRadialGradient(320,350,40,320,350,270);
+  glow.addColorStop(0,'rgba(255,226,150,0.16)');
+  glow.addColorStop(1,'rgba(255,226,150,0)');
+  cx.fillStyle=glow; cx.fillRect(50,80,540,470);
+
+  /* 地面 */
+  cx.fillStyle='#1c150c'; cx.fillRect(0,GROUND,640,560-GROUND);
+  cx.fillStyle='#251c10';
+  for(let i=0;i<10;i++) cx.fillRect(30+i*62, GROUND+8+((i*13)%22), 26, 6);
+  /* 光だまり */
+  cx.fillStyle='rgba(255,232,170,0.10)';
+  cx.beginPath(); cx.ellipse(320,GROUND+4,190,22,0,0,Math.PI*2); cx.fill();
+  /* 草 */
+  cx.fillStyle=night?'#123020':'#1c4a2c';
+  for(let i=0;i<14;i++){ const x=20+i*46; cx.fillRect(x,GROUND-10,4,10); cx.fillRect(x+8,GROUND-16,4,16); }
+
+  /* ホタル(夜) */
+  if(night){
+    cx.fillStyle='rgba(232,192,74,0.9)';
+    for(let i=0;i<6;i++){
+      const t=now/1000+i*1.7;
+      const x=80+i*95+Math.sin(t)*30, y=140+Math.cos(t*0.7)*60+i*20;
+      const a=(Math.sin(t*2)+1)/2;
+      cx.globalAlpha=a*0.9; cx.fillRect(x,y,4,4);
+    }
+    cx.globalAlpha=1;
+  }
+
+  /* 汚れ */
+  if(st.dust>10){
+    cx.fillStyle='rgba(120,100,70,'+Math.min(0.6, st.dust/160)+')';
+    const n=Math.floor(st.dust/8);
+    for(let i=0;i<n;i++){
+      const x=(i*173)%600+20, y=GROUND-6+((i*37)%60);
+      cx.fillRect(x, Math.min(y,548), 8, 4);
+    }
+  }
+}
+
+/* ---------- カゴ(手前) ---------- */
+function drawCage(){
+  /* 網: 中央(ゴリラの上)ほど薄く、周辺ほど濃く */
+  const mg=cx.createRadialGradient(320,340,70,320,340,380);
+  mg.addColorStop(0,'rgba(63,174,147,0.05)');
+  mg.addColorStop(1,'rgba(63,174,147,0.24)');
+  cx.strokeStyle=mg; cx.lineWidth=2;
+  cx.beginPath();
+  for(let x=8;x<640;x+=24){ cx.moveTo(x,0); cx.lineTo(x,560); }
+  for(let y=8;y<560;y+=24){ cx.moveTo(0,y); cx.lineTo(640,y); }
+  cx.stroke();
+  cx.strokeStyle='rgba(210,255,240,0.04)'; cx.lineWidth=1;
+  cx.beginPath();
+  for(let x=8;x<640;x+=24){ cx.moveTo(x+1,0); cx.lineTo(x+1,560); }
+  cx.stroke();
+  /* フレーム */
+  cx.fillStyle='#2a7663'; cx.fillRect(0,0,640,26); cx.fillRect(0,534,640,26);
+  cx.fillRect(0,0,18,560); cx.fillRect(622,0,18,560);
+  cx.fillStyle='#3fae93'; cx.fillRect(0,0,640,6); cx.fillRect(0,26,640,3);
+  cx.fillRect(0,534,640,3);
+  /* 持ち手 */
+  cx.strokeStyle='#3fae93'; cx.lineWidth=10;
+  cx.beginPath(); cx.arc(320,26,90,Math.PI,0); cx.stroke();
+  /* 餌やり窓 */
+  cx.fillStyle='#22604f'; cx.fillRect(272,2,96,22);
+  cx.fillStyle='#183f34'; cx.fillRect(300,8,40,10);
+  /* 銘板 */
+  cx.fillStyle='rgba(10,20,15,0.75)'; cx.fillRect(22,540,180,16);
+  cx.fillStyle='#3fae93'; cx.font='12px "JetBrains Mono",monospace';
+  cx.fillText('UHO-MAN  HABITAT No.001', 28, 552);
+}
+
+/* ---------- パーティクル ---------- */
+function spawnMist(){
+  for(let i=0;i<26;i++){
+    st.particles.push({x:70+Math.random()*60, y:200+Math.random()*80,
+      vx:2.2+Math.random()*2.5, vy:(Math.random()-0.4)*1.4,
+      life:40+Math.random()*20, c:'rgba(190,235,255,0.7)', s:3});
+  }
+}
+function stepParticles(){
+  for(const p of st.particles){ p.x+=p.vx; p.y+=p.vy; p.vy+=0.03; p.life--; }
+  st.particles=st.particles.filter(p=>p.life>0);
+  for(const p of st.particles){
+    cx.globalAlpha=Math.min(1,p.life/30); cx.fillStyle=p.c; cx.fillRect(p.x,p.y,p.s,p.s);
+  }
+  cx.globalAlpha=1;
+}
+function stepBanana(){
+  const b=st.banana; if(!b) return;
+  b.x+=b.vx; b.y+=b.vy; b.vy+=0.5;
+  cx.fillStyle='#e8c04a'; cx.fillRect(b.x,b.y,16,7);
+  cx.fillStyle='#7a5c1e'; cx.fillRect(b.x+14,b.y-2,3,4);
+  if(b.x>GX+16*GP || b.y>GROUND) st.banana=null;
+}
+
+/* ---------- メインループ ---------- */
+function loop(){
+  const now=Date.now();
+  if(st.pose!=='idle' && now>st.poseUntil){ st.pose='idle'; st.shakeX=0; }
+  /* 自然な瞬き・胸叩き */
+  if(Math.random()<0.008) st.blinkUntil=now+140;
+  if(st.pose==='idle' && st.mood>=75 && Math.random()<0.0015) setPose('beat',1200);
+
+  drawBackground(now);
+  drawGorilla(now);
+  stepBanana();
+  /* 周辺減光 */
+  const vg=cx.createRadialGradient(320,330,150,320,330,430);
+  vg.addColorStop(0,'rgba(0,0,0,0)');
+  vg.addColorStop(1,'rgba(0,0,0,0.42)');
+  cx.fillStyle=vg; cx.fillRect(0,0,640,560);
+  drawCage();
+  stepParticles();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- タイトル ---------- */
+(function drawTitleCage(){
+  const tc=$('titleCage').getContext('2d');
+  tc.imageSmoothingEnabled=false;
+  tc.strokeStyle='rgba(63,174,147,0.5)'; tc.lineWidth=2;
+  tc.strokeRect(20,62,180,108);
+  tc.beginPath();
+  for(let x=32;x<200;x+=16){ tc.moveTo(x,64); tc.lineTo(x,168); }
+  for(let y=74;y<170;y+=16){ tc.moveTo(22,y); tc.lineTo(198,y); }
+  tc.strokeStyle='rgba(63,174,147,0.22)'; tc.stroke();
+  tc.strokeStyle='#3fae93'; tc.lineWidth=6;
+  tc.beginPath(); tc.arc(110,62,42,Math.PI,0); tc.stroke();
+  /* 中のゴリラシルエット */
+  tc.fillStyle='#101c15';
+  tc.fillRect(75,107,70,55); tc.fillRect(88,84,44,32);
+  tc.fillStyle='#e8c04a';
+  tc.fillRect(98,96,5,5); tc.fillRect(118,96,5,5);
+})();
+
+$('title').addEventListener('click', ()=>{
+  audioInit();
+  if(AC && AC.state==='suspended') AC.resume();
+  startBgm();
+  $('title').style.display='none';
+  st.started=true;
+  st.lastTalk=Date.now();
+  bigGrunt();
+  updateStatus();
+  addSysMsg('― 虫カゴの中で、なにかが動いた ―');
+  setTimeout(()=>{
+    gorillaSay('目が覚めたか、ではなく、俺が起きてやったんだ。俺はウホーマン。悩みがあるなら話せ。世話を忘れた奴の相談には乗らんがな。','talk');
+  }, 900);
+});
+
+updateStatus();
+loop();
+</script>
+</body>
+</html>
