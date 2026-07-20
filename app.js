@@ -1,11 +1,4 @@
-const fallbackProjects = [
-  { title: "Palette Lab", kind: "tool", description: "配色を試して共有できるカラーツール", detail: "色を並べ、比べ、保存するための小さな実験室。" },
-  { title: "Focus Timer", kind: "tool", description: "集中と休憩を気持ちよく切り替える", detail: "作業のリズムだけを静かに整えるタイマー。" },
-  { title: "Pixel Runner", kind: "game", description: "60秒で遊べるミニランゲーム", detail: "短い時間で記録更新を目指すワンボタンゲーム。" },
-  { title: "Sound Blocks", kind: "game", description: "音を重ねてループを作る", detail: "ブロックを置くだけで小さな曲ができる音遊び。" },
-  { title: "Layout Quiz", kind: "game", description: "UIレイアウトの感覚を試すクイズ", detail: "余白と整列を見る目を、問題を通して確かめる。" },
-  { title: "Tiny Calculator", kind: "tool", description: "迷わず使える小さな計算機", detail: "よく使う計算だけを、すぐ終わらせるための道具。" },
-];
+const fallbackProjects = [];
 
 const grid = document.querySelector("#project-grid");
 const visibleCount = document.querySelector("#visible-count");
@@ -41,6 +34,10 @@ function projectTitle(project) {
 
 function projectDetail(project) {
   return project.detail || "ブラウザですぐ使える、小さな作品です。";
+}
+
+function isPublishedProject(project) {
+  return typeof project.url === "string" && project.url.startsWith("/apps/");
 }
 
 function sortProjectsByRecent(items) {
@@ -90,19 +87,10 @@ function createCard(project, index, total) {
     createTextElement("p", "detail", projectDetail(project)),
   );
 
-  const isPublished = typeof project.url === "string" && project.url.startsWith("/");
-  const action = document.createElement(isPublished ? "a" : "button");
+  const action = document.createElement("a");
   action.className = "open-project";
-  if (isPublished) {
-    action.href = project.url;
-    action.setAttribute("aria-label", `${title} を開く`);
-  } else {
-    action.type = "button";
-    action.setAttribute("aria-label", `${title} の公開情報を確認`);
-    action.addEventListener("click", () => {
-      notice.textContent = `${title} は仮データです。実作品を追加すると、ここから開けます。`;
-    });
-  }
+  action.href = project.url;
+  action.setAttribute("aria-label", `${title} を開く`);
   action.append(
     createTextElement("span", "", "Open"),
     createTextElement("span", "arrow", "↗"),
@@ -139,9 +127,12 @@ async function loadProjects() {
     if (!response.ok) throw new Error(`Catalog request failed: ${response.status}`);
     const catalog = await response.json();
     if (!Array.isArray(catalog)) throw new Error("Catalog is not an array");
-    projects = sortProjectsByRecent(catalog);
+    projects = sortProjectsByRecent(catalog.filter(isPublishedProject));
+    notice.textContent = "";
   } catch (error) {
-    console.warn("Using the built-in catalog fallback.", error);
+    projects = fallbackProjects;
+    notice.textContent = "作品情報を読み込めませんでした。時間をおいて再読み込みしてください。";
+    console.warn("Catalog could not be loaded.", error);
   }
   render();
 }

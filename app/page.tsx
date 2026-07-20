@@ -1,48 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import catalogProjects from "../data/projects.json";
 
 type ProjectKind = "tool" | "game";
 type Filter = "all" | ProjectKind;
 
-const projects = [
-  {
-    name: "Palette Lab",
-    kind: "tool" as const,
-    description: "配色を試して共有できるカラーツール",
-    detail: "色を並べ、比べ、保存するための小さな実験室。",
-  },
-  {
-    name: "Focus Timer",
-    kind: "tool" as const,
-    description: "集中と休憩を気持ちよく切り替える",
-    detail: "作業のリズムだけを静かに整えるタイマー。",
-  },
-  {
-    name: "Pixel Runner",
-    kind: "game" as const,
-    description: "60秒で遊べるミニランゲーム",
-    detail: "短い時間で記録更新を目指すワンボタンゲーム。",
-  },
-  {
-    name: "Sound Blocks",
-    kind: "game" as const,
-    description: "音を重ねてループを作る",
-    detail: "ブロックを置くだけで小さな曲ができる音遊び。",
-  },
-  {
-    name: "Layout Quiz",
-    kind: "game" as const,
-    description: "UIレイアウトの感覚を試すクイズ",
-    detail: "余白と整列を見る目を、問題を通して確かめる。",
-  },
-  {
-    name: "Tiny Calculator",
-    kind: "tool" as const,
-    description: "迷わず使える小さな計算機",
-    detail: "よく使う計算だけを、すぐ終わらせるための道具。",
-  },
-];
+const projects = catalogProjects
+  .filter((project) => project.url.startsWith("/apps/"))
+  .sort((left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt))
+  .map((project) => ({
+    name: project.title,
+    kind: project.kind as ProjectKind,
+    description: project.description,
+    detail: "ブラウザですぐ使える、小さな作品です。",
+    url: project.url,
+  }));
 
 const filters: Array<{ value: Filter; label: string }> = [
   { value: "all", label: "すべて" },
@@ -52,9 +25,6 @@ const filters: Array<{ value: Filter; label: string }> = [
 
 export default function Home() {
   const [filter, setFilter] = useState<Filter>("all");
-  const [notice, setNotice] = useState(
-    "掲載内容は仮データです。公開URLはあとから差し替えられます。",
-  );
 
   const visibleProjects = useMemo(
     () =>
@@ -86,10 +56,6 @@ export default function Home() {
     };
   }, []);
 
-  const openPlaceholder = (name: string) => {
-    setNotice(`${name} は仮データです。実際の公開URLを設定すると、ここから開けます。`);
-  };
-
   return (
     <div className="site-shell">
       <header className="site-header">
@@ -117,11 +83,13 @@ export default function Home() {
               <p className="intro">
                 小さなツールとゲームを集めた、個人制作のプレイグラウンド。
               </p>
-              <p className="aside-meta">Open catalog — 06 projects</p>
+              <p className="aside-meta">
+                Open catalog — {String(projects.length).padStart(2, "0")} projects
+              </p>
             </div>
           </div>
           <span className="hero-watermark" aria-hidden="true">
-            06
+            {String(projects.length).padStart(2, "0")}
           </span>
         </section>
 
@@ -159,7 +127,8 @@ export default function Home() {
               >
                 <div className="card-top">
                   <span className="number">
-                    {String(projects.indexOf(project) + 1).padStart(2, "0")} / 06
+                    {String(projects.indexOf(project) + 1).padStart(2, "0")} /{" "}
+                    {String(projects.length).padStart(2, "0")}
                   </span>
                   <span className={`type type-${project.kind}`}>
                     {project.kind === "tool" ? "ツール" : "ゲーム"}
@@ -170,24 +139,20 @@ export default function Home() {
                   <p className="description">{project.description}</p>
                   <p className="detail">{project.detail}</p>
                 </div>
-                <button
+                <a
                   className="open-project"
-                  type="button"
-                  onClick={() => openPlaceholder(project.name)}
-                  aria-label={`${project.name} の公開情報を確認`}
+                  href={project.url}
+                  aria-label={`${project.name} を開く`}
                 >
                   <span>Open</span>
                   <span className="arrow" aria-hidden="true">
                     ↗
                   </span>
-                </button>
+                </a>
               </article>
             ))}
           </div>
 
-          <p className="catalog-notice" role="status" aria-live="polite">
-            {notice}
-          </p>
         </section>
       </main>
 

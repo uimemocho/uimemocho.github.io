@@ -1,59 +1,5 @@
 [
   {
-    "slug": "palette-lab",
-    "title": "Palette Lab",
-    "kind": "tool",
-    "description": "配色を試して共有できるカラーツール",
-    "detail": "色を並べ、比べ、保存するための小さな実験室。",
-    "url": null,
-    "thumbnail": null
-  },
-  {
-    "slug": "focus-timer",
-    "title": "Focus Timer",
-    "kind": "tool",
-    "description": "集中と休憩を気持ちよく切り替える",
-    "detail": "作業のリズムだけを静かに整えるタイマー。",
-    "url": null,
-    "thumbnail": null
-  },
-  {
-    "slug": "pixel-runner",
-    "title": "Pixel Runner",
-    "kind": "game",
-    "description": "60秒で遊べるミニランゲーム",
-    "detail": "短い時間で記録更新を目指すワンボタンゲーム。",
-    "url": null,
-    "thumbnail": null
-  },
-  {
-    "slug": "sound-blocks",
-    "title": "Sound Blocks",
-    "kind": "game",
-    "description": "音を重ねてループを作る",
-    "detail": "ブロックを置くだけで小さな曲ができる音遊び。",
-    "url": null,
-    "thumbnail": null
-  },
-  {
-    "slug": "layout-quiz",
-    "title": "Layout Quiz",
-    "kind": "game",
-    "description": "UIレイアウトの感覚を試すクイズ",
-    "detail": "余白と整列を見る目を、問題を通して確かめる。",
-    "url": null,
-    "thumbnail": null
-  },
-  {
-    "slug": "tiny-calculator",
-    "title": "Tiny Calculator",
-    "kind": "tool",
-    "description": "迷わず使える小さな計算機",
-    "detail": "よく使う計算だけを、すぐ終わらせるための道具。",
-    "url": null,
-    "thumbnail": null
-  },
-  {
     "slug": "seikimatsu-janken",
     "title": "世紀末ジャン拳",
     "kind": "game",
