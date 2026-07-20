@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>北斎かるた ─ HOKUSAI KARUTA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700;800&family=Yuji+Syuku&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   北斎かるた ─ 江戸モダン・デザイントークン
+   白い和紙 × 澄んだ藍 × 朱 / 明朝体 / 縦書き読み札
+   ============================================================ */
+:root{
+  --washi:#f4f8f9;        /* 青白い和紙(ベース) */
+  --washi2:#e8f0f3;       /* 面(パネル) */
+  --washi3:#d7e4e9;       /* 濃い面 */
+  --sumi:#132f40;         /* 墨紺(主文字) */
+  --sumi2:#57707e;        /* 藍鼠(補助文字) */
+  --ai:#0e3856;           /* 藍(主UI) */
+  --ai2:#275f83;          /* 藍(明) */
+  --ai-usu:#dce9ee;       /* 藍鼠(薄) */
+  --shu:#d13e2c;          /* 朱(印章・強調) */
+  --shu2:#a92e22;         /* 朱(深) */
+  --kin:#90aab7;          /* 銀藍(縁) */
+  --kin2:#d4e2e8;         /* 銀藍(明) */
+  --yuki:#fcfefe;         /* 雪(白) */
+  --f-min:'Shippori Mincho B1', serif;
+  --f-fude:'Yuji Syuku', serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--f-min);
+  color:var(--sumi);
+  background:var(--washi);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.25 0 0 0 0 0.34 0 0 0 0 0.39 0 0 0 0.025 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23p)'/%3E%3C/svg%3E");
+  overflow-x:hidden;
+  user-select:none;
+  -webkit-user-select:none;
+}
+#app{
+  max-width:560px;margin:0 auto;min-height:100dvh;position:relative;
+  display:flex;flex-direction:column;
+}
+/* 上下の藍帯(青海波) */
+.obi{
+  height:14px;flex:none;background-color:var(--ai);
+  background-image:
+    radial-gradient(circle at 8px 16px, transparent 6px, rgba(242,233,212,.28) 6.6px, rgba(242,233,212,.28) 7.6px, transparent 8.2px),
+    radial-gradient(circle at 24px 16px, transparent 6px, rgba(242,233,212,.28) 6.6px, rgba(242,233,212,.28) 7.6px, transparent 8.2px);
+  background-size:32px 16px;
+}
+.obi.top{box-shadow:0 2px 0 var(--kin)}
+.obi.btm{box-shadow:0 -2px 0 var(--kin);margin-top:auto}
+
+/* ============ 画面切替 ============ */
+.screen{display:none;flex-direction:column;flex:1;padding:18px 16px 24px;animation:fadein .35s ease}
+.screen.active{display:flex}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+/* ============ 共通部品 ============ */
+.btn-wa{
+  font-family:var(--f-min);font-weight:700;font-size:17px;letter-spacing:.35em;text-indent:.35em;
+  color:var(--yuki);background:var(--ai);
+  border:1px solid var(--ai);outline:2px solid var(--kin);outline-offset:2px;
+  padding:14px 10px;width:100%;cursor:pointer;border-radius:2px;
+  transition:transform .08s ease, background .15s ease;
+}
+.btn-wa:active{transform:scale(.97);background:var(--ai2)}
+.btn-wa.ghost{background:transparent;color:var(--ai);border:1px solid var(--ai);outline-color:transparent}
+.btn-wa.ghost:active{background:rgba(29,58,95,.08)}
+.btn-wa.shu{background:var(--shu);border-color:var(--shu)}
+.btn-wa.shu:active{background:var(--shu2)}
+.btn-wa:focus-visible,.card:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
+.hanko{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--f-fude);color:var(--yuki);background:var(--shu);
+  border-radius:6px;transform:rotate(-5deg);
+  box-shadow:inset 0 0 0 2px var(--yuki), inset 0 0 0 4px var(--shu);
+}
+.small{font-size:11px;color:var(--sumi2);letter-spacing:.08em}
+.center{text-align:center}
+
+/* ============ 題(タイトル)画面 ============ */
+#scr-title{align-items:center;justify-content:flex-start;gap:0}
+.daisen{
+  margin-top:6px;font-size:11px;letter-spacing:.5em;text-indent:.5em;color:var(--yuki);
+  background:var(--ai);padding:6px 14px;border:1px solid var(--kin);
+}
+.title-stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:300px;width:100%;margin:8px 0 2px}
+.title-vert{
+  writing-mode:vertical-rl;font-family:var(--f-fude);font-size:76px;line-height:1.06;
+  color:var(--sumi);letter-spacing:.08em;text-shadow:1px 1px 0 rgba(169,133,47,.25);
+}
+.title-hanko{
+  position:absolute;right:calc(50% - 118px);bottom:8px;
+  width:52px;height:52px;font-size:30px;
+}
+.title-sub{font-size:12px;letter-spacing:.42em;text-indent:.42em;color:var(--sumi2);margin-bottom:4px}
+.wave-strip{width:100%;height:64px;margin:6px 0 14px;flex:none}
+.wave-strip svg{width:100%;height:100%;display:block}
+.menu{display:flex;flex-direction:column;gap:12px;width:min(320px,86%)}
+.credit{margin-top:auto;padding-top:18px;font-size:10px;color:var(--sumi2);text-align:center;line-height:1.7;letter-spacing:.04em}
+
+/* ============ 番付(難易度)画面 ============ */
+.h-wa{
+  font-size:20px;font-weight:800;letter-spacing:.4em;text-indent:.4em;text-align:center;
+  color:var(--ai);padding:10px 0 14px;
+}
+.h-wa::after{content:"";display:block;width:56px;height:2px;background:var(--kin);margin:10px auto 0}
+.diff-list{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.diff-card{
+  display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;
+  background:var(--yuki);border:1px solid var(--kin);border-radius:3px;
+  box-shadow:2px 3px 0 rgba(43,35,23,.12);padding:14px;
+  font-family:var(--f-min);transition:transform .08s ease;
+}
+.diff-card:active{transform:scale(.98)}
+.diff-mon{
+  flex:none;width:54px;height:54px;font-size:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-fude);color:var(--yuki);
+}
+.diff-mon.e{background:var(--ai2)} .diff-mon.n{background:var(--kin)} .diff-mon.h{background:var(--shu)}
+.diff-name{font-size:17px;font-weight:800;letter-spacing:.2em;color:var(--sumi)}
+.diff-desc{font-size:12px;color:var(--sumi2);margin-top:4px;line-height:1.6}
+.backline{margin-top:22px}
+
+/* ============ 読込画面 ============ */
+#scr-load{align-items:center;justify-content:center;text-align:center;gap:18px}
+.enso{
+  width:84px;height:84px;border-radius:50%;
+  border:5px solid var(--sumi);border-left-color:transparent;
+  opacity:.85;animation:spin 1.4s cubic-bezier(.6,.15,.4,.85) infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-jp{font-size:16px;font-weight:700;letter-spacing:.3em;text-indent:.3em}
+.load-en{font-size:11px;letter-spacing:.24em;color:var(--sumi2);font-style:italic;font-family:serif}
+.load-prog{font-size:13px;color:var(--ai);letter-spacing:.2em}
+.load-warn{font-size:12px;color:var(--shu);line-height:1.8;max-width:300px}
+#load-actions{display:none;flex-direction:column;gap:10px;width:min(280px,80%)}
+
+/* ============ 対戦画面 ============ */
+#scr-game{padding:10px 12px 18px;gap:10px}
+.hud{
+  display:flex;align-items:center;gap:10px;
+  background:var(--ai);color:var(--yuki);border:1px solid var(--kin);
+  padding:8px 12px;border-radius:2px;font-size:13px;letter-spacing:.08em;
+}
+.hud .sep{opacity:.4}
+.hud-round{font-weight:800}
+.hud-score{color:var(--kin2);font-weight:800}
+.hud-btn{
+  margin-left:auto;background:transparent;border:1px solid rgba(250,246,236,.5);
+  color:var(--yuki);font-family:var(--f-min);font-size:12px;padding:4px 9px;border-radius:2px;cursor:pointer;
+}
+.hud-btn + .hud-btn{margin-left:6px}
+/* 読み札エリア */
+.yomi-area{
+  display:flex;gap:12px;align-items:stretch;justify-content:center;
+  min-height:196px;flex:none;
+}
+.senko-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0}
+.senko-label{writing-mode:vertical-rl;font-size:10px;letter-spacing:.3em;color:var(--sumi2)}
+.senko{position:relative;width:7px;flex:1;background:linear-gradient(var(--washi3),var(--washi3));border-radius:4px;overflow:visible}
+.senko-stick{position:absolute;left:0;right:0;bottom:0;top:0;background:#7a6a4a;border-radius:4px;transform-origin:bottom;transition:none}
+.senko-fire{
+  position:absolute;left:50%;top:-6px;width:13px;height:13px;margin-left:-6.5px;border-radius:50%;
+  background:radial-gradient(circle,#ffd9a0 0%, var(--shu) 55%, transparent 72%);
+  filter:drop-shadow(0 0 4px rgba(181,56,46,.8));
+  animation:fireflicker .5s ease-in-out infinite alternate;
+}
+@keyframes fireflicker{from{transform:scale(1)}to{transform:scale(1.25)}}
+.tanzaku{
+  position:relative;background:var(--yuki);border:1px solid var(--kin);
+  box-shadow:3px 4px 0 rgba(43,35,23,.14);
+  padding:16px 18px 14px;min-width:172px;max-width:320px;border-radius:2px;
+  display:flex;flex-direction:column;align-items:center;
+}
+.tanzaku::before{
+  content:"読 み 札";
+  display:block;font-size:9px;letter-spacing:.5em;text-indent:.5em;color:var(--yuki);
+  background:var(--ai);padding:3px 10px;margin:-16px 0 12px;border-radius:0 0 3px 3px;
+}
+.yomi-text{
+  writing-mode:vertical-rl;text-orientation:upright;
+  font-size:17px;line-height:1.9;font-weight:600;letter-spacing:.14em;
+  height:142px;color:var(--sumi);
+}
+.yomi-text .ch{opacity:0;transition:opacity .2s ease}
+.yomi-text .ch.on{opacity:1}
+.yomi-answer{
+  margin-top:8px;font-size:12px;font-weight:800;color:var(--shu);letter-spacing:.12em;
+  min-height:18px;text-align:center;
+}
+/* 絵札グリッド */
+.field{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:none;
+}
+.card{
+  position:relative;aspect-ratio:3/4;border-radius:3px;cursor:pointer;overflow:hidden;
+  background:var(--washi2);
+  border:1px solid var(--sumi2);
+  box-shadow:0 0 0 1px var(--washi) inset, 1px 2px 0 rgba(43,35,23,.18);
+  transition:transform .08s ease, filter .2s ease;
+  padding:0;
+}
+.card:active{transform:scale(.96)}
+.card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.card .fb{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  background:var(--washi2);padding:6px;text-align:center;
+}
+.fb-fuji{width:44px;height:26px}
+.fb-title{font-size:10px;font-weight:700;line-height:1.4;color:var(--sumi)}
+.fb-note{font-size:8px;color:var(--sumi2);letter-spacing:.1em}
+.card.taken{cursor:default;filter:saturate(.35) brightness(.82)}
+.card .stamp{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;opacity:0;
+}
+.card.taken .stamp{opacity:1}
+.stamp-in{
+  font-family:var(--f-fude);font-size:34px;color:var(--yuki);
+  width:52px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  transform:rotate(-8deg) scale(1);
+  box-shadow:inset 0 0 0 2px var(--yuki);
+  animation:stampin .3s cubic-bezier(.2,1.6,.4,1) both;
+}
+@keyframes stampin{from{transform:rotate(-8deg) scale(2.2);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.stamp-in.tori{background:rgba(181,56,46,.92)}
+.stamp-in.teki{background:rgba(29,58,95,.92)}
+.card.miss-anim{animation:shake .35s ease}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+.card.glow{box-shadow:0 0 0 3px var(--kin2), 1px 2px 0 rgba(43,35,23,.18)}
+.card .tname{
+  position:absolute;left:0;right:0;bottom:0;font-size:9px;font-weight:700;text-align:center;
+  color:var(--yuki);background:rgba(43,35,23,.72);padding:2px 3px;opacity:0;transition:opacity .25s;
+  letter-spacing:.06em;
+}
+.card.taken .tname{opacity:1}
+/* お手つき表示 */
+.otetsuki{
+  position:fixed;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-6deg);
+  font-family:var(--f-fude);font-size:34px;color:var(--shu);
+  background:var(--yuki);border:2px solid var(--shu);border-radius:6px;padding:8px 20px;
+  box-shadow:3px 4px 0 rgba(43,35,23,.2);
+  opacity:0;pointer-events:none;transition:opacity .18s;z-index:60;letter-spacing:.1em;
+}
+.otetsuki.show{opacity:1}
+
+/* ============ 結果画面 ============ */
+#scr-result{align-items:center;gap:14px}
+.certif{
+  width:100%;background:var(--yuki);border:1px solid var(--kin);
+  outline:1px solid var(--kin);outline-offset:4px;
+  padding:22px 18px 20px;text-align:center;position:relative;border-radius:2px;
+  box-shadow:3px 4px 0 rgba(43,35,23,.14);
+}
+.certif-label{font-size:11px;letter-spacing:.6em;text-indent:.6em;color:var(--sumi2)}
+.rank-hanko{
+  width:96px;height:96px;font-size:44px;margin:14px auto 6px;border-radius:50%;
+  line-height:1;flex-direction:column;gap:0;
+}
+.rank-name{font-size:22px;font-weight:800;letter-spacing:.3em;text-indent:.3em;color:var(--sumi);margin-top:4px}
+.res-score{font-size:15px;color:var(--ai);font-weight:800;letter-spacing:.15em;margin-top:10px}
+.res-rows{margin-top:12px;border-top:1px dashed var(--kin);padding-top:12px;display:flex;justify-content:center;gap:18px;font-size:13px}
+.res-rows b{color:var(--shu)}
+.res-note{font-size:11px;color:var(--sumi2);margin-top:10px;letter-spacing:.06em}
+.res-menu{display:flex;flex-direction:column;gap:10px;width:min(320px,90%)}
+
+/* ============ 図鑑 ============ */
+#scr-zukan{padding-top:14px}
+.zukan-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.zukan-title{font-size:19px;font-weight:800;letter-spacing:.35em;color:var(--ai)}
+.zukan-count{font-size:12px;color:var(--sumi2);letter-spacing:.1em}
+.zukan-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.z-card{
+  background:var(--yuki);border:1px solid var(--kin);border-radius:3px;overflow:hidden;cursor:pointer;
+  box-shadow:1px 2px 0 rgba(43,35,23,.14);text-align:left;font-family:var(--f-min);padding:0;
+  transition:transform .08s ease;
+}
+.z-card:active{transform:scale(.97)}
+.z-thumb{width:100%;aspect-ratio:3/4;background:var(--washi3);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.z-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.z-locked-mark{font-family:var(--f-fude);font-size:30px;color:var(--sumi2);opacity:.6}
+.z-name{font-size:11px;font-weight:700;padding:7px 8px;color:var(--sumi);letter-spacing:.04em;line-height:1.4}
+.z-card.locked .z-name{color:var(--sumi2)}
+/* 図鑑詳細 */
+.z-detail{
+  position:fixed;inset:0;z-index:80;display:none;flex-direction:column;
+  background:var(--washi);
+  background-image:inherit;
+  overflow-y:auto;
+}
+.z-detail.open{display:flex}
+.z-detail-in{max-width:560px;width:100%;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.zd-imgwrap{
+  background:var(--yuki);border:1px solid var(--kin);padding:10px;border-radius:2px;
+  box-shadow:2px 3px 0 rgba(43,35,23,.14);
+  min-height:200px;display:flex;align-items:center;justify-content:center;
+}
+.zd-imgwrap img{max-width:100%;height:auto;display:block}
+.zd-title{font-size:19px;font-weight:800;letter-spacing:.1em;color:var(--sumi)}
+.zd-en{font-size:12px;color:var(--sumi2);font-style:italic;line-height:1.6;font-family:serif}
+.zd-meta{font-size:12px;color:var(--sumi2);line-height:1.9}
+.zd-yomi{
+  background:var(--yuki);border-left:3px solid var(--shu);padding:10px 12px;
+  font-size:13px;line-height:1.9;color:var(--sumi);
+}
+.zd-link{color:var(--ai);font-size:12px;letter-spacing:.05em}
+.zd-credit{font-size:10px;color:var(--sumi2);line-height:1.7}
+
+/* ============ 遊び方(モーダル) ============ */
+.modal{
+  position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
+  background:rgba(43,35,23,.45);padding:20px;
+}
+.modal.open{display:flex}
+.modal-in{
+  background:var(--yuki);border:1px solid var(--kin);outline:1px solid var(--kin);outline-offset:3px;
+  max-width:400px;width:100%;padding:20px 18px;border-radius:2px;max-height:82dvh;overflow-y:auto;
+}
+.modal-in h3{font-size:16px;letter-spacing:.4em;text-indent:.4em;text-align:center;color:var(--ai);margin-bottom:12px}
+.rule-line{display:flex;gap:10px;font-size:13px;line-height:1.8;margin-bottom:9px}
+.rule-mon{flex:none;width:22px;height:22px;font-size:12px;border-radius:50%;background:var(--ai);color:var(--yuki);display:flex;align-items:center;justify-content:center;font-family:var(--f-fude)}
+.modal-in .btn-wa{margin-top:10px}
+
+/* ============ 汎用トースト ============ */
+.wa-toast{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
+  background:var(--sumi);color:var(--yuki);font-size:12px;letter-spacing:.1em;
+  padding:9px 18px;border-radius:3px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:100;
+  max-width:88%;text-align:center;line-height:1.6;
+}
+.wa-toast.show{opacity:1}
+
+/* ============ オンライン対戦 ============ */
+.wa-input{
+  font-family:var(--f-min);font-size:26px;font-weight:800;letter-spacing:.5em;text-indent:.5em;
+  text-align:center;color:var(--sumi);background:var(--yuki);
+  border:1px solid var(--kin);outline:2px solid transparent;border-radius:2px;
+  padding:12px 6px;width:100%;
+}
+.wa-input:focus{outline-color:var(--ai)}
+.online-block{
+  background:var(--yuki);border:1px solid var(--kin);border-radius:3px;
+  box-shadow:2px 3px 0 rgba(43,35,23,.12);padding:16px;display:flex;flex-direction:column;gap:12px;
+}
+.online-block h4{font-size:14px;font-weight:800;letter-spacing:.3em;color:var(--ai);text-align:center}
+.online-note{
+  font-size:12px;line-height:1.9;color:var(--sumi2);
+  background:var(--washi2);border-left:3px solid var(--shu);padding:10px 12px;
+}
+.code-big{
+  font-size:52px;font-weight:800;letter-spacing:.3em;text-indent:.3em;color:var(--shu);
+  text-align:center;font-family:var(--f-min);
+  background:var(--yuki);border:1px dashed var(--kin);padding:14px 8px;border-radius:2px;
+}
+.wait-status{font-size:14px;font-weight:700;letter-spacing:.15em;text-align:center;color:var(--ai);line-height:2}
+.setup-step{display:flex;gap:10px;font-size:12.5px;line-height:1.8;margin-bottom:9px}
+code.mini{font-family:monospace;font-size:11px;background:var(--washi2);padding:1px 5px;border-radius:2px;word-break:break-all}
+
+/* ============================================================
+   v1.3 江戸モダン・ビジュアルレイヤー
+   ゲームロジックに触れず、画面と比率だけを上書きする
+   ============================================================ */
+body:not(.title-mode) #app{
+  background:rgba(244,248,249,.96);
+  box-shadow:0 0 42px rgba(8,40,63,.12);
+}
+.screen{padding:18px 16px calc(24px + env(safe-area-inset-bottom))}
+.obi{height:10px;background-color:var(--ai);box-shadow:none !important}
+.btn-wa{
+  border:1px solid rgba(220,235,241,.9);outline:0;border-radius:14px;
+  box-shadow:0 8px 24px rgba(4,30,50,.13);letter-spacing:.18em;text-indent:.18em;
+}
+.btn-wa.ghost{background:rgba(252,254,254,.82);border-color:rgba(14,56,86,.3)}
+.diff-card,.online-block,.certif,.z-card,.modal-in,.zd-imgwrap{
+  border-color:rgba(14,56,86,.22);border-radius:14px;
+  box-shadow:0 10px 28px rgba(7,38,59,.10);
+}
+
+/* タイトル: 背景 / ロゴ / HTML操作を独立レイヤー化 */
+body.title-mode{background:#061d32}
+body.title-mode .obi{display:none}
+#scr-title{
+  position:relative;isolation:isolate;min-height:100svh;width:100%;padding:0;
+  overflow:hidden;align-items:stretch;justify-content:flex-end;background:#061d32;
+}
+.title-art{
+  position:absolute;z-index:0;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;
+  pointer-events:none;user-select:none;
+}
+.title-shade{
+  position:absolute;z-index:1;inset:66% 0 0;
+  background:linear-gradient(180deg,transparent,rgba(3,23,41,.94));pointer-events:none;
+}
+.title-logo-modern{
+  position:absolute;z-index:2;top:max(env(safe-area-inset-top),2.4svh);left:50%;
+  width:min(82vw,520px);max-height:18svh;object-fit:contain;transform:translateX(-50%);
+  filter:drop-shadow(0 6px 12px rgba(1,18,34,.20));pointer-events:none;user-select:none;
+}
+.title-actions{
+  position:relative;z-index:3;display:grid;gap:10px;width:min(78%,420px);
+  margin:0 auto max(env(safe-area-inset-bottom),2svh);padding-bottom:4px;
+}
+.title-actions .btn-wa{min-height:54px;background:rgba(249,252,253,.96);color:var(--ai)}
+.title-actions .btn-wa.shu{background:rgba(7,40,64,.9);color:var(--yuki);border-color:rgba(225,240,246,.9)}
+.title-mini-menu{display:flex;justify-content:center;gap:26px}
+.title-mini-menu .btn-wa{
+  min-height:auto;width:auto;padding:4px 8px;background:transparent;color:rgba(247,252,253,.88);
+  border:0;box-shadow:none;font-size:12px;letter-spacing:.08em;text-indent:0;
+}
+.title-credit{font-size:8px;color:rgba(235,245,248,.62);text-align:center;line-height:1.5}
+@media (min-aspect-ratio:9/17.5){
+  .title-logo-modern{top:max(env(safe-area-inset-top),1.5svh);width:min(64vw,430px);max-height:15svh}
+  .title-actions{width:min(74%,400px);margin-bottom:max(env(safe-area-inset-bottom),1.2svh)}
+  .title-actions .btn-wa{min-height:48px;padding:10px 8px}
+}
+
+/* アバター選択 */
+#scr-avatar{gap:12px;padding-top:max(16px,env(safe-area-inset-top))}
+.avatar-lead{text-align:center;color:var(--sumi2);font-size:12px;letter-spacing:.08em;margin-top:-8px}
+.avatar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.avatar-card{
+  position:relative;display:grid;grid-template-rows:auto auto;min-width:0;padding:0;overflow:hidden;
+  border:1px solid rgba(14,56,86,.28);border-radius:16px;background:rgba(252,254,254,.9);
+  color:var(--sumi);font-family:var(--f-min);cursor:pointer;box-shadow:0 8px 22px rgba(6,35,55,.09);
+  transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
+}
+.avatar-card:active{transform:scale(.98)}
+.avatar-card.selected{border:2px solid var(--shu);box-shadow:0 0 0 3px rgba(209,62,44,.13),0 10px 26px rgba(6,35,55,.12)}
+.avatar-card.selected::after{
+  content:"✓";position:absolute;top:8px;right:8px;display:grid;place-items:center;width:26px;height:26px;
+  border-radius:50%;background:var(--shu);color:white;font-weight:800;
+}
+.avatar-portrait{display:block;width:100%;aspect-ratio:1/1;overflow:hidden;background:linear-gradient(#fbfdfd,#e5eef2)}
+.avatar-portrait img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:none}
+.avatar-copy{padding:8px 9px 10px;text-align:left}
+.avatar-name{display:block;font-size:15px;font-weight:800;color:var(--ai);letter-spacing:.12em}
+.avatar-job{display:block;margin-top:2px;color:var(--sumi2);font-size:10px;letter-spacing:.04em}
+.avatar-actions{display:grid;gap:9px;margin-top:2px}
+
+/* 対戦上部: 人物 / 読み札 / 人物 */
+#scr-game{padding:8px 8px calc(18px + env(safe-area-inset-bottom));gap:8px}
+.hud{border:0;border-radius:12px;padding:7px 9px;gap:7px;box-shadow:0 7px 18px rgba(4,31,51,.16)}
+.hud-score{color:#fff}
+.hud-btn{border-radius:9px;padding:4px 7px}
+.yomi-area{
+  display:grid;grid-template-columns:minmax(66px,1fr) minmax(126px,1.22fr) minmax(66px,1fr);
+  gap:4px;align-items:end;min-height:184px;padding:2px 0 0;
+}
+.duel-character{position:relative;min-width:0;align-self:stretch;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.duel-character::before{
+  content:"";position:absolute;inset:24% 0 0;border-radius:50% 50% 12px 12px;
+  background:linear-gradient(180deg,rgba(220,235,241,.18),rgba(216,231,237,.86));
+}
+.duel-character img{
+  position:relative;z-index:1;display:block;width:clamp(82px,25vw,132px);height:100%;max-height:190px;
+  object-fit:contain;object-position:center bottom;filter:drop-shadow(0 8px 8px rgba(5,30,49,.18));
+  transition:opacity .16s ease,transform .16s ease;
+}
+.duel-character.reaction img{animation:avatar-pop .32s cubic-bezier(.2,1.5,.4,1)}
+@keyframes avatar-pop{50%{transform:translateY(-5px) scale(1.04)}}
+.fighter-tag{
+  position:absolute;z-index:2;bottom:3px;left:50%;transform:translateX(-50%);
+  border:1px solid rgba(235,247,250,.86);border-radius:999px;background:rgba(8,48,76,.92);
+  color:white;font-size:10px;letter-spacing:.16em;white-space:nowrap;padding:3px 11px;
+}
+.yomi-core{display:grid;grid-template-columns:17px minmax(0,1fr);gap:4px;align-items:stretch;min-width:0;height:100%}
+.yomi-core .senko-wrap{min-width:0;padding:7px 0}
+.yomi-core .senko-label{font-size:8px;letter-spacing:.18em}
+.tanzaku{min-width:0;width:100%;padding:12px 8px 9px;border-color:rgba(14,56,86,.2);border-radius:10px;box-shadow:0 8px 20px rgba(7,35,54,.12)}
+.tanzaku::before{margin:-12px 0 8px;font-size:8px;padding:3px 7px}
+.yomi-text{font-size:14px;line-height:1.65;height:132px;letter-spacing:.08em}
+.yomi-answer{font-size:10px;margin-top:5px}
+
+/* 札は全ビューで縦3:4・同寸 */
+.field{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;width:100%;margin:0 auto}
+.card{aspect-ratio:3/4;border-radius:9px;border-color:rgba(14,56,86,.65);background:var(--yuki);box-shadow:0 0 0 1px rgba(255,255,255,.72) inset,0 4px 10px rgba(4,31,50,.18)}
+.card img{object-fit:cover}
+.zukan-grid{gap:10px}
+.z-thumb{aspect-ratio:3/4;background:var(--washi2)}
+.z-thumb img{object-fit:cover}
+
+@media (max-width:380px){
+  .avatar-grid{gap:8px}
+  .avatar-copy{padding:6px 7px 8px}
+  .avatar-name{font-size:13px}
+  .yomi-area{grid-template-columns:minmax(60px,.92fr) minmax(122px,1.2fr) minmax(60px,.92fr);min-height:170px}
+  .duel-character img{width:clamp(72px,24vw,96px);max-height:174px}
+  .yomi-text{font-size:13px;height:120px}
+  .field{gap:6px}
+}
+
+@media (max-width:380px){
+  .title-vert{font-size:62px}
+  .yomi-text{font-size:15px;height:128px}
+  .yomi-area{min-height:178px}
+}
+</style>
+</head>
+<body class="title-mode">
+  <audio id="bgm" src="assets/audio/hyakkei.mp3" loop preload="metadata" playsinline></audio>
+<div id="app">
+  <div class="obi top"></div>
+
+  <!-- ============ 題 ============ -->
+  <section class="screen active" id="scr-title">
+    <img class="title-art" src="design-comps/responsive-title/title-battle-background-v3.webp" alt="" draggable="false">
+    <div class="title-shade" aria-hidden="true"></div>
+    <img class="title-logo-modern" src="design-comps/responsive-title/hokusai-karuta-logo-simple.webp" alt="HOKUSAI KARUTA" draggable="false">
+    <div class="title-actions">
+      <button class="btn-wa" id="btn-start">ひとりで遊ぶ</button>
+      <button class="btn-wa shu" id="btn-online">二人で対戦</button>
+      <div class="title-mini-menu">
+        <button class="btn-wa" id="btn-zukan">画集</button>
+        <button class="btn-wa" id="btn-rules">あそび方</button>
+      </div>
+      <div class="title-credit">
+      作品画像・作品情報 : The Metropolitan Museum of Art<br>
+      Open Access (CC0) より対戦開始時に取得します
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 人物選択 ============ -->
+  <section class="screen" id="scr-avatar">
+    <div class="h-wa">人物を選ぶ</div>
+    <div class="avatar-lead">勝負する人物を選んでください</div>
+    <div class="avatar-grid" id="avatar-grid">
+      <button class="avatar-card selected" data-avatar="a-orin" aria-pressed="true">
+        <span class="avatar-portrait"><img src="design-comps/avatars-v3/sprites-256/a-orin-default.webp" alt="お凛"></span>
+        <span class="avatar-copy"><span class="avatar-name">お凛</span><span class="avatar-job">浮世絵摺師見習い</span></span>
+      </button>
+      <button class="avatar-card" data-avatar="b-shinta" aria-pressed="false">
+        <span class="avatar-portrait"><img src="design-comps/avatars-v3/sprites-256/b-shinta-default.webp" alt="新太"></span>
+        <span class="avatar-copy"><span class="avatar-name">新太</span><span class="avatar-job">町火消し</span></span>
+      </button>
+      <button class="avatar-card" data-avatar="c-shino" aria-pressed="false">
+        <span class="avatar-portrait"><img src="design-comps/avatars-v3/sprites-256/c-shino-default.webp" alt="志乃"></span>
+        <span class="avatar-copy"><span class="avatar-name">志乃</span><span class="avatar-job">薬種商</span></span>
+      </button>
+      <button class="avatar-card" data-avatar="d-sosuke" aria-pressed="false">
+        <span class="avatar-portrait"><img src="design-comps/avatars-v3/sprites-256/d-sosuke-default.webp" alt="宗助"></span>
+        <span class="avatar-copy"><span class="avatar-name">宗助</span><span class="avatar-job">船頭</span></span>
+      </button>
+      <button class="avatar-card" data-avatar="e-okome" aria-pressed="false">
+        <span class="avatar-portrait"><img src="design-comps/avatars-v3/sprites-256/e-okome-default.webp" alt="お米"></span>
+        <span class="avatar-copy"><span class="avatar-name">お米</span><span class="avatar-job">茶屋の女将</span></span>
+      </button>
+      <button class="avatar-card" data-avatar="f-gensai" aria-pressed="false">
+        <span class="avatar-portrait"><img src="design-comps/avatars-v3/sprites-256/f-gensai-default.webp" alt="玄斎"></span>
+        <span class="avatar-copy"><span class="avatar-name">玄斎</span><span class="avatar-job">彫師</span></span>
+      </button>
+    </div>
+    <div class="avatar-actions">
+      <button class="btn-wa" id="btn-avatar-confirm">この人物で遊ぶ</button>
+      <button class="btn-wa ghost" id="btn-avatar-back">題へ戻る</button>
+    </div>
+  </section>
+
+  <!-- ============ 番付(難易度) ============ -->
+  <section class="screen" id="scr-diff">
+    <div class="h-wa">相手の番付</div>
+    <div class="diff-list">
+      <button class="diff-card" data-diff="easy">
+        <span class="diff-mon e">習</span>
+        <span><span class="diff-name">見習い</span><span class="diff-desc">読み終わってから、ゆっくり手を伸ばす。<br>はじめての方はこちら。</span></span>
+      </button>
+      <button class="diff-card" data-diff="normal">
+        <span class="diff-mon n">職</span>
+        <span><span class="diff-name">職人</span><span class="diff-desc">読み札の終わり際に取りにくる。<br>絵柄を覚えていれば勝てる。</span></span>
+      </button>
+      <button class="diff-card" data-diff="hard">
+        <span class="diff-mon h">名</span>
+        <span><span class="diff-name">名人</span><span class="diff-desc">数文字で見抜いて取りにくる。<br>線香が尽きる前に、札へ。</span></span>
+      </button>
+    </div>
+    <div class="backline"><button class="btn-wa ghost" id="btn-diff-back">人物を選び直す</button></div>
+  </section>
+
+  <!-- ============ 読込 ============ -->
+  <section class="screen" id="scr-load">
+    <div class="enso" id="load-enso"></div>
+    <div class="load-jp">浮世を読み込んでいます</div>
+    <div class="load-en">Loading the Floating World…</div>
+    <div class="load-prog" id="load-prog">〇 / 十二</div>
+    <div class="load-warn" id="load-warn"></div>
+    <div id="load-actions">
+      <button class="btn-wa shu" id="btn-load-retry">再取得</button>
+      <button class="btn-wa ghost" id="btn-load-anyway">予備札で遊ぶ</button>
+      <button class="btn-wa ghost" id="btn-load-back">題へ戻る</button>
+    </div>
+  </section>
+
+  <!-- ============ 対戦 ============ -->
+  <section class="screen" id="scr-game">
+    <div class="hud">
+      <span class="hud-round" id="hud-round">一 / 十二</span>
+      <span class="sep">｜</span>
+      <span>点 <span class="hud-score" id="hud-score">0</span></span>
+      <span class="sep">｜</span>
+      <span>相手 <span id="hud-cpu">0</span>枚</span>
+      <button class="hud-btn" id="btn-sound">音</button>
+      <button class="hud-btn" id="btn-quit">中断</button>
+    </div>
+    <div class="yomi-area">
+      <div class="duel-character" id="duel-player">
+        <img id="avatar-player" src="design-comps/avatars-v3/sprites-256/a-orin-thinking.webp" alt="自分の人物">
+        <span class="fighter-tag">自分</span>
+      </div>
+      <div class="yomi-core">
+        <div class="senko-wrap" aria-hidden="true">
+          <div class="senko"><div class="senko-stick" id="senko-stick"></div><div class="senko-fire" id="senko-fire"></div></div>
+          <div class="senko-label" id="senko-label">相手の線香</div>
+        </div>
+        <div class="tanzaku">
+          <div class="yomi-text" id="yomi-text"></div>
+          <div class="yomi-answer" id="yomi-answer"></div>
+        </div>
+      </div>
+      <div class="duel-character" id="duel-opponent">
+        <img id="avatar-opponent" src="design-comps/avatars-v3/sprites-256/b-shinta-thinking.webp" alt="相手の人物">
+        <span class="fighter-tag">相手</span>
+      </div>
+    </div>
+    <div class="field" id="field"></div>
+  </section>
+
+  <!-- ============ 結果 ============ -->
+  <section class="screen" id="scr-result">
+    <div class="certif">
+      <div class="certif-label">勝 負 附</div>
+      <div class="hanko rank-hanko" id="rank-hanko">位</div>
+      <div class="rank-name" id="rank-name">見習い</div>
+      <div class="res-score" id="res-score">〇〇〇 点</div>
+      <div class="res-rows">
+        <span>取り札 <b id="res-taken">0</b> 枚</span>
+        <span>相手 <b id="res-cpu">0</b> 枚</span>
+        <span>お手つき <b id="res-miss">0</b></span>
+      </div>
+      <div class="res-note" id="res-note">取った札は図鑑に収蔵されました</div>
+    </div>
+    <div class="res-menu">
+      <button class="btn-wa shu" id="btn-again">もう一度</button>
+      <button class="btn-wa ghost" id="btn-res-zukan">図鑑を見る</button>
+      <button class="btn-wa ghost" id="btn-res-title">題へ戻る</button>
+    </div>
+  </section>
+
+  <!-- ============ ふたりで対戦 ============ -->
+  <section class="screen" id="scr-online">
+    <div class="h-wa">ふたりで対戦</div>
+    <div class="small center" style="margin-bottom:14px">設定は不要です。合言葉を伝え合うだけで遊べます。</div>
+    <div class="diff-list" id="online-menu">
+      <div class="online-block">
+        <h4>部屋を作る</h4>
+        <div class="small center">四桁の合言葉が発行されます。相手に伝えてください。</div>
+        <button class="btn-wa" id="btn-room-create">部屋を作る</button>
+      </div>
+      <div class="online-block">
+        <h4>合言葉で入る</h4>
+        <input class="wa-input" id="inp-code" type="text" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off">
+        <button class="btn-wa shu" id="btn-room-join">入室する</button>
+      </div>
+    </div>
+    <div class="backline"><button class="btn-wa ghost" id="btn-online-back">人物を選び直す</button></div>
+  </section>
+
+  <!-- ============ 待合(オンライン) ============ -->
+  <section class="screen" id="scr-wait">
+    <div class="h-wa">待 合</div>
+    <div class="online-block">
+      <div class="small center">合言葉</div>
+      <div class="code-big" id="wait-code">0000</div>
+      <div class="wait-status" id="wait-status">相手の入室を待っています…</div>
+      <div class="load-prog center" id="wait-prog"></div>
+    </div>
+    <div class="backline"><button class="btn-wa ghost" id="btn-wait-leave">退室する</button></div>
+  </section>
+
+  <!-- ============ 図鑑 ============ -->
+  <section class="screen" id="scr-zukan">
+    <div class="zukan-head">
+      <span class="zukan-title">図鑑</span>
+      <span class="zukan-count" id="zukan-count">収蔵 〇 / 十四</span>
+    </div>
+    <div class="zukan-grid" id="zukan-grid"></div>
+    <div class="backline"><button class="btn-wa ghost" id="btn-zukan-back">戻る</button></div>
+  </section>
+
+  <div class="obi btm"></div>
+</div>
+
+<!-- 図鑑詳細 -->
+<div class="z-detail" id="z-detail">
+  <div class="z-detail-in">
+    <div class="zd-imgwrap" id="zd-imgwrap"><div class="enso" style="width:48px;height:48px;border-width:4px"></div></div>
+    <div>
+      <div class="zd-title" id="zd-title">─</div>
+      <div class="zd-en" id="zd-en"></div>
+    </div>
+    <div class="zd-yomi" id="zd-yomi"></div>
+    <div class="zd-meta" id="zd-meta"></div>
+    <a class="zd-link" id="zd-link" href="#" target="_blank" rel="noopener">メトロポリタン美術館の作品ページを見る →</a>
+    <div class="zd-credit">Image &amp; data: The Metropolitan Museum of Art, Open Access (CC0)</div>
+    <button class="btn-wa" id="btn-zd-close">閉じる</button>
+  </div>
+</div>
+
+<!-- 遊び方 -->
+<div class="modal" id="modal-rules">
+  <div class="modal-in">
+    <h3>遊び方</h3>
+    <div class="rule-line"><span class="rule-mon">一</span><span>読み札が一文字ずつ読み上げられます。どの浮世絵のことか考えましょう。</span></div>
+    <div class="rule-line"><span class="rule-mon">二</span><span>場の十二枚から、当てはまる絵札を素早くタップ。早いほど高得点です。</span></div>
+    <div class="rule-line"><span class="rule-mon">三</span><span>左の線香が燃え尽きると、相手に札を取られます。</span></div>
+    <div class="rule-line"><span class="rule-mon">四</span><span>間違えると「お手つき」。減点のうえ、しばらく手が出せません。</span></div>
+    <div class="rule-line"><span class="rule-mon">五</span><span>取った札は図鑑に収蔵され、高精細画像でじっくり鑑賞できます。</span></div>
+    <button class="btn-wa" id="btn-rules-close">閉じる</button>
+  </div>
+</div>
+
+<div class="otetsuki" id="otetsuki">お手つき</div>
+<div class="wa-toast" id="wa-toast"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   北斎かるた ─ engine
+   ・作品はThe Met Open Access APIから実行時取得(事前選定したObject IDのみ)
+   ・対戦前に primaryImageSmall を全枚先読み / 図鑑詳細のみ primaryImage
+   ・保存するのはURLとメタ情報のみ(画像本体は保存しない)
+   ・オンライン対戦拡張時は「作品ID+ラウンド情報」だけを同期する設計
+   ============================================================ */
+
+/* ---------- 札データ(= artworks.json 相当) ---------- */
+const ARTWORKS = [
+  { id:'great-wave',  met:45434, titleJa:'神奈川沖浪裏',
+    en:'Under the Wave off Kanagawa (The Great Wave)',
+    yomi:'逆巻く大波が牙を剥き、三艘の舟が揉まれる。波間の遥か彼方に、小さな富士。' },
+  { id:'red-fuji',    met:36490, titleJa:'凱風快晴',
+    en:'South Wind, Clear Sky (Red Fuji)',
+    yomi:'夏の朝、山肌はあかね色に染まる。空にはいわし雲、裾野には深い樹海。' },
+  { id:'storm-fuji',  met:36492, titleJa:'山下白雨',
+    en:'Storm below Mount Fuji',
+    yomi:'頂は晴れているのに、麓は黒雲。闇を裂いて、稲妻がひと筋走る。' },
+  { id:'mishima',     met:56346, titleJa:'甲州三嶌越',
+    en:'Mishima Pass in Kai Province',
+    yomi:'杉の大樹を、旅人たちが手をつないで囲む。幹の陰から富士が覗く。' },
+  { id:'umezawa',     met:36501, titleJa:'相州梅澤左',
+    en:'Umezawa Manor in Sagami Province',
+    yomi:'夜明けの湿原に、鶴たちが舞い降りる。彼方の富士も朝の色に霞む。' },
+  { id:'ejiri',       met:55735, titleJa:'駿州江尻',
+    en:'Ejiri in Suruga Province',
+    yomi:'野道に突風。笠は空へ飛び、懐紙は白く舞い散り、旅人は身を屈める。' },
+  { id:'barrel',      met:36500, titleJa:'尾州不二見原',
+    en:'Fujimigahara in Owari Province',
+    yomi:'職人がひとり、大きな桶の中で働く。丸い枠の向こうに、遠く小さな富士。' },
+  { id:'kajikazawa',  met:56727, titleJa:'甲州石班沢',
+    en:'Kajikazawa in Kai Province',
+    yomi:'荒岩の上から、漁夫が綱を操る。人と岩と綱が、富士と同じ三角を描く。' },
+  { id:'mannen',      met:55289, titleJa:'深川万年橋下',
+    en:'Under the Mannen Bridge at Fukagawa',
+    yomi:'反り橋の弧の下に、川舟がひとつ。橋の向こう、水面の彼方に富士。' },
+  { id:'mitsui',      met:55287, titleJa:'江都駿河町三井見世略図',
+    en:'Mitsui Shop at Surugachō in Edo',
+    yomi:'呉服店の大屋根で、瓦職人が働く。通りの真正面に富士、空には凧。' },
+  { id:'honganji',    met:56396, titleJa:'東都浅草本願寺',
+    en:'Honganji at Asakusa in Edo',
+    yomi:'寺の大屋根が、画面いっぱいに聳える。甍の波の向こうに、白い富士。' },
+  { id:'sekiya',      met:55291, titleJa:'隅田川関屋の里',
+    en:'Sekiya Village on the Sumida River',
+    yomi:'夜明けの土手道を、三騎の早馬が駆け抜ける。木々の間に富士。' },
+  { id:'sazaido',     met:55740, titleJa:'五百らかん寺さゞゐどう',
+    en:'Sazai Hall at the Temple of the Five Hundred Arhats',
+    yomi:'堂の高縁に人々が並び、みな同じ彼方を眺める。視線の先に富士。' },
+  { id:'koishikawa',  met:56215, titleJa:'礫川雪の旦',
+    en:'Morning after the Snow at Koishikawa',
+    yomi:'雪の朝。茶屋の二階から、人々が銀世界を指さす。彼方に白い富士。' },
+];
+
+const MATCH_SIZE   = 12;      // 一戦で使う札数
+const CHAR_MS      = 125;     // 読み上げ速度(1文字)
+const RESOLVE_MS   = 1750;    // 決着後の間
+const MISS_LOCK_MS = 1100;    // お手つき硬直
+const ONLINE_GRACE = 4200;    // オンライン: 読了後の猶予
+const DIFF = {
+  easy:   { name:'見習い', mean:1.40, sd:0.28, min:1.05, max:2.1 },
+  normal: { name:'職人',   mean:0.96, sd:0.18, min:0.65, max:1.5 },
+  hard:   { name:'名人',   mean:0.68, sd:0.12, min:0.42, max:1.0 },
+};
+const KANJI_NUM = ['〇','一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四'];
+const AVATARS = [
+  { id:'a-orin',   name:'お凛' },
+  { id:'b-shinta', name:'新太' },
+  { id:'c-shino',  name:'志乃' },
+  { id:'d-sosuke', name:'宗助' },
+  { id:'e-okome',  name:'お米' },
+  { id:'f-gensai', name:'玄斎' },
+];
+const AVATAR_IDS = AVATARS.map(a => a.id);
+const AVATAR_BASE = 'design-comps/avatars-v3/sprites-256/';
+
+/* ---------- 保存(localStorageは使えない環境もあるため全てtry/catch) ---------- */
+const SAVE_KEY = 'hokusai-karuta-save';
+function loadSave(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){ const s = JSON.parse(raw); if(s && typeof s === 'object') return s; }
+  }catch(e){}
+  return { unlocked:[], best:0, sound:true };
+}
+function persistSave(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){}
+}
+function cacheMeta(art, meta){
+  try{ localStorage.setItem('met-artwork-'+art.met, JSON.stringify({ ...meta, cachedAt:Date.now() })); }catch(e){}
+}
+function readMetaCache(art){
+  try{
+    const raw = localStorage.getItem('met-artwork-'+art.met);
+    if(!raw) return null;
+    const m = JSON.parse(raw);
+    if(m && m.imageSmall) return m;
+  }catch(e){}
+  return null;
+}
+let save = loadSave();
+
+/* ---------- ユーティリティ ---------- */
+const $ = id => document.getElementById(id);
+function shuffle(a){
+  const arr = a.slice();
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function gauss(){
+  let u = 0, v = 0;
+  while(u === 0) u = Math.random();
+  while(v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function clamp(x, lo, hi){ return Math.min(hi, Math.max(lo, x)); }
+function toast(msg, ms){
+  const el = $('wa-toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), ms || 2400);
+}
+
+/* ---------- BGM ---------- */
+const BGM = {
+  el:null,
+  init(){
+    if(!this.el){
+      this.el = $('bgm');
+      this.el.volume = 0.32;
+      this.el.muted = !save.sound;
+    }
+    return this.el;
+  },
+  start(){
+    const el = this.init();
+    if(!save.sound || !el) return;
+    el.muted = false;
+    if(!el.paused) return;
+    const playing = el.play();
+    if(playing && typeof playing.catch === 'function') playing.catch(() => {});
+  },
+  sync(){
+    const el = this.init();
+    if(!el) return;
+    el.muted = !save.sound;
+    if(save.sound) this.start();
+  },
+};
+
+/* ---------- 和音(WebAudio) ---------- */
+const Sound = {
+  ctx:null,
+  ensure(){
+    BGM.start();
+    if(!this.ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) this.ctx = new AC();
+    }
+    if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  on(){ return !!save.sound; },
+  // 琴のような撥弦
+  pluck(freq, when, gain, dur){
+    const c = this.ctx; if(!c) return;
+    const t = c.currentTime + (when || 0);
+    const o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
+    o.type = 'triangle'; o2.type = 'sine';
+    o.frequency.value = freq; o2.frequency.value = freq * 2.01;
+    const gv = gain || 0.16, d = dur || 0.9;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gv, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    const g2 = c.createGain(); g2.gain.value = 0.25;
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(c.destination);
+    o.start(t); o2.start(t); o.stop(t + d + 0.05); o2.stop(t + d + 0.05);
+  },
+  // 拍子木
+  clack(when){
+    const c = this.ctx; if(!c) return;
+    const t = c.currentTime + (when || 0);
+    const len = 0.06, buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate);
+    const ch = buf.getChannelData(0);
+    for(let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ch.length, 2);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 6;
+    const g = c.createGain(); g.gain.value = 0.5;
+    src.connect(bp); bp.connect(g); g.connect(c.destination);
+    src.start(t);
+  },
+  // 太鼓(お手つき)
+  thump(){
+    const c = this.ctx; if(!c) return;
+    const t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(55, t + 0.22);
+    g.gain.setValueAtTime(0.4, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + 0.32);
+  },
+  scale:[293.66, 329.63, 392.00, 440.00, 523.25, 587.33], // 陰旋法風ペンタ
+  tick(i){
+    if(!this.on() || !this.ensure()) return;
+    if(i % 2) return; // 二文字にひとつ
+    this.pluck(this.scale[i % this.scale.length] * 2, 0, 0.018, 0.18);
+  },
+  roundStart(){
+    if(!this.on() || !this.ensure()) return;
+    this.clack(0); this.clack(0.16);
+  },
+  take(){
+    if(!this.on() || !this.ensure()) return;
+    [0, 1, 2, 4].forEach((s, i) => this.pluck(this.scale[s] * 2, i * 0.07, 0.14, 0.7));
+  },
+  cpu(){
+    if(!this.on() || !this.ensure()) return;
+    this.pluck(220, 0, 0.14, 0.6); this.pluck(196, 0.12, 0.12, 0.7);
+  },
+  miss(){
+    if(!this.on() || !this.ensure()) return;
+    this.thump();
+  },
+  ui(){
+    if(!this.on() || !this.ensure()) return;
+    this.pluck(this.scale[2] * 2, 0, 0.07, 0.3);
+  },
+};
+
+/* ---------- The Met API ---------- */
+const MET_API = 'https://collectionapi.metmuseum.org/public/collection/v1/objects/';
+const metaMap = new Map();   // art.id -> {imageSmall,imageLarge,title,objectDate,objectURL} | null(取得失敗)
+const imgOK   = new Map();   // art.id -> true(先読み成功)
+
+function fetchWithTimeout(url, ms){
+  return new Promise((resolve, reject) => {
+    const ctl = ('AbortController' in window) ? new AbortController() : null;
+    const timer = setTimeout(() => { if(ctl) ctl.abort(); reject(new Error('timeout')); }, ms);
+    fetch(url, ctl ? { signal: ctl.signal } : {})
+      .then(r => { clearTimeout(timer); resolve(r); })
+      .catch(e => { clearTimeout(timer); reject(e); });
+  });
+}
+async function fetchMeta(art){
+  if(metaMap.get(art.id)) return metaMap.get(art.id);
+  const cached = readMetaCache(art);
+  if(cached){ metaMap.set(art.id, cached); return cached; }
+  const res = await fetchWithTimeout(MET_API + art.met, 12000);
+  if(!res.ok) throw new Error('http ' + res.status);
+  const a = await res.json();
+  if(!a || a.isPublicDomain !== true || !a.primaryImageSmall) throw new Error('no image');
+  const meta = {
+    imageSmall: a.primaryImageSmall,
+    imageLarge: a.primaryImage || a.primaryImageSmall,
+    title:      a.title || art.en,
+    objectDate: a.objectDate || '',
+    objectURL:  a.objectURL || ('https://www.metmuseum.org/art/collection/search/' + art.met),
+  };
+  metaMap.set(art.id, meta);
+  cacheMeta(art, meta);
+  return meta;
+}
+function preloadImage(url, ms){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const timer = setTimeout(() => { img.src = ''; reject(new Error('img timeout')); }, ms || 18000);
+    img.onload  = () => { clearTimeout(timer); resolve(true); };
+    img.onerror = () => { clearTimeout(timer); reject(new Error('img error')); };
+    img.src = url;
+  });
+}
+async function prepareArt(art){
+  const meta = await fetchMeta(art);
+  await preloadImage(meta.imageSmall);
+  imgOK.set(art.id, true);
+  return true;
+}
+
+/* ---------- 画面遷移 ---------- */
+const SCREENS = ['scr-title','scr-avatar','scr-diff','scr-load','scr-game','scr-result','scr-zukan','scr-online','scr-wait'];
+function show(id){
+  SCREENS.forEach(s => $(s).classList.toggle('active', s === id));
+  document.body.classList.toggle('title-mode', id === 'scr-title');
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 対戦状態 ---------- */
+const M = {
+  mode:'cpu', role:null,
+  pendingMode:'cpu', avatar:'a-orin', opponentAvatar:'b-shinta',
+  diff:'normal', arts:[], order:[], round:0,
+  score:0, taken:0, cpu:0, miss:0,
+  lock:false, resolved:true,
+  revealTimer:null, cpuTimer:null, senkoRAF:null,
+  readStart:0, clueDur:1, cpuAt:0,
+  takenIds:[],
+};
+
+function avatarSrc(id, state){
+  const safeId = AVATAR_IDS.indexOf(id) >= 0 ? id : 'a-orin';
+  const safeState = ['default','thinking','win','lose'].indexOf(state) >= 0 ? state : 'default';
+  return AVATAR_BASE + safeId + '-' + safeState + '.webp';
+}
+function selectAvatar(id){
+  if(AVATAR_IDS.indexOf(id) < 0) return;
+  M.avatar = id;
+  document.querySelectorAll('.avatar-card').forEach(card => {
+    const selected = card.dataset.avatar === id;
+    card.classList.toggle('selected', selected);
+    card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  });
+}
+function openAvatarPicker(mode){
+  M.pendingMode = mode === 'online' ? 'online' : 'cpu';
+  const remembered = AVATAR_IDS.indexOf(save.avatar) >= 0 ? save.avatar : M.avatar;
+  selectAvatar(remembered);
+  show('scr-avatar');
+}
+function chooseOpponentAvatar(){
+  const preferred = M.mode === 'online' ? 'b-shinta'
+    : M.diff === 'easy' ? 'e-okome'
+    : M.diff === 'hard' ? 'f-gensai' : 'b-shinta';
+  M.opponentAvatar = preferred !== M.avatar ? preferred : AVATAR_IDS.find(id => id !== M.avatar);
+}
+function setDuelExpressions(playerState, opponentState, react){
+  const player = $('avatar-player');
+  const opponent = $('avatar-opponent');
+  if(!player || !opponent) return;
+  player.src = avatarSrc(M.avatar, playerState);
+  opponent.src = avatarSrc(M.opponentAvatar, opponentState);
+  if(react){
+    ['duel-player','duel-opponent'].forEach(id => {
+      const el = $(id); el.classList.remove('reaction'); void el.offsetWidth; el.classList.add('reaction');
+    });
+  }
+}
+
+function startLoading(diff){
+  M.mode = 'cpu'; M.role = null;
+  M.diff = diff;
+  const pool = shuffle(ARTWORKS).slice(0, MATCH_SIZE);
+  M.arts = pool;
+  show('scr-load');
+  runLoading();
+}
+
+async function runLoading(){
+  $('load-warn').textContent = '';
+  $('load-actions').style.display = 'none';
+  $('load-enso').style.display = '';
+  let done = 0;
+  const upd = () => { $('load-prog').textContent = (KANJI_NUM[done] || done) + ' / ' + KANJI_NUM[MATCH_SIZE]; };
+  upd();
+  const attempt = async art => {
+    try{ await prepareArt(art); }
+    catch(e){
+      metaMap.delete(art.id);
+      try{ await prepareArt(art); }catch(e2){} // 一度だけ自動再試行
+    }
+    done++; upd();
+  };
+  await Promise.all(M.arts.map(attempt));
+  const okCount = M.arts.filter(a => imgOK.get(a.id)).length;
+  if(okCount === MATCH_SIZE){
+    beginMatch();
+  }else if(okCount === 0){
+    $('load-enso').style.display = 'none';
+    $('load-warn').innerHTML = '作品画像を読み込めませんでした。<br>通信環境をご確認ください。';
+    $('load-actions').style.display = 'flex';
+  }else{
+    toast((MATCH_SIZE - okCount) + '点の画像を取得できませんでした。予備札で進行します。');
+    beginMatch();
+  }
+}
+
+/* ---------- 絵札の描画 ---------- */
+function fallbackCardHTML(art){
+  return '<span class="fb">' +
+    '<svg class="fb-fuji" viewBox="0 0 44 26" aria-hidden="true">' +
+      '<path d="M2 24 L17 5 L20 9 L23 5 L27 9 L42 24 Z" fill="#1d3a5f"/>' +
+      '<path d="M17 5 L20 9 L23 5 L25 7.4 L22 11 L20.5 9.4 L19 11 L15.3 7.2 Z" fill="#faf6ec"/>' +
+    '</svg>' +
+    '<span class="fb-title">' + art.titleJa + '</span>' +
+    '<span class="fb-note">画像を読み込めませんでした</span>' +
+  '</span>';
+}
+function buildField(list){
+  const field = $('field');
+  field.innerHTML = '';
+  (list || shuffle(M.arts)).forEach(art => {
+    const btn = document.createElement('button');
+    btn.className = 'card';
+    btn.dataset.id = art.id;
+    const meta = metaMap.get(art.id);
+    if(meta && imgOK.get(art.id)){
+      btn.innerHTML = '<img alt="" draggable="false" src="' + meta.imageSmall + '">';
+    }else{
+      btn.innerHTML = fallbackCardHTML(art);
+    }
+    btn.insertAdjacentHTML('beforeend',
+      '<span class="tname">' + art.titleJa + '</span>' +
+      '<span class="stamp"><span class="stamp-in"></span></span>');
+    btn.addEventListener('pointerdown', () => onCardTap(art.id, btn));
+    field.appendChild(btn);
+  });
+}
+
+/* ---------- 対戦進行 ---------- */
+function beginMatch(){
+  M.order = shuffle(M.arts);
+  M.round = 0; M.score = 0; M.taken = 0; M.cpu = 0; M.miss = 0;
+  M.takenIds = [];
+  chooseOpponentAvatar();
+  setDuelExpressions('default', 'default');
+  buildField();
+  updateHUD();
+  show('scr-game');
+  M.nextTimer = setTimeout(nextRound, 500);
+}
+function updateHUD(){
+  $('hud-round').textContent = KANJI_NUM[Math.min(M.round + 1, MATCH_SIZE)] + ' / ' + KANJI_NUM[MATCH_SIZE];
+  $('hud-score').textContent = M.score;
+  $('hud-cpu').textContent = M.cpu;
+}
+function clearRoundTimers(){
+  clearInterval(M.revealTimer); M.revealTimer = null;
+  clearTimeout(M.cpuTimer);     M.cpuTimer = null;
+  clearTimeout(M.nextTimer);    M.nextTimer = null;
+  if(M.senkoRAF) cancelAnimationFrame(M.senkoRAF); M.senkoRAF = null;
+}
+function currentArt(){ return M.order[M.round]; }
+
+function nextRound(){
+  if(M.round >= MATCH_SIZE){ finishMatch(); return; }
+  const art = currentArt();
+  M.resolved = false; M.lock = false;
+  setDuelExpressions('thinking', 'thinking');
+  updateHUD();
+  $('yomi-answer').textContent = '';
+  document.querySelectorAll('.card.glow').forEach(c => c.classList.remove('glow'));
+
+  // 読み札を一文字ずつ
+  const chars = Array.from(art.yomi);
+  const box = $('yomi-text');
+  box.innerHTML = chars.map(ch => '<span class="ch">' + ch + '</span>').join('');
+  const spans = box.querySelectorAll('.ch');
+
+  Sound.roundStart();
+
+  const startDelay = 650;
+  M.clueDur = chars.length * CHAR_MS;
+  if(M.mode === 'cpu'){
+    const d = DIFF[M.diff];
+    const f = clamp(d.mean + gauss() * d.sd, d.min, d.max);
+    M.cpuAt = startDelay + M.clueDur * f + 350;
+  }else{
+    M.cpuAt = startDelay + M.clueDur + ONLINE_GRACE; // 線香=読み+猶予
+  }
+  M.readStart = performance.now() + startDelay;
+
+  let i = 0;
+  setTimeout(() => {
+    if(M.resolved) return;
+    M.revealTimer = setInterval(() => {
+      if(i < spans.length){
+        spans[i].classList.add('on');
+        Sound.tick(i);
+        i++;
+      }else{
+        clearInterval(M.revealTimer); M.revealTimer = null;
+      }
+    }, CHAR_MS);
+  }, startDelay);
+
+  if(M.mode === 'cpu'){
+    M.cpuTimer = setTimeout(cpuTake, M.cpuAt);
+  }else{
+    // 線香が尽きたら「流れ札」(ホストが判定を書き込む)
+    M.cpuTimer = setTimeout(() => { if(!M.resolved && M.role === 'host') Online.writeNone(M.round); }, M.cpuAt + 500);
+  }
+  runSenko();
+}
+
+function runSenko(){
+  const stick = $('senko-stick');
+  const fire  = $('senko-fire');
+  const t0 = performance.now();
+  const total = M.cpuAt;
+  const step = now => {
+    if(M.resolved) return;
+    const p = clamp((now - t0) / total, 0, 1);
+    stick.style.transform = 'scaleY(' + (1 - p) + ')';
+    fire.style.top = 'calc(' + (p * 100).toFixed(2) + '% - 6px)';
+    fire.style.opacity = String(1 - p * 0.2);
+    if(p < 1) M.senkoRAF = requestAnimationFrame(step);
+  };
+  stick.style.transform = 'scaleY(1)';
+  fire.style.top = '-6px';
+  fire.style.opacity = '1';
+  M.senkoRAF = requestAnimationFrame(step);
+}
+
+function revealFraction(){
+  const el = performance.now() - M.readStart;
+  return clamp(el / M.clueDur, 0, 1);
+}
+function revealAllChars(){
+  document.querySelectorAll('#yomi-text .ch').forEach(s => s.classList.add('on'));
+}
+
+function onCardTap(id, btn){
+  if(M.resolved || M.lock) return;
+  if(btn.classList.contains('taken')) return;
+  const art = currentArt();
+  if(id === art.id){
+    const frac = revealFraction();
+    const bonus = Math.max(0, Math.round(150 * (1 - frac)));
+    if(M.mode === 'online'){
+      M.lock = true; // 判定待ち
+      Online.claim(M.round, frac, btn, bonus);
+      return;
+    }
+    M.score += 100 + bonus;
+    M.taken++;
+    if(M.takenIds.indexOf(art.id) < 0) M.takenIds.push(art.id);
+    resolveRound('player', btn, bonus);
+  }else{
+    M.miss++;
+    M.score = Math.max(0, M.score - 50);
+    M.lock = true;
+    setDuelExpressions('lose', 'thinking', true);
+    btn.classList.remove('miss-anim'); void btn.offsetWidth;
+    btn.classList.add('miss-anim');
+    Sound.miss();
+    const ot = $('otetsuki');
+    ot.classList.add('show');
+    setTimeout(() => ot.classList.remove('show'), 800);
+    updateHUD();
+    setTimeout(() => {
+      M.lock = false;
+      if(!M.resolved) setDuelExpressions('thinking', 'thinking');
+    }, MISS_LOCK_MS);
+  }
+}
+function cpuTake(){
+  if(M.resolved) return;
+  M.cpu++;
+  const art = currentArt();
+  const btn = document.querySelector('.card[data-id="' + art.id + '"]');
+  resolveRound('cpu', btn, 0);
+}
+function resolveRound(who, btn, bonus){
+  M.resolved = true; M.lock = false;
+  clearRoundTimers();
+  if(who === 'player') setDuelExpressions('win', 'lose', true);
+  else if(who === 'cpu') setDuelExpressions('lose', 'win', true);
+  else setDuelExpressions('default', 'default');
+  revealAllChars();
+  const art = currentArt();
+  const label = who === 'player' ? (bonus > 0 ? ' ＋' + (100 + bonus) : '')
+              : who === 'none' ? ' ─ 流れ札' : '';
+  $('yomi-answer').textContent = '「' + art.titleJa + '」' + label;
+  if(btn){
+    btn.classList.add('taken', 'glow');
+    const st = btn.querySelector('.stamp-in');
+    if(who === 'player'){ st.textContent = '取'; st.classList.add('tori'); }
+    else if(who === 'none'){ st.textContent = '流'; st.style.background = 'rgba(107,90,62,.9)'; }
+    else { st.textContent = '敵'; st.classList.add('teki'); }
+  }
+  if(who === 'player') Sound.take(); else if(who === 'cpu') Sound.cpu();
+  updateHUD();
+  M.round++;
+  if(M.mode === 'cpu'){
+    M.nextTimer = setTimeout(nextRound, RESOLVE_MS);
+  }else{
+    if(M.role === 'host') M.nextTimer = setTimeout(() => Online.advance(), RESOLVE_MS);
+    else Online.armWatchdog();
+  }
+}
+
+function finishMatch(){
+  clearRoundTimers();
+  // 図鑑収蔵
+  let newly = 0;
+  M.takenIds.forEach(id => {
+    if(save.unlocked.indexOf(id) < 0){ save.unlocked.push(id); newly++; }
+  });
+  if(M.score > (save.best || 0)) save.best = M.score;
+  persistSave();
+
+  let rank, mark;
+  if(M.mode === 'online'){
+    if(M.taken > M.cpu){ rank = '勝ち'; mark = '勝'; }
+    else if(M.taken < M.cpu){ rank = '負け'; mark = '負'; }
+    else { rank = '引き分け'; mark = '分'; }
+  }
+  else if(M.taken >= 12){ rank = '画狂人'; mark = '狂'; }
+  else if(M.taken >= 9){ rank = '名人'; mark = '名'; }
+  else if(M.taken >= 6){ rank = '上手'; mark = '上'; }
+  else if(M.taken >= 3){ rank = '見習い'; mark = '習'; }
+  else { rank = '入門'; mark = '入'; }
+  $('rank-hanko').textContent = mark;
+  $('rank-name').textContent = rank;
+  $('res-score').textContent = M.score + ' 点';
+  $('res-taken').textContent = M.taken;
+  $('res-cpu').textContent = M.cpu;
+  $('res-miss').textContent = M.miss;
+  $('res-note').textContent = newly > 0
+    ? '新たに' + KANJI_NUM[newly] + '枚の札が図鑑に収蔵されました'
+    : (M.taken > 0 ? '取った札は図鑑で鑑賞できます' : '札が一枚も取れませんでした。再戦を。');
+  $('btn-again').textContent = M.mode === 'online' ? '対戦部屋へ' : 'もう一度';
+  if(M.mode === 'online') Online.cleanup(true);
+  show('scr-result');
+}
+
+/* ---------- 図鑑 ---------- */
+function renderZukan(){
+  const grid = $('zukan-grid');
+  grid.innerHTML = '';
+  const n = ARTWORKS.filter(a => save.unlocked.indexOf(a.id) >= 0).length;
+  $('zukan-count').textContent = '収蔵 ' + KANJI_NUM[n] + ' / ' + KANJI_NUM[ARTWORKS.length];
+  ARTWORKS.forEach(art => {
+    const unlocked = save.unlocked.indexOf(art.id) >= 0;
+    const b = document.createElement('button');
+    b.className = 'z-card' + (unlocked ? '' : ' locked');
+    const meta = metaMap.get(art.id) || readMetaCache(art);
+    if(unlocked && meta){
+      b.innerHTML = '<span class="z-thumb"><img alt="" loading="lazy" src="' + meta.imageSmall + '"></span>' +
+                    '<span class="z-name">' + art.titleJa + '</span>';
+    }else if(unlocked){
+      b.innerHTML = '<span class="z-thumb"><span class="z-locked-mark">絵</span></span>' +
+                    '<span class="z-name">' + art.titleJa + '</span>';
+    }else{
+      b.innerHTML = '<span class="z-thumb"><span class="z-locked-mark">？</span></span>' +
+                    '<span class="z-name">札を取って収蔵</span>';
+    }
+    if(unlocked) b.addEventListener('click', () => openDetail(art));
+    grid.appendChild(b);
+  });
+}
+async function openDetail(art){
+  Sound.ui();
+  const dt = $('z-detail');
+  dt.classList.add('open');
+  $('zd-title').textContent = art.titleJa;
+  $('zd-en').textContent = art.en;
+  $('zd-yomi').textContent = art.yomi;
+  $('zd-meta').textContent = '葛飾北斎『冨嶽三十六景』より';
+  $('zd-link').href = 'https://www.metmuseum.org/art/collection/search/' + art.met;
+  $('zd-imgwrap').innerHTML = '<div class="enso" style="width:48px;height:48px;border-width:4px"></div>';
+  try{
+    const meta = await fetchMeta(art);
+    $('zd-en').textContent = meta.title || art.en;
+    $('zd-meta').textContent = '葛飾北斎『冨嶽三十六景』より' + (meta.objectDate ? '　制作: ' + meta.objectDate : '');
+    $('zd-link').href = meta.objectURL;
+    const img = new Image();
+    img.alt = art.titleJa;
+    img.onload  = () => { if(dt.classList.contains('open')){ $('zd-imgwrap').innerHTML = ''; $('zd-imgwrap').appendChild(img); } };
+    img.onerror = () => { $('zd-imgwrap').innerHTML = '<div class="small">画像を読み込めませんでした</div>'; };
+    img.src = meta.imageLarge || meta.imageSmall;
+  }catch(e){
+    $('zd-imgwrap').innerHTML = '<div class="small">画像を読み込めませんでした<br>通信環境をご確認ください</div>';
+  }
+}
+
+/* ---------- イベント ---------- */
+$('btn-start').addEventListener('click', () => { Sound.ensure(); Sound.ui(); openAvatarPicker('cpu'); });
+$('avatar-grid').addEventListener('click', e => {
+  const card = e.target.closest('.avatar-card');
+  if(!card) return;
+  Sound.ensure(); Sound.ui(); selectAvatar(card.dataset.avatar);
+});
+$('btn-avatar-confirm').addEventListener('click', () => {
+  Sound.ensure(); Sound.ui();
+  save.avatar = M.avatar; persistSave();
+  if(M.pendingMode === 'online') showOnline(); else show('scr-diff');
+});
+$('btn-avatar-back').addEventListener('click', () => { Sound.ui(); show('scr-title'); });
+$('btn-zukan').addEventListener('click', () => { Sound.ensure(); Sound.ui(); renderZukan(); show('scr-zukan'); });
+$('btn-rules').addEventListener('click', () => { Sound.ensure(); Sound.ui(); $('modal-rules').classList.add('open'); });
+$('btn-rules-close').addEventListener('click', () => $('modal-rules').classList.remove('open'));
+$('modal-rules').addEventListener('click', e => { if(e.target === $('modal-rules')) $('modal-rules').classList.remove('open'); });
+document.querySelectorAll('.diff-card').forEach(b => {
+  b.addEventListener('click', () => { Sound.ensure(); Sound.ui(); startLoading(b.dataset.diff); });
+});
+$('btn-diff-back').addEventListener('click', () => { Sound.ui(); show('scr-avatar'); });
+$('btn-load-retry').addEventListener('click', () => { Sound.ui(); runLoading(); });
+$('btn-load-anyway').addEventListener('click', () => { Sound.ui(); beginMatch(); });
+$('btn-load-back').addEventListener('click', () => { Sound.ui(); show('scr-title'); });
+$('btn-quit').addEventListener('click', () => {
+  clearRoundTimers(); M.resolved = true;
+  Sound.ui();
+  if(M.mode === 'online'){ Online.leave(); } else { show('scr-title'); }
+});
+$('btn-sound').addEventListener('click', () => {
+  save.sound = !save.sound; persistSave();
+  $('btn-sound').textContent = save.sound ? '音' : '黙';
+  BGM.sync();
+  if(save.sound){ Sound.ensure(); Sound.ui(); }
+});
+$('btn-again').addEventListener('click', () => {
+  Sound.ui();
+  if(M.mode === 'online') showOnline(); else startLoading(M.diff);
+});
+$('btn-res-zukan').addEventListener('click', () => { Sound.ui(); renderZukan(); show('scr-zukan'); });
+$('btn-res-title').addEventListener('click', () => { Sound.ui(); show('scr-title'); });
+$('btn-zukan-back').addEventListener('click', () => { Sound.ui(); show('scr-title'); });
+$('btn-zd-close').addEventListener('click', () => { Sound.ui(); $('z-detail').classList.remove('open'); });
+
+if(AVATAR_IDS.indexOf(save.avatar) >= 0) selectAvatar(save.avatar);
+$('btn-sound').textContent = save.sound ? '音' : '黙';
+BGM.init();
+
+// ブラウザの自動再生制限に合わせ、最初の操作から通しで再生する。
+function unlockBGM(){
+  BGM.start();
+  document.removeEventListener('pointerdown', unlockBGM, true);
+  document.removeEventListener('keydown', unlockBGM, true);
+}
+document.addEventListener('pointerdown', unlockBGM, true);
+document.addEventListener('keydown', unlockBGM, true);
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && save.sound) BGM.start();
+});
+
+/* ============================================================
+   ふたりで対戦 ─ 設定不要のオンライン対戦
+   ・アカウント/APIキー不要の公開MQTT中継にWebSocketで直結
+     (自前の最小MQTT 3.1.1クライアント / ライブラリ・CDN不使用)
+   ・同期するのは作品ID・読み順・場の並び・各ラウンドの勝敗のみ
+   ・合言葉の先頭一桁が中継サーバー番号(両者が同じ中継に集まる)
+   ・札の取り合いはホスト裁定: 最初の宣言から300msの窓で
+     反応時間(t)を比較し、速い方の取りとする
+   ============================================================ */
+
+/* ---------- 最小MQTTクライアント(3.1.1 / QoS0) ---------- */
+class MiniMQTT {
+  constructor(url){
+    this.url = url; this.ws = null; this.buf = new Uint8Array(0);
+    this.onmessage = null; this.onclose = null; this.pingTimer = null;
+    this.closedByUs = false;
+  }
+  static str(s){
+    const b = new TextEncoder().encode(s);
+    const out = new Uint8Array(b.length + 2);
+    out[0] = b.length >> 8; out[1] = b.length & 255; out.set(b, 2);
+    return out;
+  }
+  static varlen(n){
+    const out = [];
+    do{ let d = n % 128; n = Math.floor(n / 128); if(n > 0) d |= 128; out.push(d); }while(n > 0);
+    return new Uint8Array(out);
+  }
+  static packet(type, ...parts){
+    const body = MiniMQTT.concat(parts);
+    const rl = MiniMQTT.varlen(body.length);
+    const out = new Uint8Array(1 + rl.length + body.length);
+    out[0] = type; out.set(rl, 1); out.set(body, 1 + rl.length);
+    return out;
+  }
+  static concat(arrs){
+    const len = arrs.reduce((a, b) => a + b.length, 0);
+    const out = new Uint8Array(len);
+    let o = 0; arrs.forEach(a => { out.set(a, o); o += a.length; });
+    return out;
+  }
+  connect(clientId, willTopic, willPayload, timeoutMs){
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const fail = err => { if(!settled){ settled = true; try{ this.ws.close(); }catch(e){} reject(err); } };
+      const timer = setTimeout(() => fail(new Error('connect timeout')), timeoutMs || 5000);
+      let ws;
+      try{ ws = new WebSocket(this.url, 'mqtt'); }catch(e){ clearTimeout(timer); reject(e); return; }
+      this.ws = ws;
+      ws.binaryType = 'arraybuffer';
+      ws.onerror = () => fail(new Error('ws error'));
+      ws.onclose = () => {
+        clearTimeout(this.pingTimer);
+        if(!settled) fail(new Error('ws closed'));
+        else if(!this.closedByUs && this.onclose) this.onclose();
+      };
+      ws.onopen = () => {
+        const will = new TextEncoder().encode(willPayload);
+        const willBytes = new Uint8Array(will.length + 2);
+        willBytes[0] = will.length >> 8; willBytes[1] = will.length & 255; willBytes.set(will, 2);
+        const pkt = MiniMQTT.packet(0x10,
+          MiniMQTT.str('MQTT'), Uint8Array.of(4),      // protocol
+          Uint8Array.of(0x02 | 0x04),                  // clean session + will(QoS0)
+          Uint8Array.of(0, 60),                        // keepalive 60s
+          MiniMQTT.str(clientId),
+          MiniMQTT.str(willTopic), willBytes);
+        ws.send(pkt);
+      };
+      ws.onmessage = ev => {
+        this.buf = MiniMQTT.concat([this.buf, new Uint8Array(ev.data)]);
+        let pkt;
+        while((pkt = this.readPacket()) !== null){
+          const type = pkt[0] >> 4;
+          if(type === 2){ // CONNACK
+            if(pkt[3] === 0){
+              if(!settled){ settled = true; clearTimeout(timer); this.startPing(); resolve(); }
+            }else fail(new Error('connack ' + pkt[3]));
+          }
+          else if(type === 3){ this.handlePublish(pkt); } // PUBLISH
+          // 13: PINGRESP, 9: SUBACK → 無視
+        }
+      };
+    });
+  }
+  readPacket(){
+    if(this.buf.length < 2) return null;
+    let rl = 0, mult = 1, i = 1;
+    while(true){
+      if(i >= this.buf.length) return null;
+      const d = this.buf[i];
+      rl += (d & 127) * mult; mult *= 128; i++;
+      if((d & 128) === 0) break;
+      if(i > 5) { this.buf = new Uint8Array(0); return null; }
+    }
+    const total = i + rl;
+    if(this.buf.length < total) return null;
+    const pkt = this.buf.slice(0, total);
+    this.buf = this.buf.slice(total);
+    return pkt;
+  }
+  handlePublish(pkt){
+    let i = 1, mult = 1;
+    while(pkt[i] & 128){ i++; } i++;           // 可変長ヘッダを読み飛ばし
+    const tlen = (pkt[i] << 8) | pkt[i + 1]; i += 2;
+    const topic = new TextDecoder().decode(pkt.slice(i, i + tlen)); i += tlen;
+    const qos = (pkt[0] >> 1) & 3;
+    if(qos > 0) i += 2;                        // packet id(QoS1以上)
+    const payload = new TextDecoder().decode(pkt.slice(i));
+    if(this.onmessage) this.onmessage(topic, payload);
+  }
+  startPing(){
+    clearInterval(this.pingTimer);
+    this.pingTimer = setInterval(() => {
+      try{ this.ws.send(Uint8Array.of(0xC0, 0)); }catch(e){}
+    }, 25000);
+  }
+  subscribe(topic){
+    this.ws.send(MiniMQTT.packet(0x82, Uint8Array.of(0, 1), MiniMQTT.str(topic), Uint8Array.of(0)));
+  }
+  publish(topic, payload){
+    const p = new TextEncoder().encode(payload);
+    this.ws.send(MiniMQTT.packet(0x30, MiniMQTT.str(topic), p));
+  }
+  close(){
+    this.closedByUs = true;
+    clearInterval(this.pingTimer);
+    try{ this.ws.send(Uint8Array.of(0xE0, 0)); }catch(e){}
+    try{ this.ws.close(); }catch(e){}
+  }
+}
+
+/* ---------- 対戦通信 ---------- */
+const BROKERS = [
+  'wss://broker.emqx.io:8084/mqtt',
+  'wss://broker.hivemq.com:8884/mqtt',
+  'wss://test.mosquitto.org:8081',
+];
+const CLAIM_WINDOW = 300; // 取り合い裁定の窓(ms)
+
+const Online = {
+  mq:null, code:null, myId:null, topic:null,
+  flags:{}, ready:{ host:false, guest:false },
+  claims:{}, claimTimer:{}, resultSent:{}, startedGo:{}, doneRounds:{},
+  goAt:0, pendingBonus:0, watchdog:null, knockTimer:null,
+
+  reset(){
+    this.flags = {}; this.ready = { host:false, guest:false };
+    this.claims = {}; this.claimTimer = {}; this.resultSent = {};
+    this.startedGo = {}; this.doneRounds = {};
+    this.goAt = 0; this.pendingBonus = 0;
+    this.clearWatchdog(); clearTimeout(this.knockTimer);
+  },
+  send(obj){
+    if(!this.mq) return;
+    obj.i = this.myId;
+    try{ this.mq.publish(this.topic, JSON.stringify(obj)); }catch(e){}
+  },
+  async connect(brokerIdx, code){
+    this.code = code;
+    this.myId = 'p' + Math.random().toString(36).slice(2, 10);
+    this.topic = 'hokusai-karuta/1/' + code;
+    const mq = new MiniMQTT(BROKERS[brokerIdx]);
+    this.mq = mq;
+    mq.onmessage = (t, p) => { if(t === this.topic) this.recv(p); };
+    mq.onclose = () => {
+      if(M.mode === 'online' && !this.flags.finished && !this.flags.leaving){
+        toast('通信が切れました'); this.leave(true);
+      }
+    };
+    const will = JSON.stringify({ i:this.myId, t:'leave' });
+    await mq.connect('hk-' + this.myId, this.topic, will, 6000);
+    mq.subscribe(this.topic);
+  },
+
+  /* ----- 部屋を作る(先頭桁=中継番号) ----- */
+  async createRoom(){
+    let lastErr = null;
+    for(let b = 0; b < BROKERS.length; b++){
+      const code = String(b + 1) + String(Math.floor(100 + Math.random() * 900));
+      try{
+        this.reset();
+        await this.connect(b, code);
+        M.role = 'host';
+        const pool = shuffle(ARTWORKS).slice(0, MATCH_SIZE);
+        this.roomData = {
+          artworkIds: pool.map(a => a.id),
+          order:      shuffle(pool).map(a => a.id),
+          field:      shuffle(pool).map(a => a.id),
+        };
+        return code;
+      }catch(e){ lastErr = e; if(this.mq){ this.mq.close(); this.mq = null; } }
+    }
+    throw (lastErr || new Error('no broker'));
+  },
+  /* ----- 合言葉で入る ----- */
+  async joinRoom(code){
+    const b = parseInt(code[0], 10) - 1;
+    if(!(b >= 0 && b < BROKERS.length)) throw new Error('badcode');
+    this.reset();
+    await this.connect(b, code);
+    M.role = 'guest';
+    this.roomData = null;
+    // 部屋への呼びかけ(応答が無ければ不在)
+    return new Promise((resolve, reject) => {
+      this.flags.joinResolve = resolve; this.flags.joinReject = reject;
+      this.send({ t:'knock' });
+      this.knockTimer = setTimeout(() => {
+        if(this.flags.joinReject){
+          const rj = this.flags.joinReject;
+          this.flags.joinResolve = this.flags.joinReject = null;
+          this.mq.close(); this.mq = null;
+          rj(new Error('notfound'));
+        }
+      }, 4500);
+    });
+  },
+
+  /* ----- 待合 ----- */
+  async enterWaiting(){
+    M.mode = 'online';
+    $('wait-code').textContent = this.code;
+    $('wait-status').textContent = M.role === 'host' ? '相手の入室を待っています…' : '入室しました。札の支度をしています…';
+    $('wait-prog').textContent = '';
+    show('scr-wait');
+    try{
+      await this.preloadAll();
+      this.ready[M.role] = true;
+      this.send({ t:'ready', role:M.role });
+      this.updateWaitStatus();
+      this.tryStart();
+    }catch(e){
+      toast('作品の読み込みに失敗しました。通信環境をご確認ください。');
+      this.leave(true);
+    }
+  },
+  updateWaitStatus(){
+    if(this.flags.gameShown) return;
+    const meReady = this.ready[M.role];
+    const oppRole = M.role === 'host' ? 'guest' : 'host';
+    const oppIn = M.role === 'host' ? this.flags.guestIn : true;
+    $('wait-status').textContent =
+      !oppIn ? '相手の入室を待っています…' :
+      !meReady ? '札の支度をしています…' :
+      !this.ready[oppRole] ? '相手の支度を待っています…' : 'まもなく開始…';
+  },
+  async preloadAll(){
+    const ids = this.roomData.artworkIds;
+    M.arts = ids.map(id => ARTWORKS.find(a => a.id === id)).filter(Boolean);
+    let done = 0;
+    const upd = () => { $('wait-prog').textContent = '札の支度 ' + (KANJI_NUM[done] || done) + ' / ' + KANJI_NUM[M.arts.length]; };
+    upd();
+    await Promise.all(M.arts.map(async art => {
+      try{ await prepareArt(art); }
+      catch(e){ metaMap.delete(art.id); try{ await prepareArt(art); }catch(e2){} }
+      done++; upd();
+    }));
+  },
+
+  /* ----- 受信 ----- */
+  recv(payload){
+    let m; try{ m = JSON.parse(payload); }catch(e){ return; }
+    if(!m || !m.t) return;
+    const mine = m.i === this.myId;
+    switch(m.t){
+      case 'knock':
+        if(mine || M.role !== 'host') return;
+        if(this.flags.guestId && this.flags.guestId !== m.i){ this.send({ t:'full', to:m.i }); return; }
+        this.flags.guestId = m.i; this.flags.guestIn = true;
+        Sound.ui();
+        this.send({ t:'room', to:m.i, room:this.roomData, hostReady:this.ready.host });
+        this.updateWaitStatus();
+        break;
+      case 'full':
+        if(m.to === this.myId && this.flags.joinReject){
+          clearTimeout(this.knockTimer);
+          const rj = this.flags.joinReject;
+          this.flags.joinResolve = this.flags.joinReject = null;
+          this.mq.close(); this.mq = null;
+          rj(new Error('full'));
+        }
+        break;
+      case 'room':
+        if(mine || M.role !== 'guest' || m.to !== this.myId) return;
+        clearTimeout(this.knockTimer);
+        if(this.flags.joinResolve){
+          this.roomData = m.room;
+          if(m.hostReady) this.ready.host = true;
+          const rs = this.flags.joinResolve;
+          this.flags.joinResolve = this.flags.joinReject = null;
+          rs();
+        }
+        break;
+      case 'ready':
+        this.ready[m.role] = true;
+        this.updateWaitStatus();
+        this.tryStart();
+        break;
+      case 'start':
+        if(!this.flags.gameShown){ this.flags.gameShown = true; this.beginOnlineMatch(); }
+        break;
+      case 'go':
+        if(this.flags.gameShown && m.r === M.round && !this.startedGo[m.r]){
+          this.startedGo[m.r] = true;
+          this.goAt = performance.now();
+          this.clearWatchdog();
+          nextRound();
+        }
+        break;
+      case 'claim':
+        if(M.role !== 'host') return;
+        this.onClaim(m);
+        break;
+      case 'result':
+        this.onResult(m);
+        break;
+      case 'done':
+        if(!this.flags.finished && this.flags.gameShown){
+          this.flags.finished = true;
+          this.clearWatchdog();
+          const wait = M.resolved ? 300 : RESOLVE_MS;
+          setTimeout(() => { if(M.mode === 'online') finishMatch(); }, wait);
+        }
+        break;
+      case 'leave':
+        if(mine) return;
+        if(!this.flags.finished && !this.flags.leaving){
+          toast('相手が退室しました'); this.leave(true);
+        }
+        break;
+    }
+  },
+
+  tryStart(){
+    if(M.role !== 'host' || this.flags.startSent) return;
+    if(this.ready.host && this.ready.guest && this.flags.guestIn){
+      this.flags.startSent = true;
+      this.send({ t:'start' });
+      setTimeout(() => this.send({ t:'go', r:0 }), 1400);
+    }
+  },
+  beginOnlineMatch(){
+    const byId = id => ARTWORKS.find(a => a.id === id);
+    M.order = this.roomData.order.map(byId).filter(Boolean);
+    M.round = 0; M.score = 0; M.taken = 0; M.cpu = 0; M.miss = 0; M.takenIds = [];
+    M.resolved = true; M.lock = false;
+    chooseOpponentAvatar();
+    setDuelExpressions('default', 'default');
+    $('senko-label').textContent = '流れの線香';
+    buildField(this.roomData.field.map(byId).filter(Boolean));
+    updateHUD();
+    $('yomi-text').innerHTML = '';
+    $('yomi-answer').textContent = 'まもなく開始…';
+    show('scr-game');
+    Sound.roundStart();
+    this.armWatchdog();
+  },
+
+  /* ----- 札の取り合い(ホスト裁定) ----- */
+  claim(r, frac, btn, bonus){
+    this.pendingBonus = bonus;
+    this.send({ t:'claim', r, role:M.role, rt:Math.round(performance.now() - this.goAt) });
+  },
+  onClaim(m){
+    const r = m.r;
+    if(this.resultSent[r] || this.doneRounds[r]) return;
+    if(!this.claims[r]) this.claims[r] = [];
+    if(this.claims[r].some(c => c.role === m.role)) return;
+    this.claims[r].push({ role:m.role, rt:m.rt });
+    if(this.claims[r].length === 1){
+      this.claimTimer[r] = setTimeout(() => this.judge(r), CLAIM_WINDOW);
+    }else{
+      clearTimeout(this.claimTimer[r]);
+      this.judge(r);
+    }
+  },
+  judge(r){
+    if(this.resultSent[r]) return;
+    this.resultSent[r] = true;
+    const cs = this.claims[r] || [];
+    if(cs.length === 0) return;
+    cs.sort((a, b) => a.rt - b.rt);
+    this.send({ t:'result', r, who:cs[0].role });
+  },
+  writeNone(r){ // 線香切れ(ホストのみ呼ばれる)
+    if(this.resultSent[r] || this.doneRounds[r] || (this.claims[r] && this.claims[r].length)) return;
+    this.resultSent[r] = true;
+    this.send({ t:'result', r, who:'none' });
+  },
+  onResult(m){
+    if(m.r !== M.round || this.doneRounds[m.r] || M.resolved || !this.flags.gameShown) return;
+    this.doneRounds[m.r] = true;
+    const art = currentArt();
+    const btn = document.querySelector('.card[data-id="' + art.id + '"]');
+    if(m.who === 'none'){
+      resolveRound('none', btn, 0);
+    }else if(m.who === M.role){
+      const bonus = this.pendingBonus || 0;
+      M.score += 100 + bonus; M.taken++;
+      if(M.takenIds.indexOf(art.id) < 0) M.takenIds.push(art.id);
+      resolveRound('player', btn, bonus);
+    }else{
+      M.cpu++;
+      resolveRound('cpu', btn, 0);
+    }
+    this.pendingBonus = 0;
+  },
+  advance(){ // ホスト: 決着の間のあと次へ
+    if(M.round >= MATCH_SIZE){
+      this.send({ t:'done' });
+    }else{
+      this.send({ t:'go', r:M.round });
+    }
+  },
+
+  armWatchdog(){
+    this.clearWatchdog();
+    this.watchdog = setTimeout(() => {
+      if(M.mode === 'online' && !this.flags.finished) toast('相手の合図を待っています…', 2000);
+    }, 15000);
+  },
+  clearWatchdog(){ clearTimeout(this.watchdog); this.watchdog = null; },
+
+  cleanup(finished){
+    this.clearWatchdog();
+    Object.keys(this.claimTimer).forEach(k => clearTimeout(this.claimTimer[k]));
+    if(this.mq){
+      if(!finished) this.send({ t:'leave' });
+      this.mq.close(); this.mq = null;
+    }
+  },
+  leave(silent){
+    this.flags.leaving = true;
+    this.cleanup(this.flags.finished);
+    clearRoundTimers(); M.resolved = true; M.mode = 'cpu'; M.role = null;
+    this.code = null;
+    show('scr-title');
+  },
+};
+
+/* ----- 画面と配線 ----- */
+function showOnline(){ show('scr-online'); }
+$('btn-online').addEventListener('click', () => { Sound.ensure(); Sound.ui(); openAvatarPicker('online'); });
+$('btn-online-back').addEventListener('click', () => { Sound.ui(); show('scr-avatar'); });
+
+$('btn-room-create').addEventListener('click', async () => {
+  Sound.ensure(); Sound.ui();
+  const b = $('btn-room-create');
+  b.disabled = true; b.textContent = '支度中…';
+  try{
+    await Online.createRoom();
+    await Online.enterWaiting();
+  }catch(e){
+    toast('中継サーバーに接続できませんでした。通信環境をご確認ください。');
+  }
+  b.disabled = false; b.textContent = '部屋を作る';
+});
+$('btn-room-join').addEventListener('click', async () => {
+  Sound.ensure(); Sound.ui();
+  const code = ($('inp-code').value || '').trim();
+  if(!/^\d{4}$/.test(code)){ toast('合言葉は四桁の数字です'); return; }
+  const b = $('btn-room-join');
+  b.disabled = true; b.textContent = '入室中…';
+  try{
+    await Online.joinRoom(code);
+    await Online.enterWaiting();
+  }catch(e){
+    toast(e.message === 'notfound' ? 'その合言葉の部屋が見つかりません'
+        : e.message === 'full' ? 'その部屋は満室です'
+        : e.message === 'badcode' ? '合言葉が正しくありません'
+        : '入室できませんでした。通信環境をご確認ください。');
+  }
+  b.disabled = false; b.textContent = '入室する';
+});
+$('btn-wait-leave').addEventListener('click', () => { Sound.ui(); Online.leave(); });
+
+</script>
+</body>
+</html>

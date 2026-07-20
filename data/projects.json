@@ -100,5 +100,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-07-19T12:32:33Z",
     "updatedAt": "2026-07-19T12:32:33Z"
+  },
+  {
+    "slug": "hokusai-karuta",
+    "title": "北斎かるた",
+    "kind": "game",
+    "description": "浮世絵の読み札を頼りに取り札を競う、江戸モダンな北斎かるたゲーム。CPU戦・オンライン対戦対応。",
+    "url": "/apps/hokusai-karuta/",
+    "thumbnail": "/project-thumbnails/hokusai-karuta.webp",
+    "sourceFolder": "260720_北斎かるた",
+    "sourceEntry": "hokusai-karuta_v1.3.html",
+    "publishedAt": "2026-07-20T05:20:25Z",
+    "updatedAt": "2026-07-20T05:20:25Z"
   }
 ]
