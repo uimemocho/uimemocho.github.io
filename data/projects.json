@@ -112,5 +112,17 @@
     "sourceEntry": "hokusai-karuta_v1.3.html",
     "publishedAt": "2026-07-20T05:20:25Z",
     "updatedAt": "2026-07-20T06:19:31Z"
+  },
+  {
+    "slug": "natural-judge",
+    "title": "ナチュラルジャッジ",
+    "kind": "game",
+    "description": "ボタンの位置や色に惑わされず、30秒間ナチュラルを見抜く反射神経ゲーム。",
+    "url": "/apps/natural-judge/",
+    "thumbnail": null,
+    "sourceFolder": "260720_ナチュラルジャッジ",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-07-20T06:26:28Z",
+    "updatedAt": "2026-07-20T06:26:28Z"
   }
 ]
