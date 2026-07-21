@@ -70,5 +70,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-07-20T06:26:28Z",
     "updatedAt": "2026-07-20T06:26:28Z"
+  },
+  {
+    "slug": "potechi-shock",
+    "title": "ポテチショック",
+    "kind": "game",
+    "description": "軍艦ピースをそろえて原油缶を落とし、ポテトチップスのパッケージをカラー化する3マッチパズル。",
+    "url": "/apps/potechi-shock/",
+    "thumbnail": "/project-thumbnails/potechi-shock.webp",
+    "sourceFolder": "260514_ポテチショック",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-07-21T10:30:17Z",
+    "updatedAt": "2026-07-21T10:31:23Z"
   }
 ]
