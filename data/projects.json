@@ -82,5 +82,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-07-21T10:30:17Z",
     "updatedAt": "2026-07-21T10:31:23Z"
+  },
+  {
+    "slug": "illusion-lab",
+    "title": "錯視ラボ / ILLUSION LAB",
+    "kind": "game",
+    "description": "18種類の錯視を操作・観察し、知覚のズレを測って学べる体験ゲーム。",
+    "url": "/apps/illusion-lab/",
+    "thumbnail": null,
+    "sourceFolder": "260723_錯視ラボ",
+    "sourceEntry": "illusion-lab_v1.0.html",
+    "publishedAt": "2026-07-23T07:41:17Z",
+    "updatedAt": "2026-07-23T07:41:17Z"
   }
 ]

@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08080b">
+<title>錯視ラボ / ILLUSION LAB</title>
+<style>
+:root{
+  --bg:#08080b; --surface:#101016; --surface2:#16161e; --surface3:#1c1c26;
+  --border:#252530; --border-hi:#3a3a52;
+  --text:#dcdce8; --dim:#8b8ba6; --muted:#55556a;
+  --accent:#00e878; --accent2:#ff2e5c; --accent3:#2e8cff; --warn:#ffa726;
+  --purple:#a855f7; --cyan:#22d3ee;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+  --jp:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--jp);}
+body{padding-bottom:env(safe-area-inset-bottom)}
+.scan{position:fixed;inset:0;pointer-events:none;z-index:9;opacity:.35;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+.app{max-width:700px;margin:0 auto;padding:0 max(20px,env(safe-area-inset-left)) 72px max(20px,env(safe-area-inset-right))}
+
+/* header */
+.hd{position:sticky;top:0;z-index:8;background:rgba(8,8,11,.94);backdrop-filter:blur(8px);
+  display:flex;align-items:center;gap:8px;padding:12px 10px 10px;border-bottom:1px solid var(--border)}
+.brand{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:2px;color:var(--accent);
+  display:flex;align-items:center;gap:7px}
+.brand i{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);font-style:normal}
+.brand small{color:var(--dim);font-weight:400;letter-spacing:1px;font-size:9px}
+.hd-r{margin-left:auto;display:flex;align-items:center;gap:6px}
+.pill{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim);
+  border:1px solid var(--border);border-radius:99px;padding:4px 8px}
+.pill b{color:var(--accent)}
+
+/* nav */
+.scroller{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.scroller::-webkit-scrollbar{display:none}
+.cat{flex:0 0 auto;font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:7px 11px;
+  border:1px solid var(--border);border-radius:99px;background:var(--surface);color:var(--dim);cursor:pointer;
+  transition:.15s;white-space:nowrap}
+.cat.active{color:#08080b;background:var(--accent);border-color:var(--accent);font-weight:700}
+.chip{flex:0 0 auto;font-size:11px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;
+  background:var(--surface);color:var(--dim);cursor:pointer;white-space:nowrap;transition:.15s;position:relative}
+.chip.active{color:var(--text);border-color:var(--accent);background:var(--surface3);
+  box-shadow:0 0 0 1px rgba(0,232,120,.25) inset}
+.chip.done::after{content:"";position:absolute;top:5px;right:5px;width:4px;height:4px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 5px var(--accent)}
+
+/* stage */
+.stage{margin-top:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;padding:12px;background:#808080;transition:background .2s}
+.stage.zoom{position:fixed;inset:0;z-index:20;border-radius:0;padding:14px;margin:0}
+canvas{width:100%;height:auto;display:block;touch-action:manipulation;border-radius:2px}
+.stage.zoom canvas{width:auto;height:auto;max-width:100%;max-height:100%}
+#zoomclose{display:none;position:fixed;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:21}
+.stage.zoom ~ #zoomclose{display:block}
+
+/* hook caption (viral punchline) */
+.hook{margin-top:10px;border:1px solid var(--border-hi);border-left:3px solid var(--accent);
+  border-radius:8px;background:linear-gradient(180deg,rgba(0,232,120,.05),rgba(0,232,120,0));padding:12px 13px}
+.hook.sess{border-left-color:var(--warn);background:linear-gradient(180deg,rgba(255,167,38,.06),rgba(255,167,38,0))}
+.h-row{display:flex;align-items:baseline;gap:8px;font-size:12.5px;color:var(--dim);line-height:1.5}
+.h-tag{flex:0 0 auto;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted);
+  border:1px solid var(--border);border-radius:3px;padding:2px 6px;position:relative;top:-1px}
+.h-fact{margin-top:9px;font-size:17px;font-weight:800;line-height:1.35;letter-spacing:.3px;color:var(--text)}
+.h-fact b{color:var(--accent);text-shadow:0 0 14px rgba(0,232,120,.35)}
+.hook.sess .h-fact b{color:var(--warn);text-shadow:0 0 14px rgba(255,167,38,.35)}
+.h-why{margin-top:9px;font-size:10.5px;line-height:1.6;color:var(--muted)}
+.h-why b{color:var(--dim);font-weight:600}
+
+/* titles */
+.tbar{padding:14px 2px 2px}
+.tbar h2{margin:0;font-size:17px;letter-spacing:.5px}
+.tbar .en{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:3px;text-transform:uppercase}
+.tbar p{margin:7px 0 0;font-size:12.5px;line-height:1.65;color:var(--dim)}
+
+/* section */
+.section{margin-top:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:12px}
+.stitle{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:2.5px;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
+.stitle i{width:5px;height:5px;border-radius:50%;font-style:normal;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.stitle.c2 i{background:var(--accent3);box-shadow:0 0 6px var(--accent3)}
+.stitle.c3 i{background:var(--purple);box-shadow:0 0 6px var(--purple)}
+.stitle.c4 i{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+
+/* params */
+.prow{display:flex;align-items:center;gap:9px;margin:9px 0}
+.plab{flex:0 0 86px;font-size:10.5px;color:var(--dim);line-height:1.3}
+.pval{flex:0 0 46px;text-align:right;font-family:var(--mono);font-size:10px;color:var(--accent)}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:22px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--border-hi);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--accent);margin-top:-7px;box-shadow:0 0 8px rgba(0,232,120,.5);cursor:pointer}
+input[type=range]::-moz-range-track{height:2px;background:var(--border-hi)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--accent)}
+select{flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:5px;
+  padding:7px 8px;font-size:11px;font-family:var(--jp)}
+.hint{font-size:10px;color:var(--muted);line-height:1.5;margin:2px 0 8px 95px}
+
+/* buttons */
+.btnrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.btn{flex:1;min-width:88px;font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:10px 8px;
+  border:1px solid var(--border-hi);border-radius:6px;background:var(--surface2);color:var(--text);cursor:pointer;
+  transition:.15s;min-height:38px}
+.btn:active{background:var(--surface3)}
+.btn.on{background:var(--accent);color:#08080b;border-color:var(--accent);font-weight:700}
+.btn.acc{border-color:var(--accent);color:var(--accent)}
+.btn.sm{flex:0 0 auto;min-width:0;padding:6px 9px;font-size:9px;min-height:30px}
+
+/* task */
+.result{margin-top:10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);padding:11px}
+.result .big{font-family:var(--mono);font-size:24px;color:var(--accent);letter-spacing:1px}
+.result .big.bad{color:var(--warn)}
+.result p{margin:6px 0 0;font-size:11.5px;line-height:1.6;color:var(--dim)}
+.gauge{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-top:9px}
+.gauge b{display:block;height:100%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* note */
+.note h4{margin:12px 0 5px;font-size:11px;color:var(--text);letter-spacing:.5px;display:flex;gap:6px;align-items:center}
+.note h4:first-of-type{margin-top:0}
+.note h4 em{font-style:normal;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px}
+.note p{margin:0;font-size:12px;line-height:1.75;color:var(--dim)}
+.note .ui{border-left:2px solid var(--accent3);padding-left:10px}
+.tag{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:1px;color:var(--muted);
+  border:1px solid var(--border);border-radius:3px;padding:2px 6px;margin:8px 4px 0 0}
+
+/* timer */
+.timer{font-family:var(--mono);font-size:11px;color:var(--warn);letter-spacing:1px;margin-top:8px;text-align:center}
+
+footer{margin-top:22px;padding-top:14px;border-top:1px solid var(--border);
+  font-size:10px;line-height:1.7;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(12px);z-index:30;
+  background:var(--accent);color:#08080b;font-size:11px;font-weight:700;padding:9px 16px;border-radius:99px;
+  opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:400px){.plab{flex-basis:74px;font-size:10px}.hint{margin-left:83px}}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+<div class="app">
+  <header class="hd">
+    <div class="brand"><i></i>ILLUSION LAB</div>
+    <div class="hd-r">
+      <span class="pill"><span id="lblExp">体験</span> <b id="prog">0</b>/<span id="total">0</span></span>
+      <button class="btn sm" id="lang">EN</button>
+      <button class="btn sm" id="snd">SOUND</button>
+    </div>
+  </header>
+
+  <nav class="scroller" id="cats"></nav>
+  <nav class="scroller" id="chips"></nav>
+
+  <div class="stage" id="stage"><canvas id="cv"></canvas></div>
+  <button class="btn sm" id="zoomclose">閉じる</button>
+
+  <div class="hook" id="hook"></div>
+
+  <div class="tbar">
+    <h2 id="ttl">—</h2>
+    <div class="en" id="en"></div>
+    <p id="lead"></p>
+  </div>
+
+  <section class="section" id="ctrlsec">
+    <div class="stitle"><i></i><span id="ttlCtrl">操作パネル</span></div>
+    <div id="ctrl"></div>
+    <div class="btnrow" id="btns"></div>
+    <div class="timer" id="timer" style="display:none"></div>
+  </section>
+
+  <section class="section" id="tasksec" style="display:none">
+    <div class="stitle c4"><i></i><span id="ttlTask">知覚のズレを測る</span></div>
+    <div id="taskbody"></div>
+  </section>
+
+  <section class="section note">
+    <div class="stitle c2"><i></i><span id="ttlNote">解説</span></div>
+    <h4><span id="ttlPercept">見え方</span> <em>PERCEPT</em></h4><p id="n1"></p>
+    <h4><span id="ttlMech">起きていること</span> <em>MECHANISM</em></h4><p id="n2"></p>
+    <h4><span id="ttlApply">UI・演出への応用</span> <em>APPLY</em></h4><p class="ui" id="n3"></p>
+    <div id="tags"></div>
+  </section>
+
+  <footer id="foot">
+    錯視ラボ v1.0 ／ 単一HTML・外部依存なし・全図形はCanvasで手続き生成<br>
+    錯視の成因は現在も研究途上で、複数の有力仮説が並立するものがあります。定説でない箇所は「〜と考えられている」と表記しています。<br>
+    ※ 光の点滅や高コントラストの反復パターンを含みます。気分が悪くなった場合はすぐ中止してください。光感受性発作の既往がある方は使用をお控えください。
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+/* ===== helpers ===== */
+var $=function(s){return document.querySelector(s);};
+var TAU=Math.PI*2, D2R=Math.PI/180, ACC='#00e878';
+function gs(v){v=Math.max(0,Math.min(255,Math.round(v)));return 'rgb('+v+','+v+','+v+')';}
+function ln(g,x1,y1,x2,y2,c,lw){g.strokeStyle=c;g.lineWidth=lw||2;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();}
+function dln(g,x1,y1,x2,y2,c,lw){g.save();g.setLineDash([6,5]);ln(g,x1,y1,x2,y2,c||ACC,lw||2);g.restore();}
+function cir(g,x,y,r,fill,stroke,lw){g.beginPath();g.arc(x,y,r,0,TAU);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||2;g.stroke();}}
+function dcir(g,x,y,r,c){g.save();g.setLineDash([5,4]);g.beginPath();g.arc(x,y,r,0,TAU);g.strokeStyle=c||ACC;g.lineWidth=2;g.stroke();g.restore();}
+function rect(g,x,y,w,h,c){g.fillStyle=c;g.fillRect(x,y,w,h);}
+function txt(g,s,x,y,size,c,al,bold){
+  if(typeof lang!=='undefined'&&lang==='en'&&typeof CANVAS_TR!=='undefined'&&CANVAS_TR[s])s=CANVAS_TR[s];
+  g.fillStyle=c;g.textAlign=al||'center';g.textBaseline='middle';
+  g.font=(bold?'700 ':'')+size+'px ui-monospace,Menlo,monospace';g.fillText(s,x,y);}
+function poly(g,pts,c){g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(var i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.closePath();g.fillStyle=c;g.fill();}
+function inPoly(px,py,pts){var c=false;for(var i=0,j=pts.length-1;i<pts.length;j=i++){
+  var xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];
+  if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi))c=!c;}return c;}
+
+/* ===== illusion registry ===== */
+var CATS=[['size','大きさ・長さ','Size & Length'],['tilt','傾き・形','Tilt & Shape'],['bright','明るさ・色','Brightness & Color'],['edge','輪郭・分割','Contour & Grouping'],['motion','動き・残像','Motion & Afterimage']];
+
+var ILLUSIONS=[
+/* ---------- 1 ---------- */
+{id:'ebbinghaus',cat:'size',name:'エビングハウス錯視',en:'Ebbinghaus / Titchener',ratio:0.6,bg:'#e9e9ec',
+ lead:'中央のオレンジの円Aと円B。どちらが大きく見えますか。「錯視の強さ」を0にすると、周囲の円が同じになり答えが見えます。',
+ params:[
+  {k:'st',label:'錯視の強さ',min:0,max:1,step:.01,def:1,fmt:function(v){return v.toFixed(2);},hint:'周囲の円の大小差。0で錯視が消えます'},
+  {k:'gap',label:'周囲との距離',min:.15,max:1.2,step:.01,def:.55,fmt:function(v){return v.toFixed(2);},hint:'離すほど効果は弱まります'}],
+ task:{k:'adj',label:'Aの大きさ',min:.6,max:1.5,step:.005,def:1,truth:1,unit:'倍',
+   ask:'円Aを、円Bと「同じ大きさに見える」ところまで調整して判定してください。',
+   over:'Aを実際より大きくしていました＝Aは小さく見えていた（大きな囲みに押し縮められた）。',
+   under:'Aを実際より小さくしていました＝Aは大きく見えていた（囲みの効果が反転しています）。'},
+ draw:function(g,w,h,P,S){
+   var cy=h*.46,c=P.st;
+   var bigM=.7+1.7*c,smlM=.7-.46*c;
+   var r=Math.min(w*.245,h*.42)/(1.5*(1+P.gap)+4.8);
+   var lx=w*.27,rx=w*.73;
+   cl(g,lx,cy,r*P.adj,r*bigM,6,P.gap); cl(g,rx,cy,r,r*smlM,7,P.gap);
+   if(S.reveal){dcir(g,lx,cy,r,ACC);dcir(g,rx,cy,r,ACC);
+     txt(g,'点線＝同一サイズ基準',w*.5,h*.06,11,'#555');}
+   txt(g,'A',lx,h*.95,13,'#33333c',null,1);txt(g,'B',rx,h*.95,13,'#33333c',null,1);
+   function cl(g,cx,cy,cr,sr,n,gap){var d=cr+sr+cr*gap;
+     for(var i=0;i<n;i++){var a=i/n*TAU-Math.PI/2;cir(g,cx+Math.cos(a)*d,cy+Math.sin(a)*d,sr,'#41414d');}
+     cir(g,cx,cy,cr,'#ff7a2f');}},
+ n1:'囲みが大きいほど中央は小さく、囲みが小さいほど中央は大きく見えます。多くの人は5〜20%程度ずれます。',
+ n2:'周囲の図形との相対比較で大きさが評価されるため（大きさの対比）と考えられています。近接した文脈が絶対サイズの判断を上書きします。囲みの距離を離すと効果が弱まることも知られています。',
+ n3:'アイコンやボタンの体感サイズは、周囲の余白と隣接要素で変わります。同一サイズのアイコンでも、密集グリッド内と広い余白の中では別物に見える。逆に言えば、実寸を変えずに「余白と隣接物」だけで主役感を作れます。CTAを大きく見せたいなら、まず周りを小さく・少なくする。',
+ tags:['大きさの対比','余白設計','CTA']},
+
+/* ---------- 2 ---------- */
+{id:'muller',cat:'size',name:'ミュラー・リヤー錯視',en:'Müller-Lyer 1889',ratio:0.55,bg:'#e9e9ec',
+ lead:'上下の水平線。矢羽の向きだけが違います。長さはどう見えますか。',
+ params:[
+  {k:'ang',label:'矢羽の角度',min:0,max:85,step:1,def:40,fmt:function(v){return v+'°';},hint:'0°で矢羽が線と重なり、錯視がほぼ消えます'},
+  {k:'fin',label:'矢羽の長さ',min:.2,max:1.6,step:.02,def:1,fmt:function(v){return v.toFixed(2);}}],
+ task:{k:'adj',label:'下の線の長さ',min:.6,max:1.5,step:.005,def:1,truth:1,unit:'倍',
+   ask:'下の線（内向き矢羽）を、上の線と「同じ長さに見える」まで調整してください。',
+   over:'下の線を実際より長くしていました＝内向き矢羽の線は短く見えていた。',
+   under:'下の線を実際より短くしていました。'},
+ draw:function(g,w,h,P,S){
+   var L=w*.5,cx=w*.5,y1=h*.34,y2=h*.7,f=w*.09*P.fin,a=P.ang*D2R;
+   ml(cx,y1,L,1); ml(cx,y2,L*P.adj,-1);
+   if(S.reveal){dln(g,cx-L/2,h*.15,cx-L/2,h*.85);dln(g,cx+L/2,h*.15,cx+L/2,h*.85);
+     txt(g,'点線＝上の線の両端',w*.5,h*.08,11,'#555');}
+   function ml(cx,y,L,dir){var x1=cx-L/2,x2=cx+L/2;ln(g,x1,y,x2,y,'#20202a',3);
+     var e=[[x1,-1],[x2,1]];for(var i=0;i<2;i++){var dx=e[i][1]*dir*Math.cos(a)*f,dy=Math.sin(a)*f;
+       ln(g,e[i][0],y,e[i][0]+dx,y-dy,'#20202a',3);ln(g,e[i][0],y,e[i][0]+dx,y+dy,'#20202a',3);}}},
+ n1:'外向き矢羽（＜—＞）の線は長く、内向き矢羽（＞—＜）の線は短く見えます。差は10〜25%程度になることがあります。',
+ n2:'成因は未決着です。奥行き手がかりとして解釈されるという説（内向き＝手前の角、外向き＝奥の角）、輪郭全体の重心が取り込まれるという説などが並立します。矢羽の角度を0°に近づけると効果が消えることは安定して再現します。',
+ n3:'線の「実長」ではなく「終端処理」が長さの印象を決めます。区切り線のキャップ形状、アイコンの矢印処理、プログレスバーの端の丸み——同じ数値でも進捗の見え方が変わる。数値の正確さが重要な表示ほど、端部の装飾は抑えるべきです。',
+ tags:['長さの誤認','終端処理','プログレス表現']},
+
+/* ---------- 3 ---------- */
+{id:'verthoriz',cat:'size',name:'垂直水平錯視',en:'Vertical–horizontal',ratio:0.85,bg:'#e9e9ec',
+ lead:'逆T字。垂直線と水平線、同じ長さに見えますか。',
+ params:[{k:'len',label:'線の長さ',min:.35,max:.75,step:.01,def:.6,fmt:function(v){return v.toFixed(2);}},
+  {k:'sep',label:'分割の強さ',min:0,max:1,step:.01,def:1,fmt:function(v){return v.toFixed(2);},hint:'0でL字（分割なし）になり、効果が弱まります'}],
+ task:{k:'adj',label:'水平線の長さ',min:.6,max:1.5,step:.005,def:1,truth:1,unit:'倍',
+   ask:'水平線を、垂直線と「同じ長さに見える」まで調整してください。',
+   over:'水平線を実際より長くしていました＝垂直線が長く見えていた。',
+   under:'水平線を実際より短くしていました。'},
+ draw:function(g,w,h,P,S){
+   var V=h*P.len,x=w*.5,y0=h*.85,W=V*P.adj,off=(W/2)*P.sep;
+   ln(g,x-off,y0,x-off+W,y0,'#20202a',4);
+   ln(g,x,y0,x,y0-V,'#20202a',4);
+   if(S.reveal){g.save();g.translate(x,y0-V);g.rotate(Math.PI/2);dln(g,0,0,V,0);g.restore();
+     txt(g,'点線＝垂直線を倒したもの',w*.5,h*.08,11,'#555');}},
+ n1:'ふつう垂直線のほうが長く見え、水平線を5〜15%長く設定してしまいます。',
+ n2:'垂直方向の伸長評価に加えて、水平線が垂直線に「二分されている」ことが効いていると考えられています。分割の強さを0にしてL字にすると効果が弱まるのは、この分割要因の寄与を示します。',
+ n3:'縦長カードと横長カードは、同面積でも縦が大きく感じられます。バナーやサムネイルの縦横比を変える時は数値上の面積合わせでは揃いません。また「分割された辺は短く見える」ので、区切り線の入れ方でカード幅の印象が変わります。',
+ tags:['縦横比','カード設計','分割効果']},
+
+/* ---------- 4 ---------- */
+{id:'poggendorff',cat:'size',name:'ポッゲンドルフ錯視',en:'Poggendorff 1860',ratio:0.7,bg:'#e9e9ec',
+ lead:'帯で隠された斜線。右側のどの位置が、左の線の「続き」に見えますか。',
+ params:[{k:'bw',label:'帯の幅',min:.08,max:.45,step:.01,def:.24,fmt:function(v){return v.toFixed(2);}},
+  {k:'ang',label:'線の角度',min:10,max:70,step:1,def:35,fmt:function(v){return v+'°';},hint:'浅い角度ほどズレが大きくなります'}],
+ task:{k:'adj',label:'右の線の位置',min:-.12,max:.12,step:.002,def:0,truth:0,unit:'',
+   ask:'右側の線分を上下に動かし、左の線と「一直線につながって見える」位置に合わせてください。',
+   over:'実際の延長線より上にずらしていました（典型的なズレ方向です）。',
+   under:'実際の延長線より下にずらしていました。',
+   errFn:function(v,P,w,h){return v*h/(P.bw*w)*100;},errUnit:'%（帯幅比）'},
+ draw:function(g,w,h,P,S){
+   var bw=P.bw*w,sl=Math.tan(P.ang*D2R);
+   var x1=w*.05,x2=(w-bw)/2,x3=(w+bw)/2,x4=w*.95,span=x4-x1,maxRise=h*.84;
+   if(span*sl>maxRise)sl=maxRise/span;
+   var yA=h*.5+span*sl/2,yB=yA-(x2-x1)*sl,yC=yB-(x3-x2)*sl+P.adj*h,yD=yC-(x4-x3)*sl;
+   rect(g,x2,0,bw,h,'#33333d');
+   ln(g,x1,yA,x2,yB,'#16161c',4); ln(g,x3,yC,x4,yD,'#16161c',4);
+   if(S.reveal){dln(g,x2,yB,x3,yB-(x3-x2)*sl,ACC,2);
+     var ty=yB-(x3-x2)*sl; ln(g,x3,ty,x3+w*.06,ty,ACC,2);
+     txt(g,'点線＝本当の延長線',w*.5,h*.08,11,'#e9e9ec');}},
+ n1:'右の線分は、実際の延長線より「上」にあるように見えるのが典型です。帯が広いほど、角度が浅いほどズレます。',
+ n2:'遮蔽された部分を脳が補間する際、線と帯のエッジがつくる鋭角が拡大して知覚される（角度の過大視）ことが一因と考えられています。単一の説明では説明しきれない部分も残っています。',
+ n3:'途中で分断されるライン——タブの区切り、装飾罫、グラフの折れ線がラベルで隠れる箇所——は、視覚的に「つながって見えない」ことがあります。分断された線の整列は、数値ではなく実際の見た目で確認する必要があります。',
+ tags:['整列','遮蔽補間','グラフ表現']},
+
+/* ---------- 5 ---------- */
+{id:'zollner',cat:'tilt',name:'ツェルナー錯視',en:'Zöllner 1860',ratio:0.9,bg:'#f2f2f4',
+ lead:'長い横線はすべて平行です。斜めの短い線を消すと確認できます。',
+ params:[{k:'ang',label:'斜線の角度',min:0,max:90,step:1,def:45,fmt:function(v){return v+'°';},hint:'0°または90°で錯視が消えます'},
+  {k:'sp',label:'斜線の間隔',min:.02,max:.12,step:.005,def:.045,fmt:function(v){return v.toFixed(3);}},
+  {k:'n',label:'横線の本数',min:4,max:12,step:1,def:7,fmt:function(v){return v|0;}}],
+ draw:function(g,w,h,P,S){
+   var n=P.n|0,m=w*.04,hl=h*.045,a=P.ang*D2R;
+   for(var i=0;i<n;i++){var y=h*(i+1)/(n+1),d=(i%2)?1:-1;
+     ln(g,m,y,w-m,y,'#15151b',3);
+     for(var x=m+w*P.sp*.5;x<w-m;x+=w*P.sp){
+       var dx=Math.cos(a)*hl*d,dy=Math.sin(a)*hl;
+       ln(g,x-dx/2,y-dy/2,x+dx/2,y+dy/2,'#15151b',2);}
+     if(S.reveal)dln(g,m,y,w-m,y,ACC,2);}
+   if(S.reveal)txt(g,'点線＝水平の基準線',w*.5,h*.045,11,'#555');},
+ n1:'横線が交互に傾いて見え、扇形に開いたり閉じたりして見えます。斜線の角度を0°や90°にすると平行に戻ります。',
+ n2:'鋭角が実際より大きく知覚される「角度の過大視」が主要因と考えられています。方位選択性を持つ視覚野ニューロンの側方抑制によって、近接した方位が互いに反発する（方位反発）ためという説明が有力です。',
+ n3:'背景に斜めのパターン（ストライプ、集中線、斜めグリッド）を敷くと、その上の水平・垂直要素が傾いて見えます。演出で斜め線を多用する画面ほど、UIの整列が崩れて見えるリスクがある。集中線演出の直後にHUDが歪んで見えるのはこれです。',
+ tags:['方位反発','背景パターン','整列崩れ']},
+
+/* ---------- 6 ---------- */
+{id:'hering',cat:'tilt',name:'ヘリング錯視',en:'Hering 1861',ratio:1,bg:'#f2f2f4',
+ lead:'2本の赤い縦線は完全な直線・平行です。放射線を消すと確認できます。',
+ params:[{k:'n',label:'放射線の本数',min:0,max:60,step:2,def:32,fmt:function(v){return v|0;},hint:'0にすると錯視が消えます'},
+  {k:'gap',label:'縦線の間隔',min:.06,max:.4,step:.01,def:.16,fmt:function(v){return v.toFixed(2);}}],
+ draw:function(g,w,h,P,S){
+   var cx=w*.5,cy=h*.5,R=Math.max(w,h),n=P.n|0;
+   for(var i=0;i<n;i++){var a=i/n*TAU;ln(g,cx,cy,cx+Math.cos(a)*R,cy+Math.sin(a)*R,'#3a3a44',1.5);}
+   var gx=w*P.gap;
+   ln(g,cx-gx,0,cx-gx,h,'#d61f3a',4); ln(g,cx+gx,0,cx+gx,h,'#d61f3a',4);
+   if(S.reveal){dln(g,cx-gx,0,cx-gx,h,ACC,2);dln(g,cx+gx,0,cx+gx,h,ACC,2);}},
+ n1:'2本の直線が中央付近で外側に膨らんで（弓なりに）見えます。ヴント錯視は同じ構図で内側にへこんで見えるパターンです。',
+ n2:'ツェルナー錯視と同じく角度の過大視・方位反発で説明されるほか、放射線が遠近法的な奥行き手がかりとして働き、大きさの恒常性が誤作動するという説もあります。',
+ n3:'集中線・放射グラデーション・ゴッドレイの上に置いた直線的なUI（枠、区切り、テキストベースライン）は歪んで見えます。ガチャ演出やスキル発動演出で背景が放射状になる瞬間、上に乗るフレームは太めにするか、放射の中心とUIの位置関係を意図的にずらす対処が有効です。',
+ tags:['集中線演出','枠の歪み','演出との干渉']},
+
+/* ---------- 7 ---------- */
+{id:'cafewall',cat:'tilt',name:'カフェウォール錯視',en:'Café wall / Gregory 1979',ratio:0.85,bg:'#9a9a9a',
+ lead:'すべての横の並びは平行です。目地（グレーの線）の明度と段ずれで効果が大きく変わります。',
+ params:[{k:'shift',label:'段ずれ',min:0,max:.5,step:.01,def:.25,fmt:function(v){return v.toFixed(2);},hint:'0または0.5で錯視が消えます。0.25付近が最大'},
+  {k:'mg',label:'目地の明度',min:0,max:255,step:1,def:128,fmt:function(v){return v|0;},hint:'黒と白の中間（128付近）で最も強く効きます'},
+  {k:'mw',label:'目地の太さ',min:0,max:10,step:.5,def:3,fmt:function(v){return v.toFixed(1);},hint:'0にすると錯視が消えます'},
+  {k:'n',label:'タイル数',min:4,max:14,step:1,def:8,fmt:function(v){return v|0;}}],
+ draw:function(g,w,h,P,S){
+   var t=w/P.n,rh=t*.62,rows=Math.ceil(h/rh)+1;
+   for(var r=0;r<rows;r++){var y=r*rh,off=(r%2)*P.shift*t*2;
+     for(var c=-2;c<P.n+2;c++){var x=c*t+off;
+       rect(g,x,y,t/2,rh,'#000');rect(g,x+t/2,y,t/2,rh,'#fff');}
+     if(P.mw>0)rect(g,0,y-P.mw/2,w,P.mw,gs(P.mg));}
+   if(S.reveal){for(var r2=0;r2<rows;r2++)dln(g,0,r2*rh,w,r2*rh,ACC,2);
+     txt(g,'点線＝水平の基準線',w*.5,h*.045,11,'#fff');}},
+ n1:'タイルの列が交互に傾いて、くさび状に見えます。目地が黒でも白でもなく中間グレーのときに最も強く出ます。',
+ n2:'明暗の境界にある低次の輝度検出（明るさの重心が目地内でずれる「ブリック効果」）から生じると考えられています。1979年にR.グレゴリーがブリストルのカフェのタイル壁で報告し命名しましたが、同型の図は1897年にミュンスターベルクが報告しています。',
+ n3:'ドット絵やタイリング背景で、市松＋中間色の細い区切り線を使うと画面全体が歪んで見えます。パターン背景の目地色は、タイル色のどちらかに寄せる（＝コントラストを片側に倒す）と歪みが消えます。テクスチャのグリッド線設計で直に使える知見です。',
+ tags:['タイリング背景','目地色','ドット絵']},
+
+/* ---------- 8 ---------- */
+{id:'fraser',cat:'tilt',name:'フレーザーの渦巻き錯視',en:'Fraser spiral 1908',ratio:1,bg:'#1a1a1a',
+ lead:'渦巻きに見えますが、実際は同心円です。「答え合わせ」で1本の円をなぞります。',
+ params:[{k:'tilt',label:'傾き',min:-40,max:40,step:1,def:22,fmt:function(v){return v+'°';},hint:'0°にすると同心円だと分かります'},
+  {k:'rings',label:'リング数',min:3,max:9,step:1,def:6,fmt:function(v){return v|0;}}],
+ draw:function(g,w,h,P,S){
+   var cx=w*.5,cy=h*.5,cs=w/14;
+   for(var i=0;i<15;i++)for(var j=0;j<15;j++)rect(g,i*cs,j*cs,cs,cs,((i+j)%2)?'#3a3a3a':'#6e6e6e');
+   var R0=Math.min(w,h)*.12,step=(Math.min(w,h)*.44-R0)/(P.rings-1||1),tl=P.tilt*D2R;
+   for(var k=0;k<P.rings;k++){var R=R0+k*step,segs=Math.max(14,Math.round(TAU*R/(step*1.15)));
+     if(segs%2)segs++;
+     for(var s=0;s<segs;s++){var a=s/segs*TAU,ta=a+Math.PI/2+tl,L=TAU*R/segs*1.02;
+       var x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R,dx=Math.cos(ta)*L/2,dy=Math.sin(ta)*L/2;
+       ln(g,x-dx,y-dy,x+dx,y+dy,(s%2)?'#ffffff':'#000000',step*.34);}}
+   if(S.reveal){var Rr=R0+step*Math.floor((P.rings-1)/2);dcir(g,cx,cy,Rr,ACC);
+     txt(g,'点線＝完全な円（渦ではない）',cx,h*.05,11,'#fff');}},
+ n1:'ねじれた縄のようなリングが、外へ向かう渦巻きに見えます。指で1本たどると円だと分かります。',
+ n2:'各セグメントの局所的な傾き情報が積み上がり、全体の輪郭方位の推定を系統的に歪める（局所方位の統合誤差）と考えられています。背景の市松模様が局所コントラストの偏りを強めています。',
+ n3:'ロゴやアイコンで、細かい斜め要素を円周に沿って並べると、円が円に見えなくなります。回転するローディングリング、円形ゲージの目盛り、円形に配置したテキスト——局所的な斜め処理の累積で真円性が壊れる。円形UIの目盛りは放射方向（法線方向）に揃えるのが安全です。',
+ tags:['円形UI','ゲージ','ロゴ']},
+
+/* ---------- 9 ---------- */
+{id:'adelson',cat:'bright',name:'チェッカーシャドウ錯視',en:'Adelson 1995',ratio:0.95,bg:'#2a2a30',
+ lead:'マスAとマスBは、影の濃さが0.58のとき「画面上まったく同じ輝度」です。信じられない場合は答え合わせを。',
+ params:[{k:'sh',label:'影の濃さ',min:.35,max:1,step:.01,def:.58,fmt:function(v){return v.toFixed(2);},hint:'0.58でA=B（完全一致）。1.0で影が消えます'}],
+ draw:function(g,w,h,P,S){
+   var LI=190,DK=110,bs=Math.min(w,h)*.86,bx=(w-bs)/2,by=(h-bs)/2+h*.04,c=bs/8;
+   var sp=[[bx+c*5.6,by+c*1.3],[bx+c*7.9,by+c*2.4],[bx+c*4.2,by+c*8.2],[bx+c*1.0,by+c*6.2]];
+   for(var i=0;i<8;i++)for(var j=0;j<8;j++)
+     rect(g,bx+i*c,by+j*c,c+.6,c+.6,gs(((i+j)%2===0)?LI:DK));
+   g.save();g.globalCompositeOperation='multiply';poly(g,sp,gs(255*P.sh));g.restore();
+   var cyl=[[bx+c*6.1,by+c*1.2],[bx+c*7.1,by+c*1.2],[bx+c*7.1,by-c*2.4],[bx+c*6.1,by-c*2.4]];
+   poly(g,cyl,'#3f6f4a');
+   g.beginPath();g.ellipse(bx+c*6.6,by-c*2.4,c*.5,c*.18,0,0,TAU);g.fillStyle='#5b9469';g.fill();
+   g.beginPath();g.ellipse(bx+c*6.6,by+c*1.2,c*.5,c*.18,0,0,TAU);g.fillStyle='#2f5638';g.fill();
+   var ax=bx+c*1.5,ay=by+c*2.5,bx2=bx+c*4.5,by2=by+c*4.5;
+   txt(g,'A',ax,ay,Math.round(c*.5),'#f5f5f5',null,1);txt(g,'B',bx2,by2,Math.round(c*.5),'#111',null,1);
+   if(S.reveal){
+     rect(g,bx+c*1.05,ay-c*.16,c*3.9,c*.32,gs(DK));
+     rect(g,bx+c*4.05,ay-c*.16,c*.9,by2-ay+c*.16,gs(DK));
+     rect(g,bx+c*4.05,by2-c*.16,c*.9,c*.32,gs(DK));
+     txt(g,(lang==='en'?('A='+DK+' / B='+Math.round(LI*P.sh)+' (bar = all the same value)'):('A='+DK+' / B='+Math.round(LI*P.sh)+'（連結バーは全て同じ値）')),w*.5,h*.045,11,'#fff');}},
+ n1:'Bのほうが明らかに明るく見えますが、影の濃さ0.58では両者の画面上の値は同じ110です。答え合わせで同じ色のバーがA・Bを連結します。',
+ n2:'視覚系は網膜に届く光量ではなく「物体本来の反射率」を推定しようとします（明るさの恒常性）。影という文脈情報が「Bは影の中だから、本来はもっと明るい面のはずだ」という補正を自動的にかけています。E.H.アデルソンによる1995年の作例です。',
+ n3:'カラーピッカーで拾った値と、実際の見え方は一致しません。背景にグラデーションや影を敷いた瞬間、同一のグレーが別の明度に見える。UIの「同じ色に見せる」作業は数値合わせではなく、文脈込みの目視合わせが必要です。ダーク背景の上のUIとライト背景の上のUIで、同じトークンが破綻するのはこれが理由。',
+ tags:['明るさの恒常性','カラートークン','背景依存']},
+/* ---------- 10 ---------- */
+{id:'simcontrast',cat:'bright',name:'同時明度対比',en:'Simultaneous contrast',ratio:0.62,bg:'#5a5a5a',
+ lead:'左右のグレーの四角は、常にまったく同じ値です。背景だけが違います。',
+ params:[{k:'d',label:'背景の明度差',min:0,max:120,step:1,def:95,fmt:function(v){return v|0;},hint:'0にすると背景が同じになり、錯視が消えます'},
+  {k:'fig',label:'図の明度',min:60,max:200,step:1,def:128,fmt:function(v){return v|0;}}],
+ draw:function(g,w,h,P,S){
+   rect(g,0,0,w/2,h,gs(128-P.d));rect(g,w/2,0,w/2,h,gs(128+P.d));
+   var s=Math.min(w,h)*.3;
+   rect(g,w*.25-s/2,h/2-s/2,s,s,gs(P.fig));rect(g,w*.75-s/2,h/2-s/2,s,s,gs(P.fig));
+   if(S.reveal){rect(g,0,h*.5-s*.09,w,s*.18,gs(P.fig));
+     txt(g,'連結バーも同じ値 '+(P.fig|0),w*.5,h*.09,11,'#fff');}},
+ n1:'暗い背景の上のグレーは明るく、明るい背景の上では暗く見えます。答え合わせで両者を同じ値のバーが連結します。',
+ n2:'網膜〜視覚野の側方抑制により、隣接領域との輝度差が強調されます。絶対的な明るさではなく「周囲との差」を符号化する仕組みの副作用です。',
+ n3:'ダークモードとライトモードで同じグレーを使うと、体感明度が大きくずれます。テキストのコントラスト比を数値で満たしても「薄く見える／うるさく見える」が起きるのはこれ。トークン設計では、背景ごとに前景色を別に定義するのが正解です。',
+ tags:['側方抑制','ダークモード','コントラスト設計']},
+
+/* ---------- 11 ---------- */
+{id:'white',cat:'bright',name:'ホワイト効果',en:"White's illusion 1979",ratio:0.75,bg:'#5a5a5a',
+ lead:'2つのグレー帯は同じ値です。ただし対比とは「逆向き」に見えます。',
+ params:[{k:'n',label:'縞の本数',min:5,max:21,step:2,def:11,fmt:function(v){return v|0;}},
+  {k:'fig',label:'グレーの明度',min:70,max:190,step:1,def:130,fmt:function(v){return v|0;}}],
+ draw:function(g,w,h,P,S){
+   var n=P.n|0,bw=w/n;
+   for(var i=0;i<n;i++)rect(g,i*bw,0,bw,h,(i%2)?'#ffffff':'#000000');
+   var ai=Math.max(2,((n/2)|0)-3); if(ai%2)ai--; var bi=ai+3; if(bi%2===0)bi++;
+   var y1=h*.18,hh=h*.3;
+   rect(g,ai*bw,y1,bw,hh,gs(P.fig));
+   rect(g,bi*bw,h-y1-hh,bw,hh,gs(P.fig));
+   txt(g,'A',ai*bw+bw/2,y1-h*.06,12,'#e8e800',null,1);
+   txt(g,'B',bi*bw+bw/2,h-y1-hh-h*.06,12,'#e8e800',null,1);
+   if(S.reveal){rect(g,0,h*.5-h*.035,w,h*.07,gs(P.fig));
+     txt(g,(lang==='en'?('A, B and bar are all '+(P.fig|0)):('A・B・バーはすべて '+(P.fig|0))),w*.5,h*.5,11,(P.fig>140)?'#000':'#fff');}},
+ n1:'黒い縞に埋め込まれたAのほうが明るく見えます。単純な明度対比なら「黒に囲まれたAは明るく」で一致しますが、Aは黒と接する面積が最も大きい——対比の予測とは逆です。',
+ n2:'単純な側方抑制では説明できず、どの領域が同じ面に「属している」かの解釈（belongingness／面の分解）が効いていると考えられています。明るさ知覚が低次処理だけで決まらないことを示す重要な例です。',
+ n3:'ストライプ背景や罫線の多い表の上では、セル背景色の見え方が予測を外れます。縞・グリッド・スキャンライン演出を敷いた画面では、色は必ず実機の実画面で確認する。数値と単純対比の理屈だけでは詰められません。',
+ tags:['同化','ストライプ背景','面の解釈']},
+
+/* ---------- 12 ---------- */
+{id:'mach',cat:'bright',name:'マッハバンド／シュヴルール錯視',en:'Mach bands / Chevreul',ratio:0.55,bg:'#3a3a40',
+ lead:'各段は内部で完全に均一な塗りです。それでも段の縁が明るく／暗く見えます。',
+ params:[{k:'n',label:'段数',min:3,max:14,step:1,def:8,fmt:function(v){return v|0;}},
+  {k:'ramp',label:'境界のなだらかさ',min:0,max:1,step:.01,def:0,fmt:function(v){return v.toFixed(2);},hint:'上げるとグラデーションになり、境目に細い明暗の帯（マッハバンド）が見えます'}],
+ draw:function(g,w,h,P,S){
+   var n=P.n|0,sw=w/n,top=h*.12,bh=h*.6,prof=[];
+   for(var x=0;x<w;x++){var t=x/w*n,i=Math.min(n-1,Math.floor(t)),f=t-i;
+     var v0=40+(200-40)*(i/(n-1)),v1=40+(200-40)*(Math.min(n-1,i+1)/(n-1)),v=v0;
+     if(P.ramp>0){var e=P.ramp*.5;if(f>1-e)v=v0+(v1-v0)*((f-(1-e))/(2*e));
+       else if(f<e&&i>0){var vm=40+(200-40)*((i-1)/(n-1));v=vm+(v0-vm)*(.5+f/(2*e));}}
+     prof.push(v);rect(g,x,top,1,bh,gs(v));}
+   if(S.reveal){var gy=top+bh+h*.06,gh=h*.18;
+     g.strokeStyle=ACC;g.lineWidth=2;g.beginPath();
+     for(var x2=0;x2<w;x2++){var y=gy+gh-(prof[x2]-30)/180*gh;if(x2===0)g.moveTo(x2,y);else g.lineTo(x2,y);}
+     g.stroke();txt(g,'緑線＝実際の輝度プロファイル（山も谷も無い）',w*.5,h*.06,11,'#e0e0e6');}},
+ n1:'段の左右の縁に、実際には無い明るい線・暗い線が見えます。境界をなだらかにすると、折れ点に細い帯（マッハバンド）が現れます。',
+ n2:'受容野の中心‐周辺拮抗構造による輪郭強調です。エッジのコントラストを増幅する処理は、平坦な面に存在しない起伏を作り出します。E.マッハが1865年に報告しました。',
+ n3:'グラデーションの帯（バンディング）が汚く見えるのは、ディザ不足だけでなく知覚側の輪郭強調も原因です。逆にこれは味方にもできる——ボタンやカードの縁に1pxの明暗差を置くだけで、影を使わずに立体感と分離感が出ます。フラットデザインでの階層表現の核です。',
+ tags:['輪郭強調','バンディング','1px設計']},
+
+/* ---------- 13 ---------- */
+{id:'kanizsa',cat:'edge',name:'カニッツァの三角形',en:'Kanizsa 1955',ratio:1,bg:'#e9e9ec',
+ lead:'白い三角形の輪郭が見えますが、その線は一本も描かれていません。',
+ params:[{k:'gap',label:'欠けの角度',min:10,max:160,step:2,def:60,fmt:function(v){return v+'°';}},
+  {k:'rot',label:'誘導図形の回転',min:0,max:180,step:1,def:0,fmt:function(v){return v+'°';},hint:'回すと輪郭が消えます。位置ではなく「向き」が効いている証拠'},
+  {k:'sz',label:'図形の大きさ',min:.06,max:.2,step:.005,def:.13,fmt:function(v){return v.toFixed(3);}}],
+ draw:function(g,w,h,P,S){
+   var cx=w*.5,cy=h*.52,R=Math.min(w,h)*.3,r=Math.min(w,h)*P.sz,ga=P.gap*D2R,rot=P.rot*D2R;
+   for(var i=0;i<3;i++){var a=-Math.PI/2+i*TAU/3,x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R;
+     var toC=Math.atan2(cy-y,cx-x)+rot;
+     g.beginPath();g.moveTo(x,y);g.arc(x,y,r,toC+ga/2,toC-ga/2+TAU);g.closePath();g.fillStyle='#1b1b22';g.fill();}
+   if(S.reveal){g.save();g.setLineDash([6,5]);g.strokeStyle=ACC;g.lineWidth=2;g.beginPath();
+     for(var j=0;j<3;j++){var a2=-Math.PI/2+j*TAU/3,x2=cx+Math.cos(a2)*R,y2=cy+Math.sin(a2)*R;
+       if(j===0)g.moveTo(x2,y2);else g.lineTo(x2,y2);}
+     g.closePath();g.stroke();g.restore();
+     txt(g,'点線＝知覚された輪郭の位置（実線は存在しない）',cx,h*.055,11,'#555');}},
+ n1:'三角形の辺がはっきり見え、内側が周囲より白く（明るく）感じられます。誘導図形を回転させると、位置は同じなのに輪郭が消えます。',
+ n2:'主観的輪郭（イリュージョナリー・コントゥア）です。視覚系は「3つの円が三角形に隠されている」という遮蔽の解釈を採用し、存在しない境界を補完します。ゲシュタルトの閉合の要因の代表例で、V2野に主観的輪郭に応答するニューロンが見つかっています。',
+ n3:'枠線を描かずに領域を成立させられます。四隅のL字マーカー、切り欠き、余白の形——線を1本も引かずにグルーピングやフォーカスを作れる。情報量を増やさずに構造を伝える手法として、密度の高いゲームUIで特に有効です。',
+ tags:['主観的輪郭','グルーピング','引き算の設計']},
+
+/* ---------- 14 ---------- */
+{id:'grid',cat:'edge',name:'ヘルマン格子／きらめき格子',en:'Hermann 1870 / Lingelbach 1994',ratio:1,bg:'#101014',
+ lead:'交差点に、実際には無い点が現れます。じっと1点を見つめると、見ている交差点だけは正常に見えます。',
+ params:[{k:'mode',label:'モード',type:'select',def:'s',opts:[['h','ヘルマン格子（白格子／黒い点）'],['s','きらめき格子（灰格子＋白丸）']]},
+  {k:'n',label:'マス数',min:4,max:14,step:1,def:8,fmt:function(v){return v|0;}},
+  {k:'lw',label:'線の太さ',min:.05,max:.35,step:.01,def:.16,fmt:function(v){return v.toFixed(2);}},
+  {k:'dot',label:'白丸の大きさ',min:0,max:.5,step:.01,def:.32,fmt:function(v){return v.toFixed(2);},hint:'きらめき格子のみ。0にすると効果が消えます'}],
+ draw:function(g,w,h,P,S){
+   var n=P.n|0,c=Math.min(w,h)/n,lw=c*P.lw,x0=(w-c*n)/2,y0=(h-c*n)/2;
+   if(P.mode==='h'){rect(g,0,0,w,h,'#ffffff');
+     for(var i=0;i<n;i++)for(var j=0;j<n;j++)rect(g,x0+i*c+lw/2,y0+j*c+lw/2,c-lw,c-lw,'#000000');}
+   else{rect(g,0,0,w,h,'#000000');
+     for(var i2=0;i2<=n;i2++){rect(g,x0+i2*c-lw/2,y0,lw,c*n,'#8a8a8a');rect(g,x0,y0+i2*c-lw/2,c*n,lw,'#8a8a8a');}
+     if(P.dot>0)for(var a=0;a<=n;a++)for(var b=0;b<=n;b++)cir(g,x0+a*c,y0+b*c,lw*P.dot*2.6,'#ffffff');}
+   if(S.reveal)txt(g,'交差点には点も影も描かれていません',w*.5,h*.045,11,P.mode==='h'?'#333':'#fff');},
+ n1:'ヘルマン格子では交差点に灰色の影、きらめき格子では白丸の位置に黒い点が明滅して見えます。どちらも視線を向けた交差点では消えます。',
+ n2:'古典的には網膜神経節細胞の側方抑制で説明されてきましたが、格子を波打たせると効果が消えるなど説明できない現象があり、現在は視覚野の方位選択的な機構（S1型単純細胞の応答）による説が有力とされています。周辺視でのみ生じる点が共通の特徴です。',
+ n3:'等間隔グリッドと高コントラストの交点は、視覚的ノイズを発生させます。ドット区切りのテーブル、格子状のインベントリ枠、マップのグリッド線——線を細く・コントラストを下げる、交点だけ間引く、といった対処が要ります。長時間見るUIほど効いてきます。',
+ tags:['グリッドUI','周辺視','視覚ノイズ']},
+
+/* ---------- 15 ---------- */
+{id:'snakes',cat:'motion',name:'周辺ドリフト錯視',en:'Peripheral drift / Kitaoka 2003',ratio:1,bg:'#b8b8b8',
+ lead:'静止画です。1コマも動いていません。視線を画面のあちこちに動かすと回り始めます。',
+ params:[{k:'rings',label:'リング数',min:2,max:6,step:1,def:4,fmt:function(v){return v|0;}},
+  {k:'seg',label:'分割数',min:6,max:22,step:1,def:14,fmt:function(v){return v|0;}},
+  {k:'mono',label:'配色',type:'select',def:'c',opts:[['c','カラー（黒・青・白・黄）'],['m','モノクロ（黒・暗灰・白・明灰）']]}],
+ draw:function(g,w,h,P,S){
+   var cx=w*.5,cy=h*.5,Rmax=Math.min(w,h)*.46,R0=Rmax*.22,n=P.rings|0,rw=(Rmax-R0)/n;
+   var col=(P.mono==='m')?['#000000','#555555','#ffffff','#c8c8c8']:['#000000','#2f4fd0','#ffffff','#ffd400'];
+   for(var k=0;k<n;k++){var r0=R0+k*rw,r1=r0+rw*.94,segs=P.seg|0,rev=(k%2===1);
+     for(var s=0;s<segs;s++){var a0=s/segs*TAU+(k*.2);
+       for(var q=0;q<4;q++){var qa=a0+(q/4)*(TAU/segs),qb=a0+((q+1)/4)*(TAU/segs);
+         g.beginPath();g.arc(cx,cy,r1,qa,qb);g.arc(cx,cy,r0,qb,qa,true);g.closePath();
+         g.fillStyle=col[rev?(3-q):q];g.fill();}}}
+   cir(g,cx,cy,R0*.9,'#b8b8b8');
+   if(S.reveal)txt(g,'完全な静止画です（アニメーションは一切なし）',cx,h*.045,11,'#222');},
+ n1:'ドーナツ状の帯が、リングごとに逆方向へゆっくり回転して見えます。1点をじっと見つめ続けると止まり、まばたきや視線移動で再び動き出します。',
+ n2:'黒→濃色→白→淡色という非対称な輝度の並びが鍵です。輝度が高い部分ほど視覚系の応答が速く、低い部分は遅れるため、視線移動やまばたきの際に隣接領域間で処理時間差が生じ、それが運動信号として誤検出されると考えられています。北岡明佳氏の「蛇の回転」（2003）が代表作です。',
+ n3:'動いていないのに動いて見える＝GPU負荷ゼロの動的演出です。輝度順の非対称配色は、背景テクスチャや装飾フレームに埋め込める。逆に危険もあり、意図せず輝度勾配を並べると、静止しているはずのUI背景がざわついて見えます。長時間表示するHUD背景では避けるべきパターンです。',
+ tags:['静止画で動く','負荷ゼロ演出','HUD背景の禁じ手']},
+
+/* ---------- 16 ---------- */
+{id:'mae',cat:'motion',name:'運動残効（滝の錯視）',en:'Motion aftereffect / Addams 1834',ratio:1,bg:'#ffffff',
+ lead:'中心の点を見つめたまま25秒。停止した瞬間、静止しているはずの渦が逆に回って見えます。',
+ params:[{k:'turns',label:'巻き数',min:3,max:14,step:1,def:8,fmt:function(v){return v|0;}},
+  {k:'spd',label:'回転速度',min:.2,max:2.5,step:.05,def:1,fmt:function(v){return v.toFixed(2);}},
+  {k:'dir',label:'回転方向',type:'select',def:'1',opts:[['1','時計回り'],['-1','反時計回り']]}],
+ session:{sec:25,label:'25秒 見つめる',after:'停止しました。渦を見たまま動かないでください。そのあと自分の手や壁を見ると、膨らんで／縮んで見えます。'},
+ anim:true,
+ draw:function(g,w,h,P,S){
+   var cx=w*.5,cy=h*.5,R=Math.min(w,h)*.47;
+   rect(g,0,0,w,h,'#ffffff');
+   g.save();g.translate(cx,cy);g.rotate(S.phase*(P.dir==='-1'?-1:1));
+   g.strokeStyle='#101014';g.lineWidth=R/(P.turns*1.9);g.lineCap='butt';
+   g.beginPath();var steps=P.turns*80;
+   for(var i=0;i<=steps;i++){var t=i/steps*P.turns*TAU,r=R*(i/steps);
+     var x=Math.cos(t)*r,y=Math.sin(t)*r;if(i===0)g.moveTo(x,y);else g.lineTo(x,y);}
+   g.stroke();g.restore();
+   cir(g,cx,cy,Math.max(3,R*.02),'#ff2e5c');
+   if(S.stage==='after')txt(g,'▼ 動いて見えますが完全な静止画です',cx,h*.045,11,'#555');},
+ tick:function(P,S,dt){if(S.stage==='run')S.phase+=dt*P.spd*1.6;},
+ n1:'回転を止めた瞬間、静止した渦が逆向きに回って（あるいは膨張・収縮して）見えます。数秒から十数秒続きます。',
+ n2:'特定方向に選択的に応答する運動検出ニューロンが順応（疲労）し、静止刺激に対して反対方向の検出器の相対的な応答が優位になるためと説明されます。1834年にR.アダムスがフォイヤーズの滝を見て報告した「滝の錯視」が有名です。',
+ n3:'順応は視覚全般で起きます。強い演出を連発すると閾値が上がり、同じ演出の効き目が落ちる——ガチャ演出のインフレ、常時発光するUIが数分で「見えなくなる」現象と地続きです。継続率を支える演出設計では、強度を上げ続けるより「休符」を挟んで順応をリセットするほうが効きます。',
+ tags:['順応','演出インフレ','休符の設計']},
+
+/* ---------- 17 ---------- */
+{id:'afterimage',cat:'motion',name:'補色残像',en:'Negative afterimage',ratio:0.8,bg:'#ffffff',
+ lead:'中心の黒い点を15秒見つめてください。切り替わると、補色の像が浮かびます。',
+ params:[{k:'hue',label:'色相',min:0,max:359,step:1,def:150,fmt:function(v){return v+'°';}},
+  {k:'sat',label:'鮮やかさ',min:30,max:100,step:1,def:85,fmt:function(v){return v+'%';}}],
+ session:{sec:15,label:'15秒 見つめる',after:'白い面に浮かぶのが「補色残像」です。消えたら再開してください。'},
+ anim:true,
+ draw:function(g,w,h,P,S){
+   var cx=w*.5,cy=h*.5;
+   if(S.stage==='after'||S.stage==='idle'&&S.showWhite){rect(g,0,0,w,h,'#ffffff');}
+   else{
+     rect(g,0,0,w,h,'#ffffff');
+     var cols=[P.hue,(P.hue+120)%360,(P.hue+240)%360],bw=w*.72/3,x0=w*.14,bh=h*.6,y0=h*.2;
+     for(var i=0;i<3;i++)rect(g,x0+i*bw,y0,bw,bh,'hsl('+cols[i]+','+P.sat+'%,50%)');
+     cir(g,cx,cy,Math.max(3,w*.012),'#000000');
+     return;}
+   cir(g,cx,cy,Math.max(3,w*.012),'#000000');
+   ln(g,cx-w*.03,cy,cx+w*.03,cy,'#000',1);ln(g,cx,cy-w*.03,cx,cy+w*.03,'#000',1);},
+ n1:'元の色の補色（緑→赤紫、青→黄など）で、同じ形の像が白い面に浮かびます。目を動かすと像も一緒に動きます。',
+ n2:'錐体細胞と反対色処理経路の順応です。特定波長への持続的な刺激で応答が低下し、白色光に対して反対色チャンネルの出力が相対的に優位になります。像が眼球運動に追従することから、網膜レベルの現象だと分かります。',
+ n3:'長時間表示されるUIの色は、視界に「焼き付き」ます。彩度の高い単色を全画面で見せたあと、白背景の画面に遷移すると色が濁って見える。画面遷移の色設計では、直前の画面の平均色相を考慮するとクリーンに見えます。長時間戦闘後のリザルト画面が妙に汚く見える、といった現象の一因です。',
+ tags:['色順応','画面遷移','焼き付き']},
+
+/* ---------- 18 ---------- */
+{id:'troxler',cat:'motion',name:'トロクスラー効果',en:'Troxler fading 1804',ratio:1,bg:'#8a8a8a',
+ lead:'中央の点だけを見つめ、目を動かさないでください。20秒ほどで周囲のぼんやりした色が消えます。',
+ params:[{k:'n',label:'個数',min:3,max:10,step:1,def:6,fmt:function(v){return v|0;}},
+  {k:'soft',label:'ぼかし',min:.3,max:1,step:.01,def:.85,fmt:function(v){return v.toFixed(2);},hint:'輪郭がはっきりしているほど消えにくくなります'},
+  {k:'sat',label:'彩度',min:0,max:70,step:1,def:35,fmt:function(v){return v+'%';}}],
+ session:{sec:20,label:'20秒 見つめる',after:'消えましたか。視線を少し動かすか、まばたきすると即座に戻ります。'},
+ anim:true,
+ draw:function(g,w,h,P,S){
+   var cx=w*.5,cy=h*.5,R=Math.min(w,h)*.32,n=P.n|0;
+   rect(g,0,0,w,h,'#8a8a8a');
+   for(var i=0;i<n;i++){var a=i/n*TAU-Math.PI/2,x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R,r=Math.min(w,h)*.13;
+     var hue=(i/n*360)|0,gr=g.createRadialGradient(x,y,0,x,y,r);
+     gr.addColorStop(0,'hsla('+hue+','+P.sat+'%,58%,0.85)');
+     gr.addColorStop(1-P.soft*.85,'hsla('+hue+','+P.sat+'%,58%,0.35)');
+     gr.addColorStop(1,'hsla('+hue+','+P.sat+'%,58%,0)');
+     g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
+   cir(g,cx,cy,Math.max(3,w*.011),'#101014');},
+ n1:'周辺視野のぼやけた色が数十秒でグレーの地に溶けて消えます。まばたきや微小な視線移動で即座に戻ります。',
+ n2:'神経順応です。網膜像が完全に静止すると応答が減衰し、輪郭の弱い刺激ほど早く「無いもの」として扱われます。通常は固視微動（マイクロサッケード）が像を微妙に動かし続けることで、この消失を防いでいます。',
+ n3:'変化しない情報は、文字通り見えなくなります。常時表示のバナー、動かないチュートリアル矢印、固定のバッジ——輪郭が弱くコントラストが低いものほど早く意識から消える。重要な常時要素は、微細な動きか輪郭の明確さのどちらかを持たせる必要があります。バナー・ブラインドネスの知覚的な下地です。',
+ tags:['順応','固視微動','常時表示要素']}
+];
+
+/* ===== i18n ===== */
+var lang='ja';
+var L={
+ exp:{ja:'体験',en:'Seen'},
+ ctrl:{ja:'操作パネル',en:'Controls'},
+ task:{ja:'知覚のズレを測る',en:'Measure your bias'},
+ note:{ja:'解説',en:'Explanation'},
+ percept:{ja:'見え方',en:'How it looks'},
+ mech:{ja:'起きていること',en:'What happens'},
+ apply:{ja:'UI・演出への応用',en:'Applying to UI & FX'},
+ reset:{ja:'初期値に戻す',en:'Reset'},
+ zoom:{ja:'拡大表示',en:'Fullscreen'},
+ close:{ja:'閉じる',en:'Close'},
+ proofOn:{ja:'✓ 証拠を表示中',en:'✓ Proof shown'},
+ proofOff:{ja:'証拠を重ねる',en:'Show proof'},
+ judge:{ja:'判定する',en:'Check'},
+ offset:{ja:'わざとズラす',en:'Offset it'},
+ backEq:{ja:'同じに戻す',en:'Back to equal'},
+ capSee:{ja:'見え方',en:'You see'},
+ capBut:{ja:'でも実は — ',en:'But actually — '},
+ capWhy:{ja:'信じられない？ ▸ 下の<b>「証拠を重ねる」</b>で確認できます。／ スライダーを動かすと錯視が消える設定が見つかります（＝<b>種明かし</b>）',
+         en:"Don't believe it? ▸ Tap <b>Show proof</b> below. / Move a slider and you'll find the setting where the illusion disappears (the <b>reveal</b>)."},
+ capWhyS:{ja:'<b>やり方</b>：下の「$L」を押して、中心の点をじっと見つめる → 止まった／消えた瞬間の変化を確かめる',
+          en:'<b>How</b>: press "$L" below and keep staring at the centre dot → watch what changes when it stops / fades.'},
+ taskIntro:{ja:'いまは<b style="color:var(--accent)">本当に同じ</b>状態です。<b>わざとズラす</b>で崩したあと、自分の目だけで「同じに見える位置」へ戻して判定すると、あなたのズレが数値で出ます。',
+            en:'Right now they are <b style="color:var(--accent)">genuinely equal</b>. Hit <b>Offset it</b>, then use only your eyes to bring it back to "looks equal" and press Check — your perceptual error is shown as a number.'},
+ best:{ja:'自己ベスト誤差 ',en:'Best error '},
+ toastOn:{ja:'証拠を重ねました',en:'Proof overlaid'},
+ toastOff:{ja:'証拠を消しました（純粋な錯視）',en:'Proof hidden (pure illusion)'},
+ toastReset:{ja:'初期値に戻しました',en:'Reset to defaults'},
+ tRun:{ja:'● 見つめてください … 残り $S 秒',en:'● Keep staring … $S s left'},
+ tIdle:{ja:'待機中 — 中心の点から目を離さないのがコツです',en:'Ready — the trick is to never move your eyes off the centre dot'},
+ rate0:{ja:'知覚のズレはほぼゼロ。この図では錯視がかなり弱いようです。',en:'Almost no bias. The illusion is quite weak in this setting.'},
+ rate1:{ja:'小さめのズレ。錯視は効いていますが抑えられています。',en:'Small bias. The illusion is working but muted.'},
+ rate2:{ja:'典型的な範囲のズレです。',en:'A typical amount of bias.'},
+ rate3:{ja:'強く効いています。図形の文脈が判断をはっきり上書きしました。',en:'Strong effect — the context clearly overrode your judgement.'},
+ near:{ja:'ほぼ正解の位置です。',en:'Almost exactly right.'},
+ footer:{ja:'錯視ラボ v1.0 ／ 単一HTML・外部依存なし・全図形はCanvasで手続き生成<br>錯視の成因は現在も研究途上で、複数の有力仮説が並立するものがあります。定説でない箇所は「〜と考えられている」と表記しています。<br>※ 光の点滅や高コントラストの反復パターンを含みます。気分が悪くなった場合はすぐ中止してください。光感受性発作の既往がある方は使用をお控えください。',
+         en:'Illusion Lab v1.0 / single HTML file, no external dependencies, every figure drawn procedurally on Canvas.<br>The causes of many illusions are still debated, with several competing hypotheses. Non-settled points are phrased as "is thought to".<br>Note: contains flashing and high-contrast repetitive patterns. Stop immediately if you feel unwell. Please refrain from use if you have a history of photosensitive seizures.'}
+};
+function T(k){var o=L[k];return o?(o[lang]||o.ja):k;}
+
+/* per-illusion English content */
+var I18N={
+ ebbinghaus:{name:'Ebbinghaus Illusion',
+  lead:'The orange circle A and circle B in the centre — which looks bigger? Set "Illusion strength" to 0 and the surrounds become equal, revealing the answer.',
+  hook:{see:'Left orange looks small, right orange looks big',fact:'the two orange circles are the same size'},
+  params:{st:{label:'Illusion strength',hint:'Size gap of the surrounding circles. 0 removes the illusion'},gap:{label:'Distance to surround',hint:'Farther apart weakens the effect'}},
+  task:{label:'Size of A',ask:'Adjust circle A until it looks the same size as circle B, then check.',
+   over:'You made A larger than it really was = A looked smaller (squeezed by the big surround).',
+   under:'You made A smaller than it really was = A looked larger (the surround effect reversed).'},
+  n1:'The larger the surround, the smaller the centre looks; the smaller the surround, the larger it looks. Most people are off by 5–20%.',
+  n2:'Size is judged relative to the surrounding shapes (size contrast). A nearby context overrides the absolute-size judgement. Moving the surround farther away weakens the effect.',
+  n3:'The felt size of an icon or button shifts with the whitespace and neighbours around it. Identical icons look different in a dense grid versus wide margins. Conversely, you can make a CTA feel bigger without changing its pixels — just shrink and thin out its neighbours.',
+  tags:['size contrast','whitespace','CTA']},
+ muller:{name:'Müller-Lyer (1889)',
+  lead:'Two horizontal lines. Only the arrow fins differ. How do their lengths look?',
+  hook:{see:'top line looks long, bottom looks short',fact:'the two horizontal lines are the same length'},
+  params:{ang:{label:'Fin angle',hint:'At 0° the fins lie on the line and the illusion nearly disappears'},fin:{label:'Fin length',hint:''}},
+  task:{label:'Length of lower line',ask:'Adjust the lower line (inward fins) until it looks the same length as the upper line.',
+   over:'You made the lower line longer than it was = the inward-fin line looked shorter.',
+   under:'You made the lower line shorter than it was.'},
+  n1:'Outward fins (<—>) make a line look longer; inward fins (>—<) make it look shorter. The difference can reach 10–25%.',
+  n2:'Still unsettled. Explanations include depth interpretation (inward = a near corner, outward = a far corner) and integration of the whole contour’s extent. Reliably, bringing the fin angle toward 0° removes the effect.',
+  n3:'Not the true length but the end treatment drives the impression of length. Cap shapes on dividers, arrow endings on icons, the rounding on a progress bar — the same value reads differently. The more a readout needs numeric accuracy, the more you should suppress end decoration.',
+  tags:['length bias','end caps','progress']},
+ verthoriz:{name:'Vertical–horizontal illusion',
+  lead:'An inverted T. Do the vertical and horizontal lines look the same length?',
+  hook:{see:'the vertical line looks longer',fact:'the vertical and horizontal lines are the same length'},
+  params:{len:{label:'Line length',hint:''},sep:{label:'Bisection',hint:'0 makes an L-shape (no split) and weakens the effect'}},
+  task:{label:'Horizontal length',ask:'Adjust the horizontal line until it looks the same length as the vertical.',
+   over:'You made the horizontal longer than it was = the vertical looked longer.',
+   under:'You made the horizontal shorter than it was.'},
+  n1:'The vertical usually looks longer; people set the horizontal 5–15% too long.',
+  n2:'On top of a vertical-extent overestimation, the horizontal line being "bisected" by the vertical matters. Setting the bisection to 0 (an L-shape) weakens the effect, showing the split contributes.',
+  n3:'A tall card and a wide card feel different in size even at equal area. Area-matched numbers won’t make banners or thumbnails look balanced across aspect ratios. Also "a bisected edge looks shorter", so a divider changes the perceived width of a card.',
+  tags:['aspect ratio','card layout','bisection']},
+ poggendorff:{name:'Poggendorff (1860)',
+  lead:'A diagonal hidden by a band. Which position on the right looks like the continuation of the left line?',
+  hook:{see:'the right line looks offset from the left',fact:'the two segments lie on one straight line'},
+  params:{bw:{label:'Band width',hint:''},ang:{label:'Line angle',hint:'Shallower angles make the offset larger'}},
+  task:{label:'Right-line position',errUnit:'% (of band width)',ask:'Move the right segment up/down until it looks like it connects into one straight line with the left.',
+   over:'You placed it above the true extension (the typical direction of the error).',
+   under:'You placed it below the true extension.'},
+  n1:'The right segment typically looks higher than the true extension. Wider bands and shallower angles increase the offset.',
+  n2:'When the brain interpolates across the occluder, the acute angles between line and band edge are thought to be overestimated. A single mechanism doesn’t fully account for it.',
+  n3:'Lines that get interrupted — tab dividers, decorative rules, a chart line hidden behind a label — may fail to "read as connected". Alignment of a broken line has to be checked by eye, not by coordinates.',
+  tags:['alignment','occlusion','charts']},
+ zollner:{name:'Zöllner (1860)',
+  lead:'All the long lines are parallel. Hide the short diagonals to confirm.',
+  hook:{see:'the horizontal lines look tilted, opening and closing',fact:'all the horizontal lines are perfectly parallel'},
+  params:{ang:{label:'Hatch angle',hint:'At 0° or 90° the illusion disappears'},sp:{label:'Hatch spacing',hint:''},n:{label:'Number of lines',hint:''}},
+  n1:'The lines seem to tilt alternately, fanning open and closed. Setting the hatch angle to 0° or 90° restores parallelism.',
+  n2:'Overestimation of acute angles is the main factor. Lateral inhibition among orientation-selective neurons makes nearby orientations repel each other (orientation repulsion).',
+  n3:'Lay a diagonal pattern (stripes, speed lines, a slanted grid) behind horizontal/vertical elements and they look tilted. The heavier the diagonal FX, the more your alignment appears to break — that HUD skew right after a speed-line burst is exactly this.',
+  tags:['orientation repulsion','background pattern','skew']},
+ hering:{name:'Hering (1861)',
+  lead:'The two red vertical lines are perfectly straight and parallel. Remove the radiating lines to confirm.',
+  hook:{see:'the two red lines bow outward',fact:'the red lines are straight and perfectly parallel'},
+  params:{n:{label:'Radiating lines',hint:'0 removes the illusion'},gap:{label:'Line spacing',hint:''}},
+  n1:'The two straight lines appear to bow outward near the centre. The Wundt illusion is the same setup bowing inward.',
+  n2:'Like Zöllner, explained by angle overestimation / orientation repulsion; also the radiating lines may act as depth cues that misfire size constancy.',
+  n3:'Straight UI (frames, dividers, text baselines) placed over speed lines, radial gradients or god-rays will look warped. The instant a gacha or skill FX goes radial, thicken the overlaid frame or deliberately offset the UI from the radial centre.',
+  tags:['radial FX','frame warp','FX interference']},
+ cafewall:{name:'Café wall (Gregory 1979)',
+  lead:'Every row is parallel. The mortar (grey line) lightness and the row offset change the effect dramatically.',
+  hook:{see:'the tile rows look slanted, forming wedges',fact:'all the rows are perfectly parallel'},
+  params:{shift:{label:'Row offset',hint:'0 or 0.5 removes it; around 0.25 is strongest'},mg:{label:'Mortar lightness',hint:'Mid-grey (~128) between black and white makes it strongest'},mw:{label:'Mortar width',hint:'0 removes the illusion'},n:{label:'Tiles',hint:''}},
+  n1:'The tile rows seem to tilt alternately into wedges. It is strongest when the mortar is neither black nor white but mid-grey.',
+  n2:'Thought to arise from low-level luminance edge detection (the brightness centroid shifting inside the mortar — a "brick" effect). Named by R. Gregory in 1979 from a Bristol café’s tiled wall; the same figure was reported by Münsterberg in 1897.',
+  n3:'Pixel-art or tiled backgrounds with checker + thin mid-grey seams make the whole screen look warped. Push the seam colour toward one of the tile colours (contrast on one side only) and the warp vanishes — directly useful for texture grid design.',
+  tags:['tiled backgrounds','seam colour','pixel art']},
+ fraser:{name:'Fraser spiral (1908)',
+  lead:'It looks like a spiral, but these are concentric circles. "Show proof" traces one true circle.',
+  hook:{see:'it looks like an outward spiral',fact:'there is no spiral — just concentric circles'},
+  params:{tilt:{label:'Tilt',hint:'At 0° you can see they are concentric circles'},rings:{label:'Rings',hint:''}},
+  n1:'The twisted-rope rings read as a spiral winding outward. Trace one ring with a finger and you see a circle.',
+  n2:'Local tilt information from each segment accumulates and systematically biases the estimate of the overall contour (an orientation-integration error). The checker background sharpens the local contrast imbalance.',
+  n3:'Arrange fine diagonal elements around a circle in a logo or icon and the circle stops looking round. A spinning loading ring, a circular gauge’s ticks, text set on a circle — accumulated local slant destroys the roundness. Align circular-UI ticks along the radial (normal) direction to stay safe.',
+  tags:['circular UI','gauges','logos']},
+ adelson:{name:'Checker-shadow (Adelson 1995)',
+  lead:'Square A and square B are exactly the same on-screen luminance when shadow strength is 0.58. If you don’t believe it, show the proof.',
+  hook:{see:'square B looks lighter than square A',fact:'squares A and B are the same colour (same luminance)'},
+  params:{sh:{label:'Shadow strength',hint:'0.58 gives A=B (exact match). 1.0 removes the shadow'}},
+  n1:'B clearly looks lighter, yet at shadow 0.58 both have the same on-screen value of 110. The proof connects A and B with a bar of that same colour.',
+  n2:'Vision estimates the object’s true reflectance, not the light reaching the retina (lightness constancy). The shadow context auto-corrects: "B is in shadow, so its surface must really be lighter." E. H. Adelson’s 1995 figure.',
+  n3:'A value picked from a colour picker won’t match how it looks. Lay a gradient or shadow behind it and the same grey reads as a different lightness. Making things "look the same colour" is context-aware eyeballing, not number matching — this is why the same token breaks over dark vs light backgrounds.',
+  tags:['lightness constancy','colour tokens','background dependence']},
+ simcontrast:{name:'Simultaneous contrast',
+  lead:'The left and right grey squares are always exactly the same value. Only the backgrounds differ.',
+  hook:{see:'the left square looks lighter',fact:'the left and right squares are exactly the same colour'},
+  params:{d:{label:'Background gap',hint:'0 makes the backgrounds equal and removes the illusion'},fig:{label:'Figure lightness',hint:''}},
+  n1:'On a dark background the grey looks lighter; on a light background, darker. The proof connects both with a bar of the same value.',
+  n2:'Lateral inhibition from retina to cortex exaggerates the luminance difference with neighbours — a side effect of encoding difference-from-surround rather than absolute brightness.',
+  n3:'The same grey feels very different in dark mode vs light mode. Even when you meet a numeric contrast ratio, text can read "too faint" or "too harsh". In token design, define the foreground per background.',
+  tags:['lateral inhibition','dark mode','contrast design']},
+ white:{name:"White's illusion (1979)",
+  lead:'The two grey bars are the same value — yet the effect runs opposite to plain contrast.',
+  hook:{see:'A looks lighter',fact:'A and B are exactly the same colour'},
+  params:{n:{label:'Stripes',hint:''},fig:{label:'Grey lightness',hint:''}},
+  n1:'A, embedded in the black stripes, looks lighter. Plain contrast would predict "A is surrounded by black, so lighter" — but A actually touches black the most, opposite to that prediction.',
+  n2:'Not explained by simple lateral inhibition; which region a patch "belongs to" (belongingness / surface parsing) matters. A key example that lightness isn’t decided by low-level processing alone.',
+  n3:'Over striped backgrounds or ruled tables, cell background colours behave unpredictably. On stripe/grid/scanline FX, always confirm colour on the real screen — numbers and simple-contrast reasoning won’t settle it.',
+  tags:['assimilation','stripe background','surface parsing']},
+ mach:{name:'Mach bands / Chevreul',
+  lead:'Each step is a perfectly uniform fill. Yet the edges of each step look lighter/darker.',
+  hook:{see:'bright and dark lines appear at each step edge',fact:'each step is a uniform fill — no lines exist at the edges'},
+  params:{n:{label:'Steps',hint:''},ramp:{label:'Edge softness',hint:'Raise it for a gradient, and thin light/dark bands (Mach bands) appear at the kinks'}},
+  n1:'Non-existent bright/dark lines appear at each step edge. Soften the boundary and thin bands (Mach bands) show up at the inflection points.',
+  n2:'Contour enhancement from centre–surround receptive fields. Amplifying edge contrast invents relief that isn’t on a flat surface. Reported by E. Mach in 1865.',
+  n3:'Gradient banding looks ugly partly from perceptual edge enhancement, not only dithering. But you can weaponise it — a 1px light/dark difference at a button or card edge gives depth and separation without a shadow. The core of hierarchy in flat design.',
+  tags:['edge enhancement','banding','1px design']},
+ kanizsa:{name:'Kanizsa triangle (1955)',
+  lead:'You see the outline of a white triangle — yet not a single line of it is drawn.',
+  hook:{see:'a white triangle is clearly visible',fact:'not a single edge of the triangle is drawn'},
+  params:{gap:{label:'Notch angle',hint:''},rot:{label:'Inducer rotation',hint:'Rotate them and the outline vanishes — proof that orientation, not position, drives it'},sz:{label:'Inducer size',hint:''}},
+  n1:'The triangle’s edges look sharp and its interior feels brighter than the surround. Rotate the inducers and — same positions — the outline disappears.',
+  n2:'Illusory (subjective) contours. Vision adopts the occlusion reading "three circles are hidden behind a triangle" and fills in the missing boundary. A classic case of Gestalt closure; V2 neurons responding to illusory contours have been found.',
+  n3:'You can define a region without drawing a border — L-shaped corner marks, notches, the shape of the whitespace. Grouping and focus can be built without a single line. Powerful in dense game UI where you want structure without adding ink.',
+  tags:['illusory contour','grouping','subtractive design']},
+ grid:{name:'Hermann grid / scintillating grid',
+  lead:'Dots appear at the intersections that aren’t really there. Fixate one point and the intersection you look at stays normal.',
+  hook:{see:'flickering dots appear at the intersections',fact:'nothing is drawn at the intersections'},
+  params:{mode:{label:'Mode',hint:''},n:{label:'Cells',hint:''},lw:{label:'Line width',hint:''},dot:{label:'White-dot size',hint:'Scintillating grid only. 0 removes the effect'}},
+  n1:'Grey smudges appear at intersections in the Hermann grid; black dots flicker at the white spots in the scintillating grid. Both vanish at the intersection you fixate.',
+  n2:'Classically explained by retinal ganglion lateral inhibition, but that fails for wavy grids, so a cortical orientation-selective mechanism (S1 simple cells) is now favoured. A shared feature is that it only occurs in peripheral vision.',
+  n3:'Even-spaced grids with high-contrast intersections generate visual noise. Dotted-divider tables, grid inventory frames, map grid lines — thin the lines, lower contrast, or thin out the intersections. It bites harder the longer the UI is viewed.',
+  tags:['grid UI','peripheral vision','visual noise']},
+ snakes:{name:'Peripheral drift (Kitaoka 2003)',
+  lead:'This is a still image. Not one frame moves. Let your gaze roam around the screen and it starts turning.',
+  hook:{see:'the rings look like they slowly rotate',fact:'nothing moves at all — it is a complete still image'},
+  params:{rings:{label:'Rings',hint:''},seg:{label:'Segments',hint:''},mono:{label:'Palette',hint:''}},
+  n1:'The donut bands seem to rotate, each ring the opposite way. Fixate one point and it stops; a blink or gaze shift starts it again.',
+  n2:'The asymmetric luminance order black→dark→white→light is the key. Higher-luminance parts drive faster visual responses, lower parts lag; on gaze shifts or blinks the timing difference between neighbours is misread as a motion signal. Kitaoka’s "Rotating Snakes" (2003).',
+  n3:'Motion without motion = a dynamic effect at zero GPU cost. The luminance-ordered asymmetry can be baked into background textures or frames. It cuts both ways — unintended luminance ramps make a static UI background feel restless. A pattern to avoid behind long-lived HUDs.',
+  tags:['static yet moving','zero-cost FX','HUD background pitfall']},
+ mae:{name:'Motion aftereffect (waterfall, Addams 1834)',
+  lead:'Fixate the centre dot for 25s. The moment it stops, the still spiral appears to spin the other way.',
+  hook:{see:'stop it and the spiral seems to reverse',fact:'the stopped image is a complete still (motion aftereffect)'},
+  params:{turns:{label:'Turns',hint:''},spd:{label:'Speed',hint:''},dir:{label:'Direction',hint:''}},
+  sess:{label:'Stare 25s',after:'Stopped. Keep looking at the spiral without moving. Then look at your hand or the wall — it will appear to expand / shrink.'},
+  n1:'When rotation stops, the still spiral seems to spin backward (or expand/contract). It lasts seconds to tens of seconds.',
+  n2:'Direction-selective motion detectors adapt (fatigue), so for a static stimulus the opposite-direction detectors become relatively dominant. R. Addams’ 1834 "waterfall illusion" from the Falls of Foyers.',
+  n3:'Adaptation happens across vision. Fire strong FX back-to-back and the threshold rises, so the same FX loses its punch — the same territory as gacha-FX inflation and always-glowing UI "disappearing" within minutes. For retention, inserting rests to reset adaptation beats ever-escalating intensity.',
+  tags:['adaptation','FX inflation','designing rests']},
+ afterimage:{name:'Negative afterimage',
+  lead:'Fixate the black centre dot for 15s. When it switches, the complementary image floats up.',
+  hook:{see:'switch it and a complementary-colour image floats up',fact:'no colour is painted on the white field (negative afterimage)'},
+  params:{hue:{label:'Hue',hint:''},sat:{label:'Vividness',hint:''}},
+  sess:{label:'Stare 15s',after:'What floats on the white field is the negative afterimage. Restart once it fades.'},
+  n1:'The complementary colours (green→magenta, blue→yellow, etc.) form the same shape on the white field. Move your eyes and the image moves with them.',
+  n2:'Adaptation of cones and the opponent-colour pathway. Sustained stimulation lowers responses, so against white light the opponent channel’s output becomes relatively dominant. The image following eye movements shows it is retinal.',
+  n3:'Colours in long-lived UI "burn in" to your vision. After a full-screen saturated colour, the next white screen looks muddied. Account for the previous screen’s mean hue in transition design for a clean read — a factor in why a result screen after a long battle looks oddly dirty.',
+  tags:['colour adaptation','screen transitions','burn-in']},
+ troxler:{name:'Troxler fading (1804)',
+  lead:'Fixate only the centre dot and don’t move your eyes. In ~20s the faint surrounding colours vanish.',
+  hook:{see:'stare and the surrounding colours fade away',fact:'the colours haven’t gone — they fade due to neural adaptation'},
+  params:{n:{label:'Count',hint:''},soft:{label:'Blur',hint:'Sharper edges make them harder to fade'},sat:{label:'Saturation',hint:''}},
+  sess:{label:'Stare 20s',after:'Did they fade? A small eye movement or blink brings them right back.'},
+  n1:'Blurred peripheral colours dissolve into the grey ground over tens of seconds. A blink or micro eye movement instantly restores them.',
+  n2:'Neural adaptation. With a perfectly stabilised retinal image the response decays, and weak-contour stimuli are dropped as "not there" first. Normally microsaccades keep the image slightly moving to prevent this fading.',
+  n3:'Information that never changes literally becomes invisible. Persistent banners, static tutorial arrows, fixed badges — weak-contour, low-contrast ones drop from awareness fastest. Important persistent elements need either subtle motion or clear contours. The perceptual basis of banner blindness.',
+  tags:['adaptation','microsaccades','persistent elements']}
+};
+function TR(il,field){
+  if(lang==='en'&&I18N[il.id]&&I18N[il.id][field]!=null)return I18N[il.id][field];
+  return il[field];
+}
+function pInfo(il,p){
+  if(lang==='en'&&I18N[il.id]&&I18N[il.id].params&&I18N[il.id].params[p.k]){
+    var e=I18N[il.id].params[p.k];return {label:e.label!=null?e.label:p.label,hint:e.hint!=null?e.hint:(p.hint||'')};}
+  return {label:p.label,hint:p.hint||''};}
+function tInfo(il){
+  var t=il.task;if(lang==='en'&&I18N[il.id]&&I18N[il.id].task){var e=I18N[il.id].task;
+    return {label:e.label!=null?e.label:t.label,ask:e.ask!=null?e.ask:t.ask,over:e.over!=null?e.over:t.over,under:e.under!=null?e.under:t.under,errUnit:e.errUnit!=null?e.errUnit:t.errUnit};}
+  return {label:t.label,ask:t.ask,over:t.over,under:t.under,errUnit:t.errUnit};}
+function sInfo(il){
+  var s=il.session;if(lang==='en'&&I18N[il.id]&&I18N[il.id].sess){var e=I18N[il.id].sess;
+    return {sec:s.sec,label:e.label!=null?e.label:s.label,after:e.after!=null?e.after:s.after};}
+  return s;}
+function hookOf(il){
+  if(lang==='en'&&I18N[il.id]&&I18N[il.id].hook)return I18N[il.id].hook;
+  return HOOKS[il.id]||{see:'',fact:il.name};}
+function nameOf(il){return (lang==='en'&&I18N[il.id]&&I18N[il.id].name)?I18N[il.id].name:il.name;}
+
+/* static in-canvas proof labels */
+var CANVAS_TR={
+ '点線＝同一サイズ基準':'dotted = same-size reference',
+ '点線＝上の線の両端':'dotted = ends of the upper line',
+ '点線＝垂直線を倒したもの':'dotted = the vertical laid flat',
+ '点線＝本当の延長線':'dotted = the true extension',
+ '点線＝水平の基準線':'dotted = horizontal reference',
+ '点線＝完全な円（渦ではない）':'dotted = a true circle (not a spiral)',
+ '緑線＝実際の輝度プロファイル（山も谷も無い）':'green = actual luminance profile (no peaks or dips)',
+ '交差点には点も影も描かれていません':'no dots or smudges are drawn at the intersections',
+ '完全な静止画です（アニメーションは一切なし）':'a complete still image (no animation at all)',
+ '点線＝知覚された輪郭の位置（実線は存在しない）':'dotted = where the contour is perceived (no real line exists)',
+ '▼ 動いて見えますが完全な静止画です':'▼ looks like it moves, but it is a complete still image'
+};
+
+/* ===== state ===== */
+var LS='illusionlab_v1',store={seen:{},best:{}};
+try{var raw=localStorage.getItem(LS);if(raw){var o=JSON.parse(raw);if(o&&typeof o==='object')store=o;}}catch(e){}
+if(!store.seen)store.seen={};if(!store.best)store.best={};
+function save(){try{localStorage.setItem(LS,JSON.stringify(store));}catch(e){}}
+
+var V={};
+for(var vi=0;vi<ILLUSIONS.length;vi++){var il0=ILLUSIONS[vi],ov={};
+  (il0.params||[]).forEach(function(p){ov[p.k]=p.def;});
+  if(il0.task)ov[il0.task.k]=il0.task.def;
+  V[il0.id]=ov;}
+
+var curId=ILLUSIONS[0].id,curCat=CATS[0][0],dirty=true;
+var ST={reveal:false,phase:0,stage:'idle',left:0};
+
+/* punchline hooks — the "looks different / actually same" one-liner shown on first view */
+var HOOKS={
+ ebbinghaus:{see:'左のオレンジは小さく、右は大きく見える',fact:'2つのオレンジの円は同じ大きさ'},
+ muller:{see:'上の線が長く、下の線が短く見える',fact:'2本の水平線は同じ長さ'},
+ verthoriz:{see:'縦の線のほうが長く見える',fact:'縦線と横線は同じ長さ'},
+ poggendorff:{see:'右の線は左とズレているように見える',fact:'2本は一直線につながっている'},
+ zollner:{see:'横線が交互に傾いて見える',fact:'すべての横線は完全に平行'},
+ hering:{see:'2本の赤い線が外へ膨らんで見える',fact:'赤い線はまっすぐで、完全に平行'},
+ cafewall:{see:'タイルの段が斜めに傾いて見える',fact:'すべての段は完全に平行'},
+ fraser:{see:'外へ広がる渦巻きに見える',fact:'渦ではなく、ただの同心円'},
+ adelson:{see:'マスBのほうが明るく見える',fact:'マスAとマスBは同じ色（同じ輝度）'},
+ simcontrast:{see:'左の四角のほうが明るく見える',fact:'左右の四角はまったく同じ色'},
+ white:{see:'Aのほうが明るく見える',fact:'AとBはまったく同じ色'},
+ mach:{see:'各段の境目に明暗の線が見える',fact:'各段は均一な塗り。境目の線は存在しない'},
+ kanizsa:{see:'白い三角形がはっきり見える',fact:'三角形の輪郭線は1本も描かれていない'},
+ grid:{see:'交差点にチラチラ点が現れる',fact:'交差点には点も影も描かれていない'},
+ snakes:{see:'輪がゆっくり回転して見える',fact:'1ピクセルも動いていない完全な静止画'},
+ mae:{see:'止めると渦が逆回転して見える',fact:'止まった画像は完全な静止画（運動残効）'},
+ afterimage:{see:'切り替えると補色の像が浮かぶ',fact:'白い面に色は塗られていない（補色残像）'},
+ troxler:{see:'見つめると周囲の色が消える',fact:'色は消えていない（神経順応で消えて感じる）'}
+};
+function cur(){for(var i=0;i<ILLUSIONS.length;i++)if(ILLUSIONS[i].id===curId)return ILLUSIONS[i];return ILLUSIONS[0];}
+
+/* ===== audio ===== */
+var AC=null,sndOn=true;
+function beep(f,d,ty){if(!sndOn)return;try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended')AC.resume();
+  var o=AC.createOscillator(),gg=AC.createGain();o.type=ty||'sine';o.frequency.value=f;
+  gg.gain.setValueAtTime(.0001,AC.currentTime);gg.gain.exponentialRampToValueAtTime(.09,AC.currentTime+.01);
+  gg.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+(d||.12));
+  o.connect(gg);gg.connect(AC.destination);o.start();o.stop(AC.currentTime+(d||.12)+.02);}catch(e){}}
+
+function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show');},1800);}
+
+/* ===== canvas ===== */
+var cv=$('#cv'),g=cv.getContext('2d'),CW=0,CH=0;
+function sizeCanvas(){
+  var st=$('#stage'),il=cur(),zoom=st.classList.contains('zoom');
+  var w=st.clientWidth-(zoom?28:24),hh=w*il.ratio;
+  if(zoom){var mh=st.clientHeight-28;if(hh>mh){hh=mh;w=hh/il.ratio;}}
+  var dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.max(1,Math.round(w*dpr));cv.height=Math.max(1,Math.round(hh*dpr));
+  cv.style.width=w+'px';cv.style.height=hh+'px';
+  g.setTransform(dpr,0,0,dpr,0,0);CW=w;CH=hh;dirty=true;}
+
+function draw(){var il=cur(),P=V[il.id];
+  g.save();g.clearRect(0,0,CW,CH);
+  g.fillStyle=(ST.stage==='after'&&il.bg2)?il.bg2:il.bg;g.fillRect(0,0,CW,CH);
+  try{il.draw(g,CW,CH,P,ST);}catch(e){}
+  g.restore();}
+
+var lastT=0,lastSec=-1;
+function loop(ts){
+  var dt=lastT?Math.min(.05,(ts-lastT)/1000):0;lastT=ts;
+  var il=cur();
+  if(ST.stage==='run'){ST.left-=dt;
+    if(ST.left<=0){ST.left=0;ST.stage='after';beep(660,.25,'triangle');dirty=true;updTimer();}
+    else{var s=Math.ceil(ST.left);if(s!==lastSec){lastSec=s;updTimer();}}}
+  if(il.tick)il.tick(V[il.id],ST,dt);
+  if(il.anim||dirty){draw();dirty=false;}
+  requestAnimationFrame(loop);}
+
+/* ===== nav ===== */
+function buildCats(){var el=$('#cats');el.innerHTML='';
+  CATS.forEach(function(c){var b=document.createElement('button');b.className='cat'+(c[0]===curCat?' active':'');
+    b.textContent=lang==='en'?c[2]:c[1];b.onclick=function(){curCat=c[0];beep(880,.05,'square');
+      var f=ILLUSIONS.filter(function(x){return x.cat===curCat;});if(f.length)select(f[0].id);
+      buildCats();buildChips();};el.appendChild(b);});}
+
+function buildChips(){var el=$('#chips');el.innerHTML='';
+  ILLUSIONS.filter(function(x){return x.cat===curCat;}).forEach(function(x){
+    var b=document.createElement('button');
+    b.className='chip'+(x.id===curId?' active':'')+(store.seen[x.id]?' done':'');
+    b.textContent=nameOf(x);b.onclick=function(){select(x.id);buildChips();};el.appendChild(b);});}
+
+function updProg(){var n=0;for(var k in store.seen)if(store.seen[k])n++;
+  $('#prog').textContent=n;$('#total').textContent=ILLUSIONS.length;}
+
+/* ===== caption / hook ===== */
+function buildCaption(){
+  var il=cur(),h=hookOf(il),box=$('#hook');
+  if(il.session){
+    var sl=sInfo(il).label;
+    box.className='hook sess';
+    box.innerHTML='<div class="h-fact">'+h.see+(lang==='en'?'? … ':'？ … ')+'<b>'+h.fact+'</b></div>'
+      +'<div class="h-why">'+T('capWhyS').replace('$L',sl)+'</div>';
+  }else{
+    box.className='hook';
+    box.innerHTML='<div class="h-row"><span class="h-tag">'+T('capSee')+'</span>'+h.see+'</div>'
+      +'<div class="h-fact">'+T('capBut')+'<b>'+h.fact+'</b></div>'
+      +'<div class="h-why">'+T('capWhy')+'</div>';
+  }
+}
+
+/* ===== controls ===== */
+function buildControls(){
+  var il=cur(),c=$('#ctrl');c.innerHTML='';
+  (il.params||[]).forEach(function(p){
+    var pi=pInfo(il,p);
+    var row=document.createElement('div');row.className='prow';
+    var lab=document.createElement('div');lab.className='plab';lab.textContent=pi.label;row.appendChild(lab);
+    if(p.type==='select'){
+      var sel=document.createElement('select');
+      p.opts.forEach(function(o){var op=document.createElement('option');op.value=o[0];op.textContent=o[1];sel.appendChild(op);});
+      sel.value=V[il.id][p.k];
+      sel.onchange=function(){V[il.id][p.k]=sel.value;dirty=true;};
+      row.appendChild(sel);
+    }else{
+      var r=document.createElement('input');r.type='range';r.min=p.min;r.max=p.max;r.step=p.step;r.value=V[il.id][p.k];
+      var val=document.createElement('div');val.className='pval';val.textContent=p.fmt(V[il.id][p.k]);
+      r.oninput=function(){var v=parseFloat(r.value);V[il.id][p.k]=v;val.textContent=p.fmt(v);dirty=true;};
+      row.appendChild(r);row.appendChild(val);}
+    c.appendChild(row);
+    if(pi.hint){var hn=document.createElement('div');hn.className='hint';hn.textContent=pi.hint;c.appendChild(hn);}
+  });
+
+  var bs=$('#btns');bs.innerHTML='';
+  if(il.session){
+    var sl=sInfo(il).label;
+    var sb=document.createElement('button');sb.className='btn acc';
+    sb.textContent=(ST.stage==='run')?(lang==='en'?'■ Stop':'■ 中止'):sl;
+    sb.onclick=function(){
+      if(ST.stage==='run'){ST.stage='idle';ST.left=0;}
+      else{ST.stage='run';ST.left=il.session.sec;ST.phase=0;beep(520,.1,'triangle');}
+      dirty=true;updTimer();buildControls();};
+    bs.appendChild(sb);
+  }else{
+    var rb=document.createElement('button');rb.className='btn'+(ST.reveal?' on':'');
+    rb.textContent=ST.reveal?T('proofOn'):T('proofOff');
+    rb.onclick=function(){ST.reveal=!ST.reveal;dirty=true;beep(ST.reveal?740:440,.08,'square');
+      toast(ST.reveal?T('toastOn'):T('toastOff'));buildControls();};
+    bs.appendChild(rb);}
+  var db=document.createElement('button');db.className='btn';db.textContent=T('reset');
+  db.onclick=function(){(il.params||[]).forEach(function(p){V[il.id][p.k]=p.def;});
+    if(il.task)V[il.id][il.task.k]=il.task.def;
+    dirty=true;buildControls();buildTask();toast(T('toastReset'));};
+  bs.appendChild(db);
+  var zb=document.createElement('button');zb.className='btn';zb.textContent=T('zoom');
+  zb.onclick=function(){$('#stage').classList.add('zoom');sizeCanvas();};
+  bs.appendChild(zb);
+  updTimer();
+}
+
+function updTimer(){
+  var il=cur(),t=$('#timer');
+  if(!il.session){t.style.display='none';return;}
+  t.style.display='block';
+  if(ST.stage==='run')t.textContent=T('tRun').replace('$S',Math.ceil(ST.left));
+  else if(ST.stage==='after')t.textContent='◆ '+sInfo(il).after;
+  else t.textContent=T('tIdle');}
+
+/* ===== task ===== */
+function buildTask(){
+  var il=cur(),sec=$('#tasksec'),body=$('#taskbody');
+  if(!il.task){sec.style.display='none';body.innerHTML='';return;}
+  sec.style.display='block';var t=il.task,ti=tInfo(il);
+  body.innerHTML='<p style="margin:0 0 10px;font-size:12px;line-height:1.7;color:var(--dim)">'+T('taskIntro')+'</p>';
+  var row=document.createElement('div');row.className='prow';
+  var lab=document.createElement('div');lab.className='plab';lab.textContent=ti.label;
+  var r=document.createElement('input');r.type='range';r.min=t.min;r.max=t.max;r.step=t.step;r.value=V[il.id][t.k];
+  var val=document.createElement('div');val.className='pval';
+  var fmt=t.fmt||function(v){return v.toFixed(3);};
+  val.textContent=fmt(V[il.id][t.k]);
+  r.oninput=function(){var v=parseFloat(r.value);V[il.id][t.k]=v;val.textContent=fmt(v);dirty=true;};
+  row.appendChild(lab);row.appendChild(r);row.appendChild(val);body.appendChild(row);
+  var br=document.createElement('div');br.className='btnrow';
+  var ob=document.createElement('button');ob.className='btn';ob.textContent=T('offset');
+  ob.onclick=function(){var span=t.max-t.min,sgn=Math.random()<.5?-1:1,off=(0.25+Math.random()*0.35)*span*0.5*sgn;
+    var nv=Math.max(t.min,Math.min(t.max,t.truth+off));V[il.id][t.k]=nv;ST.reveal=false;dirty=true;
+    buildTask();buildControls();var rr=$('#res');if(rr)rr.style.display='none';};
+  br.appendChild(ob);
+  var jb=document.createElement('button');jb.className='btn acc';jb.textContent=T('judge');
+  jb.onclick=judge;br.appendChild(jb);
+  var rb=document.createElement('button');rb.className='btn';rb.textContent=T('backEq');
+  rb.onclick=function(){V[il.id][t.k]=t.truth;ST.reveal=false;dirty=true;buildTask();buildControls();};
+  br.appendChild(rb);body.appendChild(br);
+  var res=document.createElement('div');res.className='result';res.id='res';res.style.display='none';body.appendChild(res);
+  if(store.best[il.id]!=null){
+    var b=document.createElement('p');b.style.cssText='margin:9px 0 0;font-size:10.5px;color:var(--muted)';
+    b.textContent=T('best')+store.best[il.id].toFixed(1)+(ti.errUnit||'%');body.appendChild(b);}
+}
+
+function judge(){
+  var il=cur(),t=il.task;if(!t)return;
+  var ti=tInfo(il);
+  var v=V[il.id][t.k];
+  var e=t.errFn?t.errFn(v,V[il.id],CW,CH):(v/t.truth-1)*100;
+  var a=Math.abs(e),unit=ti.errUnit||'%';
+  var rate=a<1.5?T('rate0'):a<5?T('rate1'):a<12?T('rate2'):T('rate3');
+  var dir=e>0?ti.over:ti.under;
+  if(a<0.6)dir=T('near');
+  var res=$('#res');
+  res.style.display='block';
+  res.innerHTML='<div class="big'+(a>=5?' bad':'')+'">'+(e>0?'+':'')+e.toFixed(1)+unit+'</div>'
+    +'<p>'+dir+'</p><p>'+rate+'</p>'
+    +'<div class="gauge"><b style="width:'+Math.min(100,a*5)+'%"></b></div>';
+  ST.reveal=true;dirty=true;buildControls();
+  beep(a<5?880:440,.18,'triangle');
+  if(store.best[il.id]==null||a<store.best[il.id]){store.best[il.id]=a;save();}
+}
+
+/* ===== select ===== */
+function select(id){
+  curId=id;ST={reveal:false,phase:0,stage:'idle',left:0};lastSec=-1;
+  var il=cur();
+  $('#stage').style.background=il.bg;
+  $('#ttl').textContent=nameOf(il);$('#en').textContent=il.en;$('#lead').textContent=TR(il,'lead');
+  $('#n1').textContent=TR(il,'n1');$('#n2').textContent=TR(il,'n2');$('#n3').textContent=TR(il,'n3');
+  var tg=$('#tags');tg.innerHTML='';
+  (TR(il,'tags')||[]).forEach(function(t){var s=document.createElement('span');s.className='tag';s.textContent='# '+t;tg.appendChild(s);});
+  buildCaption();buildControls();buildTask();sizeCanvas();
+  if(!store.seen[id]){store.seen[id]=1;save();updProg();buildChips();}
+}
+
+/* ===== chrome / language ===== */
+function applyChrome(){
+  $('#lblExp').textContent=T('exp');
+  $('#ttlCtrl').textContent=T('ctrl');
+  $('#ttlTask').textContent=T('task');
+  $('#ttlNote').textContent=T('note');
+  $('#ttlPercept').textContent=T('percept');
+  $('#ttlMech').textContent=T('mech');
+  $('#ttlApply').textContent=T('apply');
+  $('#foot').innerHTML=T('footer');
+  $('#lang').textContent=(lang==='en')?'JP':'EN';
+}
+function setLang(l){lang=l;applyChrome();buildCats();buildChips();select(curId);}
+$('#lang').onclick=function(){beep(700,.06,'square');setLang(lang==='en'?'ja':'en');};
+
+/* ===== init ===== */
+$('#snd').onclick=function(){sndOn=!sndOn;$('#snd').classList.toggle('on',sndOn===false?false:true);
+  $('#snd').textContent=sndOn?'SOUND':'MUTED';if(sndOn)beep(660,.08,'square');};
+$('#snd').classList.add('on');
+$('#zoomclose').onclick=function(){$('#stage').classList.remove('zoom');sizeCanvas();};
+window.addEventListener('resize',function(){sizeCanvas();});
+window.addEventListener('orientationchange',function(){setTimeout(sizeCanvas,250);});
+
+applyChrome();buildCats();buildChips();updProg();select(ILLUSIONS[0].id);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
