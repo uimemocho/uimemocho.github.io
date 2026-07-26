@@ -47,29 +47,43 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 
 /* ===== タイトル（メニュー） ===== */
 #titleScreen{isolation:isolate;overflow:hidden;}
-#titleScreen .t-scroll{position:relative;z-index:2;flex:1;overflow-y:auto;padding:52px 20px 16px;display:flex;flex-direction:column;}
+#titleScreen .t-scroll{position:relative;z-index:3;flex:1;overflow-y:auto;padding:52px 20px 16px;display:flex;flex-direction:column;}
 .title-art-bg{position:absolute;z-index:0;inset:-18%;overflow:hidden;transform:rotate(-4deg) scale(1.08);pointer-events:none;}
-.title-art-grid{width:136%;height:136%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;
-  animation:titleArtDrift 34s ease-in-out infinite alternate;will-change:transform;}
-.title-art-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;opacity:.25;
-  filter:saturate(.58) brightness(.62);box-shadow:0 8px 22px rgba(0,0,0,.35);}
-.title-art-shade{position:absolute;z-index:1;inset:0;pointer-events:none;background:
-  linear-gradient(180deg,rgba(8,8,12,.5) 0%,rgba(8,8,12,.72) 44%,rgba(8,8,12,.94) 100%),
-  radial-gradient(75% 48% at 12% 10%,rgba(255,46,99,.28),transparent 70%),
-  radial-gradient(70% 46% at 92% 16%,rgba(46,230,255,.2),transparent 72%);}
+.title-art-grid{width:136%;height:136%;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;
+  animation:titleArtDrift 34s ease-in-out infinite alternate;}
+.title-art-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;opacity:.34;
+  filter:saturate(.74) brightness(.78) contrast(1.02);box-shadow:0 8px 22px rgba(0,0,0,.3);}
+.title-glow-field{position:absolute;z-index:1;inset:-24%;overflow:hidden;pointer-events:none;mix-blend-mode:screen;}
+.title-glow{position:absolute;width:68%;aspect-ratio:1;border-radius:50%;}
+.title-glow.pink{left:2%;top:0;background:radial-gradient(circle,rgba(255,46,99,.5) 0%,rgba(255,105,176,.22) 38%,transparent 72%);
+  animation:titleGlowPink 20s cubic-bezier(.45,0,.55,1) infinite alternate;}
+.title-glow.blue{right:0;bottom:0;background:radial-gradient(circle,rgba(46,230,255,.46) 0%,rgba(90,125,255,.2) 40%,transparent 72%);
+  animation:titleGlowBlue 24s cubic-bezier(.45,0,.55,1) -7s infinite alternate;}
+.title-art-shade{position:absolute;z-index:2;inset:0;pointer-events:none;background:
+  linear-gradient(180deg,rgba(8,8,12,.34) 0%,rgba(8,8,12,.53) 44%,rgba(8,8,12,.86) 100%);}
+#titleScreen:not(.hidden) .title-art-grid{will-change:transform;}
+#titleScreen:not(.hidden) .title-glow{will-change:transform,opacity;}
 @keyframes titleArtDrift{
   0%{transform:translate3d(-6%,-4%,0) scale(1.02);}
   50%{transform:translate3d(-13%,-9%,0) scale(1.06);}
   100%{transform:translate3d(-4%,-15%,0) scale(1.03);}
 }
+@keyframes titleGlowPink{
+  0%{transform:translate3d(-18%,-12%,0) scale(.86);opacity:.36;}
+  48%{transform:translate3d(28%,24%,0) scale(1.12);opacity:.72;}
+  100%{transform:translate3d(72%,70%,0) scale(.92);opacity:.48;}
+}
+@keyframes titleGlowBlue{
+  0%{transform:translate3d(18%,20%,0) scale(.9);opacity:.38;}
+  52%{transform:translate3d(-26%,-22%,0) scale(1.14);opacity:.68;}
+  100%{transform:translate3d(-72%,-66%,0) scale(.96);opacity:.46;}
+}
 .menu{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:34px;}
 .mi{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--r);
   background:var(--surface);border:1px solid var(--line);text-align:left;transition:.16s;position:relative;overflow:hidden;}
 .mi:active{transform:scale(.985);}
-.mi.key{background:linear-gradient(96deg,rgba(255,46,99,.2),rgba(46,230,255,.14));border-color:rgba(255,46,99,.5);}
 .mi .mic{width:40px;height:40px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;font-size:19px;
   background:var(--raise);border:1px solid var(--line);}
-.mi.key .mic{background:rgba(255,46,99,.2);border-color:rgba(255,46,99,.45);}
 .mi .mi-copy{min-width:0;display:flex;flex-direction:column;gap:7px;}
 .mi .mt{display:block;font-size:16px;font-weight:900;letter-spacing:-.01em;line-height:1.05;}
 .mi .ms{display:block;font-size:11px;color:var(--mute);font-weight:600;line-height:1.35;text-wrap:pretty;}
@@ -81,6 +95,12 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
   color:var(--text);font-size:16px;font-weight:900;box-shadow:0 8px 22px rgba(0,0,0,.28);backdrop-filter:blur(12px);}
 .bgm-toggle:active{transform:scale(.92);}
 .bgm-toggle.off{color:var(--mute);}
+.lang-switch{position:absolute;z-index:28;top:calc(12px + env(safe-area-inset-top));right:62px;height:40px;
+  display:flex;align-items:center;gap:2px;padding:3px;border-radius:22px;background:rgba(20,20,28,.9);
+  border:1px solid var(--line);box-shadow:0 8px 22px rgba(0,0,0,.28);backdrop-filter:blur(12px);}
+.lang-switch button{min-width:36px;height:32px;padding:0 8px;border-radius:17px;color:var(--mute);
+  font-size:10px;font-weight:900;letter-spacing:.08em;}
+.lang-switch button.on{background:var(--raise);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);}
 .credit{margin-top:14px;text-align:center;color:#4E4E60;font-size:9.5px;line-height:1.65;padding-bottom:calc(6px + env(safe-area-inset-bottom));}
 
 /* ===== 共通ヘッダ（戻る） ===== */
@@ -359,18 +379,23 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 }
 @media (prefers-reduced-motion:reduce){
   .cut .w,.cut .ring,.toast,.toast .bg,.cut .bg2,.r-verdict.play,.r-verdict.play::after,.r-score.play .r-c{animation-duration:.01ms !important;}
-  .bars i,.eq i,.title-art-grid{animation:none;}
+  .bars i,.eq i,.title-art-grid,.title-glow{animation:none;}
 }
 </style>
 </head>
 <body>
 <div id="app">
   <button class="bgm-toggle" id="bgmBtn" aria-label="BGMをミュート" title="BGMをミュート">♪</button>
+  <div class="lang-switch" id="langSwitch" role="group" aria-label="言語">
+    <button class="on" type="button" data-lang="ja" aria-pressed="true">JP</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+  </div>
   <audio id="bgm" src="quiet-focus.mp3" preload="auto" loop></audio>
 
   <!-- ============ タイトル ============ -->
   <section id="titleScreen" class="screen">
     <div class="title-art-bg" aria-hidden="true"><div class="title-art-grid" id="titleArtGrid"></div></div>
+    <div class="title-glow-field" aria-hidden="true"><i class="title-glow pink"></i><i class="title-glow blue"></i></div>
     <div class="title-art-shade" aria-hidden="true"></div>
     <div class="t-scroll scroll">
       <div class="logo">
@@ -383,7 +408,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
           <span class="mi-copy"><span class="mt">ひとりで遊ぶ</span><span class="ms">CPUと対戦。まずはここから</span></span>
           <span class="arw">›</span>
         </button>
-        <button class="mi key" id="miVs">
+        <button class="mi" id="miVs">
           <span class="mic vs-mark" aria-hidden="true">VS</span>
           <span class="mi-copy"><span class="mt">ふたりで対戦</span><span class="ms">合言葉を伝えるだけ。設定不要</span></span>
           <span class="arw">›</span>
@@ -580,7 +605,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 <script>
 "use strict";
 /* =====================================================================
-   MUSIC KARUTA v3.2.0
+   MUSIC KARUTA v3.3.0
      ・タイトルメニュー（4項目）
      ・ふたりで対戦：合言葉4桁 / 自前MQTT 3.1.1（CDN不使用）
      ・トーストは対象ジャケット中央＋半透明黒の下地
@@ -636,6 +661,188 @@ let MODE="solo";              // solo | host | guest
 let activeScreen="titleScreen";
 
 const $=s=>document.querySelector(s);
+const LANG_KEY="mk_lang_v1";
+let UI_LANG="ja";
+try{ UI_LANG=localStorage.getItem(LANG_KEY)==="en"?"en":"ja"; }catch(e){}
+const EN_TEXT={
+  "イントロ30秒で":"30-sec intro: ",
+  "ジャケ当て":"name the cover",
+  "。":".",
+  "先にタップした人が勝ち。":"First to tap wins.",
+  "ひとりで遊ぶ":"Play solo",
+  "CPUと対戦。まずはここから":"Battle the CPU. Start here",
+  "ふたりで対戦":"Play together",
+  "合言葉を伝えるだけ。設定不要":"Share a room code. No setup",
+  "コレクション":"Collection",
+  "取った曲が集まる":"Your captured tracks",
+  "遊び方":"How to play",
+  "30秒で読める":"Read in 30 sec",
+  "楽曲プレビュー・ジャケットは Apple / iTunes Store より取得（プロモーション用途）":"Music previews and cover art are provided by Apple / iTunes Store for promotional use",
+  "音源について":"About audio",
+  "ジャンルを選ぶ":"Choose a genre",
+  "今バズってる":"Trending now",
+  "最新ヒット":"Latest hits",
+  "洋楽":"Global hits",
+  "US / UK チャート":"US / UK charts",
+  "アニメ":"Anime",
+  "主題歌・劇伴":"Themes & scores",
+  "ゲーム":"Games",
+  "名作サウンドトラック":"Iconic soundtracks",
+  "エモい":"Nostalgia",
+  "90〜00年代":"’90s–’00s",
+  "ルール設定":"Game settings",
+  "カードの数":"Number of cards",
+  "相手の強さ":"CPU level",
+  "ゆる":"Easy",
+  "ふつう":"Normal",
+  "ガチ":"Hard",
+  "制限時間":"Time limit",
+  "ジャンルを選んでね":"Choose a genre",
+  "部屋を作る":"Create a room",
+  "ジャンルを選ぶと合言葉が出るよ。相手に伝えてね。":"Choose a genre to get a room code, then share it with your rival.",
+  "合言葉で入る":"Join with a code",
+  "相手から聞いた4桁を入れてね。":"Enter the 4-digit code from your rival.",
+  "入室する":"Join room",
+  "合言葉":"Room code",
+  "この4桁を相手に伝えてね":"Share these 4 digits with your rival",
+  "相手を待っています":"Waiting for your rival",
+  "やめる":"Cancel",
+  "プレイリスト作成中":"Building your playlist",
+  "じぶん":"YOU",
+  "あいて":"RIVAL",
+  "枚":"cards",
+  "まもなくスタート":"Starting soon",
+  "準備してね":"Get ready",
+  "もう一度再生":"Replay preview",
+  "ミュート":"Mute",
+  "ミュートを解除":"Unmute",
+  "一時停止":"Pause",
+  "ミス！ ちょっと待って…":"Miss! Wait a moment…",
+  "今回の曲":"This round",
+  "もう一回":"Play again",
+  "タイトルへ":"Title screen",
+  "一時停止中":"Paused",
+  "曲は止まってるよ。続きから再開できる。":"The track is paused. You can resume where you left off.",
+  "つづける":"Resume",
+  "タイトルへもどる":"Return to title",
+  "30秒で読める。":"Takes 30 seconds.",
+  "「READY → GO」のあと、30秒プレビューが流れる。":"After READY → GO, a 30-second preview begins.",
+  "正しいジャケットを相手より先にタップすると、カードを1枚獲得。":"Tap the correct cover before your rival to capture one card.",
+  "相手も狙ってる。もたつくと":"Your rival is aiming too. If you wait,",
+  "、間違えると":"; choose wrong and",
+  "でしばらく動けない。":"locks you out briefly.",
+  "カードが尽きたら終了。取った枚数が多い方の勝ち。時間切れはどちらのものにもならない。":"The game ends when the deck is empty. Most cards wins. A timeout belongs to neither player.",
+  "は合言葉4桁を伝えるだけ。アカウントも設定もいらない。":" only needs a shared 4-digit code. No account or setup.",
+  "閉じる":"Close",
+  "Apple の公開APIを使ってるよ。":"Powered by Apple’s public API.",
+  "30秒プレビュー・ジャケット・曲情報は":"30-second previews, cover art, and track details come from the",
+  "の iTunes Search API から取得しています。":"iTunes Search API.",
+  "これらはApple規約上「ストアへの誘導」が前提の素材です。本作では結果画面とコレクションから":"Apple provides these assets for store discovery. Open each track’s",
+  "の曲ページへ移動できます。":"page from Results or Collection.",
+  "対戦の通信には、アカウント不要の公開MQTT中継を使っています。やり取りするのは曲IDと勝敗だけです。":"Online play uses a public MQTT relay with no account. Only track IDs and results are exchanged.",
+  "BGMをミュート":"Mute BGM",
+  "BGMのミュートを解除":"Unmute BGM",
+  "言語":"Language",
+  "つぎの曲":"Next track",
+  "集中して":"Stay sharp",
+  "再生中":"Now playing",
+  "この曲のジャケットをタップ":"Tap the matching cover",
+  "1枚ゲット":"1 card captured",
+  "先に取られた":"Captured by your rival",
+  "この曲は流れた":"Nobody captured this track",
+  "いまがチャンス":"Now is your chance",
+  "判定中…":"Checking…",
+  "ちょっと待機":"Wait a moment",
+  "対戦中は止められないよ。抜けると相手の勝ちになる。":"Online play cannot be paused. Leaving gives your rival the win.",
+  "対戦にもどる":"Return to match",
+  "あなたの勝ち":"You win",
+  "ライバルの勝ち":"Rival wins",
+  "同点":"It’s a draw",
+  "まだ空っぽ":"Nothing here yet",
+  "曲を取るとここに増えていくよ":"Captured tracks will appear here",
+  "ジャケットを照合中…":"Matching cover art…",
+  "曲を集められなかった。":"Couldn’t collect enough tracks.",
+  "通信状況を確認してもう一度。":"Check your connection and try again.",
+  "相手が入室しました":"Your rival joined",
+  "相手が切断しました":"Your rival disconnected",
+  "タイトルへもどってね":"Please return to the title screen",
+  "相手が退室しました":"Your rival left",
+  "相手の合図を待っています":"Waiting for your rival’s signal",
+  "中継に接続中…":"Connecting to relay…",
+  "中継に接続できなかった。通信環境を確認してね。":"Couldn’t connect to the relay. Check your connection.",
+  "接続中…":"Connecting…",
+  "入室しました":"Room joined",
+  "相手の準備を待っています":"Waiting for your rival",
+  "合言葉が正しくないみたい":"That room code looks incorrect",
+  "つながらなかった。合言葉と通信環境を確認してね。":"Couldn’t connect. Check the room code and your connection.",
+  "スタート":"Start",
+  "4桁の数字を入れてね":"Enter a 4-digit code",
+  "その合言葉は使われていないみたい":"That room code is not active"
+};
+const originalText=new WeakMap(),originalAttrs=new WeakMap();
+function translateCore(core){
+  if(EN_TEXT[core]) return EN_TEXT[core];
+  let m;
+  if((m=core.match(/^(\d+)秒$/))) return m[1]+" sec";
+  if((m=core.match(/^(\d+)枚$/))) return m[1]+" cards";
+  if((m=core.match(/^(\d+)曲$/))) return m[1]+" tracks";
+  if((m=core.match(/^(\d+) \/ (\d+) 曲$/))) return m[1]+" / "+m[2]+" tracks";
+  if((m=core.match(/^あいて・(.+)$/))) return "CPU · "+translateCore(m[1]);
+  return core;
+}
+function translatedText(value){
+  const lead=(value.match(/^\s*/)||[""])[0],tail=(value.match(/\s*$/)||[""])[0];
+  const core=value.trim();
+  return core?lead+translateCore(core)+tail:value;
+}
+function isTrackText(node){
+  const p=node.parentElement;
+  return !!(p&&p.closest(".tr .n,.tr .a,.col-i .cap"));
+}
+function renderTextNode(node){
+  if(!node||node.nodeType!==Node.TEXT_NODE||isTrackText(node)) return;
+  let original=originalText.get(node);
+  if(UI_LANG==="en"){
+    if(original===undefined||node.nodeValue!==translatedText(original)){ original=node.nodeValue; originalText.set(node,original); }
+    const next=translatedText(original); if(node.nodeValue!==next) node.nodeValue=next;
+  }else{
+    if(original!==undefined&&node.nodeValue!==original) node.nodeValue=original;
+    originalText.set(node,node.nodeValue);
+  }
+}
+function renderAttrs(el){
+  if(!el||el.nodeType!==Node.ELEMENT_NODE) return;
+  const attrs=["aria-label","title"];
+  let saved=originalAttrs.get(el); if(!saved){ saved={}; originalAttrs.set(el,saved); }
+  attrs.forEach(name=>{
+    if(!el.hasAttribute(name)) return;
+    const current=el.getAttribute(name),known=saved[name];
+    if(UI_LANG==="en"){
+      if(known===undefined||current!==translateCore(known)){ saved[name]=current; }
+      const next=translateCore(saved[name]); if(current!==next) el.setAttribute(name,next);
+    }else{
+      if(known!==undefined&&current!==known) el.setAttribute(name,known);
+      saved[name]=el.getAttribute(name);
+    }
+  });
+}
+function renderLanguage(root=$("#app")){
+  if(!root) return;
+  document.documentElement.lang=UI_LANG;
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  while(walker.nextNode()) renderTextNode(walker.currentNode);
+  root.querySelectorAll("*").forEach(renderAttrs);
+  document.querySelectorAll("#langSwitch button").forEach(btn=>{
+    const on=btn.dataset.lang===UI_LANG;
+    btn.classList.toggle("on",on); btn.setAttribute("aria-pressed",String(on));
+  });
+}
+function setLanguage(lang){
+  UI_LANG=lang==="en"?"en":"ja";
+  try{ localStorage.setItem(LANG_KEY,UI_LANG); }catch(e){}
+  renderLanguage();
+}
+let languageObserver=null;
 const SCREENS=["titleScreen","genreScreen","vsScreen","colScreen","loadScreen","gameScreen","resultScreen"];
 function show(id){
   activeScreen=id;
@@ -965,7 +1172,7 @@ function reduceSound(){
 }
 function updateSoundButtons(){
   const off=muted||reduceSound();
-  const common=$("#bgmBtn"),game=$("#muteBtn");
+  const common=$("#bgmBtn"),game=$("#muteBtn"),lang=$("#langSwitch");
   if(common){
     common.textContent=off?"🔇":"♪";
     common.classList.toggle("off",off);
@@ -978,6 +1185,7 @@ function updateSoundButtons(){
     game.classList.toggle("off",muted);
     game.setAttribute("aria-label",muted?"ミュートを解除":"ミュート");
   }
+  if(lang) lang.classList.toggle("hidden",activeScreen!=="titleScreen");
 }
 function syncBgm(){
   updateSoundButtons();
@@ -985,8 +1193,9 @@ function syncBgm(){
   const shouldPlay=bgmUnlocked&&!muted&&!reduceSound()&&activeScreen!=="gameScreen"&&!document.hidden;
   if(shouldPlay) bgm.play().catch(()=>{});
   else bgm.pause();
-  const art=$("#titleArtGrid");
-  if(art) art.style.animationPlayState=!document.hidden&&activeScreen==="titleScreen"?"running":"paused";
+  document.querySelectorAll(".title-art-grid,.title-glow").forEach(el=>{
+    el.style.animationPlayState=!document.hidden&&activeScreen==="titleScreen"?"running":"paused";
+  });
 }
 function setMuted(value){
   muted=value;
@@ -1615,6 +1824,7 @@ function init(){
   updateSoundButtons();
   document.addEventListener("pointerdown",unlockBgm,{once:true,capture:true});
   document.addEventListener("keydown",unlockBgm,{once:true,capture:true});
+  document.querySelectorAll("#langSwitch button").forEach(btn=>btn.addEventListener("click",()=>setLanguage(btn.dataset.lang)));
 
   $("#miSolo").addEventListener("click",()=>{ ac(); unlockAudio(); openGenre("solo"); });
   $("#miVs").addEventListener("click",()=>{ ac(); unlockAudio();
@@ -1659,6 +1869,18 @@ function init(){
   document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{
     if(e.target===m && m.id!=="pauseModal") m.classList.add("hidden");
   }));
+  renderLanguage();
+  languageObserver=new MutationObserver(mutations=>{
+    mutations.forEach(m=>{
+      if(m.type==="characterData") renderTextNode(m.target);
+      else if(m.type==="attributes") renderAttrs(m.target);
+      else m.addedNodes.forEach(node=>{
+        if(node.nodeType===Node.TEXT_NODE) renderTextNode(node);
+        else if(node.nodeType===Node.ELEMENT_NODE) renderLanguage(node);
+      });
+    });
+  });
+  languageObserver.observe($("#app"),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["aria-label","title"]});
   document.addEventListener("visibilitychange",syncBgm);
   window.addEventListener("resize",()=>{ if(G) placeCut(); });
   window.addEventListener("beforeunload",()=>{ if(MODE!=="solo") Net.leave(); });
