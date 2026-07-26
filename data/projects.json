@@ -94,5 +94,17 @@
     "sourceEntry": "illusion-lab_v1.0.html",
     "publishedAt": "2026-07-23T07:41:17Z",
     "updatedAt": "2026-07-23T07:41:17Z"
+  },
+  {
+    "slug": "music-karuta",
+    "title": "MUSIC KARUTA",
+    "kind": "game",
+    "description": "イントロ30秒を聴いてジャケットを取り合う、CPU戦・オンライン対戦対応の音楽かるたゲーム。",
+    "url": "/apps/music-karuta/",
+    "thumbnail": null,
+    "sourceFolder": "260721_ミュージックカルタ",
+    "sourceEntry": "music-karuta_v3.0.html",
+    "publishedAt": "2026-07-26T06:24:23Z",
+    "updatedAt": "2026-07-26T06:24:23Z"
   }
 ]
