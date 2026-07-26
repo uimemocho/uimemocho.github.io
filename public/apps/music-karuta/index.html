@@ -18,7 +18,8 @@
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,"Hiragino Sans","Noto Sans JP",sans-serif;
   --r:16px;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;scrollbar-width:none;-ms-overflow-style:none;}
+*::-webkit-scrollbar{display:none;width:0;height:0;}
 html,body{margin:0;height:100%;}
 body{background:var(--ink);color:var(--text);font-family:var(--font);overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-font-smoothing:antialiased;}
@@ -661,7 +662,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 <script>
 "use strict";
 /* =====================================================================
-   MUSIC KARUTA v3.4.0
+   MUSIC KARUTA v3.4.1
      ・タイトルメニュー（4項目）
      ・ふたりで対戦：合言葉4桁 / 自前MQTT 3.1.1（CDN不使用）
      ・トーストは対象ジャケット中央＋半透明黒の下地
