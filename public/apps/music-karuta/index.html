@@ -159,11 +159,6 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .p.me.lit{border-color:var(--you);box-shadow:0 0 22px rgba(255,46,99,.4);}
 .p.op.lit{border-color:var(--rival);box-shadow:0 0 22px rgba(46,230,255,.4);}
 .p.out{opacity:.38;}
-.pausebtn{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:var(--surface);
-  border:1px solid var(--line);display:grid;place-items:center;transition:.14s;}
-.pausebtn:active{transform:scale(.9);}
-.pausebtn svg{width:14px;height:14px;fill:var(--text);}
-
 .np{flex:0 0 auto;padding:4px 16px 12px;}
 .np-top{display:flex;align-items:center;gap:10px;}
 .eq{display:flex;align-items:flex-end;gap:2.5px;height:18px;width:22px;flex:0 0 auto;}
@@ -172,11 +167,12 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .playing .eq i:nth-child(2){animation-delay:.15s;} .playing .eq i:nth-child(3){animation-delay:.3s;}
 .np .st{font-size:12.5px;font-weight:800;}
 .np .sb{font-size:10.5px;color:var(--mute);font-weight:600;margin-top:1px;}
-.np-act{margin-left:auto;display:flex;gap:7px;}
-.ic{width:34px;height:34px;border-radius:50%;background:var(--surface);border:1px solid var(--line);
-  display:grid;place-items:center;font-size:14px;transition:.14s;}
+.np-act{margin-left:auto;display:flex;gap:7px;flex:0 0 auto;}
+.ic{width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:16px;transition:.14s;}
 .ic:active{transform:scale(.9);}
 .ic.off{color:#565668;}
+.ic svg{width:14px;height:14px;fill:currentColor;}
 .scrub{margin-top:11px;height:4px;border-radius:4px;background:#22222E;position:relative;}
 .scrub .fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;width:100%;transform-origin:left;
   background:linear-gradient(90deg,var(--you),var(--rival));box-shadow:0 0 14px rgba(255,46,99,.5);}
@@ -450,9 +446,6 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
         <div class="c"><div class="nm">じぶん</div>
           <div class="sc"><span class="pt" id="ptMe">0</span><span class="ct"><b id="ctMe">0</b>枚</span></div></div>
       </div>
-      <button class="pausebtn" id="pauseBtn" aria-label="一時停止">
-        <svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>
-      </button>
       <div class="p op" id="pOp">
         <div class="av" id="opAv">CPU</div>
         <div class="c"><div class="nm" id="opName">あいて</div>
@@ -469,6 +462,9 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
         <div class="np-act">
           <button class="ic" id="replayBtn" aria-label="もう一度再生">↻</button>
           <button class="ic" id="muteBtn" aria-label="ミュート">♪</button>
+          <button class="ic" id="pauseBtn" aria-label="一時停止">
+            <svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>
+          </button>
         </div>
       </div>
       <div class="scrub" id="scrub"><div class="fill" id="scrubFill"></div></div>
@@ -539,7 +535,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 <script>
 "use strict";
 /* =====================================================================
-   MUSIC KARUTA v3.0
+   MUSIC KARUTA v3.0.1
      ・タイトルメニュー（4項目）
      ・ふたりで対戦：合言葉4桁 / 自前MQTT 3.1.1（CDN不使用）
      ・トーストは対象ジャケット中央＋半透明黒の下地
@@ -597,24 +593,14 @@ const $=s=>document.querySelector(s);
 const SCREENS=["titleScreen","genreScreen","vsScreen","colScreen","loadScreen","gameScreen","resultScreen"];
 function show(id){ SCREENS.forEach(s=>{ const el=document.getElementById(s); if(el) el.classList.toggle("hidden",s!==id); }); }
 
-/* ======================= JSONP ======================= */
-let jpSeq=0;
-function jsonp(baseUrl,timeout=8000){
-  return new Promise((resolve,reject)=>{
-    const cb="__mk_jp_"+(jpSeq++);
-    const url=baseUrl+(baseUrl.includes("?")?"&":"?")+"callback="+cb;
-    const script=document.createElement("script");
-    let done=false;
-    const cleanup=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} script.remove(); clearTimeout(t); };
-    const t=setTimeout(()=>{ if(!done){done=true;cleanup();reject(new Error("timeout"));} },timeout);
-    window[cb]=d=>{ if(done)return; done=true; cleanup(); resolve(d); };
-    script.onerror=()=>{ if(done)return; done=true; cleanup(); reject(new Error("err")); };
-    script.src=url; document.head.appendChild(script);
-  });
-}
+/* ======================= リモートJSON ======================= */
 async function tryFetchJson(url,timeout=7000){
   const c=new AbortController(); const t=setTimeout(()=>c.abort(),timeout);
-  try{ const r=await fetch(url,{signal:c.signal,mode:"cors"}); if(!r.ok) throw new Error("http"); return await r.json(); }
+  try{
+    const r=await fetch(url,{signal:c.signal,mode:"cors",redirect:"error",cache:"no-store"});
+    if(!r.ok) throw new Error("http");
+    return await r.json();
+  }
   finally{ clearTimeout(t); }
 }
 
@@ -731,14 +717,14 @@ async function searchBySeeds(seeds,g,need,existing){
     const url="https://itunes.apple.com/search?term="+encodeURIComponent(term)
             +"&country="+g.country+"&media=music&entity=song&limit=12";
     try{
-      const data=await jsonp(url,8000);
+      const data=await tryFetchJson(url,5000);
       (data.results||[]).forEach(r=>{
         if(!r.previewUrl||!r.trackId||seen.has(r.trackId)) return;
         if(isJunk(r)) return;
         seen.add(r.trackId);
         const t=normalizeTrack(r); t.onGenre=genreOk(r,g.genreHint); pool.push(t);
       });
-    }catch(e){}
+    }catch(e){ break; }
     updateLoadCount(Math.min(distinctCount(pool),need),need);
   }
   return pool;
@@ -753,14 +739,14 @@ async function fetchChart(g,need){
     for(let i=0;i<ids.length;i+=20){
       const url="https://itunes.apple.com/lookup?id="+ids.slice(i,i+20).join(",")+"&country="+g.country+"&entity=song";
       try{
-        const res=await jsonp(url,8000);
+        const res=await tryFetchJson(url,5000);
         (res.results||[]).forEach(r=>{
           if(!r.previewUrl||!r.trackId||seen.has(r.trackId)) return;
           if(isJunk(r)) return;
           seen.add(r.trackId);
           const t=normalizeTrack(r); t.onGenre=genreOk(r,g.genreHint); pool.push(t);
         });
-      }catch(e){}
+      }catch(e){ return null; }
       updateLoadCount(Math.min(distinctCount(pool),need),need);
     }
     return pool.length?pool:null;
@@ -1313,13 +1299,39 @@ function renderCollection(){
 /* ======================= ロード ======================= */
 let cancelled=false;
 function updateLoadCount(h,n){ const el=$("#loadCount"); if(el) el.textContent=Math.min(h,n)+" / "+n+" 曲"; }
+let fallbackCatalogPromise=null;
+async function loadFallbackPool(g){
+  if(!fallbackCatalogPromise){
+    fallbackCatalogPromise=tryFetchJson("fallback-tracks.json",4000).catch(()=>({}));
+  }
+  const catalog=await fallbackCatalogPromise;
+  return (catalog[g.id]||[]).map(t=>({
+    ...t,
+    artKey:artKeyOf(t.art),
+    collectionId:0,
+    single:true,
+    songKey:songKeyOf(t.title,t.artist),
+    artistKey:artistKeyOf(t.artist),
+    onGenre:true,
+  }));
+}
+function mergeUniqueTracks(pool,extra){
+  const seen=new Set(pool.map(t=>String(t.id)));
+  extra.forEach(t=>{ const id=String(t.id); if(!seen.has(id)){ seen.add(id); pool.push(t); } });
+  return pool;
+}
 async function buildPlaylist(){
   const need=SETTINGS.count;
   let pool=[];
+  const fallbackTask=loadFallbackPool(currentGenre);
   if(currentGenre.live){ const c=await fetchChart(currentGenre,need); if(c) pool=c; }
   if(cancelled) return null;
   if(distinctCount(pool)<need+6) pool=await searchBySeeds(currentGenre.seeds,currentGenre,need,pool);
   if(cancelled) return null;
+  if(distinctCount(pool)<need+6){
+    pool=mergeUniqueTracks(pool,await fallbackTask);
+    updateLoadCount(Math.min(distinctCount(pool),need),need);
+  }
   $("#loadCount").textContent="ジャケットを照合中…";
   const {list}=await pickVerified(pool,need,(h,n)=>updateLoadCount(h,n));
   if(cancelled) return null;
