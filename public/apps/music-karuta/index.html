@@ -257,19 +257,37 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 /* ===== 結果 ===== */
 .r-scroll{flex:1;overflow-y:auto;padding:40px 20px 16px;}
 .r-head{text-align:center;}
-.r-verdict{font-size:60px;font-weight:900;letter-spacing:-.04em;line-height:1;}
+.r-verdict{position:relative;display:inline-block;font-size:60px;font-weight:900;letter-spacing:-.04em;line-height:1;isolation:isolate;}
 .r-verdict.win{color:var(--you);text-shadow:var(--glow-you);}
 .r-verdict.lose{color:var(--rival);text-shadow:var(--glow-rival);}
 .r-verdict.draw{color:var(--hot);text-shadow:var(--glow-hot);}
+.r-verdict.play{animation:verdictHit .7s cubic-bezier(.16,1,.3,1) both;}
+.r-verdict.play::after{content:"";position:absolute;inset:-18px -30px;z-index:-1;border:2px solid currentColor;
+  border-radius:50%;opacity:0;animation:verdictRing .7s ease-out both;}
+@keyframes verdictHit{
+  0%{opacity:0;transform:scale(1.8);filter:blur(10px);letter-spacing:.16em;}
+  48%{opacity:1;transform:scale(.92);filter:blur(0);letter-spacing:-.04em;}
+  72%{transform:scale(1.06);}
+  100%{opacity:1;transform:scale(1);}
+}
+@keyframes verdictRing{
+  0%{opacity:.9;transform:scale(.25);}
+  100%{opacity:0;transform:scale(1.45);}
+}
 .r-sub{font-size:13px;font-weight:700;color:var(--mute);margin-top:10px;}
 .r-score{display:flex;gap:10px;margin:26px 0 4px;}
+.r-score.play .r-c{animation:resultCardIn .42s cubic-bezier(.16,1,.3,1) both;}
+.r-score.play .r-c.op{animation-delay:.07s;}
+@keyframes resultCardIn{
+  0%{opacity:0;transform:translateY(18px) scale(.96);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
 .r-c{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px 12px;text-align:center;}
 .r-c.me{border-color:rgba(255,46,99,.45);} .r-c.op{border-color:rgba(46,230,255,.45);}
 .r-c .l{font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--mute);}
-.r-c .v{font-size:38px;font-weight:900;line-height:1.1;margin-top:5px;}
+.r-c .v{font-size:38px;font-weight:900;line-height:1.1;margin-top:7px;}
 .r-c.me .v{color:var(--you);text-shadow:var(--glow-you);}
 .r-c.op .v{color:var(--rival);text-shadow:var(--glow-rival);}
-.r-c .d{font-size:10.5px;color:var(--mute);margin-top:4px;font-weight:600;}
 .list{display:flex;flex-direction:column;gap:8px;}
 .tr{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;
   background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:9px 12px;}
@@ -317,7 +335,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
   .r-verdict{font-size:50px;} .toast .m{font-size:34px;}
 }
 @media (prefers-reduced-motion:reduce){
-  .cut .w,.cut .ring,.toast,.toast .bg,.cut .bg2{animation-duration:.01ms !important;}
+  .cut .w,.cut .ring,.toast,.toast .bg,.cut .bg2,.r-verdict.play,.r-verdict.play::after,.r-score.play .r-c{animation-duration:.01ms !important;}
   .bars i,.eq i{animation:none;}
 }
 </style>
@@ -444,12 +462,12 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
       <div class="p me" id="pMe">
         <div class="av">YOU</div>
         <div class="c"><div class="nm">じぶん</div>
-          <div class="sc"><span class="pt" id="ptMe">0</span><span class="ct"><b id="ctMe">0</b>枚</span></div></div>
+          <div class="sc"><span class="pt" id="ptMe">0</span><span class="ct">枚</span></div></div>
       </div>
       <div class="p op" id="pOp">
         <div class="av" id="opAv">CPU</div>
         <div class="c"><div class="nm" id="opName">あいて</div>
-          <div class="sc"><span class="pt" id="ptOp">0</span><span class="ct"><b id="ctOp">0</b>枚</span></div></div>
+          <div class="sc"><span class="pt" id="ptOp">0</span><span class="ct">枚</span></div></div>
       </div>
     </div>
     <div class="np" id="np">
@@ -484,9 +502,9 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
         <div class="r-verdict" id="verdict">WIN</div>
         <div class="r-sub" id="verdictSub"></div>
       </div>
-      <div class="r-score">
-        <div class="r-c me"><div class="l">YOU</div><div class="v" id="rMe">0</div><div class="d" id="rdMe"></div></div>
-        <div class="r-c op"><div class="l">RIVAL</div><div class="v" id="rOp">0</div><div class="d" id="rdOp"></div></div>
+      <div class="r-score" id="resultScore">
+        <div class="r-c me"><div class="l">YOU</div><div class="v" id="rMe">0枚</div></div>
+        <div class="r-c op"><div class="l">RIVAL</div><div class="v" id="rOp">0枚</div></div>
       </div>
       <div class="sec"><span class="label">今回の曲</span><span class="cnt" id="listCnt"></span></div>
       <div class="list" id="list"></div>
@@ -513,9 +531,9 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
       <h3>遊び方</h3>
       <p class="lead">30秒で読める。</p>
       <div class="step"><span class="n">1</span><span>「READY → GO」のあと、30秒プレビューが流れる。</span></div>
-      <div class="step"><span class="n">2</span><span>流れてる曲のジャケットをタップ。速いほど点が高い（最大+3）。</span></div>
+      <div class="step"><span class="n">2</span><span>正しいジャケットを相手より先にタップすると、カードを1枚獲得。</span></div>
       <div class="step"><span class="n">3</span><span>相手も狙ってる。もたつくと <b>Taken!</b>、間違えると <b>Miss!</b> でしばらく動けない。</span></div>
-      <div class="step"><span class="n">4</span><span>時間切れは誰の得点にもならない。カードが尽きたら終了。</span></div>
+      <div class="step"><span class="n">4</span><span>カードが尽きたら終了。取った枚数が多い方の勝ち。時間切れはどちらのものにもならない。</span></div>
       <div class="step"><span class="n">5</span><span><b>ふたりで対戦</b>は合言葉4桁を伝えるだけ。アカウントも設定もいらない。</span></div>
       <button class="b2" data-close>閉じる</button>
     </div>
@@ -535,7 +553,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 <script>
 "use strict";
 /* =====================================================================
-   MUSIC KARUTA v3.0.1
+   MUSIC KARUTA v3.1.0
      ・タイトルメニュー（4項目）
      ・ふたりで対戦：合言葉4桁 / 自前MQTT 3.1.1（CDN不使用）
      ・トーストは対象ジャケット中央＋半透明黒の下地
@@ -758,6 +776,8 @@ let AC=null;
 function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} }
   if(AC&&AC.state==="suspended")AC.resume(); return AC; }
 function beep(fs,dur=0.12,type="square",vol=0.16){
+  const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(muted||reduce) return;
   const a=ac(); if(!a) return; const now=a.currentTime;
   fs.forEach((f,i)=>{
     const o=a.createOscillator(),g=a.createGain();
@@ -777,6 +797,8 @@ const sfx={
   taken:()=>beep([440,330],0.14,"square",0.16),
   timeup:()=>beep([392,294],0.16,"sine",0.14),
   win:()=>beep([523,659,784,1046],0.15,"triangle",0.2),
+  lose:()=>beep([392,330,262],0.18,"sine",0.14),
+  draw:()=>beep([440,554,440],0.15,"triangle",0.14),
   join:()=>beep([659,880],0.12,"triangle",0.18),
 };
 
@@ -912,7 +934,7 @@ function newGame(tracks){
   EPOCH++;
   G={ epoch:EPOCH, tracks, remaining:tracks.map((_,i)=>i), cur:-1, roundNo:0,
       accept:false, resolved:false, myLock:false, paused:false, pausedAt:0,
-      me:{pts:0,n:0,miss:0}, op:{pts:0,n:0,miss:0}, taken:[],
+      me:{n:0,miss:0}, op:{n:0,miss:0}, taken:[],
       timers:[], start:0, claims:{}, arb:null };
 }
 /* 一時停止に追従するタイマー */
@@ -1100,17 +1122,15 @@ function applyResult(owner,ms){
   G.resolved=true; G.accept=false; stopRound(); preview.pause();
   $("#board").classList.add("lock");
   const i=G.cur;
-  const bonus=ms<3000?2:ms<7000?1:0;
-  const gain=1+bonus;
   const side=owner==="me"?G.me:G.op;
-  side.pts+=gain; side.n+=1;
+  side.n+=1;
   mark(i,owner); G.taken.push({track:G.tracks[i],owner});
   G.remaining=G.remaining.filter(x=>x!==i);
   updateHUD(); lit(owner);
   const el=cardEl(i); if(el) el.classList.add("pop");
   if(owner==="me"){
     sfx.got(); collect(G.tracks[i]);
-    toastAt(i,"Got it!","var(--you)","var(--glow-you)", bonus?("+"+gain+" 早押し"):("+"+gain));
+    toastAt(i,"Got it!","var(--you)","var(--glow-you)","1枚ゲット");
   }else{
     sfx.taken();
     toastAt(i,"Taken!","var(--rival)","var(--glow-rival)","先に取られた");
@@ -1132,7 +1152,7 @@ function timeUpCommon(){
 }
 function opMiss(){
   if(!G||G.resolved) return;
-  G.op.miss+=1; G.op.pts=Math.max(0,G.op.pts-1);
+  G.op.miss+=1;
   updateHUD(); sfx.miss();
   $("#pOp").classList.add("out");
   toastAt(G.cur,"Rival missed","var(--hot)","var(--glow-hot)","いまがチャンス");
@@ -1149,12 +1169,12 @@ function onCard(i){
   addClaim(MODE==="host"?"h":"g",ms);
 }
 function myMiss(i){
-  G.me.miss+=1; G.me.pts=Math.max(0,G.me.pts-1);
+  G.me.miss+=1;
   updateHUD(); sfx.miss();
   if(MODE!=="solo") Net.pub({t:"ms",n:G.roundNo});
   const el=cardEl(i);
   if(el){ el.classList.add("sh-miss"); setTimeout(()=>el.classList.remove("sh-miss"),420); }
-  toastAt(i,"Miss!","var(--hot)","var(--glow-hot)","−1 ちょっと待機");
+  toastAt(i,"Miss!","var(--hot)","var(--glow-hot)","ちょっと待機");
   G.myLock=true;
   $("#board").classList.add("lock");
   $("#pen").classList.remove("hidden");
@@ -1179,8 +1199,8 @@ function next(ms){
   },ms);
 }
 function updateHUD(){
-  $("#ptMe").textContent=G.me.pts; $("#ctMe").textContent=G.me.n;
-  $("#ptOp").textContent=G.op.pts; $("#ctOp").textContent=G.op.n;
+  $("#ptMe").textContent=G.me.n;
+  $("#ptOp").textContent=G.op.n;
 }
 function lit(who){
   const el=$(who==="me"?"#pMe":"#pOp");
@@ -1234,14 +1254,12 @@ function endGame(){
   const meN=G.taken.filter(t=>t.owner==="me").length;
   const opN=G.taken.filter(t=>t.owner==="op").length;
   me.n=meN; op.n=opN;
-  const w=me.pts>op.pts?"win":op.pts>me.pts?"lose":"draw";
+  const w=meN>opN?"win":opN>meN?"lose":"draw";
   const v=$("#verdict");
   v.className="r-verdict "+w;
   v.textContent=w==="win"?"WIN":w==="lose"?"LOSE":"DRAW";
-  $("#verdictSub").textContent=w==="win"?"完全に耳がいい":w==="lose"?"次は取り返そう":"まさかの互角";
-  $("#rMe").textContent=me.pts; $("#rOp").textContent=op.pts;
-  $("#rdMe").textContent=meN+"枚 / ミス"+me.miss;
-  $("#rdOp").textContent=opN+"枚 / ミス"+op.miss;
+  $("#verdictSub").textContent=w==="win"?"あなたの勝ち":w==="lose"?"ライバルの勝ち":"同点";
+  $("#rMe").textContent=meN+"枚"; $("#rOp").textContent=opN+"枚";
   $("#listCnt").textContent=G.taken.length+"曲";
   const box=$("#list"); box.innerHTML="";
   G.taken.forEach(rec=>{
@@ -1253,10 +1271,16 @@ function endGame(){
       '<span class="go">Apple Music ↗</span>';
     box.appendChild(a);
   });
-  if(w==="win") sfx.win();
   if(MODE!=="solo"){ Net.leave(); }
   $("#againBtn").textContent = MODE==="solo" ? "もう一回" : "タイトルへ";
   show("resultScreen");
+  const score=$("#resultScore");
+  score.classList.remove("play");
+  requestAnimationFrame(()=>{
+    v.classList.add("play");
+    score.classList.add("play");
+    sfx[w]();
+  });
 }
 function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
