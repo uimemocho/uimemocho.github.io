@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#F4F3EF" />
+    <meta name="description" content="単純なタイルを回転・反転して、複雑なモジュラーパターンを発見するインタラクティブツール。" />
+    <title>TILE PLAY — Interactive Modular Pattern Library</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#mainContent" data-i18n="skipLink">メインへ移動</a>
+
+    <header class="app-header">
+      <button class="brand" type="button" data-view="play" aria-label="TILE PLAY ホーム">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span><strong>TILE PLAY</strong><small>Interactive Modular Pattern Library</small></span>
+      </button>
+      <nav class="main-nav" aria-label="メインナビゲーション">
+        <button type="button" data-view="explore">Explore</button>
+        <button type="button" data-view="play" class="is-active">Play</button>
+        <button type="button" data-view="favorites">Favorites <span id="favoriteCount">0</span></button>
+      </nav>
+      <div class="header-actions">
+        <label class="language-picker" title="Language">
+          <span>文</span>
+          <select id="languageSelect" aria-label="Language">
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <button class="icon-button" id="undoButton" type="button" title="元に戻す (Z)" aria-label="元に戻す">↶</button>
+        <button class="icon-button" id="redoButton" type="button" title="やり直す (Shift+Z)" aria-label="やり直す">↷</button>
+        <button class="button button-quiet" id="randomButton" type="button"><span aria-hidden="true">✦</span> Random</button>
+        <button class="button button-quiet desktop-only" id="resetButton" type="button">Reset</button>
+        <button class="button button-primary" id="exportButton" type="button">Export</button>
+      </div>
+    </header>
+
+    <main id="mainContent">
+      <section id="playView" class="view is-active" aria-label="パターン編集">
+        <div class="workbench">
+          <aside class="pattern-rail" aria-label="パターンライブラリ">
+            <div class="panel-heading">
+              <div><span id="libraryCount" class="eyebrow">LIBRARY / 16</span><h2 data-i18n="baseTiles">基本タイル</h2></div>
+              <button class="icon-button mobile-close" data-close-panel type="button" aria-label="閉じる">×</button>
+            </div>
+            <label class="search-field">
+              <span aria-hidden="true">⌕</span>
+              <input id="patternSearch" type="search" placeholder="名前・タグで検索" aria-label="パターンを検索" data-i18n-placeholder="searchPlaceholder" />
+            </label>
+            <div id="patternList" class="pattern-list"></div>
+            <button id="openExploreButton" class="text-button" type="button"><span data-i18n="viewAll">すべてを大きく見る</span> <span>→</span></button>
+          </aside>
+
+          <section class="canvas-column">
+            <div class="canvas-toolbar">
+              <div class="pattern-title">
+                <span id="categoryLabel" class="eyebrow">TRUCHET TILES</span>
+                <h1 id="patternTitle">Quarter Arc</h1>
+              </div>
+              <div class="canvas-tools" role="toolbar" aria-label="キャンバス操作">
+                <button id="structureButton" class="chip-button" type="button" aria-pressed="false"><span aria-hidden="true">⌗</span> 分解して見る</button>
+                <button id="gridButton" class="icon-button" type="button" aria-pressed="false" title="グリッド表示 (G)" aria-label="グリッド表示">#</button>
+                <button id="fullscreenButton" class="icon-button" type="button" title="フルスクリーン" aria-label="フルスクリーン">⛶</button>
+              </div>
+            </div>
+
+            <div class="canvas-stage" id="canvasStage">
+              <div class="canvas-frame">
+                <svg id="patternCanvas" role="img" aria-label="編集可能なモジュラーパターン" viewBox="0 0 1000 1000"></svg>
+                <div class="canvas-hint" id="canvasHint" data-i18n="canvasHint">タイルをクリックして回転</div>
+              </div>
+            </div>
+
+            <div class="seed-strip">
+              <div class="seed-value">
+                <span class="eyebrow">REPRODUCIBLE SEED</span>
+                <label>Seed <input id="seedInput" type="number" min="1" max="999999999" inputmode="numeric" /></label>
+              </div>
+              <button id="newSeedButton" class="button button-quiet" type="button" data-i18n="newSeed">新しいSeed</button>
+              <button id="copySeedButton" class="icon-button" type="button" title="Seedをコピー" aria-label="Seedをコピー">⧉</button>
+              <button id="shareButton" class="button button-quiet" type="button" data-i18n="copyUrl">URLをコピー</button>
+              <button id="favoriteButton" class="button button-quiet" type="button" aria-pressed="false"><span aria-hidden="true">♡</span> 保存</button>
+            </div>
+
+            <section class="variations-section" aria-labelledby="variationHeading">
+              <div class="section-heading">
+                <div><span class="eyebrow">SERENDIPITY ENGINE</span><h2 id="variationHeading">Variations</h2></div>
+                <button id="moreVariationsButton" class="text-button" type="button"><span data-i18n="moreVariations">さらに生成</span> <span>↻</span></button>
+              </div>
+              <div id="variationsList" class="variations-list"></div>
+            </section>
+          </section>
+
+          <aside class="settings-panel" id="settingsPanel" aria-label="設定">
+            <div class="panel-heading">
+              <div><span class="eyebrow">LIVE CONTROLS</span><h2 data-i18n="settings">設定</h2></div>
+              <button class="icon-button mobile-close" data-close-panel type="button" aria-label="閉じる">×</button>
+            </div>
+
+            <details open>
+              <summary>Pattern <span data-i18n="basicSettings">基本設定</span></summary>
+              <div class="control-stack">
+                <label class="range-control">
+                  <span><b data-i18n="grid">グリッド</b> <output id="gridOutput">10 × 10</output></span>
+                  <input id="gridRange" type="range" min="3" max="30" value="10" />
+                </label>
+                <label id="lineWidthControl" class="range-control">
+                  <span><b data-i18n="lineWidth">線幅</b> <output id="lineWidthOutput">8</output></span>
+                  <input id="lineWidthRange" type="range" min="2" max="24" value="8" />
+                </label>
+                <label id="lineCountControl" class="range-control" hidden>
+                  <span><b data-i18n="lineCount">線数</b> <output id="lineCountOutput">7</output></span>
+                  <input id="lineCountRange" type="range" min="3" max="12" value="7" />
+                </label>
+                <label id="flipRateControl" class="range-control">
+                  <span><b data-i18n="flipRate">反転率</b> <output id="flipRateOutput">20%</output></span>
+                  <input id="flipRateRange" type="range" min="0" max="100" value="20" />
+                </label>
+                <label class="range-control">
+                  <span><b data-i18n="rotationRate">回転率</b> <output id="rotationRateOutput">100%</output></span>
+                  <input id="rotationRateRange" type="range" min="0" max="100" value="100" />
+                </label>
+              </div>
+            </details>
+
+            <details open>
+              <summary>Layout <span id="activePresetLabel">Random</span></summary>
+              <div id="presetGrid" class="preset-grid"></div>
+              <div class="toggle-grid">
+                <label><input id="mirrorXToggle" type="checkbox" /> <span data-i18n="mirrorX">左右対称</span></label>
+                <label><input id="mirrorYToggle" type="checkbox" /> <span data-i18n="mirrorY">上下対称</span></label>
+              </div>
+            </details>
+
+            <details id="colorControls" open>
+              <summary>Color <span id="colorCountLabel">3 colors</span></summary>
+              <div id="colorPresetList" class="color-presets"></div>
+              <div class="color-controls">
+                <label><span data-i18n="background">背景</span> <input id="backgroundColor" type="color" value="#F4F3EF" /></label>
+                <label><span data-i18n="foreground">前景</span> <input id="foregroundColor" type="color" value="#111111" /></label>
+                <label><span data-i18n="accent">差し色</span> <input id="accentColor" type="color" value="#FF5A36" /></label>
+                <label id="secondaryColorControl" hidden><span data-i18n="secondary">補助色1</span> <input id="secondaryColor" type="color" value="#236FA8" /></label>
+                <label id="tertiaryColorControl" hidden><span data-i18n="tertiary">補助色2</span> <input id="tertiaryColor" type="color" value="#F7BD17" /></label>
+              </div>
+              <button id="invertColorButton" class="button button-quiet full" type="button" data-i18n="invertColors">前景と背景を反転</button>
+            </details>
+
+            <details>
+              <summary>Brush <span id="brushLabel">Rotate / 1×1</span></summary>
+              <div id="brushModes" class="segmented brush-modes" role="group" aria-label="ブラシモード"></div>
+              <div id="brushSizes" class="segmented" role="group" aria-label="ブラシサイズ"></div>
+              <p class="help-text" data-i18n="brushHelp">ドラッグで連続操作。Shift＋クリックで逆回転、ダブルクリックで反転します。</p>
+            </details>
+
+            <details>
+              <summary>Display <span data-i18n="structureView">構造表示</span></summary>
+              <div class="toggle-list">
+                <label><input id="showGridToggle" type="checkbox" /> <span data-i18n="gridLines">グリッド線</span></label>
+                <label><input id="showNumbersToggle" type="checkbox" /> <span data-i18n="tileNumbers">タイル番号</span></label>
+                <label><input id="showDirectionsToggle" type="checkbox" /> <span data-i18n="rotationDirection">回転方向</span></label>
+              </div>
+            </details>
+
+            <section class="structure-card" id="structureCard" aria-live="polite">
+              <span class="eyebrow">TILE ANATOMY</span>
+              <div id="baseTilePreview" class="base-tile-preview"></div>
+              <dl>
+                <div><dt data-i18n="shapes">図形</dt><dd id="shapeInfo">1/4円弧 × 2</dd></div>
+                <div><dt data-i18n="rotation">回転</dt><dd data-i18n="fourDirections">4方向</dd></div>
+                <div><dt data-i18n="flip">反転</dt><dd id="flipInfo">対応</dd></div>
+                <div><dt data-i18n="layout">配置</dt><dd id="presetInfo">Random</dd></div>
+              </dl>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section id="exploreView" class="view library-view" aria-labelledby="exploreHeading">
+        <div class="library-header">
+          <div><span id="systemCount" class="eyebrow">16 MODULAR SYSTEMS</span><h1 id="exploreHeading" data-i18n-html="exploreHeading">基本タイルから、<br />無限のリズムへ。</h1></div>
+          <p data-i18n="exploreDescription">正方形の中の線や面を回転・反転させることで、予想外の連続模様が生まれます。これは主に「Truchet Tiles」と呼ばれる考え方です。</p>
+        </div>
+        <div id="exploreFilters" class="filter-row" role="group" aria-label="カテゴリフィルター"></div>
+        <div id="exploreGrid" class="explore-grid"></div>
+      </section>
+
+      <section id="favoritesView" class="view library-view" aria-labelledby="favoritesHeading">
+        <div class="library-header compact-header">
+          <div><span class="eyebrow">LOCAL COLLECTION</span><h1 id="favoritesHeading">Favorites</h1></div>
+          <p data-i18n="favoritesDescription">保存したレシピはこのブラウザの中だけに保管されます。</p>
+        </div>
+        <div id="favoritesGrid" class="explore-grid"></div>
+        <div id="favoritesEmpty" class="empty-state">
+          <span aria-hidden="true">◇</span><h2 data-i18n="noFavorites">まだ保存はありません</h2><p data-i18n="noFavoritesHelp">Play画面の「保存」から、気に入った組み合わせを残せます。</p>
+          <button class="button button-primary" data-view="play" type="button" data-i18n="makePattern">パターンを作る</button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="mobile-bar" aria-label="モバイル操作">
+      <button id="mobilePatternsButton" type="button"><span aria-hidden="true">▦</span><span data-i18n="tiles">タイル</span></button>
+      <button id="mobileRotateButton" class="is-active" type="button"><span aria-hidden="true">↻</span><span data-i18n="rotate">回転</span></button>
+      <button id="mobileRandomButton" type="button"><span aria-hidden="true">✦</span>Random</button>
+      <button id="mobileSettingsButton" type="button"><span aria-hidden="true">☷</span><span data-i18n="settings">設定</span></button>
+    </nav>
+    <div id="mobileBackdrop" class="mobile-backdrop"></div>
+
+    <dialog id="exportDialog" class="modal">
+      <form method="dialog" class="modal-card">
+        <div class="modal-heading">
+          <div><span class="eyebrow">TAKE IT WITH YOU</span><h2>Export</h2></div>
+          <button class="icon-button" value="cancel" aria-label="閉じる">×</button>
+        </div>
+        <p class="modal-intro" data-i18n="exportIntro">現在のパターンだけを書き出します。UIやグリッド表示は含まれません。</p>
+        <div class="export-options">
+          <label><span data-i18n="pngSize">PNGサイズ</span>
+            <select id="pngSize">
+              <option value="1024">1024 × 1024</option>
+              <option value="2048">2048 × 2048</option>
+              <option value="4096">4096 × 4096</option>
+            </select>
+          </label>
+          <label class="check-row"><input id="transparentExport" type="checkbox" /> <span data-i18n="transparentBackground">背景を透明にする</span></label>
+        </div>
+        <div class="export-grid">
+          <button id="downloadPngButton" class="export-card" type="button"><strong>PNG</strong><span data-i18n="highResImage">高解像度画像</span><b>↓</b></button>
+          <button id="downloadSvgButton" class="export-card" type="button"><strong>SVG</strong><span data-i18n="editableVector">編集可能なベクター</span><b>↓</b></button>
+          <button id="downloadJsonButton" class="export-card" type="button"><strong>JSON</strong><span data-i18n="reproRecipe">再現用レシピ</span><b>↓</b></button>
+          <button id="copyCssButton" class="export-card" type="button"><strong>CSS</strong><span>background code</span><b>⧉</b></button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="guideDialog" class="modal guide-modal">
+      <form method="dialog" class="modal-card">
+        <div class="guide-pattern" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <span class="eyebrow">WELCOME TO TILE PLAY</span>
+        <h2 data-i18n-html="guideHeading">ひとつのタイルから、<br />模様を発見しよう。</h2>
+        <ol>
+          <li><b>01</b><span data-i18n="guideStep1">タイルをタップして90°回転</span></li>
+          <li><b>02</b><span data-i18n="guideStep2">Randomで新しい配置を生成</span></li>
+          <li><b>03</b><span data-i18n="guideStep3">配色・並び方・密度を調整</span></li>
+          <li><b>04</b><span data-i18n="guideStep4">PNG / SVG / JSONで保存</span></li>
+        </ol>
+        <label class="check-row"><input id="hideGuideToggle" type="checkbox" /> <span data-i18n="dontShowAgain">次回から表示しない</span></label>
+        <button class="button button-primary full" value="close" data-i18n="startPlaying">遊んでみる</button>
+      </form>
+    </dialog>
+
+    <div id="tileMenu" class="tile-menu" role="menu" hidden>
+      <button type="button" data-tile-action="rotate">90° 回転</button>
+      <button type="button" data-tile-action="reverse">逆回転</button>
+      <button type="button" data-tile-action="flip">反転</button>
+      <button type="button" data-tile-action="reset">リセット</button>
+    </div>
+
+    <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+    <script src="patterns.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

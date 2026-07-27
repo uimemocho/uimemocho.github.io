@@ -94,5 +94,17 @@
     "sourceEntry": "illusion-lab_v1.0.html",
     "publishedAt": "2026-07-23T07:41:17Z",
     "updatedAt": "2026-07-23T07:41:17Z"
+  },
+  {
+    "slug": "tile-play",
+    "title": "TILE PLAY",
+    "kind": "tool",
+    "description": "正方形タイルを回転・反転し、モジュラーパターンを探索・保存できるインタラクティブツール。",
+    "url": "/apps/tile-play/",
+    "thumbnail": null,
+    "sourceFolder": "260726_モジュラーパターンツール",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-07-27T10:05:34Z",
+    "updatedAt": "2026-07-27T10:05:34Z"
   }
 ]
