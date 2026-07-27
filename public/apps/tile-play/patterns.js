@@ -31,6 +31,34 @@
     );
   }
 
+  function primaryQuarterData(colors, options) {
+    const palette = {
+      paper: colors.background,
+      black: colors.foreground,
+      yellow: colors.tertiary,
+      blue: colors.secondary,
+      red: colors.accent,
+    };
+    const tileIndex = Math.abs(Number(options.index) || 0);
+    const seed = Number(options.seed) || 0;
+    let hash = Math.imul(tileIndex + 1, 0x9e3779b1) ^ Math.imul(seed + 97, 0x85ebca6b);
+    hash ^= hash >>> 16;
+    hash = Math.imul(hash, 0x7feb352d);
+    hash ^= hash >>> 15;
+    const variant = (hash >>> 0) % 8;
+    const baseColors = [
+      palette.paper,
+      palette.yellow,
+      palette.paper,
+      palette.blue,
+      palette.red,
+      palette.paper,
+      palette.paper,
+      palette.paper,
+    ];
+    return { palette, variant, baseColor: baseColors[variant] };
+  }
+
   const patterns = [
     {
       id: "diagonal-line",
@@ -246,39 +274,19 @@
       supportsFlip: false,
       usesLineWidth: false,
       usesFiveColors: true,
-      render(g, c, o) {
-        const palette = {
-          paper: c.background,
-          black: c.foreground,
-          yellow: c.tertiary,
-          blue: c.secondary,
-          red: c.accent,
-        };
-        const tileIndex = Math.abs(Number(o.index) || 0);
-        const seed = Number(o.seed) || 0;
-        let hash = Math.imul(tileIndex + 1, 0x9e3779b1) ^ Math.imul(seed + 97, 0x85ebca6b);
-        hash ^= hash >>> 16;
-        hash = Math.imul(hash, 0x7feb352d);
-        hash ^= hash >>> 15;
-        const variant = (hash >>> 0) % 8;
-        const baseColors = [
-          palette.paper,
-          palette.yellow,
-          palette.paper,
-          palette.blue,
-          palette.red,
-          palette.paper,
-          palette.paper,
-          palette.paper,
-        ];
+      renderBackground(g, c, o) {
+        const { baseColor } = primaryQuarterData(c, o);
         append(g, "rect", {
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 100,
-          fill: baseColors[variant],
+          x: -0.5,
+          y: -0.5,
+          width: 101,
+          height: 101,
+          fill: baseColor,
           "shape-rendering": "crispEdges",
         });
+      },
+      render(g, c, o) {
+        const { palette, variant } = primaryQuarterData(c, o);
         if (variant === 6) {
           for (let radius = 12; radius <= 96; radius += 12) {
             append(g, "path", {
@@ -311,11 +319,17 @@
         append(g, "path", {
           d: "M 0 0 H 100 A 100 100 0 0 1 0 100 Z",
           fill: quarterColors[variant],
+          stroke: quarterColors[variant],
+          "stroke-width": 1.25,
+          "stroke-linejoin": "round",
         });
         if (variant === 5) {
           append(g, "path", {
             d: "M 0 0 H 50 A 50 50 0 0 1 0 50 Z",
             fill: palette.black,
+            stroke: palette.black,
+            "stroke-width": 1.25,
+            "stroke-linejoin": "round",
           });
         }
       },

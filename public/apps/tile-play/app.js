@@ -524,6 +524,28 @@
       svg.appendChild(svgNode("rect", { class: "export-background", width: opts.size, height: opts.size, fill: config.colors.background }));
     }
 
+    if (typeof pattern.renderBackground === "function") {
+      const backgroundLayer = svgNode("g", { class: "tile-background-layer" });
+      tiles.forEach((tile, index) => {
+        const x = index % n;
+        const y = Math.floor(index / n);
+        const backgroundCell = svgNode("g", {
+          class: "tile-background",
+          transform: `translate(${x * cell} ${y * cell}) scale(${cell / 100})`,
+        });
+        pattern.renderBackground(backgroundCell, config.colors, {
+          seed: config.seed,
+          index,
+          x,
+          y,
+          rotation: tile.rotation,
+          flip: tile.flip,
+        });
+        backgroundLayer.appendChild(backgroundCell);
+      });
+      svg.appendChild(backgroundLayer);
+    }
+
     const tileLayer = svgNode("g", { class: "tile-layer" });
     svg.appendChild(tileLayer);
     tiles.forEach((tile, index) => {
@@ -550,6 +572,14 @@
         rotation: tile.rotation,
         flip: tile.flip,
       });
+      if (opts.strokeScale && opts.strokeScale !== 1) {
+        visual.querySelectorAll("[stroke-width]").forEach((strokeNode) => {
+          const width = Number(strokeNode.getAttribute("stroke-width"));
+          if (Number.isFinite(width)) {
+            strokeNode.setAttribute("stroke-width", String(Math.max(0.75, width * opts.strokeScale)));
+          }
+        });
+      }
       cellGroup.appendChild(visual);
 
       if (opts.interactive) {
@@ -624,10 +654,10 @@
     updateHistoryButtons();
   }
 
-  function createPreview(config, grid, seedOffset) {
+  function createPreview(config, grid, seedOffset, strokeScale) {
     const previewConfig = {
       ...structuredCloneSafe(config),
-      grid: grid || 6,
+      grid: grid === undefined || grid === null ? config.grid : grid,
       seed: seedOffset === undefined || seedOffset === null ? config.seed : hashSeed(config.seed, seedOffset),
       showGrid: false,
       showNumbers: false,
@@ -635,7 +665,7 @@
       structureLevel: 0,
       gap: Math.min(config.gap || 0, 5),
     };
-    return renderPatternSvg(previewConfig, generateTiles(previewConfig), { size: 600 });
+    return renderPatternSvg(previewConfig, generateTiles(previewConfig), { size: 600, strokeScale: strokeScale || 1 });
   }
 
   function updatePatternInfo() {
@@ -896,7 +926,7 @@
         ? Math.min(12, Math.max(3, state.lineCount + Math.floor(rng() * 5) - 2))
         : state.lineCount;
       const candidateLineWidth = Math.min(18, Math.max(pattern.usesLineCount ? 1 : 3, state.lineWidth + Math.floor(rng() * 7) - 3));
-      return {
+      const variation = {
         ...structuredCloneSafe(state),
         seed: Math.max(1, hashSeed(state.seed, index + state.variationRound * 17) % 999999999),
         preset: availablePresets[Math.floor(rng() * availablePresets.length)][0],
@@ -912,6 +942,9 @@
           tertiary: color.tertiary,
         },
       };
+      variation.tiles = generateTiles(variation);
+      variation.variations = [];
+      return variation;
     });
   }
 
@@ -923,7 +956,11 @@
       button.type = "button";
       button.className = "variation-card";
       button.dataset.variationIndex = index;
-      button.appendChild(createPreview(variation, 6, index + 10));
+      button.appendChild(renderPatternSvg(
+        variation,
+        variation.tiles || generateTiles(variation),
+        { size: 600, strokeScale: 0.25 }
+      ));
       const label = document.createElement("span");
       label.textContent = `${presetName(variation.preset)} · ${variation.seed}`;
       button.appendChild(label);
