@@ -106,5 +106,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-07-27T10:05:34Z",
     "updatedAt": "2026-07-27T10:27:40Z"
+  },
+  {
+    "slug": "text-mosaic-generator-basic",
+    "title": "Text Mosaic Generator BASIC",
+    "kind": "tool",
+    "description": "画像を文字の濃淡パターンへ変換し、PNGとして保存できるテキストモザイク生成ツール。",
+    "url": "/apps/text-mosaic-generator-basic/",
+    "thumbnail": null,
+    "sourceFolder": "260728_テキストモザイクジェネレーター",
+    "sourceEntry": "text_mosaic_generator_basic.html",
+    "publishedAt": "2026-07-31T05:13:15Z",
+    "updatedAt": "2026-07-31T05:14:04Z"
   }
 ]

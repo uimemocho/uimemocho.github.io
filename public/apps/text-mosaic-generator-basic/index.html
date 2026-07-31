@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Text Mosaic Generator BASIC</title>
+<style>
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface2:#f5f7fa; --surface3:#e9edf3;
+  --border:#dfe4ec; --border-hi:#b6c0ce;
+  --text:#1d2531; --text-dim:#5c6878; --text-muted:#8a94a3;
+  --accent:#2f6df6; --accent-glow:rgba(47,109,246,.18);
+  --accent2:#e0245e; --accent2-glow:rgba(224,36,94,.18);
+  --accent3:#0d9488; --warn:#c2700a; --purple:#7c3aed; --cyan:#0891b2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Noto Sans JP','Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',
+    -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:12px; overflow:hidden;
+}
+.app{display:flex;flex-direction:column;height:100vh}
+
+/* ---------- HEADER ---------- */
+.header{
+  display:flex;align-items:center;gap:12px;padding:9px 14px;
+  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.logo{width:18px;height:18px;border:1px solid var(--accent);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--accent)}
+h1{font-size:14px;font-weight:700;letter-spacing:3px;color:var(--accent);white-space:nowrap}
+.ver{font-size:9px;color:var(--text-dim);letter-spacing:1px;font-weight:600}
+.status{margin-left:auto;display:flex;align-items:center;gap:7px}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+#statusText{font-size:10px;font-weight:500;letter-spacing:1px;color:var(--text-dim)}
+.lang-sel{display:flex;border:1px solid var(--border);border-radius:2px;overflow:hidden;flex-shrink:0}
+.lang-btn{background:var(--surface2);color:var(--text-dim);border:0;font-family:inherit;font-size:9px;
+  font-weight:600;letter-spacing:1px;padding:4px 8px;min-height:22px;cursor:pointer;transition:.12s}
+.lang-btn+.lang-btn{border-left:1px solid var(--border)}
+.lang-btn:hover{color:var(--text)}
+.lang-btn.active{background:var(--accent);color:#fff}
+
+/* ---------- PROGRESS ---------- */
+.progress-bar{height:2px;background:var(--surface2);flex-shrink:0;opacity:0;transition:opacity .2s}
+.progress-bar.active{opacity:1}
+.progress-fill{height:100%;width:0;background:var(--accent);transition:width .1s}
+
+/* ---------- MAIN ---------- */
+.main{display:flex;flex:1;min-height:0}
+.panel-left{width:330px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px}
+.panel-center{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
+.panel-right{width:270px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);
+  overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px}
+
+/* ---------- SECTION ---------- */
+.section{border:1px solid var(--border);border-radius:3px;padding:9px;background:var(--surface)}
+.section-title{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+  letter-spacing:1.2px;color:var(--text);margin-bottom:9px}
+.section-title::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.section-title.c2::before{background:var(--accent2)}
+.section-title.c3::before{background:var(--accent3)}
+.section-title.c4::before{background:var(--purple)}
+.section-title.c5::before{background:var(--cyan)}
+.section-title.c6::before{background:var(--warn)}
+
+/* ---------- DROPZONE ---------- */
+.dropzone{border:1px dashed var(--border-hi);border-radius:3px;padding:16px 10px;text-align:center;
+  cursor:pointer;transition:.15s;background:var(--surface2)}
+.dropzone:hover{border-color:var(--accent);background:var(--surface3)}
+.dropzone.dragover{border-color:var(--accent);background:rgba(47,109,246,.07)}
+.dz-main{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.3px}
+.dz-sub{font-size:9.5px;color:var(--text-dim);margin-top:5px;letter-spacing:.2px}
+.src-info{font-size:10px;color:var(--text-dim);margin-top:8px;word-break:break-all;line-height:1.6}
+
+/* ---------- RAMP INPUT ---------- */
+.param-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.param-label{flex:1;font-size:11px;color:var(--text-dim);letter-spacing:.2px}
+.param-value{flex-shrink:0;text-align:right;font-size:11px;font-weight:700;color:var(--accent)}
+.text-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  border-radius:4px;padding:8px;font-size:15px;font-family:inherit;line-height:1.7;outline:none}
+.text-input:focus{border-color:var(--accent);background:#fff}
+textarea.text-input{resize:vertical;min-height:52px}
+
+/* ---------- BUTTONS ---------- */
+.btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;
+  padding:8px 10px;font-size:11px;font-family:inherit;font-weight:600;letter-spacing:.4px;cursor:pointer;
+  transition:.13s;min-height:34px}
+.btn:hover{border-color:var(--border-hi);background:var(--surface3)}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.btn-accent:hover{background:#1f57d6;border-color:#1f57d6}
+.btn-sm{padding:5px 7px;font-size:10px;min-height:28px;letter-spacing:.2px}
+.btn-group{display:flex;gap:5px;flex-wrap:wrap}
+.btn-group .btn{flex:1;min-width:0}
+.btn-full{width:100%}
+
+/* ---------- TEMPLATES ---------- */
+.cat-group{margin-bottom:9px}
+.cat-header{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:1px;
+  margin-bottom:6px}
+.cat-header::after{content:'';flex:1;height:1px;background:var(--border)}
+.templates-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.template-card{border:1px solid var(--border);border-radius:4px;padding:9px 6px;text-align:center;
+  cursor:pointer;background:var(--surface2);transition:.13s;min-height:44px}
+.template-card:hover{border-color:var(--border-hi);background:var(--surface3)}
+.template-card.active{border-color:var(--accent);background:rgba(47,109,246,.08);box-shadow:0 0 0 1px var(--accent) inset}
+.template-name{font-size:11.5px;font-weight:700;letter-spacing:.2px;color:var(--text)}
+.template-desc{font-size:9.5px;color:var(--text-dim);margin-top:3px;letter-spacing:.2px}
+
+.hint{font-size:10px;color:var(--text-dim);line-height:1.7;margin-top:6px;letter-spacing:.2px}
+
+/* ---------- PREVIEW ---------- */
+.preview-area{flex:1;min-height:220px;position:relative;overflow:hidden;
+  background:repeating-conic-gradient(#e7ebf1 0% 25%,#f7f9fc 0% 50%) 50%/16px 16px}
+/* ステージを絶対配置にして高さを確定させる。
+   親の高さが auto のままだと canvas の max-height:100% が none に解決され、
+   画像が横幅いっぱいに伸びて縦がはみ出す（見切れる）。 */
+.stage{position:absolute;inset:12px;display:flex;gap:8px;align-items:center;justify-content:center}
+.stage canvas{max-width:100%;max-height:100%;display:block;
+  box-shadow:0 0 0 1px var(--border),0 6px 24px rgba(29,37,49,.14)}
+/* 実寸(1:1)表示 */
+.preview-area.zoomed{overflow:auto}
+.preview-area.zoomed .stage{position:relative;inset:auto;width:max-content;
+  min-width:100%;min-height:100%;padding:12px;box-sizing:border-box}
+.preview-area.zoomed .stage canvas{max-width:none;max-height:none}
+.stage.mode-after #srcCanvas{display:none}
+.stage.mode-before #outCanvas{display:none}
+.stage.mode-split canvas{max-width:calc(50% - 4px)}
+.stage.mode-wipe #srcCanvas{position:absolute;max-width:none;max-height:none;box-shadow:none}
+.wipe-handle{display:none;position:absolute;width:2px;margin-left:-1px;
+  background:var(--accent);cursor:ew-resize;z-index:5;touch-action:none}
+.stage.mode-wipe .wipe-handle{display:block}
+.wipe-handle::after{content:'◀ 元 ｜ 変換後 ▶';position:absolute;top:10px;left:50%;
+  transform:translateX(-50%);background:var(--accent);color:#fff;font-size:9px;font-weight:700;
+  letter-spacing:.5px;padding:3px 6px;border-radius:2px;white-space:nowrap;opacity:.92}
+.view-tabs{display:flex;gap:3px}
+.view-btn{padding:6px 10px;font-size:10.5px;letter-spacing:.2px;border:1px solid var(--border);border-radius:4px;
+  background:var(--surface2);color:var(--text-dim);cursor:pointer;transition:.13s;user-select:none}
+.view-btn:hover{border-color:var(--border-hi);color:var(--text)}
+.view-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(47,109,246,.09);font-weight:700}
+.preview-controls{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--surface);
+  border-top:1px solid var(--border);flex-wrap:wrap;flex-shrink:0}
+.pc-info{font-size:10.5px;color:var(--text-dim);letter-spacing:.2px}
+.pc-info b{color:var(--accent);font-weight:700}
+
+/* ---------- LOG ---------- */
+.log-area{max-height:180px;overflow-y:auto;font-size:10px;line-height:1.8;color:var(--text-dim)}
+.log-entry{border-bottom:1px solid rgba(29,37,49,.07);padding:3px 0;word-break:break-all}
+.log-ok{color:var(--accent)}.log-err{color:var(--accent2)}.log-warn{color:var(--warn)}
+
+/* ---------- TOAST ---------- */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;
+  padding:10px 20px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:.4px;opacity:0;
+  transition:opacity .25s;pointer-events:none;z-index:1000;box-shadow:0 6px 24px rgba(29,37,49,.28)}
+.toast.show{opacity:1}
+
+/* ---------- COLLAPSE / RESPONSIVE ---------- */
+.collapse-toggle{display:none;padding:9px;text-align:center;font-size:11px;font-weight:600;letter-spacing:1px;
+  color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);border-radius:4px;cursor:pointer}
+@media(max-width:1024px){
+  body{overflow:auto}
+  .main{flex-direction:column;height:auto}
+  .panel-left,.panel-right{width:100%;border:none;border-bottom:1px solid var(--border)}
+  .panel-center{min-height:60vh}
+  .preview-area{min-height:46vh}
+  .collapse-toggle{display:block}
+  .panel-left.collapsed>.section,.panel-right.collapsed>.section{display:none!important}
+}
+@media(max-width:860px){
+  .header{gap:8px;padding:8px 10px}
+  .ver{display:none}
+}
+@media(max-width:640px){
+  .status{display:none}
+  .lang-sel{margin-left:auto}
+  .btn-upgrade{font-size:10px;padding:7px 9px}
+}
+@media(max-width:600px){
+  .panel-left,.panel-right{padding:7px}
+  .templates-grid{gap:3px}
+  h1{font-size:12px;letter-spacing:1.5px}
+}
+/* ---------- UPGRADE / MODAL ---------- */
+.btn-upgrade{background:linear-gradient(135deg,#ff9540,#f26a0f);border:0;color:#fff;font-family:inherit;
+  font-size:11px;font-weight:700;letter-spacing:.3px;padding:8px 13px;border-radius:5px;cursor:pointer;
+  min-height:32px;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(242,106,15,.3);transition:.13s}
+.btn-upgrade:hover{filter:brightness(1.06);box-shadow:0 3px 13px rgba(242,106,15,.4)}
+.modal{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;
+  background:rgba(29,37,49,.45);padding:16px}
+.modal.show{display:flex}
+.modal-box{background:var(--surface);border-radius:10px;width:min(720px,100%);max-height:88vh;
+  overflow-y:auto;box-shadow:0 20px 60px rgba(29,37,49,.32);padding:22px}
+.modal-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);line-height:1.45}
+.modal-close{margin-left:auto;background:none;border:0;color:var(--text-dim);font-size:20px;line-height:1;
+  cursor:pointer;padding:2px 7px;border-radius:4px;font-family:inherit}
+.modal-close:hover{background:var(--surface3);color:var(--text)}
+.modal-lead{font-size:12px;color:var(--text-dim);line-height:1.85;margin-bottom:14px}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.feat{border:1px solid var(--border);border-radius:6px;padding:11px 12px;background:var(--surface2)}
+.feat-t{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:4px}
+.feat-d{font-size:11px;color:var(--text-dim);line-height:1.75}
+.modal-foot{margin-top:18px;text-align:center}
+.btn-buy{display:block;text-decoration:none;text-align:center;color:#fff;
+  background:linear-gradient(135deg,#ff9540,#f26a0f);font-size:14px;font-weight:700;letter-spacing:.5px;
+  padding:15px 12px;border-radius:6px;box-shadow:0 4px 16px rgba(242,106,15,.32);transition:.13s}
+.btn-buy:hover{filter:brightness(1.06)}
+.modal-note{font-size:10.5px;color:var(--text-muted);margin-top:9px}
+@media(max-width:600px){.feat-grid{grid-template-columns:1fr}.modal-box{padding:16px}}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-hi)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <div class="logo">T</div>
+    <h1>TEXT MOSAIC</h1>
+    <span class="ver">GENERATOR BASIC</span>
+    <div class="status"><span class="status-dot"></span><span id="statusText">BOOT</span></div>
+    <div class="lang-sel" id="langSel">
+      <button type="button" class="lang-btn active" data-lang="ja">JP</button>
+      <button type="button" class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <button type="button" class="btn-upgrade" id="btnUpgrade">★ PROへアップグレード</button>
+  </header>
+
+  <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="main">
+
+    <!-- ============ LEFT ============ -->
+    <div class="panel-left" id="panelLeft">
+      <div class="collapse-toggle">▼ 入力・設定</div>
+
+      <div class="section">
+        <div class="section-title">ソース素材</div>
+        <div class="dropzone" id="dropzone">
+          <div class="dz-main">画像を選ぶ</div>
+          <div class="dz-sub">JPG PNG WEBP GIF HEIC — ドラッグ&amp;ドロップでもOK</div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*,.heic,.heif,.png,.jpg,.jpeg,.webp,.gif" style="display:none">
+        <div class="src-info" id="srcInfo">未読み込み</div>
+        <div class="btn-group" style="margin-top:7px">
+          <button class="btn btn-sm" id="btnSampleImg">サンプル画像</button>
+          <button class="btn btn-sm" id="btnReset">初期化</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">スタイルテンプレート</div>
+        <div id="templatesWrap"></div>
+        <div class="hint">画像を読み込んでから、好きなスタイルを選んでください。</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title c5">使う文字</div>
+        <div class="param-row">
+          <span class="param-label">階調文字列</span>
+          <span class="param-value" id="rampCount">10段階</span>
+        </div>
+        <textarea class="text-input" id="rampInput" rows="2" spellcheck="false"></textarea>
+        <div class="hint">薄い→濃いの順に、好きな文字を並べてください。画数（インクの量）が少ない字→多い字の順にすると、きれいな濃淡になります。</div>
+        <div class="btn-group" style="margin-top:7px">
+          <button class="btn btn-sm" id="btnRampDefault">スタイルの文字に戻す</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CENTER ============ -->
+    <div class="panel-center">
+      <div class="preview-area" id="previewArea">
+        <div class="stage mode-after" id="stage">
+          <canvas id="outCanvas" width="640" height="360"></canvas>
+          <canvas id="srcCanvas" width="640" height="360"></canvas>
+          <div class="wipe-handle" id="wipeHandle" style="left:50%"></div>
+        </div>
+      </div>
+      <div class="preview-controls">
+        <div class="view-tabs">
+          <div class="view-btn active" data-view="after">変換後</div>
+          <div class="view-btn" data-view="before">元素材</div>
+          <div class="view-btn" data-view="split">並べて</div>
+          <div class="view-btn" data-view="wipe">比較スライダー</div>
+        </div>
+        <div class="view-tabs" style="margin-left:6px">
+          <div class="view-btn active" id="btnFit">フィット</div>
+          <div class="view-btn" id="btnZoom">実寸</div>
+        </div>
+        <span class="pc-info" style="opacity:.6">長押しで元素材</span>
+        <span class="pc-info" style="margin-left:auto">グリッド <b id="gridInfo">-</b></span>
+        <span class="pc-info">出力 <b id="outInfo">-</b></span>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT ============ -->
+    <div class="panel-right" id="panelRight">
+      <div class="collapse-toggle">▼ 書き出し・ログ</div>
+
+      <div class="section">
+        <div class="section-title">画像の書き出し</div>
+        <button class="btn btn-accent btn-full" id="btnPNG">PNG保存</button>
+        <div class="hint">できあがったテキストモザイクをPNG画像として保存します。</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title c3">操作ログ</div>
+        <div class="log-area" id="logArea"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="modal" id="upgradeModal" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle" aria-hidden="true">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" id="upgradeTitle">PRO版でできること</div>
+      <button type="button" class="modal-close" id="btnUpgradeClose" title="閉じる">×</button>
+    </div>
+    <div class="modal-lead">BASIC版は「画像を選ぶ → スタイルを選ぶ → PNGで保存」だけのかんたん版です。PRO版にすると、下のことができるようになります。</div>
+    <div class="feat-grid">
+      <div class="feat">
+        <div class="feat-t">🎬 動画もモザイクにできる</div>
+        <div class="feat-d">動画ファイルを読み込んで、文字が動くテキストモザイクが作れます。再生しながらその場で確認できます。</div>
+      </div>
+      <div class="feat">
+        <div class="feat-t">🎞 動画とPNG連番で書き出し</div>
+        <div class="feat-d">作ったモザイク動画をそのまま動画ファイルで保存。1コマずつのPNG連番（ZIP）も出せるので、動画編集ソフトにも持ち込めます。</div>
+      </div>
+      <div class="feat">
+        <div class="feat-t">🎨 スタイルが15種類</div>
+        <div class="feat-d">漢字だけでなく、ASCII・ブロック・点字・ネオン・レトロ画面など、雰囲気の違うスタイルから選べます。</div>
+      </div>
+      <div class="feat">
+        <div class="feat-t">✏️ 使う文字を自分で決められる</div>
+        <div class="feat-d">好きな文字を並べて濃淡を作れます。文章をそのまま敷き詰める「文字流し込み」もできます。</div>
+      </div>
+      <div class="feat">
+        <div class="feat-t">🌈 色を自由に決められる</div>
+        <div class="feat-d">単色・元画像の色・2色・ネオン発光。背景を透明にしたり、濃淡を反転させることもできます。</div>
+      </div>
+      <div class="feat">
+        <div class="feat-t">🎚 細かい調整ができる</div>
+        <div class="feat-d">文字の数、出力サイズ、行間・字間、明るさ、コントラスト、ガンマなどを自分好みに追い込めます。</div>
+      </div>
+      <div class="feat">
+        <div class="feat-t">🔠 フォントを変えられる</div>
+        <div class="feat-d">和文・欧文のプリセットに加えて、パソコンに入っているフォントやフォントファイルも使えます。</div>
+      </div>
+      <div class="feat">
+        <div class="feat-t">💾 保存できる形式が増える</div>
+        <div class="feat-d">PNGに加えて JPG・SVG（文字のまま編集できる）・テキスト。気に入った設定はJSONで保存して呼び出せます。</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <a class="btn-buy" id="btnBuy" href="https://uimemocho.booth.pm/items/8669712" target="_blank" rel="noopener">PROへアップグレード</a>
+      <div class="modal-note">BOOTH（外部サイト）が新しいタブで開きます</div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* ============================================================
+   Text Mosaic Generator PRO
+   ============================================================ */
+'use strict';
+
+/* ---------- 短縮 ---------- */
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+const evenize = (n) => { n = Math.round(n); return n % 2 ? n + 1 : n; };
+
+/* ---------- フォントプリセット ---------- */
+const FONT_PRESETS = [
+  { n: '游ゴシック', f: '"Yu Gothic","YuGothic","游ゴシック体","YuGothic Medium",sans-serif' },
+  { n: '游明朝', f: '"Yu Mincho","YuMincho","游明朝","游明朝体",serif' },
+  { n: 'ヒラギノ角ゴ', f: '"Hiragino Sans","Hiragino Kaku Gothic ProN","ヒラギノ角ゴ ProN W3",sans-serif' },
+  { n: 'ヒラギノ明朝', f: '"Hiragino Mincho ProN","ヒラギノ明朝 ProN W3",serif' },
+  { n: 'MS ゴシック (等幅)', f: '"MS Gothic","ＭＳ ゴシック","Osaka-Mono",monospace' },
+  { n: 'MS 明朝', f: '"MS Mincho","ＭＳ 明朝",serif' },
+  { n: 'メイリオ', f: '"Meiryo","メイリオ",sans-serif' },
+  { n: 'Noto Sans JP', f: '"Noto Sans JP","Noto Sans CJK JP",sans-serif' },
+  { n: 'Noto Serif JP', f: '"Noto Serif JP","Noto Serif CJK JP",serif' },
+  { n: 'BIZ UDゴシック', f: '"BIZ UDGothic","BIZ UDPGothic",sans-serif' },
+  { n: 'DotGothic16', f: '"DotGothic16","MS Gothic",monospace' },
+  { n: '等幅 (汎用)', f: 'monospace' },
+  { n: 'Menlo / Consolas', f: 'Menlo,Consolas,"SF Mono","Courier New",monospace' },
+  { n: 'Courier New', f: '"Courier New",Courier,monospace' },
+  { n: 'Impact', f: 'Impact,"Arial Black",sans-serif' },
+  { n: 'Arial / Helvetica', f: 'Arial,Helvetica,sans-serif' },
+  { n: 'Georgia (セリフ)', f: 'Georgia,"Times New Roman",serif' }
+];
+
+/* ---------- スタイルテンプレート ---------- */
+const TEMPLATES = [
+  {
+    cat: '和文 / 漢字', color: 'var(--accent)', items: [
+      { id: 'kakusu', name: '画数グラデ', desc: '一 → 鬱 / 白地', p: { charMode: 'ramp', ramp: '一二三王田目国電龍鬱', fg: '#111111', bg: '#ffffff', colorMode: 'mono', lineH: 1.0, track: 1.0, weight: '400', contrast: 12, gamma: 1.0, thresh: 0.07, blank: true, invert: false, dither: false, font: 0 } },
+      { id: 'sumi', name: '墨絵', desc: '和紙×墨 / 明朝', p: { charMode: 'ramp', ramp: '丶ノ十干本東東龍鬱', fg: '#191410', bg: '#f4efe2', colorMode: 'mono', lineH: 1.02, track: 1.0, weight: '400', contrast: 22, gamma: 1.15, thresh: 0.1, blank: true, invert: false, dither: true, font: 1 } },
+      { id: 'hira', name: 'ひらがな', desc: 'やわらかい階調', p: { charMode: 'ramp', ramp: '。しつくてなおぬめゆ', fg: '#222222', bg: '#fbfbf8', colorMode: 'mono', lineH: 1.0, track: 1.0, weight: '500', contrast: 15, gamma: 1.0, thresh: 0.08, blank: true, invert: false, dither: false, font: 0 } },
+      { id: 'matrix', name: '電光カタカナ', desc: '緑×黒 / 等幅', p: { charMode: 'ramp', ramp: 'ーノヽイキメヨロ田ヲ', fg: '#00e878', bg: '#04070a', colorMode: 'mono', lineH: 1.0, track: 1.0, weight: '500', contrast: 18, gamma: 1.0, thresh: 0.1, blank: true, invert: false, dither: false, font: 4 } }
+    ]
+  },
+];
+
+/* ---------- パラメータ ---------- */
+const P = {
+  cols: 80, outW: 1600, lineH: 1.0, track: 1.0, weight: '400',
+  bright: 0, contrast: 12, gamma: 1.0, thresh: 0.07, glow: 8,
+  dither: false, invert: false, blank: true, transparent: false, flowAlpha: true,
+  colorMode: 'mono', fg: '#111111', bg: '#ffffff', fg2: '#ff2e5c',
+  charMode: 'ramp',
+  ramp: '一二三王田目国電龍鬱',
+  flowText: '人はなぜその画面を見つづけてしまうのか。',
+  fontFamily: FONT_PRESETS[0].f
+};
+
+
+/* ---------- 状態 ---------- */
+const state = {
+  type: null,          // 'image'
+  img: null, srcW: 0, srcH: 0, name: '',
+  advRatio: 1, atlas: null, atlasKey: '',
+  grid: null, cellChar: null, sample: null, ink: null,
+  dirty: true, rendering: false,
+  busy: false, templateId: 'kakusu',
+  viewMode: 'after', wipe: 0.5, peek: false, wipeDrag: false
+};
+
+/* ---------- キャンバス ---------- */
+const out = $('outCanvas'), octx = out.getContext('2d');
+const srcCv = $('srcCanvas'), srcCtx = srcCv.getContext('2d');
+const layer = document.createElement('canvas'), lctx = layer.getContext('2d', { willReadFrequently: false });
+const samp = document.createElement('canvas'), sctx = samp.getContext('2d', { willReadFrequently: true });
+const mid = document.createElement('canvas'), mctx = mid.getContext('2d');
+const tint = document.createElement('canvas'), tctx = tint.getContext('2d');
+const meas = document.createElement('canvas').getContext('2d');
+/* ============================================================
+   ユーティリティ
+   ============================================================ */
+function log(msg, kind) {
+  const el = document.createElement('div');
+  el.className = 'log-entry' + (kind ? ' log-' + kind : '');
+  const t = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  el.dataset.ts = '[' + p(t.getHours()) + ':' + p(t.getMinutes()) + ':' + p(t.getSeconds()) + '] ';
+  el.dataset.msg = msg;
+  el.textContent = el.dataset.ts + tr(msg);
+  const box = $('logArea');
+  box.insertBefore(el, box.firstChild);
+  while (box.children.length > 120) box.removeChild(box.lastChild);
+}
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('toast'); t.textContent = tr(msg); t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
+}
+function setStatus(s) { $('statusText').textContent = s; }
+
+/* ============================================================
+   i18n (JP / EN)
+   日本語を原文とし、EN表示時に辞書 DICT（完全一致）と
+   RULES（数値などを含む合成文の部分置換）で変換する。
+   ============================================================ */
+let LANG = 'ja';
+const DICT = {
+  /* --- BASIC / アップグレード --- */
+  '★ PROへアップグレード': '★ Upgrade to PRO',
+  'PROへアップグレード': 'Upgrade to PRO',
+  'PRO版でできること': 'What you get with PRO',
+  '閉じる': 'Close',
+  'BASIC版は「画像を選ぶ → スタイルを選ぶ → PNGで保存」だけのかんたん版です。PRO版にすると、下のことができるようになります。':
+    'BASIC is the simple edition: pick an image, pick a style, save a PNG. PRO adds everything below.',
+  '🎬 動画もモザイクにできる': '🎬 Turn videos into mosaics',
+  '動画ファイルを読み込んで、文字が動くテキストモザイクが作れます。再生しながらその場で確認できます。':
+    'Load a video file and make a moving text mosaic. Play it back and check the result right there.',
+  '🎞 動画とPNG連番で書き出し': '🎞 Export video and PNG frames',
+  '作ったモザイク動画をそのまま動画ファイルで保存。1コマずつのPNG連番（ZIP）も出せるので、動画編集ソフトにも持ち込めます。':
+    'Save your mosaic as a video file, or export every frame as a numbered PNG sequence (ZIP) for your editing software.',
+  '🎨 スタイルが15種類': '🎨 15 styles to choose from',
+  '漢字だけでなく、ASCII・ブロック・点字・ネオン・レトロ画面など、雰囲気の違うスタイルから選べます。':
+    'Not just kanji — ASCII, blocks, braille, neon and retro-screen looks, each with its own mood.',
+  '✏️ 使う文字を自分で決められる': '✏️ Choose your own characters',
+  '好きな文字を並べて濃淡を作れます。文章をそのまま敷き詰める「文字流し込み」もできます。':
+    'Build the light-to-dark ramp from any characters you like, or pour a whole sentence across the picture.',
+  '🌈 色を自由に決められる': '🌈 Full control over color',
+  '単色・元画像の色・2色・ネオン発光。背景を透明にしたり、濃淡を反転させることもできます。':
+    'Mono, source colors, duotone or neon glow — plus transparent backgrounds and inverted tones.',
+  '🎚 細かい調整ができる': '🎚 Fine-tune every detail',
+  '文字の数、出力サイズ、行間・字間、明るさ、コントラスト、ガンマなどを自分好みに追い込めます。':
+    'Dial in the number of characters, output size, line height, tracking, brightness, contrast and gamma.',
+  '🔠 フォントを変えられる': '🔠 Change the font',
+  '和文・欧文のプリセットに加えて、パソコンに入っているフォントやフォントファイルも使えます。':
+    'Japanese and Latin presets, plus any font installed on your computer or loaded from a file.',
+  '💾 保存できる形式が増える': '💾 More ways to save',
+  'PNGに加えて JPG・SVG（文字のまま編集できる）・テキスト。気に入った設定はJSONで保存して呼び出せます。':
+    'PNG plus JPG, SVG (still editable as text) and plain text. Save your favourite settings as JSON and load them later.',
+  'BOOTH（外部サイト）が新しいタブで開きます': 'Opens BOOTH (external site) in a new tab',
+  'PRO版の案内を表示しました': 'Opened the PRO feature guide',
+  'BOOTH（購入ページ）を開きました': 'Opened BOOTH (purchase page)',
+  /* --- BASIC 画面 --- */
+  '画像を選ぶ': 'Choose an image',
+  'JPG PNG WEBP GIF HEIC — ドラッグ&ドロップでもOK': 'JPG PNG WEBP GIF HEIC — drag & drop works too',
+  '画像を読み込んでから、好きなスタイルを選んでください。': 'Load an image first, then pick the style you like.',
+  '使う文字': 'Characters',
+  '階調文字列': 'Tone ramp',
+  '薄い→濃いの順に、好きな文字を並べてください。画数（インクの量）が少ない字→多い字の順にすると、きれいな濃淡になります。':
+    'Line up any characters you like, from light to dark. Going from few strokes (less ink) to many gives the smoothest shading.',
+  'スタイルの文字に戻す': 'Reset to style default',
+  '階調文字列をスタイルの初期値に戻しました': 'Tone ramp reset to the style default',
+  '画像の書き出し': 'Image Export',
+  'できあがったテキストモザイクをPNG画像として保存します。': 'Saves the finished text mosaic as a PNG image.',
+  '画像を読み込んでください': 'Please load an image first',
+  'iOS を検出しました。HEIC写真は自動でJPEG変換されない場合があります。': 'iOS detected. HEIC photos may not be converted to JPEG automatically.',
+  /* --- ヘッダ / ソース --- */
+  '▼ 入力・設定': '▼ INPUT / SETTINGS',
+  '▼ 書き出し・ログ': '▼ EXPORT / LOG',
+  'ソース素材': 'Source',
+  '画像 / 動画を選択': 'Choose image / video',
+  'JPG PNG WEBP GIF HEIC / MP4 WEBM MOV — ドラッグ&ドロップ可': 'JPG PNG WEBP GIF HEIC / MP4 WEBM MOV — drag & drop OK',
+  '未読み込み': 'No source loaded',
+  'サンプル画像': 'Sample image',
+  '初期化': 'Reset',
+  /* --- タブ --- */
+  'テンプレ': 'Style',
+  /* --- 文字設定 --- */
+  'スタイルテンプレート': 'Style Templates',
+  /* --- 配色 --- */
+  '配色': 'Palette',
+  /* --- 詳細 --- */
+  '解像度・字組み': 'Resolution & Layout',
+  /* --- フォント --- */
+  'フォントプリセット': 'Font Preset',
+  /* --- フォント名 --- */
+  '游ゴシック': 'Yu Gothic',
+  /* --- プレビュー --- */
+  '▶ 再生': '▶ Play',
+  '変換後': 'After',
+  '元素材': 'Before',
+  '並べて': 'Side by side',
+  '比較スライダー': 'Wipe',
+  'フィット': 'Fit',
+  '実寸': '1:1',
+  '長押しで元素材': 'Press & hold for source',
+  'グリッド': 'Grid',
+  '出力': 'Output',
+  /* --- 書き出し --- */
+  '静止画・データ書き出し': 'Image & Data Export',
+  'PNG保存': 'Save PNG',
+  '操作ログ': 'Log',
+  /* --- テンプレート --- */
+  '和文 / 漢字': 'Japanese / Kanji',
+  '画数グラデ': 'Stroke ramp',
+  '一 → 鬱 / 白地': '一 → 鬱 / white',
+  '墨絵': 'Sumi-e',
+  '和紙×墨 / 明朝': 'Washi × ink / Mincho',
+  'ひらがな': 'Hiragana',
+  'やわらかい階調': 'Soft gradation',
+  '電光カタカナ': 'Neon Katakana',
+  '緑×黒 / 等幅': 'Green × black / mono',
+  /* --- メッセージ（完全一致） --- */
+  '画像を読み込みました': 'Image loaded',
+  'HEIC/HEIF形式です。iPhoneの [設定 > カメラ > フォーマット] を「互換性優先」にするか、写真アプリで一度JPEGとして書き出してからお試しください。':
+    'This is HEIC/HEIF. Set [Settings > Camera > Formats] to "Most Compatible" on your iPhone, or export it as JPEG from the Photos app first.',
+  'HEIC形式です（JPEGでお試しください）': 'HEIC format (please try JPEG)',
+  'file:// で開いています。iOS Safari ではローカルHTMLからの画像読み込みが制限される場合があります。Web上に置くかPCブラウザでお試しください。':
+    'Opened over file://. iOS Safari may block image loading from local HTML. Try hosting it on the web or using a desktop browser.',
+  '読み込めません（詳細は操作ログ）': 'Cannot load it (see the log)',
+  '画像を読み込めません（詳細は操作ログ）': 'Cannot load this image (see the log)',
+  '素材を読み込んでください': 'Please load a source first',
+  'PNGを保存しました': 'PNG saved',
+  'PNGを保存': 'PNG saved',
+  'file:// で開いています。読み込みに失敗する場合はローカルサーバー経由かPCブラウザをお試しください。':
+    'Opened over file://. If loading fails, try serving it from a local server or use a desktop browser.',
+  'createImageBitmap 非対応環境です（代替経路で読み込みます）': 'createImageBitmap is unsupported (falling back to another path)',
+  'サンプル画像を生成しました': 'Sample image generated',
+  'サンプル生成に失敗しました': 'Failed to generate the sample'
+};
+
+/* 数値やファイル名を含む合成文は部分置換で対応（上から順に適用） */
+const RULES = [
+  [/^言語を切り替えました: /, 'Language switched: '],
+  [/^読み込み開始: /, 'Loading: '],
+  [/type不明/, 'unknown type'],
+  [/^画像を読み込みました /, 'Image loaded '],
+  [/^動画を読み込みました /, 'Video loaded '],
+  [/^画像の読み込みに失敗: /, 'Image load failed: '],
+  [/^テンプレート適用: (.+)$/, (m, s) => 'Template applied: ' + tr(s)],
+  [/^ローカルフォント適用: /, 'Local font applied: '],
+  [/^ローカルフォント (\d+) ファミリを取得しました$/, 'Loaded $1 local font families'],
+  [/^(\d+) フォントを取得$/, '$1 fonts loaded'],
+  [/^-- ローカルフォントを選択 \((\d+)\) --$/, '-- Select a local font ($1) --'],
+  [/^-- (\d+) 件 --$/, '-- $1 matches --'],
+  [/^ローカルフォント取得に失敗: /, 'Failed to list local fonts: '],
+  [/^フォントファイルを読み込みました: /, 'Font file loaded: '],
+  [/^フォント読込: /, 'Font loaded: '],
+  [/^フォント読み込み失敗: /, 'Font load failed: '],
+  [/^プリセット読込失敗: /, 'Preset load failed: '],
+  [/^録画を書き出しました /, 'Recording exported '],
+  [/^録画を開始しました /, 'Recording started '],
+  [/^PNG連番 (\d+)枚 \((.+)\) を書き出しました$/, 'Exported $1 PNG frames ($2)'],
+  [/^(\d+) 枚のPNGを書き出します。よろしいですか？$/, 'Export $1 PNG frames. Continue?'],
+  [/^SVGを保存しました \((.+) \/ Illustrator編集可\)$/, 'SVG saved ($1 / editable in Illustrator)'],
+  [/^サンプル動画を生成しています… \(([\d.]+)秒 \/ (\d+)fps ループ\)$/, 'Generating the sample video… ($1s / $2fps loop)'],
+  [/^サンプル動画を生成しました /, 'Sample video generated '],
+  [/^サンプル画像 \(カラースマイル\)/, 'Sample image (color smiley)'],
+  [/^この環境の対応状況: /, 'Support in this browser: '],
+  [/^動画コーデック対応: /, 'Video codec support: '],
+  [/^captureStream失敗: /, 'captureStream failed: '],
+  [/^MediaRecorder生成失敗: /, 'MediaRecorder creation failed: '],
+  [/ 起動$/, ' started'],
+  [/^横 (\d+) × 縦 (\d+) 文字 \(計 ([\d,]+)\)$/, 'Cols $1 × Rows $2 chars ($3 total)'],
+  [/字サイズ/, 'glyph'],
+  [/^(\d+)段階$/, '$1 steps'],
+  [/ の生成に失敗: /, ' could not be created: '],
+  [/^読み込み成功: /, 'Loaded via: '],
+  [/ 失敗 → /, ' failed → '],
+  [/blobURL\(原形\)/, 'blobURL(as-is)'],
+  [/映像トラックを取得できません\(コーデック非対応の可能性\)/, 'no video track (codec may be unsupported)'],
+  [/タイムアウト\(([\d.]+)秒\)/, 'timeout ($1s)'],
+  [/不明なエラー/, 'unknown error'],
+  [/FileReader失敗/, 'FileReader failed'],
+  [/img decode失敗/, 'img decode failed'],
+  [/createImageBitmap 非対応/, 'createImageBitmap unsupported'],
+  [/サイズ0/, 'zero size']
+];
+
+function tr(s) {
+  if (LANG !== 'en' || !s) return s;
+  const k = String(s);
+  if (DICT[k] !== undefined) return DICT[k];
+  let o = k;
+  RULES.forEach((r) => { o = o.replace(r[0], r[1]); });
+  return o;
+}
+
+/* 実行時に書き換わるテキストは日本語原文を data-ja に保持して切替に追従させる */
+function setTextJa(el, ja) {
+  if (!el) return;
+  el.dataset.ja = ja;
+  el.textContent = tr(ja);
+}
+
+const I18N_NODES = [];
+const I18N_ATTRS = [];
+function snapshotI18n() {
+  const skip = '#logArea,#templatesWrap,#fontPreset,#localFontSel,script,style';
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode(n) {
+      if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      const p = n.parentElement;
+      if (!p || p.closest(skip) || p.hasAttribute('data-ja')) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  for (let n = w.nextNode(); n; n = w.nextNode()) I18N_NODES.push({ node: n, ja: n.nodeValue });
+  document.querySelectorAll('[placeholder],[title]').forEach((el) => {
+    ['placeholder', 'title'].forEach((a) => {
+      const v = el.getAttribute(a);
+      if (v && v.trim()) I18N_ATTRS.push({ el: el, attr: a, ja: v });
+    });
+  });
+}
+
+function applyLang(l) {
+  LANG = (l === 'en') ? 'en' : 'ja';
+  document.documentElement.lang = LANG;
+  try { localStorage.setItem('tmg_lang', LANG); } catch (e) { }
+  document.querySelectorAll('#langSel .lang-btn').forEach((b) => b.classList.toggle('active', b.dataset.lang === LANG));
+
+  I18N_NODES.forEach((r) => {
+    const t = r.ja.trim();
+    r.node.nodeValue = r.ja.replace(t, () => tr(t));
+  });
+  I18N_ATTRS.forEach((r) => { r.el.setAttribute(r.attr, tr(r.ja)); });
+  document.querySelectorAll('[data-ja]').forEach((el) => { el.textContent = tr(el.dataset.ja); });
+  $('logArea').querySelectorAll('.log-entry').forEach((el) => {
+    if (el.dataset.msg !== undefined) el.textContent = el.dataset.ts + tr(el.dataset.msg);
+  });
+  buildTemplates();
+}
+function hexToRgb(h) {
+  h = h.replace('#', '');
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  const n = parseInt(h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function lumOf(hex) { const c = hexToRgb(hex); return (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255; }
+function downloadBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+function stamp() {
+  const d = new Date(), p = (n) => String(n).padStart(2, '0');
+  return '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+}
+function baseName() {
+  const n = (state.name || 'mosaic').replace(/\.[^.]+$/, '').replace(/[^\w\-一-龥ぁ-んァ-ヶ]/g, '_');
+  return n.slice(0, 40) || 'mosaic';
+}
+
+/* ============================================================
+   文字セット / フォント計測
+   ============================================================ */
+function currentChars() {
+  if (P.charMode === 'flow') {
+    const s = Array.from(P.flowText.replace(/[\r\n\t]/g, ''));
+    return s.length ? s : ['文'];
+  }
+  const s = Array.from(P.ramp);
+  return s.length ? s : ['一'];
+}
+function measureAdv(chars) {
+  meas.font = P.weight + ' 100px ' + P.fontFamily;
+  let mx = 0;
+  for (const c of chars) { const w = meas.measureText(c).width; if (w > mx) mx = w; }
+  return mx > 0 ? mx / 100 : 1;
+}
+
+/* ============================================================
+   グリフアトラス
+   ============================================================ */
+function buildAtlas(uniq, fontSize, cellW, cellH) {
+  const TW = Math.max(2, Math.ceil(cellW * 1.9)), TH = Math.max(2, Math.ceil(cellH * 1.9));
+  const key = [P.fontFamily, P.weight, fontSize.toFixed(3), TW, TH, uniq.join('')].join('|');
+  if (state.atlas && state.atlasKey === key) return state.atlas;
+  const per = Math.max(1, Math.min(16, uniq.length));
+  const rows = Math.ceil(uniq.length / per);
+  const cv = document.createElement('canvas');
+  cv.width = per * TW; cv.height = rows * TH;
+  const ctx = cv.getContext('2d');
+  ctx.font = P.weight + ' ' + fontSize + 'px ' + P.fontFamily;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < uniq.length; i++) {
+    const cx = (i % per) * TW + TW / 2, cy = Math.floor(i / per) * TH + TH / 2;
+    ctx.fillText(uniq[i], cx, cy);
+  }
+  state.atlas = { cv, TW, TH, per, n: uniq.length };
+  state.atlasKey = key;
+  return state.atlas;
+}
+
+/* ============================================================
+   メイン描画
+   ============================================================ */
+function computeGrid() {
+  const chars = currentChars();
+  state.advRatio = measureAdv(chars);
+  const cols = Math.max(2, Math.round(P.cols));
+  const outW = evenize(clamp(P.outW, 128, 8192));
+  const cellW = outW / cols;
+  const fontSize = Math.max(1, cellW / (state.advRatio * P.track));
+  const cellH = Math.max(1, fontSize * P.lineH);
+  const rows = Math.max(1, Math.round((state.srcH / state.srcW) * cols * (cellW / cellH)));
+  const outH = evenize(rows * cellH);
+  return { cols, rows, cellW, cellH, fontSize, outW, outH, chars };
+}
+
+function sampleSource(cols, rows) {
+  const src = state.img;
+  const sw = state.srcW, sh = state.srcH;
+  let drawSrc = src, dw = sw, dh = sh;
+  if (sw / cols > 3) {
+    const iw = Math.max(cols, Math.round(cols * 3)), ih = Math.max(rows, Math.round(rows * 3));
+    if (mid.width !== iw || mid.height !== ih) { mid.width = iw; mid.height = ih; }
+    mctx.imageSmoothingEnabled = true; mctx.imageSmoothingQuality = 'high';
+    mctx.clearRect(0, 0, iw, ih);
+    mctx.drawImage(src, 0, 0, iw, ih);
+    drawSrc = mid; dw = iw; dh = ih;
+  }
+  if (samp.width !== cols || samp.height !== rows) { samp.width = cols; samp.height = rows; }
+  sctx.imageSmoothingEnabled = true; sctx.imageSmoothingQuality = 'high';
+  sctx.clearRect(0, 0, cols, rows);
+  sctx.drawImage(drawSrc, 0, 0, dw, dh, 0, 0, cols, rows);
+  return sctx.getImageData(0, 0, cols, rows);
+}
+
+function buildInk(imgData, cols, rows) {
+  const d = imgData.data, n = cols * rows;
+  const ink = new Float32Array(n);
+  const C = P.contrast * 2.55;
+  const k = (259 * (C + 255)) / (255 * (259 - C));
+  const bAdd = P.bright / 100;
+  const invG = 1 / Math.max(0.05, P.gamma);
+  const bgL = P.transparent ? (lumOf(P.fg) > 0.5 ? 0 : 1) : lumOf(P.bg);
+  const darkOnLight = bgL > lumOf(P.fg);
+  for (let i = 0, j = 0; i < n; i++, j += 4) {
+    let v = (0.2126 * d[j] + 0.7152 * d[j + 1] + 0.0722 * d[j + 2]) / 255;
+    const a = d[j + 3] / 255;
+    v = v * a + (darkOnLight ? 1 : 0) * (1 - a);
+    v = k * (v - 0.5) + 0.5 + bAdd;
+    v = v <= 0 ? 0 : (v >= 1 ? 1 : Math.pow(v, invG));
+    let e = darkOnLight ? 1 - v : v;
+    if (P.invert) e = 1 - e;
+    ink[i] = e;
+  }
+  return ink;
+}
+
+function ditherInk(ink, cols, rows, levels) {
+  const L = Math.max(2, levels) - 1;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = y * cols + x;
+      const oldv = ink[i];
+      const q = Math.round(oldv * L) / L;
+      ink[i] = q;
+      const err = oldv - q;
+      if (x + 1 < cols) ink[i + 1] += err * 7 / 16;
+      if (y + 1 < rows) {
+        if (x > 0) ink[i + cols - 1] += err * 3 / 16;
+        ink[i + cols] += err * 5 / 16;
+        if (x + 1 < cols) ink[i + cols + 1] += err * 1 / 16;
+      }
+    }
+  }
+}
+
+function render() {
+  if (!state.type) return;
+  const g = computeGrid();
+  state.grid = g;
+  const { cols, rows, cellW, cellH, fontSize, outW, outH, chars } = g;
+
+  const imgData = sampleSource(cols, rows);
+  state.sample = imgData;
+  const ink = buildInk(imgData, cols, rows);
+
+  const uniq = [];
+  const uMap = new Map();
+  for (const c of chars) if (!uMap.has(c)) { uMap.set(c, uniq.length); uniq.push(c); }
+  const nRamp = chars.length;
+
+  if (P.dither) ditherInk(ink, cols, rows, P.charMode === 'flow' ? 6 : nRamp);
+
+  const atlas = buildAtlas(uniq, fontSize, cellW, cellH);
+  const TW = atlas.TW, TH = atlas.TH, per = atlas.per;
+
+  if (layer.width !== outW || layer.height !== outH) { layer.width = outW; layer.height = outH; }
+  lctx.setTransform(1, 0, 0, 1, 0, 0);
+  lctx.globalCompositeOperation = 'source-over';
+  lctx.globalAlpha = 1;
+  lctx.clearRect(0, 0, outW, outH);
+
+  const cellChar = new Array(cols * rows).fill(null);
+  const flow = P.charMode === 'flow';
+  let fi = 0;
+  const thresh = P.thresh;
+
+  for (let y = 0; y < rows; y++) {
+    const cy = y * cellH + cellH / 2;
+    for (let x = 0; x < cols; x++) {
+      const i = y * cols + x;
+      const e = ink[i];
+      if (P.blank && e < thresh) continue;
+      let ai, ch;
+      if (flow) {
+        ch = chars[fi % nRamp]; fi++;
+        ai = uMap.get(ch);
+        lctx.globalAlpha = P.flowAlpha ? clamp(0.12 + e * 0.88, 0, 1) : 1;
+      } else {
+        const idx = clamp(Math.floor(e * nRamp), 0, nRamp - 1);
+        ch = chars[idx]; ai = uMap.get(ch);
+      }
+      cellChar[i] = ch;
+      const sx = (ai % per) * TW, sy = Math.floor(ai / per) * TH;
+      lctx.drawImage(atlas.cv, sx, sy, TW, TH, x * cellW + cellW / 2 - TW / 2, cy - TH / 2, TW, TH);
+    }
+  }
+  lctx.globalAlpha = 1;
+  state.cellChar = cellChar;
+  state.ink = ink;
+
+  /* --- 着色 --- */
+  lctx.globalCompositeOperation = 'source-in';
+  if (P.colorMode === 'source') {
+    lctx.imageSmoothingEnabled = false;
+    lctx.drawImage(samp, 0, 0, cols, rows, 0, 0, outW, outH);
+    lctx.imageSmoothingEnabled = true;
+  } else if (P.colorMode === 'duo') {
+    if (tint.width !== cols || tint.height !== rows) { tint.width = cols; tint.height = rows; }
+    const id = tctx.createImageData(cols, rows);
+    const c1 = hexToRgb(P.fg), c2 = hexToRgb(P.fg2);
+    for (let i = 0, j = 0; i < cols * rows; i++, j += 4) {
+      const t = clamp(ink[i], 0, 1);
+      id.data[j] = c1[0] + (c2[0] - c1[0]) * t;
+      id.data[j + 1] = c1[1] + (c2[1] - c1[1]) * t;
+      id.data[j + 2] = c1[2] + (c2[2] - c1[2]) * t;
+      id.data[j + 3] = 255;
+    }
+    tctx.putImageData(id, 0, 0);
+    lctx.imageSmoothingEnabled = false;
+    lctx.drawImage(tint, 0, 0, cols, rows, 0, 0, outW, outH);
+    lctx.imageSmoothingEnabled = true;
+  } else {
+    lctx.fillStyle = P.fg;
+    lctx.fillRect(0, 0, outW, outH);
+  }
+  lctx.globalCompositeOperation = 'source-over';
+
+  /* --- 合成 --- */
+  const sizeChanged = (out.width !== outW || out.height !== outH);
+  if (sizeChanged) { out.width = outW; out.height = outH; }
+  octx.setTransform(1, 0, 0, 1, 0, 0);
+  octx.globalCompositeOperation = 'source-over';
+  octx.globalAlpha = 1;
+  octx.clearRect(0, 0, outW, outH);
+  if (!P.transparent) { octx.fillStyle = P.bg; octx.fillRect(0, 0, outW, outH); }
+  if (P.colorMode === 'neon' && P.glow > 0) {
+    try {
+      octx.filter = 'blur(' + P.glow + 'px)';
+      octx.globalAlpha = 0.85;
+      octx.drawImage(layer, 0, 0);
+      octx.filter = 'none';
+      octx.globalAlpha = 1;
+      octx.globalCompositeOperation = 'lighter';
+      octx.drawImage(layer, 0, 0);
+      octx.globalCompositeOperation = 'source-over';
+    } catch (e) {
+      octx.filter = 'none'; octx.drawImage(layer, 0, 0);
+    }
+  } else {
+    octx.drawImage(layer, 0, 0);
+  }
+
+  if (state.viewMode !== 'after' || state.peek) renderSource(outW, outH);
+  if (sizeChanged) fitCanvases(true);
+  if (state.viewMode === 'wipe') syncOverlay();
+  updateGridInfo();
+}
+
+/* ---------- 元素材ビュー ---------- */
+function renderSource(w, h) {
+  if (!state.type || !w || !h) return;
+  if (srcCv.width !== w || srcCv.height !== h) { srcCv.width = w; srcCv.height = h; }
+  srcCtx.setTransform(1, 0, 0, 1, 0, 0);
+  srcCtx.clearRect(0, 0, w, h);
+  try { srcCtx.drawImage(state.img, 0, 0, w, h); } catch (e) { }
+}
+/* 比較モードでは srcCanvas を絶対配置するため、%指定ではなく
+   outCanvas の実描画矩形(px)に厳密に合わせる。
+   %指定だと flex アイテムの計算幅と実寸がズレて元画像の比率が崩れる。 */
+/* CSSの max-height:100% はブラウザによって解決結果が揺れるため、
+   実測pxでも上限を与えて「必ず収まる」ことを保証する。 */
+let _fitSig = '';
+function fitCanvases(force) {
+  const pa = $('previewArea');
+  const zoomed = pa.classList.contains('zoomed');
+  const r = pa.getBoundingClientRect();
+  const sig = [Math.round(r.width), Math.round(r.height), state.viewMode, zoomed].join('|');
+  if (!force && sig === _fitSig) return;
+  _fitSig = sig;
+  if (zoomed) {
+    out.style.maxWidth = out.style.maxHeight = '';
+    srcCv.style.maxWidth = srcCv.style.maxHeight = '';
+    return;
+  }
+  const PAD = 26;
+  const split = state.viewMode === 'split';
+  const availW = Math.max(40, r.width - PAD - (split ? 8 : 0));
+  const availH = Math.max(40, r.height - PAD);
+  const cw = Math.floor(split ? availW / 2 : availW);
+  const ch = Math.floor(availH);
+  out.style.maxWidth = cw + 'px'; out.style.maxHeight = ch + 'px';
+  if (state.viewMode !== 'wipe') { srcCv.style.maxWidth = cw + 'px'; srcCv.style.maxHeight = ch + 'px'; }
+  else { srcCv.style.maxWidth = ''; srcCv.style.maxHeight = ''; }
+}
+
+function syncOverlay() {
+  const st = $('stage'), h = $('wipeHandle');
+  if (state.viewMode !== 'wipe') {
+    srcCv.style.left = srcCv.style.top = srcCv.style.width = srcCv.style.height = '';
+    return;
+  }
+  const r = out.getBoundingClientRect(), sr = st.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const L = r.left - sr.left, T = r.top - sr.top;
+  srcCv.style.left = L + 'px'; srcCv.style.top = T + 'px';
+  srcCv.style.width = r.width + 'px'; srcCv.style.height = r.height + 'px';
+  h.style.left = (L + r.width * state.wipe) + 'px';
+  h.style.top = T + 'px';
+  h.style.height = r.height + 'px';
+}
+function applyView() {
+  const m = state.peek && state.viewMode !== 'wipe' ? 'before' : state.viewMode;
+  $('stage').className = 'stage mode-' + m;
+  fitCanvases(true);
+  srcCv.style.clipPath = (m === 'wipe')
+    ? 'inset(0 ' + ((1 - state.wipe) * 100).toFixed(2) + '% 0 0)'
+    : 'none';
+  syncOverlay();
+}
+function setView(m) {
+  state.viewMode = m;
+  document.querySelectorAll('.view-btn').forEach((b) => b.classList.toggle('active', b.dataset.view === m));
+  if (state.grid) renderSource(state.grid.outW, state.grid.outH);
+  applyView();
+}
+
+function updateGridInfo() {
+  const g = state.grid; if (!g) return;
+  setTextJa($('gridInfo'), '横 ' + g.cols + ' × 縦 ' + g.rows + ' 文字 (計 ' + (g.cols * g.rows).toLocaleString() + ')');
+  setTextJa($('outInfo'), g.outW + ' × ' + g.outH + ' px / 字サイズ ' + g.fontSize.toFixed(1) + 'px');
+}
+
+/* ============================================================
+   レンダーループ
+   ============================================================ */
+function requestRender() { state.dirty = true; }
+function loop() {
+  if (state.dirty && !state.busy) { state.dirty = false; try { render(); } catch (e) { console.error(e); } }
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================
+   ソース読み込み（iOS / Safari 対応の多段フォールバック）
+   ============================================================ */
+function readAsDataURL(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error('FileReader失敗'));
+    r.readAsDataURL(file);
+  });
+}
+function loadViaImg(src, revoke) {
+  return new Promise((res, rej) => {
+    const im = new Image();
+    im.decoding = 'sync';
+    im.onload = () => { if (revoke) { try { URL.revokeObjectURL(src); } catch (e) { } } res(im); };
+    im.onerror = () => { if (revoke) { try { URL.revokeObjectURL(src); } catch (e) { } } rej(new Error('img decode失敗')); };
+    im.src = src;
+  });
+}
+/* createImageBitmap → blob URL → data URL の順に試す。
+   iOS Safari の file:// 環境では blob URL が使えないことがあるため多段化。 */
+async function decodeImage(file) {
+  const why = [];
+  if (window.createImageBitmap) {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+    catch (e) {
+      why.push('createImageBitmap(orient): ' + (e && e.message));
+      try { return await createImageBitmap(file); }
+      catch (e2) { why.push('createImageBitmap: ' + (e2 && e2.message)); }
+    }
+  } else { why.push('createImageBitmap 非対応'); }
+  try { return await loadViaImg(URL.createObjectURL(file), true); }
+  catch (e) { why.push('blobURL: ' + (e && e.message)); }
+  try { return await loadViaImg(await readAsDataURL(file), false); }
+  catch (e) { why.push('dataURL: ' + (e && e.message)); }
+  const err = new Error(why.join(' / '));
+  err.detail = why;
+  throw err;
+}
+async function loadFile(file) {
+  if (!file) return;
+  state.name = file.name || 'source';
+  const sizeMB = (file.size / 1048576).toFixed(1);
+  log('読み込み開始: ' + state.name + ' / ' + (file.type || 'type不明') + ' / ' + sizeMB + 'MB');
+  setStatus('LOADING');
+
+  try {
+    const im = await decodeImage(file);
+    state.type = 'image'; state.img = im;
+    state.srcW = im.naturalWidth || im.width;
+    state.srcH = im.naturalHeight || im.height;
+    if (!state.srcW || !state.srcH) throw new Error('サイズ0');
+    setTextJa($('srcInfo'), state.name + ' / ' + state.srcW + '×' + state.srcH + ' px / ' + sizeMB + 'MB');
+    setStatus('IMAGE_LOADED');
+    log('画像を読み込みました (' + state.srcW + '×' + state.srcH + ')', 'ok');
+    toast('画像を読み込みました');
+    requestRender();
+  } catch (e) {
+    setStatus('LOAD_FAILED');
+    const heic = /\.(heic|heif)$/i.test(state.name) || /hei[cf]/i.test(file.type || '');
+    log('画像の読み込みに失敗: ' + e.message, 'err');
+    if (heic) {
+      log('HEIC/HEIF形式です。iPhoneの [設定 > カメラ > フォーマット] を「互換性優先」にするか、写真アプリで一度JPEGとして書き出してからお試しください。', 'warn');
+      toast('HEIC形式です（JPEGでお試しください）');
+    } else if (location.protocol === 'file:') {
+      log('file:// で開いています。iOS Safari ではローカルHTMLからの画像読み込みが制限される場合があります。Web上に置くかPCブラウザでお試しください。', 'warn');
+      toast('読み込めません（詳細は操作ログ）');
+    } else {
+      toast('画像を読み込めません（詳細は操作ログ）');
+    }
+  }
+}
+
+/* MediaRecorder製のWebM等は duration が Infinity になることがある。
+   末尾まで一度シークさせて実長を確定させる */
+/* ============================================================
+   テキスト / SVG 書き出し
+   ============================================================ */
+/* ============================================================
+   UI 構築
+   ============================================================ */
+function buildTemplates() {
+  const wrap = $('templatesWrap');
+  wrap.innerHTML = '';
+  TEMPLATES.forEach((cat) => {
+    const g = document.createElement('div'); g.className = 'cat-group';
+    const h = document.createElement('div'); h.className = 'cat-header';
+    h.style.color = cat.color; h.textContent = tr(cat.cat);
+    g.appendChild(h);
+    const grid = document.createElement('div'); grid.className = 'templates-grid';
+    cat.items.forEach((t) => {
+      const c = document.createElement('div');
+      c.className = 'template-card' + (t.id === state.templateId ? ' active' : '');
+      c.dataset.id = t.id;
+      c.innerHTML = '<div class="template-name"></div><div class="template-desc"></div>';
+      c.children[0].textContent = tr(t.name);
+      c.children[1].textContent = tr(t.desc);
+      c.onclick = () => applyTemplate(t.id);
+      grid.appendChild(c);
+    });
+    g.appendChild(grid); wrap.appendChild(g);
+  });
+}
+function findTemplate(id) {
+  for (const c of TEMPLATES) for (const t of c.items) if (t.id === id) return t;
+  return null;
+}
+function applyTemplate(id) {
+  const t = findTemplate(id); if (!t) return;
+  state.templateId = id;
+  Object.keys(t.p).forEach((k) => {
+    if (k === 'font') { P.fontFamily = FONT_PRESETS[t.p.font].f; }
+    else P[k] = t.p[k];
+  });
+  state.atlasKey = '';
+  buildTemplates();
+  syncRampUI(true);
+  requestRender();
+  log('テンプレート適用: ' + t.name);
+  toast(t.name);
+}
+
+/* 階調文字列の表示同期（withValue=false のときは段階数だけ更新して入力中のカーソルを保つ） */
+function syncRampUI(withValue) {
+  if (withValue) $('rampInput').value = P.ramp;
+  setTextJa($('rampCount'), String(Array.from(P.ramp).length) + '段階');
+}
+
+
+/* ---------- ローカルフォント ---------- */
+/* ============================================================
+   イベント
+   ============================================================ */
+function init() {
+  /* 言語 */
+  snapshotI18n();
+  let lang0 = 'ja';
+  try { lang0 = localStorage.getItem('tmg_lang') || (/^ja/i.test(navigator.language || '') ? 'ja' : 'en'); } catch (e) { }
+  document.querySelectorAll('#langSel .lang-btn').forEach((b) => {
+    b.addEventListener('click', () => { applyLang(b.dataset.lang); log('言語を切り替えました: ' + (LANG === 'ja' ? '日本語' : 'English')); });
+  });
+
+  /* PROアップグレード案内 */
+  const dlg = $('upgradeModal');
+  const openDlg = () => { dlg.classList.add('show'); dlg.setAttribute('aria-hidden', 'false'); log('PRO版の案内を表示しました'); };
+  const closeDlg = () => { dlg.classList.remove('show'); dlg.setAttribute('aria-hidden', 'true'); };
+  $('btnUpgrade').addEventListener('click', openDlg);
+  $('btnUpgradeClose').addEventListener('click', closeDlg);
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) closeDlg(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dlg.classList.contains('show')) closeDlg(); });
+  $('btnBuy').addEventListener('click', () => log('BOOTH（購入ページ）を開きました'));
+
+  /* ドロップゾーン */
+  const dz = $('dropzone'), fi = $('fileInput');
+  dz.addEventListener('click', () => fi.click());
+  fi.addEventListener('change', (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+  ['dragenter', 'dragover'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add('dragover'); }));
+  ['dragleave', 'drop'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove('dragover'); }));
+  dz.addEventListener('drop', (e) => { if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+  window.addEventListener('dragover', (e) => e.preventDefault());
+  window.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+
+  /* 書き出し */
+  $('btnPNG').addEventListener('click', () => {
+    if (!state.type) { toast('画像を読み込んでください'); return; }
+    out.toBlob((b) => { downloadBlob(b, baseName() + '_mosaic_' + stamp() + '.png'); log('PNGを保存しました', 'ok'); toast('PNGを保存'); }, 'image/png');
+  });
+  $('btnReset').addEventListener('click', () => { applyTemplate('kakusu'); });
+
+  /* 階調文字列（任意入力） */
+  $('rampInput').addEventListener('input', () => {
+    P.ramp = $('rampInput').value || '一';
+    syncRampUI(false);
+    state.atlasKey = ''; requestRender();
+  });
+  $('btnRampDefault').addEventListener('click', () => {
+    const t = findTemplate(state.templateId);
+    P.ramp = (t && t.p.ramp) ? t.p.ramp : '一二三王田目国電龍鬱';
+    syncRampUI(true);
+    state.atlasKey = ''; requestRender();
+    log('階調文字列をスタイルの初期値に戻しました');
+  });
+
+  /* サンプル生成 */
+  $('btnSampleImg').addEventListener('click', makeSampleImage);
+
+  /* ---- 元素材ビュー ---- */
+  document.querySelectorAll('.view-btn[data-view]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
+
+  /* ---- フィット / 実寸 ---- */
+  const setZoom = (on) => {
+    $('previewArea').classList.toggle('zoomed', on);
+    $('btnZoom').classList.toggle('active', on);
+    $('btnFit').classList.toggle('active', !on);
+    fitCanvases(true);
+    requestAnimationFrame(syncOverlay);
+  };
+  $('btnFit').addEventListener('click', () => setZoom(false));
+  $('btnZoom').addEventListener('click', () => setZoom(true));
+  const stage = $('stage');
+  const wipeFromEvent = (e) => {
+    const r = out.getBoundingClientRect();
+    if (!r.width) return;
+    state.wipe = clamp((e.clientX - r.left) / r.width, 0, 1);
+    applyView();
+  };
+  const handle = $('wipeHandle');
+  handle.addEventListener('pointerdown', (e) => {
+    state.wipeDrag = true; handle.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation();
+  });
+  handle.addEventListener('pointermove', (e) => { if (state.wipeDrag) wipeFromEvent(e); });
+  const endWipe = () => { state.wipeDrag = false; };
+  handle.addEventListener('pointerup', endWipe);
+  handle.addEventListener('pointercancel', endWipe);
+  stage.addEventListener('pointerdown', (e) => {
+    if (state.viewMode === 'wipe') {
+      wipeFromEvent(e); state.wipeDrag = true;
+      try { stage.setPointerCapture(e.pointerId); } catch (err) { }
+      e.preventDefault(); return;
+    }
+    if (!state.type) return;
+    state.peek = true;
+    if (state.grid) renderSource(state.grid.outW, state.grid.outH);
+    applyView();
+  });
+  stage.addEventListener('pointermove', (e) => { if (state.wipeDrag && state.viewMode === 'wipe') wipeFromEvent(e); });
+  const endPeek = () => { state.wipeDrag = false; if (state.peek) { state.peek = false; applyView(); } };
+  ['pointerup', 'pointercancel'].forEach((ev) => stage.addEventListener(ev, endPeek));
+  stage.addEventListener('pointerleave', () => { if (state.peek) { state.peek = false; applyView(); } });
+  const relayout = () => { fitCanvases(); syncOverlay(); };
+  if (window.ResizeObserver) { new ResizeObserver(relayout).observe($('previewArea')); }
+  window.addEventListener('resize', relayout);
+  window.addEventListener('orientationchange', () => setTimeout(() => { fitCanvases(true); syncOverlay(); }, 320));
+  stage.addEventListener('contextmenu', (e) => { if (state.peek) e.preventDefault(); });
+
+  /* モバイル折りたたみ */
+  document.querySelectorAll('.collapse-toggle').forEach((t) => {
+    t.addEventListener('click', () => t.parentElement.classList.toggle('collapsed'));
+  });
+
+  buildTemplates();
+  syncRampUI(true);
+  applyLang(lang0);
+  fitCanvases(true);
+  applyView();
+  requestAnimationFrame(loop);
+  log('Text Mosaic Generator BASIC 起動');
+  const ua = navigator.userAgent;
+  const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (iOS) log('iOS を検出しました。HEIC写真は自動でJPEG変換されない場合があります。', 'warn');
+  if (location.protocol === 'file:') log('file:// で開いています。読み込みに失敗する場合はローカルサーバー経由かPCブラウザをお試しください。', 'warn');
+  if (!window.createImageBitmap) log('createImageBitmap 非対応環境です（代替経路で読み込みます）', 'warn');
+  setStatus('READY');
+}
+
+/* ============================================================
+   サンプル素材（カラースマイル）
+   drawSampleFrame() を静止画 / ループ動画で共用する。
+   p は 0〜1 のループ位相。anim=false で全アニメ量を 0 にすると
+   サンプル画像とループ先頭フレームが完全に一致する。
+   ============================================================ */
+const SAMPLE_W = 900, SAMPLE_H = 1100;
+
+function drawSampleFrame(x, p, anim) {
+  const W = SAMPLE_W, H = SAMPLE_H;
+  const TAU = Math.PI * 2;
+  const A = anim ? 1 : 0;          /* アニメ振幅 */
+  const s1 = Math.sin(TAU * p);     /* 1周期 */
+  const s2 = Math.sin(TAU * p * 2); /* 2周期 */
+  const c2 = Math.cos(TAU * p * 2);
+
+  /* 背景（うっすら寒色にして暖色の顔を引き立てる） */
+  const bg = x.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#fdfdff'); bg.addColorStop(0.55, '#eef1f8'); bg.addColorStop(1, '#dfe4ef');
+  x.fillStyle = bg; x.fillRect(0, 0, W, H);
+
+  /* 顔（オレンジ〜黄の暖色グラデ球体） — 上下バウンド＋スカッシュ */
+  const CX = 450, CY = 420 - A * 14 * s2, R = 300;
+  const RX = R * (1 + A * 0.028 * s2), RY = R * (1 - A * 0.028 * s2);
+  x.save();
+  x.shadowColor = 'rgba(180,80,0,.38)'; x.shadowBlur = 46; x.shadowOffsetY = 16;
+  const face = x.createRadialGradient(CX - 95, CY - 110, 20, CX, CY, R * 1.06);
+  face.addColorStop(0, '#fffbe0');
+  face.addColorStop(0.28, '#ffe14d');
+  face.addColorStop(0.58, '#ffb01f');
+  face.addColorStop(0.84, '#f57a12');
+  face.addColorStop(1, '#d8480a');
+  x.fillStyle = face;
+  x.beginPath(); x.ellipse(CX, CY, RX, RY, 0, 0, TAU); x.fill();
+  x.restore();
+
+  /* ハイライト */
+  x.save();
+  const gloss = x.createRadialGradient(CX - 120, CY - 150, 8, CX - 120, CY - 150, 130);
+  gloss.addColorStop(0, 'rgba(255,255,255,.85)');
+  gloss.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = gloss;
+  x.beginPath(); x.ellipse(CX - 120, CY - 150, 130, 100, -0.35, 0, TAU); x.fill();
+  x.restore();
+
+  /* 頬（赤み・脈動） */
+  const blush = 0.42 + A * 0.14 * s2;
+  [-1, 1].forEach((s) => {
+    const ch = x.createRadialGradient(CX + s * 200, CY + 60, 4, CX + s * 200, CY + 60, 72);
+    ch.addColorStop(0, 'rgba(255,80,60,' + blush.toFixed(3) + ')');
+    ch.addColorStop(1, 'rgba(255,80,60,0)');
+    x.fillStyle = ch;
+    x.beginPath(); x.ellipse(CX + s * 200, CY + 60, 72, 48, 0, 0, TAU); x.fill();
+  });
+
+  /* 目（左右の視線ゆれ＋まばたき） */
+  const gaze = A * 9 * s1;
+  const bd = Math.min(Math.abs(p - 0.62), 1 - Math.abs(p - 0.62));   /* まばたき位相までの距離 */
+  const blink = A * Math.max(0, 1 - bd / 0.05);
+  const eyeRy = 50 * Math.max(0.07, 1 - blink);
+  const eyes = [[-95, -70], [95, -70]];
+  x.fillStyle = '#40200a';
+  eyes.forEach((e) => {
+    x.beginPath(); x.ellipse(CX + e[0] + gaze, CY + e[1], 36, eyeRy, 0, 0, TAU); x.fill();
+  });
+  if (blink < 0.55) {
+    x.fillStyle = 'rgba(255,255,255,' + (0.9 * (1 - blink / 0.55)).toFixed(3) + ')';
+    eyes.forEach((e) => {
+      x.beginPath();
+      x.ellipse(CX + e[0] + gaze - 11, CY + e[1] - eyeRy * 0.34, 11, Math.min(14, eyeRy * 0.28), 0, 0, TAU);
+      x.fill();
+    });
+  }
+
+  /* 口（笑顔の開き具合が伸縮） */
+  const mr = 178 + A * 16 * s2;
+  const spread = A * 0.045 * s2;
+  x.strokeStyle = '#5c2408'; x.lineWidth = 34; x.lineCap = 'round';
+  x.beginPath();
+  x.arc(CX, CY + 10, mr, Math.PI * 0.17 - spread, Math.PI * 0.83 + spread);
+  x.stroke();
+
+  /* 文字（1文字ずつ虹色・波打ちアニメ） */
+  const label = 'Text Mosaic';
+  let size = 130;
+  const setFont = (sz) => { x.font = '700 ' + sz + 'px "Helvetica Neue",Arial,"Yu Gothic",sans-serif'; };
+  setFont(size);
+  const maxW = 740;
+  const w0 = x.measureText(label).width;
+  if (w0 > maxW) { size = Math.floor(size * maxW / w0); setFont(size); }
+
+  const chars = label.split('');
+  const widths = chars.map((ch) => x.measureText(ch).width);
+  const total = widths.reduce((a, b) => a + b, 0);
+  const baseY = 920;
+  x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+  let cx0 = CX - total / 2;
+  chars.forEach((ch, i) => {
+    if (ch.trim()) {
+      const ph = TAU * p * 2 - i * 0.52;                       /* 文字ごとに位相をずらして波に */
+      const dy = A * 22 * Math.sin(ph);
+      const rot = A * 0.09 * Math.cos(ph);
+      const hue = (i / Math.max(1, chars.length - 1) * 300 + A * p * 360) % 360;
+      x.save();
+      x.translate(cx0 + widths[i] / 2, baseY + dy);
+      x.rotate(rot);
+      x.shadowColor = 'rgba(0,0,0,.22)'; x.shadowBlur = 10; x.shadowOffsetY = 5;
+      const g = x.createLinearGradient(0, -size * 0.75, 0, size * 0.1);
+      g.addColorStop(0, 'hsl(' + hue.toFixed(1) + ',95%,62%)');
+      g.addColorStop(1, 'hsl(' + hue.toFixed(1) + ',90%,42%)');
+      x.fillStyle = g;
+      x.fillText(ch, -widths[i] / 2, 0);
+      x.restore();
+    }
+    cx0 += widths[i];
+  });
+
+  /* 下線（虹色グラデ・流れる） */
+  const ul = x.createLinearGradient(CX - 170, 0, CX + 170, 0);
+  for (let i = 0; i <= 6; i++) ul.addColorStop(i / 6, 'hsl(' + ((i * 50 + A * p * 360) % 360).toFixed(1) + ',92%,52%)');
+  x.fillStyle = ul;
+  x.fillRect(CX - 170, 962 + A * 5 * c2, 340, 8);
+}
+
+/* ---------- サンプル画像 ---------- */
+function makeSampleImage() {
+  const W = SAMPLE_W, H = SAMPLE_H;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  drawSampleFrame(c.getContext('2d'), 0, false);
+
+  const im = new Image();
+  im.onload = () => {
+    state.type = 'image'; state.img = im; state.srcW = W; state.srcH = H; state.name = 'text_mosaic_sample';
+    setTextJa($('srcInfo'), 'サンプル画像 (カラースマイル) / ' + W + '×' + H + ' px');
+    setStatus('IMAGE_LOADED'); log('サンプル画像を生成しました'); requestRender();
+  };
+  im.onerror = () => { log('サンプル生成に失敗しました', 'err'); };
+  im.src = c.toDataURL();
+}
+
+/* ---------- サンプル動画（表情＋文字ウェーブのループ） ---------- */
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
