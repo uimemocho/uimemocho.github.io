@@ -118,5 +118,17 @@
     "sourceEntry": "text_mosaic_generator_basic.html",
     "publishedAt": "2026-07-31T05:13:15Z",
     "updatedAt": "2026-07-31T05:14:04Z"
+  },
+  {
+    "slug": "match-text",
+    "title": "マッチテキスト",
+    "kind": "game",
+    "description": "文字を3つそろえて消す、ひとり・CPU・フレンド対戦対応のマッチ3パズルゲーム。",
+    "url": "/apps/match-text/",
+    "thumbnail": "/project-thumbnails/match-text.png",
+    "sourceFolder": "260801_マッチテキスト",
+    "sourceEntry": "mach_text.html",
+    "publishedAt": "2026-08-01T14:58:26Z",
+    "updatedAt": "2026-08-01T14:58:26Z"
   }
 ]
