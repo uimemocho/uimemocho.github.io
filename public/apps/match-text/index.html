@@ -20,6 +20,8 @@
             --safe-left: max(12px, env(safe-area-inset-left));
             --safe-right: max(12px, env(safe-area-inset-right));
             --title-rise: clamp(60px, 12vh, 100px);
+            --board-rise: clamp(0px, calc(22dvh - 112.2px), 50px);
+            --result-shift: clamp(24px, calc(40dvh - 196px), 100px);
         }
 
         * { box-sizing: border-box; }
@@ -69,6 +71,7 @@
             animation: text-snow linear infinite;
             will-change: transform, opacity;
         }
+        .snow-glyph { display: inline-block; }
         @keyframes text-snow {
             0% { transform: translate3d(0, -8vh, 0) rotate(0deg); opacity: 0; }
             12% { opacity: .76; }
@@ -78,15 +81,15 @@
         .title-center { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr auto 1fr; justify-items: center; padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left); }
         .title-logo { grid-row: 2; align-self: center; margin: 0; text-align: center; z-index: 2; transform: translateY(calc(-1 * var(--title-rise))); }
         .title-logo .rule { color: #5d6464; letter-spacing: -.08em; }
-        .title-logo h1 { margin: 10px 0; font-size: clamp(30px, 9vw, 48px); letter-spacing: .18em; text-shadow: 0 0 16px rgba(255,255,255,.32); }
-        .title-logo .sub { color: #818b8d; font-size: 11px; letter-spacing: .42em; }
+        .title-logo h1 { margin: 10px 0; font-size: clamp(30px, 9vw, 48px); letter-spacing: .18em; text-shadow: 0 0 16px rgba(255,255,255,.32); transform: translateX(8px); }
+        .title-logo .sub { color: #818b8d; font-size: 11px; letter-spacing: .42em; transform: translateX(4px); }
         #title-settings { position: absolute; top: var(--safe-top); right: var(--safe-right); z-index: 3; color: #a5adae; }
         .start-menu { grid-row: 3; align-self: end; z-index: 3; display: grid; gap: 7px; transform: translateY(calc(-1 * var(--title-rise))); animation: soft-blink 1.8s ease-in-out infinite; }
         .start-menu .text-button { color: var(--ink); font-size: 16px; }
 
         /* in game */
         #game-screen { display: grid; place-items: center; }
-        #game-ui { width: min(100vw, 390px); height: 100dvh; min-height: 450px; display: grid; grid-template-rows: auto minmax(46px, 1fr) auto; align-items: stretch; padding: var(--safe-top) 0 var(--safe-bottom); }
+        #game-ui { width: min(100vw, 390px); height: 100dvh; min-height: 450px; display: grid; grid-template-rows: auto minmax(46px, 1fr) auto; align-items: stretch; padding: var(--safe-top) 0 calc(var(--safe-bottom) + var(--board-rise)); }
         .game-zone-top { align-self: start; width: 100%; min-height: 0; }
         .game-zone-middle { align-self: center; width: 100%; min-height: 0; }
         .game-zone-bottom { align-self: end; width: 100%; min-height: 0; display: flex; justify-content: center; }
@@ -143,9 +146,9 @@
         .volume-bar { color: #cdd8d5; letter-spacing: -.08em; white-space: nowrap; }
         #result-screen { display: grid; place-items: center; }
         .result-card { width: min(360px, calc(100vw - var(--safe-left) - var(--safe-right))); height: 100dvh; display: grid; grid-template-rows: 1fr auto 1fr; text-align: center; padding: var(--safe-top) 0 var(--safe-bottom); }
-        .result-top { align-self: start; margin-top: 8px; }
+        .result-top { align-self: start; margin-top: 8px; transform: translateY(var(--result-shift)); }
         .result-middle { align-self: center; width: 100%; }
-        .result-bottom { align-self: end; width: 100%; }
+        .result-bottom { align-self: end; width: 100%; transform: translateY(calc(-1 * var(--result-shift))); }
         #result-heading { color: #aeb4b1; font-size: 13px; letter-spacing: .35em; }
         #result-rank { margin: 14px 0 0; color: var(--gold); font-size: 44px; line-height: 1; text-shadow: 0 0 14px rgba(247,216,74,.42); }
         #result-rank.win { color: var(--gold); text-shadow: 0 0 14px rgba(247,216,74,.48); }
@@ -153,6 +156,7 @@
         .result-row { display: flex; justify-content: space-between; margin: 12px 34px; color: #909793; }
         .result-row strong { color: #f4f0df; font-weight: normal; }
         #new-badge { color: #ff6e6e; margin-right: 6px; font-size: 10px; animation: soft-blink 1.2s ease-in-out infinite; }
+        #result-score.new-score { color: var(--gold); text-shadow: 0 0 9px rgba(247,216,74,.5); }
         #result-actions { margin: 0 0 16px; }
         .room-input { width: 100%; border: 0; border-bottom: 1px dashed #7f8987; outline: 0; background: transparent; color: #f4f0df; padding: 8px 4px; text-align: center; font: inherit; font-size: 25px; letter-spacing: .45em; text-indent: .45em; }
         .room-block { display: grid; gap: 8px; margin: 13px 0; }
@@ -310,14 +314,20 @@
             { char: '紫', color: '#a855f7' }
         ];
 
+        const SPECIAL_PIECE_TYPES = [
+            { char: '横', special: 'horz', min: 2, max: 3 },
+            { char: '縦', special: 'vert', min: 2, max: 3 },
+            { char: '爆', special: 'bomb', min: 1, max: 2 },
+            { char: '飛', special: 'fly', min: 1, max: 2 },
+            { char: '虹', special: 'rainbow', min: 1, max: 1 }
+        ];
+
+        const SPECIAL_CHAR_BY_TYPE = Object.fromEntries(SPECIAL_PIECE_TYPES.map(type => [type.special, type.char]));
+
         const STAGE = {
             turns: 24,
             starScores: [4000, 8000, 12000],
-            targets: [
-                { char: '赤', count: 14 },
-                { char: '青', count: 14 },
-                { char: '黄', count: 12 }
-            ]
+            targets: []
         };
 
         let board = [];
@@ -326,7 +336,6 @@
         let targetRemaining = {};
         let opponentRemaining = {};
         let currentMode = 'solo';
-        let battleRound = 0;
         let combo = 0;
         let isProcessing = false;
         let gameEnded = false;
@@ -346,6 +355,63 @@
         const bgmAudio = document.getElementById('bgm-audio');
 
         const toFullWidth = value => String(value).replace(/[0-9]/g, s => String.fromCharCode(s.charCodeAt(0) + 0xFEE0));
+
+        function shuffled(items, random = Math.random) {
+            const copy = [...items];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function selectRandomTargets() {
+            const specialCount = Math.random() < .35 ? 2 : 1;
+            const normalTargets = shuffled(PIECE_TYPES).slice(0, 3 - specialCount).map(type => ({
+                char: type.char,
+                special: 'normal',
+                color: type.color,
+                count: 10 + Math.floor(Math.random() * 5)
+            }));
+            const specialTargets = shuffled(SPECIAL_PIECE_TYPES).slice(0, specialCount).map(type => ({
+                char: type.char,
+                special: type.special,
+                color: type.special === 'rainbow' ? '#ffffff' : PIECE_TYPES[Math.floor(Math.random() * PIECE_TYPES.length)].color,
+                count: type.min + Math.floor(Math.random() * (type.max - type.min + 1))
+            }));
+            return shuffled([...normalTargets, ...specialTargets]);
+        }
+
+        function normalizeTargets(targets) {
+            if (!Array.isArray(targets) || targets.length !== 3) return null;
+            const seen = new Set();
+            const normalized = [];
+            for (const target of targets) {
+                const normal = PIECE_TYPES.find(type => type.char === target?.char);
+                const special = SPECIAL_PIECE_TYPES.find(type => type.char === target?.char && type.special === target?.special);
+                const definition = normal || special;
+                if (!definition || seen.has(definition.char)) return null;
+                seen.add(definition.char);
+                const count = Math.max(1, Math.min(20, Math.floor(Number(target.count) || 0)));
+                const allowedColor = PIECE_TYPES.some(type => type.color === target.color) ? target.color : null;
+                normalized.push({
+                    char: definition.char,
+                    special: special?.special || 'normal',
+                    color: special?.special === 'rainbow' ? '#ffffff' : (normal?.color || allowedColor || PIECE_TYPES[0].color),
+                    count
+                });
+            }
+            return normalized;
+        }
+
+        function getPieceTargetChars(piece) {
+            const chars = [piece.baseChar];
+            const specialChar = SPECIAL_CHAR_BY_TYPE[piece.special];
+            const specialTarget = STAGE.targets.find(target => target.char === specialChar && target.special === piece.special);
+            const specialColorMatches = piece.special === 'rainbow' || specialTarget?.color === piece.color;
+            if (specialTarget && specialColorMatches) chars.push(specialChar);
+            return chars;
+        }
 
         function showScreen(id) {
             ['title-screen', 'game-screen', 'result-screen'].forEach(screenId => {
@@ -368,13 +434,8 @@
             const el = document.getElementById('turn-display');
             const label = document.getElementById('turn-label');
             label.textContent = 'ターン';
-            if (currentMode !== 'solo') {
-                el.textContent = toFullWidth(String(battleRound).padStart(2, '0'));
-                el.style.color = '#ffffff';
-            } else {
-                el.textContent = toFullWidth(String(turnsLeft).padStart(2, '0'));
-                el.style.color = turnsLeft <= 5 ? '#ff7777' : '#ffffff';
-            }
+            el.textContent = toFullWidth(String(turnsLeft).padStart(2, '0'));
+            el.style.color = turnsLeft <= 5 ? '#ff7777' : '#ffffff';
         }
 
         function updateTargetsUI() {
@@ -394,13 +455,23 @@
                 STAGE.targets.forEach(target => {
                     const left = Math.max(0, values[target.char] ?? target.count);
                     const item = document.createElement('span');
-                    const type = PIECE_TYPES.find(p => p.char === target.char);
                     item.className = 'target-item' + (left === 0 ? ' done' : '');
                     item.dataset.side = side;
                     item.dataset.char = target.char;
-                    item.style.color = type.color;
+                    item.style.color = target.color;
                     item.setAttribute('aria-label', `${side === 'opponent' ? '相手' : '自分'} ${target.char} 残り${left}`);
-                    item.innerHTML = `<span class="target-char">${target.char}</span><span class="target-count">${toFullWidth(String(left).padStart(2, '0'))}</span>`;
+                    const char = document.createElement('span');
+                    char.className = 'target-char';
+                    char.textContent = target.char;
+                    if (left > 0 && target.special === 'rainbow') char.classList.add('rainbow-anim');
+                    else if (left > 0 && target.special !== 'normal') {
+                        char.style.setProperty('--piece-color', target.color);
+                        char.classList.add('special-anim');
+                    }
+                    const count = document.createElement('span');
+                    count.className = 'target-count';
+                    count.textContent = toFullWidth(String(left).padStart(2, '0'));
+                    item.append(char, count);
                     list.appendChild(item);
                 });
                 team.appendChild(list);
@@ -435,8 +506,7 @@
         }
 
         function consumeTurn() {
-            if (currentMode !== 'solo') battleRound++;
-            else turnsLeft = Math.max(0, turnsLeft - 1);
+            turnsLeft = Math.max(0, turnsLeft - 1);
             updateTurnUI();
             playSE(330, .05, 'square');
         }
@@ -453,9 +523,19 @@
             for (let i = 0; i < amount; i++) {
                 const el = document.createElement('span');
                 el.className = 'snow-char';
-                el.textContent = chars[Math.floor(Math.random() * chars.length)];
-                const pieceType = PIECE_TYPES.find(piece => piece.char === el.textContent);
-                if (pieceType) el.style.color = pieceType.color;
+                const glyph = document.createElement('span');
+                glyph.className = 'snow-glyph';
+                glyph.textContent = chars[Math.floor(Math.random() * chars.length)];
+                const pieceType = PIECE_TYPES.find(piece => piece.char === glyph.textContent);
+                const specialType = SPECIAL_PIECE_TYPES.find(piece => piece.char === glyph.textContent);
+                if (pieceType) glyph.style.color = pieceType.color;
+                else if (specialType?.special === 'rainbow') glyph.classList.add('rainbow-anim');
+                else if (specialType) {
+                    const randomColor = PIECE_TYPES[Math.floor(Math.random() * PIECE_TYPES.length)].color;
+                    glyph.style.setProperty('--piece-color', randomColor);
+                    glyph.classList.add('special-anim');
+                }
+                el.appendChild(glyph);
                 el.style.left = Math.random() * 100 + '%';
                 el.style.fontSize = (9 + Math.random() * 11) + 'px';
                 el.style.animationDuration = (8 + Math.random() * 11) + 's';
@@ -502,12 +582,12 @@
             document.getElementById('bg-layer').textContent = bgHtml;
         }
 
-        function initGame() {
+        function initGame(targets = null) {
+            STAGE.targets = normalizeTargets(targets) || selectRandomTargets();
             score = 0;
             turnsLeft = STAGE.turns;
             targetRemaining = Object.fromEntries(STAGE.targets.map(target => [target.char, target.count]));
             opponentRemaining = Object.fromEntries(STAGE.targets.map(target => [target.char, target.count]));
-            battleRound = 0;
             combo = 0;
             gameEnded = false;
             updateScoreUI();
@@ -637,13 +717,13 @@
             if (!target) return Promise.resolve();
             const targetRect = target.getBoundingClientRect();
             const end = { x: targetRect.left + targetRect.width / 2, y: targetRect.top + targetRect.height / 2 };
-            const type = PIECE_TYPES.find(piece => piece.char === char);
+            const targetDefinition = STAGE.targets.find(item => item.char === char);
 
             return new Promise(resolve => {
                 const el = document.createElement('span');
                 el.className = 'target-projectile';
                 el.textContent = glyph;
-                el.style.color = type?.color || '#ffffff';
+                el.style.color = targetDefinition?.color || '#ffffff';
                 el.style.left = (start.x - 8) + 'px';
                 el.style.top = (start.y - 8) + 'px';
                 el.style.opacity = '0';
@@ -672,11 +752,35 @@
             });
         }
 
+        async function animateOpponentHits(hits, afterMessage = '＜ あなたの番 ＞') {
+            if (hits.length === 0) return;
+            setGameMessage('＜ 相手の番　××× ＞');
+            const boardRect = gameContainer.getBoundingClientRect();
+            await Promise.all(hits.map((char, index) => launchTargetProjectile(
+                { x: innerWidth - 6, y: boardRect.top + 54 + (index % 5) * 13 },
+                char,
+                'opponent',
+                index * 105,
+                '×'
+            )));
+            if (!targetsComplete(opponentRemaining)) setGameMessage(afterMessage, 800);
+        }
+
+        async function animateRemoteProgress(values) {
+            const hits = [];
+            STAGE.targets.forEach(target => {
+                const incoming = Number(values?.[target.char]);
+                if (!Number.isFinite(incoming)) return;
+                const next = Math.max(0, Math.min(target.count, Math.floor(incoming)));
+                const current = opponentRemaining[target.char] ?? target.count;
+                for (let i = next; i < current; i++) hits.push(target.char);
+            });
+            await animateOpponentHits(hits, '＜ 対 戦 中 ＞');
+        }
+
         async function runOpponentTurn() {
             const remainingTotal = Object.values(opponentRemaining).reduce((sum, value) => sum + value, 0);
             if (remainingTotal <= 0) return;
-            setGameMessage('＜ 相手の番　××× ＞');
-
             const simulated = { ...opponentRemaining };
             const hitCount = Math.min(remainingTotal, 3 + Math.floor(Math.random() * 3));
             const hits = [];
@@ -687,15 +791,7 @@
                 hits.push(chosen.char);
             }
 
-            const boardRect = gameContainer.getBoundingClientRect();
-            await Promise.all(hits.map((char, index) => launchTargetProjectile(
-                { x: innerWidth - 6, y: boardRect.top + 54 + index * 13 },
-                char,
-                'opponent',
-                index * 105,
-                '×'
-            )));
-            if (!targetsComplete(opponentRemaining)) setGameMessage('＜ あなたの番 ＞', 800);
+            await animateOpponentHits(hits);
         }
 
         async function settleGame() {
@@ -711,8 +807,16 @@
                     finishGame(false, 'lose');
                     return;
                 }
+                if (turnsLeft <= 0) {
+                    finishGame(false, 'lose');
+                    return;
+                }
             } else if (currentMode === 'friend') {
                 OnlineBattle.sendProgress();
+                if (turnsLeft <= 0) {
+                    OnlineBattle.claimLoss();
+                    return;
+                }
             } else if (turnsLeft <= 0) {
                 finishGame(false);
                 return;
@@ -738,7 +842,9 @@
             resultRank.classList.remove('win', 'lose');
             if (battleOutcome) resultRank.classList.add(battleOutcome === 'win' ? 'win' : 'lose');
             resultRank.textContent = battleOutcome ? (battleOutcome === 'win' ? '勝ち' : '負け') : (cleared ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : '－ － －');
-            document.getElementById('result-score').textContent = toFullWidth(String(score).padStart(6, '0'));
+            const resultScore = document.getElementById('result-score');
+            resultScore.textContent = toFullWidth(String(score).padStart(6, '0'));
+            resultScore.classList.toggle('new-score', isNew);
             document.getElementById('best-score').textContent = toFullWidth(String(best).padStart(6, '0'));
             document.getElementById('new-badge').hidden = !isNew;
             playSE(cleared || battleOutcome === 'win' ? 880 : 130, .4, cleared || battleOutcome === 'win' ? 'sine' : 'sawtooth');
@@ -1365,20 +1471,21 @@
             destroyedMap.forEach((delay, p) => {
                 if (board[p.r][p.c] === p) board[p.r][p.c] = null;
                 if (delay > maxDelay) maxDelay = delay;
-                if (Object.prototype.hasOwnProperty.call(targetRemaining, p.baseChar) && targetRemaining[p.baseChar] > 0) {
-                    const reserved = reservedHits[p.baseChar] || 0;
-                    if (reserved < targetRemaining[p.baseChar]) {
-                        reservedHits[p.baseChar] = reserved + 1;
-                        const rect = p.el.getBoundingClientRect();
+                const rect = p.el.getBoundingClientRect();
+                getPieceTargetChars(p).forEach(char => {
+                    if (Object.prototype.hasOwnProperty.call(targetRemaining, char) && targetRemaining[char] > 0) {
+                        const reserved = reservedHits[char] || 0;
+                        if (reserved >= targetRemaining[char]) return;
+                        reservedHits[char] = reserved + 1;
                         targetHitPromises.push(launchTargetProjectile(
                             { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
-                            p.baseChar,
+                            char,
                             'player',
                             delay + 35,
                             '※'
                         ));
                     }
-                }
+                });
             });
 
             playSE(520 + Math.min(300, destroyedMap.size * 8), .12, 'triangle');
@@ -1674,7 +1781,7 @@
 
         const FRIEND_BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081'];
         const OnlineBattle = {
-            mq: null, code: null, myId: null, topic: null, role: null, guestId: null, finished: false, started: false, joinTimer: null,
+            mq: null, code: null, myId: null, topic: null, role: null, guestId: null, finished: false, started: false, joinTimer: null, progressQueue: Promise.resolve(),
             send(message) { if (!this.mq) return; message.i = this.myId; message.role = this.role; try { this.mq.publish(this.topic, JSON.stringify(message)); } catch (_) {} },
             async connect(brokerIndex, code) {
                 this.code = code; this.myId = 'mt' + Math.random().toString(36).slice(2, 10); this.topic = 'match-text/1/' + code;
@@ -1713,26 +1820,30 @@
                 } else if (message.t === 'room' && this.role === 'guest' && message.to === this.myId && this.joinResolve) {
                     clearTimeout(this.joinTimer); const resolve = this.joinResolve; this.joinResolve = this.joinReject = null; resolve();
                 } else if (message.t === 'ready' && this.role === 'host' && !this.started) {
-                    this.started = true; document.getElementById('room-status').textContent = 'まもなく対戦開始…'; setTimeout(() => { this.send({ t: 'start' }); this.beginMatch(); }, 700);
+                    this.started = true; document.getElementById('room-status').textContent = 'まもなく対戦開始…'; setTimeout(() => { const targets = selectRandomTargets(); this.send({ t: 'start', targets }); this.beginMatch(targets); }, 700);
                 } else if (message.t === 'start' && this.role === 'guest') {
-                    if (!this.started) { this.started = true; this.beginMatch(); }
+                    if (!this.started) { this.started = true; this.beginMatch(message.targets); }
                 } else if (message.t === 'progress' && currentMode === 'friend') {
-                    STAGE.targets.forEach(target => { const value = Number(message.values?.[target.char]); if (Number.isFinite(value)) opponentRemaining[target.char] = Math.max(0, Math.min(target.count, value)); }); updateTargetsUI();
+                    this.progressQueue = this.progressQueue.then(() => animateRemoteProgress(message.values));
                 } else if (message.t === 'claim_win' && this.role === 'host' && !this.finished) {
-                    this.declareWinner(message.role);
+                    this.progressQueue.then(() => this.declareWinner(message.role));
+                } else if (message.t === 'claim_loss' && this.role === 'host' && !this.finished) {
+                    const winner = message.role === 'host' ? 'guest' : 'host';
+                    this.progressQueue.then(() => this.declareWinner(winner));
                 } else if (message.t === 'result') {
-                    this.handleResult(message.winner);
+                    this.progressQueue.then(() => this.handleResult(message.winner));
                 } else if (message.t === 'leave' && !this.finished) {
                     if (currentMode === 'friend' && !gameEnded) { setGameMessage('＜ 相手が退室しました ＞', 900); setTimeout(() => finishGame(true, 'win'), 900); }
                     else document.getElementById('room-status').textContent = '相手が退室しました';
                 }
             },
-            beginMatch() { closeDialog('friend-dialog'); currentMode = 'friend'; showScreen('game-screen'); initGame(); setTimeout(() => this.sendProgress(), 250); },
+            beginMatch(targets) { closeDialog('friend-dialog'); currentMode = 'friend'; this.progressQueue = Promise.resolve(); showScreen('game-screen'); initGame(targets); setTimeout(() => this.sendProgress(), 250); },
             sendProgress() { if (currentMode === 'friend') this.send({ t: 'progress', values: { ...targetRemaining } }); },
             claimWin() { if (this.finished) return; isProcessing = true; this.sendProgress(); if (this.role === 'host') this.declareWinner('host'); else { this.send({ t: 'claim_win' }); setGameMessage('＜ 勝敗判定中 ＞'); } },
+            claimLoss() { if (this.finished) return; isProcessing = true; this.sendProgress(); const winner = this.role === 'host' ? 'guest' : 'host'; if (this.role === 'host') this.declareWinner(winner); else { this.send({ t: 'claim_loss' }); setGameMessage('＜ ターン終了　勝敗判定中 ＞'); } },
             declareWinner(winner) { if (this.finished) return; this.finished = true; this.send({ t: 'result', winner }); this.handleResult(winner); },
             handleResult(winner) { if (gameEnded) return; this.finished = true; const won = winner === this.role; finishGame(won, won ? 'win' : 'lose'); },
-            leave(silent = false) { clearTimeout(this.joinTimer); if (this.mq) { if (!silent && !this.finished) this.send({ t: 'leave' }); this.mq.close(); } this.mq = null; this.code = null; this.role = null; this.guestId = null; this.finished = false; this.started = false; if (currentMode === 'friend' && !document.getElementById('game-screen').hidden) showScreen('title-screen'); }
+            leave(silent = false) { clearTimeout(this.joinTimer); if (this.mq) { if (!silent && !this.finished) this.send({ t: 'leave' }); this.mq.close(); } this.mq = null; this.code = null; this.role = null; this.guestId = null; this.finished = false; this.started = false; this.progressQueue = Promise.resolve(); if (currentMode === 'friend' && !document.getElementById('game-screen').hidden) showScreen('title-screen'); }
         };
 
         function openDialog(id) {
