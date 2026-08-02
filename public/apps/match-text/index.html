@@ -213,9 +213,9 @@
         #game-message { position: fixed; left: 50%; top: var(--game-message-top, 50%); z-index: 300; max-width: calc(100vw - 28px); color: #e9eee9; background: rgba(4,5,5,.88); padding: 5px 12px; font-size: 11px; letter-spacing: .12em; text-align: center; white-space: nowrap; pointer-events: none; opacity: 0; transform: translate(-50%, calc(-100% + 7px)) scale(.96); transition: opacity .18s, transform .18s; text-shadow: 0 0 8px currentColor; }
         #game-message.show { opacity: 1; transform: translate(-50%, -100%) scale(1); }
 
-        #finish-cutin { position: fixed; inset: 0; z-index: 900; display: flex; align-items: center; justify-content: center; gap: clamp(8px, 4vw, 24px); background: rgba(0,0,0,.42); pointer-events: none; opacity: 1; transition: opacity .18s ease-out; }
+        #finish-cutin { position: fixed; inset: 0; z-index: 900; display: flex; align-items: center; justify-content: center; gap: clamp(8px, 4vw, 24px); padding-bottom: 200px; background: rgba(0,0,0,.42); pointer-events: none; opacity: 1; transition: opacity .18s ease-out; }
         #finish-cutin.fade { opacity: 0; }
-        #round-cutin { position: fixed; inset: 0; z-index: 880; display: grid; place-items: center; overflow: hidden; background: rgba(0,0,0,.28); pointer-events: none; }
+        #round-cutin { position: fixed; inset: 0; z-index: 880; display: grid; place-items: center; overflow: hidden; padding-bottom: 200px; background: rgba(0,0,0,.28); pointer-events: none; }
         #round-cutin[hidden] { display: none; }
         #round-cutin-text { display: block; color: #f4f0df; font-size: clamp(38px, 12vw, 64px); letter-spacing: .12em; white-space: nowrap; text-shadow: 0 0 14px rgba(255,255,255,.55); will-change: transform, opacity; }
         .finish-char { display: inline-block; color: #f4f0df; font-size: clamp(76px, 24vw, 122px); font-weight: bold; line-height: 1; opacity: 0; text-shadow: 0 0 5px rgba(255,255,255,.34), 0 8px 0 #222; will-change: transform, opacity; }
@@ -555,7 +555,7 @@
     <div id="pause-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden>
         <div class="text-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
-            <h2 id="pause-title">［ 一 時 停 止 ］</h2>
+            <h2 id="pause-title">一 時 停 止</h2>
             <div class="dialog-actions">
                 <button id="continue-btn" class="text-button" type="button">つづける</button>
                 <button id="pause-title-btn" class="text-button" type="button">タイトルへ</button>
@@ -567,7 +567,7 @@
     <div id="settings-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
         <div class="text-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
-            <h2 id="settings-title">［ 設 定 ］</h2>
+            <h2 id="settings-title">設 定</h2>
             <div class="setting-row"><span>ＢＧＭ</span><button class="text-button setting-step" data-volume="bgm" data-delta="-1" type="button">－</button><span id="bgm-bar" class="volume-bar">■■■■■□□□□□</span><button class="text-button setting-step" data-volume="bgm" data-delta="1" type="button">＋</button><span id="bgm-value">５</span></div>
             <div class="setting-row"><span>ＳＥ</span><button class="text-button setting-step" data-volume="se" data-delta="-1" type="button">－</button><span id="se-bar" class="volume-bar">■■■■■■■□□□</span><button class="text-button setting-step" data-volume="se" data-delta="1" type="button">＋</button><span id="se-value">７</span></div>
             <div class="dialog-actions"><button id="settings-close" class="text-button" type="button">とじる</button></div>
@@ -612,7 +612,7 @@
     <div id="face-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="face-title" hidden>
         <div class="text-dialog face-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
-            <h2 id="face-title">［ キャラクター選択 ］</h2>
+            <h2 id="face-title">キャラクター選択</h2>
             <div id="face-grid" class="face-grid" aria-label="対戦用キャラクター"></div>
             <div class="dialog-actions"><button id="face-cancel-btn" class="text-button" type="button">もどる</button></div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
@@ -622,7 +622,7 @@
     <div id="round-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="round-dialog-title" hidden>
         <div class="text-dialog">
             <div class="dialog-rule">＋－－－－－－－－－－＋</div>
-            <h2 id="round-dialog-title">［ ラウンド数 ］</h2>
+            <h2 id="round-dialog-title">ラウンド数</h2>
             <div class="round-options" aria-label="対戦ラウンド数">
                 <button class="round-option" data-round-count="1" type="button">ラウンド１</button>
                 <button class="round-option" data-round-count="3" type="button">ラウンド３</button>
@@ -636,7 +636,7 @@
     <div id="friend-method-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="friend-method-title" hidden>
         <div class="text-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
-            <h2 id="friend-method-title">［ フレンド対戦 ］</h2>
+            <h2 id="friend-method-title">フレンド対戦</h2>
             <div class="dialog-actions friend-choice-actions">
                 <button id="friend-create-choice" class="text-button" type="button">部屋を作る</button>
                 <button id="friend-join-choice" class="text-button" type="button">番号で入る</button>
@@ -650,7 +650,7 @@
     <div id="friend-join-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="friend-join-title" hidden>
         <div class="text-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
-            <h2 id="friend-join-title">［ 番号で入る ］</h2>
+            <h2 id="friend-join-title">番号で入る</h2>
             <div class="room-block"><span class="room-label">＜ ４桁の部屋番号 ＞</span><input id="room-code-input" class="room-input" type="text" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off"><button id="room-join-btn" class="text-button" type="button">入室する</button></div>
             <div id="room-feedback" class="room-label"></div>
             <div class="dialog-actions"><button id="friend-join-close" class="text-button" type="button">もどる</button></div>
@@ -661,7 +661,7 @@
     <div id="friend-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="friend-title" hidden>
         <div class="text-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
-            <h2 id="friend-title">［ フレンド対戦 ］</h2>
+            <h2 id="friend-title">フレンド対戦</h2>
             <div id="room-wait"><div class="room-label">部屋番号</div><div id="room-code">----</div><div id="room-status">接続しています…</div></div>
             <div class="dialog-actions"><button id="friend-close-btn" class="text-button" type="button">もどる</button></div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
