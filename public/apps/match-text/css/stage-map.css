@@ -166,7 +166,16 @@
 .stage-detail-name { margin-bottom: 5px; color: #aeb7b1; font-size: 10px; letter-spacing: .12em; }
 #stage-detail-stars { min-height: 21px; margin-bottom: 18px; color: var(--gold); font-size: 14px; letter-spacing: .16em; text-shadow: 0 0 7px currentColor; }
 #stage-detail-enemies { margin: 0 0 16px; }
-.stage-detail-close { margin-top: 7px; color: #8c9490 !important; font-size: 18px; }
+.stage-detail-close {
+    display: block;
+    width: 36px;
+    min-height: 36px;
+    margin: 64px auto 0;
+    padding: 3px;
+    color: #8c9490 !important;
+    font-size: 16px;
+    letter-spacing: 0;
+}
 
 /* A defeated enemy is rebuilt from text particles; no canvas or image allocation. */
 .enemy-card.dead-burst { opacity: 0 !important; filter: none !important; transition: opacity .08s linear; }

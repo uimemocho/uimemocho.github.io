@@ -87,7 +87,17 @@
         .title-logo .rule { color: #5d6464; letter-spacing: -.08em; }
         .title-logo h1 { margin: 10px 0; font-size: clamp(30px, 9vw, 48px); letter-spacing: .18em; text-shadow: 0 0 16px rgba(255,255,255,.32); transform: translateX(8px); }
         .title-logo .sub { color: #818b8d; font-size: 11px; letter-spacing: .42em; transform: translateX(4px); }
-        #title-settings { position: absolute; top: var(--safe-top); right: var(--safe-right); z-index: 3; color: #a5adae; }
+        #title-settings {
+            position: absolute;
+            top: var(--safe-top);
+            right: var(--safe-right);
+            z-index: 3;
+            min-height: 28px;
+            padding: 3px 9px;
+            color: #a5adae;
+            font-size: 10px;
+            letter-spacing: .08em;
+        }
         .start-menu { grid-row: 3; align-self: end; z-index: 3; display: grid; width: min(270px, calc(100vw - 64px)); gap: 7px; transform: translateY(calc(-1 * var(--title-rise))); animation: soft-blink 1.8s ease-in-out infinite; }
         .start-menu .text-button { width: 100%; color: var(--ink); font-size: 16px; }
 
@@ -97,15 +107,15 @@
         .game-zone-top { align-self: start; width: 100%; min-height: 0; }
         .game-zone-middle { align-self: center; width: 100%; min-height: 0; }
         .game-zone-bottom { align-self: end; width: 100%; min-height: 0; display: flex; justify-content: center; }
-        .hud { width: 100%; display: grid; grid-template-columns: 92px 1fr 92px; align-items: start; padding: 0 8px; }
+        .hud { width: 100%; display: grid; grid-template-columns: 64px minmax(0, 1fr) 48px; align-items: start; padding: 0 8px; }
         .turns { color: #d3d6d3; text-align: center; font-size: 11px; letter-spacing: 0; white-space: nowrap; }
         #turn-display { display: block; margin-top: 1px; color: #fff; font-size: 30px; line-height: 1; text-shadow: 0 0 9px rgba(255,255,255,.4); }
         .score-zone { text-align: center; min-width: 0; }
         #star-track { color: #67675f; font-size: 18px; letter-spacing: .04em; white-space: nowrap; }
         #star-track .earned { color: var(--gold); text-shadow: 0 0 8px var(--gold); }
-        #score-bar { color: #887b38; font-size: 11px; letter-spacing: -.06em; white-space: nowrap; }
+        #score-bar { color: #887b38; font-size: clamp(8px, 2.8vw, 11px); letter-spacing: -.06em; white-space: nowrap; }
         #score-display { color: #ece7ce; font-size: 12px; margin-top: 2px; transition: .15s; }
-        #pause-btn { justify-self: end; color: #9fa4a1; font-size: 11px; white-space: nowrap; }
+        #pause-btn { justify-self: end; width: 30px; min-height: 28px; padding: 2px; color: #9fa4a1; font-size: 13px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
         #targets { display: flex; justify-content: center; align-items: flex-end; gap: 9px; min-height: 40px; }
         .target-team { display: grid; justify-items: center; gap: 2px; }
         .target-team-label { color: #707773; font-size: 9px; letter-spacing: .12em; }
@@ -122,7 +132,14 @@
         .target-projectile { position: fixed; z-index: 650; pointer-events: none; font-size: 17px; font-weight: bold; text-shadow: 0 0 8px currentColor; }
         #targets.enemy-encounter { width: 100%; min-height: 112px; align-items: stretch; padding: 0 5px; }
         .enemy-list { width: 100%; display: grid; grid-template-columns: repeat(var(--enemy-count), minmax(0, 112px)); justify-content: center; align-items: end; gap: clamp(8px, 4vw, 18px); }
+        .enemy-list.count-3 {
+            width: calc(100% - 28px);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            justify-items: center;
+            gap: clamp(5px, 1.8vw, 8px);
+        }
         .enemy-card { position: relative; width: 100%; min-width: 0; max-width: 112px; border: 0; background: transparent; color: #f1f1eb; padding: 9px 10px 5px; font: inherit; text-align: center; cursor: pointer; opacity: 1; transition: opacity .18s, filter .18s; }
+        .enemy-list.count-3 .enemy-card { max-width: 104px; padding-right: 3px; padding-left: 3px; }
         .enemy-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
         .enemy-attack-count { min-height: 16px; color: #f0f0ea; font-size: 11px; line-height: 1; }
         .enemy-attack-count.danger { animation: enemy-count-danger .68s steps(1, end) infinite; }
@@ -136,11 +153,16 @@
         .enemy-card .target-item { width: clamp(22px, 7.2vw, 28px); }
         .enemy-card .target-item .target-char { font-size: clamp(15px, 4.6vw, 18px); }
         .enemy-card .target-item .target-count { margin-top: 2px; font-size: 8px; }
+        .enemy-list.count-3 .target-item { width: clamp(19px, 6.2vw, 24px); }
+        .enemy-list.count-3 .target-item .target-char { font-size: clamp(14px, 4.2vw, 17px); }
+        .enemy-list.count-3 .enemy-face { font-size: clamp(15px, 4.8vw, 20px); }
         .enemy-corner { position: absolute; color: #f4f4ed; font-size: 16px; line-height: 1; opacity: 0; pointer-events: none; text-shadow: 0 0 6px rgba(255,255,255,.5); }
         .enemy-corner.tl { top: -5px; left: -10px; }
         .enemy-corner.tr { top: -5px; right: -10px; }
         .enemy-corner.bl { bottom: -14px; left: -10px; }
         .enemy-corner.br { right: -10px; bottom: -14px; }
+        .enemy-list.count-3 .enemy-corner.tl, .enemy-list.count-3 .enemy-corner.bl { left: -5px; }
+        .enemy-list.count-3 .enemy-corner.tr, .enemy-list.count-3 .enemy-corner.br { right: -5px; }
         .enemy-card.selected:not(.defeated) .enemy-corner { opacity: 1; animation: enemy-select-pulse 1.45s ease-in-out infinite; }
         .enemy-attack-projectile { position: fixed; z-index: 660; pointer-events: none; color: #ff8a7f; font-size: 23px; font-weight: bold; text-shadow: 0 0 10px currentColor; }
         .piece.stone-piece { color: #858b87; text-shadow: 0 0 5px rgba(190,200,195,.45); cursor: not-allowed; animation: stone-idle 2s ease-in-out infinite; }
@@ -160,14 +182,23 @@
         #round-cutin { position: fixed; inset: 0; z-index: 880; display: grid; place-items: center; overflow: hidden; background: rgba(0,0,0,.28); pointer-events: none; }
         #round-cutin[hidden] { display: none; }
         #round-cutin-text { display: block; color: #f4f0df; font-size: clamp(38px, 12vw, 64px); letter-spacing: .12em; white-space: nowrap; text-shadow: 0 0 14px rgba(255,255,255,.55); will-change: transform, opacity; }
-        .finish-char { display: inline-block; color: #f4f0df; font-size: clamp(76px, 24vw, 122px); font-weight: bold; line-height: 1; opacity: 0; text-shadow: 0 0 12px rgba(255,255,255,.5), 0 10px 0 #222; will-change: transform, opacity; }
+        .finish-char { display: inline-block; color: #f4f0df; font-size: clamp(76px, 24vw, 122px); font-weight: bold; line-height: 1; opacity: 0; text-shadow: 0 0 5px rgba(255,255,255,.34), 0 8px 0 #222; will-change: transform, opacity; }
+        #finish-cutin.win .finish-char { color: var(--gold); text-shadow: 0 0 7px rgba(247,216,74,.42), 0 8px 0 #4b4115; }
+        #finish-cutin.lose .finish-char { color: #5da8ff; text-shadow: 0 0 7px rgba(93,168,255,.42), 0 8px 0 #173653; }
         #finish-cutin.play .finish-char:first-child { --slam-x: -16px; animation: finish-slam .5s cubic-bezier(.12,.72,.2,1.16) both; }
         #finish-cutin.play .finish-char:last-child { --slam-x: 16px; animation: finish-slam .5s .24s cubic-bezier(.12,.72,.2,1.16) both; }
+        #finish-cutin.play.lose .finish-char:first-child { animation: finish-sorrow .9s cubic-bezier(.2,.65,.28,1) both; }
+        #finish-cutin.play.lose .finish-char:last-child { animation: finish-sorrow .9s .16s cubic-bezier(.2,.65,.28,1) both; }
         @keyframes finish-slam {
             0% { opacity: 0; transform: translate3d(var(--slam-x), -85vh, 0) rotate(-8deg) scale(2.8); filter: blur(5px); }
             64% { opacity: 1; transform: translate3d(0, 14px, 0) rotate(1deg) scale(.9); filter: blur(0); }
             82% { transform: translate3d(0, -5px, 0) rotate(-1deg) scale(1.07); }
             100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+        }
+        @keyframes finish-sorrow {
+            0% { opacity: 0; transform: translateY(-24px) scale(1.1); filter: blur(3px); }
+            58% { opacity: .9; transform: translateY(5px) scale(.98); filter: blur(0); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .piece {
@@ -202,9 +233,10 @@
         #result-heading { color: #aeb4b1; font-size: 13px; letter-spacing: .35em; }
         #result-stage-name { min-height: 1.4em; margin-top: 6px; color: #8f9993; font-size: 11px; letter-spacing: .12em; }
         #result-rank { margin: 14px 0 0; color: var(--gold); font-size: 44px; line-height: 1; text-shadow: 0 0 14px rgba(247,216,74,.42); }
-        #result-rank.win { color: var(--gold); text-shadow: 0 0 14px rgba(247,216,74,.48); }
-        #result-rank.lose { color: #5da8ff; text-shadow: 0 0 14px rgba(93,168,255,.5); }
+        #result-rank.win { color: var(--gold); text-shadow: 0 0 7px rgba(247,216,74,.42); }
+        #result-rank.lose { color: #5da8ff; text-shadow: 0 0 7px rgba(93,168,255,.42); }
         #result-rank.result-enter { animation: result-rank-enter .68s cubic-bezier(.16,.8,.2,1.15) both; }
+        #result-rank.lose.result-enter { animation: result-rank-lose 1s ease-out both; }
         #result-battle-stats { display: grid; gap: 7px; margin-top: 18px; color: #9ba49e; font-size: 11px; letter-spacing: .1em; }
         #result-battle-stats[hidden] { display: none; }
         .result-card.battle-result { grid-template-rows: 1fr 1fr; }
@@ -214,6 +246,7 @@
         .result-card.battle-result #result-heading, .result-card.battle-result #result-stage-name { display: none; }
         .result-card.battle-result #result-rank { margin-top: 0; }
         @keyframes result-rank-enter { 0% { opacity: 0; transform: translateY(-12px) scale(1.35); letter-spacing: .35em; filter: blur(4px); } 62% { opacity: 1; transform: translateY(3px) scale(.96); filter: blur(0); } 100% { opacity: 1; transform: translateY(0) scale(1); letter-spacing: normal; } }
+        @keyframes result-rank-lose { 0% { opacity: 0; transform: translateY(-10px); filter: blur(3px); } 55% { opacity: .82; transform: translateY(4px); filter: blur(0); } 100% { opacity: 1; transform: translateY(0); } }
         .result-row { display: flex; justify-content: space-between; margin: 12px 34px; color: #909793; }
         .result-row strong { color: #f4f0df; font-weight: normal; }
         #new-badge { position: relative; display: inline-block; color: #fff1a3; margin-right: 6px; font-size: 10px; text-shadow: 0 0 7px var(--gold); }
@@ -232,7 +265,7 @@
         @keyframes new-badge-glow { 0%,100% { text-shadow: 0 0 4px var(--gold); } 50% { text-shadow: 0 0 11px #fff, 0 0 18px var(--gold); } }
         @keyframes badge-star { 0% { opacity: 0; transform: scale(0) rotate(0); } 45% { opacity: 1; transform: scale(1.35) rotate(90deg); } 100% { opacity: 0; transform: scale(.4) rotate(180deg); } }
         @keyframes new-score-glow { 0%,100% { opacity: .82; text-shadow: 0 0 5px rgba(247,216,74,.45); } 50% { opacity: 1; text-shadow: 0 0 10px #fff0a1, 0 0 18px rgba(247,216,74,.9); } }
-        #result-actions { margin: 0 0 16px; }
+        #result-actions { margin: 0 auto 16px; }
         .room-input { width: 100%; border: 0; border-bottom: 1px dashed #7f8987; outline: 0; background: transparent; color: #f4f0df; padding: 8px 4px; text-align: center; font: inherit; font-size: 25px; letter-spacing: .45em; text-indent: .45em; }
         .room-block { display: grid; gap: 8px; margin: 13px 0; }
         .room-label { color: #8f9793; font-size: 10px; letter-spacing: .16em; }
@@ -303,13 +336,13 @@
             .enemy-corner { font-size: 14px; }
         }
         @media (max-width: 350px) {
-            .hud { grid-template-columns: 72px minmax(0, 1fr) 72px; padding: 0 5px; }
+            .hud { grid-template-columns: 56px minmax(0, 1fr) 42px; padding: 0 5px; }
             .turns { font-size: 9px; }
             #turn-display { font-size: 26px; }
             #star-track { font-size: 15px; }
             #score-bar { font-size: 8px; }
             #score-display { font-size: 10px; }
-            #pause-btn { padding: 5px 1px; font-size: 9px; }
+            #pause-btn { width: 28px; min-height: 26px; padding: 1px; font-size: 12px; }
             .face-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -338,7 +371,7 @@
 
     <section id="title-screen" class="screen" aria-label="タイトル画面">
         <div id="ascii-snow" aria-hidden="true"></div>
-        <button id="title-settings" class="text-button" type="button">［ 設 定 ］</button>
+        <button id="title-settings" class="text-button" type="button">設定</button>
         <div class="title-center">
             <div class="title-logo">
                 <div class="rule">＋－－－－－－－－－－－＋</div>
@@ -347,16 +380,16 @@
                 <div class="sub">MATCH THE TEXT</div>
             </div>
             <div class="start-menu">
-                <button id="start-btn" class="text-button" type="button">＞ ひとりで遊ぶ ＜</button>
-                <button id="battle-start-btn" class="text-button" type="button">＞ ＣＰＵ対戦 ＜</button>
-                <button id="friend-start-btn" class="text-button" type="button">＞ フレンド対戦 ＜</button>
+                <button id="start-btn" class="text-button" type="button">ひとりで遊ぶ</button>
+                <button id="battle-start-btn" class="text-button" type="button">ＣＰＵ対戦</button>
+                <button id="friend-start-btn" class="text-button" type="button">フレンド対戦</button>
             </div>
         </div>
     </section>
 
     <section id="map-screen" class="screen" aria-label="ステージマップ" hidden>
         <header class="map-header">
-            <button id="map-back-btn" class="text-button map-back" type="button">［ もどる ］</button>
+            <button id="map-back-btn" class="text-button map-back" type="button">もどる</button>
             <div class="map-title">ステージマップ</div>
             <div id="map-area-label" class="map-area-label">エリア１</div>
         </header>
@@ -373,7 +406,7 @@
                         <div id="score-bar">▹░░░░░░░░░░░░░░░░░░░░◃</div>
                         <div id="score-display">得点 ００００００</div>
                     </div>
-                    <button id="pause-btn" class="text-button" type="button">［ 停 止 ］</button>
+                    <button id="pause-btn" class="text-button" type="button" aria-label="停止">Ⅱ</button>
                 </header>
             </div>
             <div class="game-zone-middle"><div id="targets" aria-label="クリアターゲット"></div></div>
@@ -402,9 +435,9 @@
             </div>
             <div class="result-bottom">
                 <div id="result-actions" class="dialog-actions">
-                    <button id="next-stage-btn" class="text-button" type="button" hidden>＞ 次のステージ ＜</button>
-                    <button id="retry-btn" class="text-button" type="button">＞ もう一度 ＜</button>
-                    <button id="result-title-btn" class="text-button" type="button">＞ タイトルへ ＜</button>
+                    <button id="next-stage-btn" class="text-button" type="button" hidden>次のステージ</button>
+                    <button id="retry-btn" class="text-button" type="button">もう一度</button>
+                    <button id="result-title-btn" class="text-button" type="button">タイトルへ</button>
                 </div>
                 <div class="dialog-rule">＋－－－－－－－－－－＋</div>
             </div>
@@ -418,9 +451,9 @@
             <div id="stage-detail-name" class="stage-detail-name">文字の目覚め</div>
             <div id="stage-detail-stars" aria-label="獲得した星">☆☆☆</div>
             <div id="stage-detail-enemies" aria-label="登場する敵"></div>
-            <div class="dialog-actions"><button id="stage-detail-start" class="text-button" type="button">＞ はじめる ＜</button></div>
-            <button id="stage-detail-close" class="text-button stage-detail-close" type="button" aria-label="とじる">［✗］</button>
+            <div class="dialog-actions"><button id="stage-detail-start" class="text-button" type="button">はじめる</button></div>
             <div class="dialog-rule">＋ーーーーーーーーーーーーーー＋</div>
+            <button id="stage-detail-close" class="text-button stage-detail-close" type="button" aria-label="とじる">✗</button>
         </div>
     </div>
 
@@ -429,8 +462,8 @@
             <div class="dialog-rule">＋－－－－－－－－＋</div>
             <h2 id="pause-title">［ 一 時 停 止 ］</h2>
             <div class="dialog-actions">
-                <button id="continue-btn" class="text-button" type="button">＞ つづける ＜</button>
-                <button id="pause-title-btn" class="text-button" type="button">＞ タイトルへ ＜</button>
+                <button id="continue-btn" class="text-button" type="button">つづける</button>
+                <button id="pause-title-btn" class="text-button" type="button">タイトルへ</button>
             </div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
         </div>
@@ -440,9 +473,9 @@
         <div class="text-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
             <h2 id="settings-title">［ 設 定 ］</h2>
-            <div class="setting-row"><span>ＢＧＭ</span><button class="text-button setting-step" data-volume="bgm" data-delta="-1" type="button">［－］</button><span id="bgm-bar" class="volume-bar">■■■■■□□□□□</span><button class="text-button setting-step" data-volume="bgm" data-delta="1" type="button">［＋］</button><span id="bgm-value">５</span></div>
-            <div class="setting-row"><span>ＳＥ</span><button class="text-button setting-step" data-volume="se" data-delta="-1" type="button">［－］</button><span id="se-bar" class="volume-bar">■■■■■■■□□□</span><button class="text-button setting-step" data-volume="se" data-delta="1" type="button">［＋］</button><span id="se-value">７</span></div>
-            <div class="dialog-actions"><button id="settings-close" class="text-button" type="button">＞ とじる ＜</button></div>
+            <div class="setting-row"><span>ＢＧＭ</span><button class="text-button setting-step" data-volume="bgm" data-delta="-1" type="button">－</button><span id="bgm-bar" class="volume-bar">■■■■■□□□□□</span><button class="text-button setting-step" data-volume="bgm" data-delta="1" type="button">＋</button><span id="bgm-value">５</span></div>
+            <div class="setting-row"><span>ＳＥ</span><button class="text-button setting-step" data-volume="se" data-delta="-1" type="button">－</button><span id="se-bar" class="volume-bar">■■■■■■■□□□</span><button class="text-button setting-step" data-volume="se" data-delta="1" type="button">＋</button><span id="se-value">７</span></div>
+            <div class="dialog-actions"><button id="settings-close" class="text-button" type="button">とじる</button></div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
         </div>
     </div>
@@ -452,7 +485,7 @@
             <div class="dialog-rule">＋－－－－－－－－＋</div>
             <h2 id="face-title">［ 顔文字を選択 ］</h2>
             <div id="face-grid" class="face-grid" aria-label="対戦用顔文字"></div>
-            <div class="dialog-actions"><button id="face-cancel-btn" class="text-button" type="button">＞ もどる ＜</button></div>
+            <div class="dialog-actions"><button id="face-cancel-btn" class="text-button" type="button">もどる</button></div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
         </div>
     </div>
@@ -466,7 +499,7 @@
                 <button class="round-option" data-round-count="3" type="button">ラウンド３</button>
                 <button class="round-option" data-round-count="5" type="button">ラウンド５</button>
             </div>
-            <div class="dialog-actions"><button id="round-cancel-btn" class="text-button" type="button">＞ もどる ＜</button></div>
+            <div class="dialog-actions"><button id="round-cancel-btn" class="text-button" type="button">もどる</button></div>
             <div class="dialog-rule">＋－－－－－－－－－－＋</div>
         </div>
     </div>
@@ -476,12 +509,12 @@
             <div class="dialog-rule">＋－－－－－－－－＋</div>
             <h2 id="friend-title">［ フレンド対戦 ］</h2>
             <div id="room-menu">
-                <div class="room-block"><span class="room-label">＜ 新しい部屋 ＞</span><button id="room-create-btn" class="text-button" type="button">＞ 部屋を作る ＜</button></div>
-                <div class="room-block"><span class="room-label">＜ ４桁の部屋番号 ＞</span><input id="room-code-input" class="room-input" type="text" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off"><button id="room-join-btn" class="text-button" type="button">＞ 番号で入る ＜</button></div>
+                <div class="room-block"><span class="room-label">＜ 新しい部屋 ＞</span><button id="room-create-btn" class="text-button" type="button">部屋を作る</button></div>
+                <div class="room-block"><span class="room-label">＜ ４桁の部屋番号 ＞</span><input id="room-code-input" class="room-input" type="text" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off"><button id="room-join-btn" class="text-button" type="button">番号で入る</button></div>
                 <div id="room-feedback" class="room-label"></div>
             </div>
             <div id="room-wait" hidden><div class="room-label">部屋番号</div><div id="room-code">0000</div><div id="room-status">相手の入室を待っています…</div></div>
-            <div class="dialog-actions"><button id="friend-close-btn" class="text-button" type="button">＞ もどる ＜</button></div>
+            <div class="dialog-actions"><button id="friend-close-btn" class="text-button" type="button">もどる</button></div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
         </div>
     </div>
@@ -521,7 +554,7 @@
         };
         const ENEMY_DEFINITIONS = [
             ['ゴブリン', '(･ω･)'], ['オーク', '(ಠ_ಠ)'], ['スライム', '(・～・)'], ['ドクロ', '(x_x)'],
-            ['ミイラ', '`'], ['ロボ', '[■_■]'], ['魔導師', '(￣^￣)'], ['忍者', '(-_-)'],
+            ['ミイラ', '(|-_-|)'], ['ロボ', '[■_■]'], ['魔導師', '(￣^￣)'], ['忍者', '(-_-)'],
             ['剣士', '(｀･ω･)'], ['僧侶', '(˘_˘)'], ['道化師', '(ﾟ∀ﾟ)'], ['老人', '(._.)'],
             ['子供', '(・_・)'], ['兵士', '(￣へ￣)'], ['悪魔', '(▼_▼)'], ['天使', '(^-^)'],
             ['幽霊', '(°_°)'], ['吸血鬼', '(¬_¬)'], ['狼男', '(=_=)'], ['魔王', '(｀皿´)'],
@@ -566,6 +599,8 @@
         let selectedStageEncounter = null;
         let pendingMapReward = null;
         let audioContext = null;
+        const seBuffers = Object.create(null);
+        const seBufferPromises = Object.create(null);
         
         let startPiece = null;
         let startX = 0, startY = 0;
@@ -717,7 +752,7 @@
             holder.classList.add('enemy-encounter');
             holder.setAttribute('aria-label', '敵とターゲット');
             const list = document.createElement('div');
-            list.className = 'enemy-list';
+            list.className = `enemy-list count-${enemies.length}`;
             list.style.setProperty('--enemy-count', enemies.length);
 
             enemies.forEach(enemy => {
@@ -1032,9 +1067,43 @@
             return Number.isFinite(value) && value >= 0 ? value : fallback;
         }
 
+        function getAudioContext() {
+            if (!audioContext) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioContext = new AudioContextClass();
+            }
+            return audioContext;
+        }
+
+        function loadSampleBuffer(name) {
+            if (seBuffers[name]) return Promise.resolve(seBuffers[name]);
+            if (seBufferPromises[name]) return seBufferPromises[name];
+            const context = getAudioContext();
+            const media = seSamples[name];
+            if (!context || !media) return Promise.reject(new Error('audio unavailable'));
+            const url = media.currentSrc || media.src;
+            seBufferPromises[name] = fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`audio ${response.status}`);
+                    return response.arrayBuffer();
+                })
+                .then(data => context.decodeAudioData(data.slice(0)))
+                .then(buffer => (seBuffers[name] = buffer))
+                .catch(error => {
+                    delete seBufferPromises[name];
+                    throw error;
+                });
+            return seBufferPromises[name];
+        }
+
+        function preloadSampleSE() {
+            Object.keys(seSamples).forEach(name => loadSampleBuffer(name).catch(() => {}));
+        }
+
         function ensureAudio() {
-            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioContext.state === 'suspended') audioContext.resume();
+            const context = getAudioContext();
+            if (context?.state === 'suspended') context.resume().catch(() => {});
+            if (context) preloadSampleSE();
             bgmAudio.volume = getVolume('matchTextBgm', 5) / 10;
             if (bgmAudio.paused) bgmAudio.play().catch(() => {});
         }
@@ -1056,13 +1125,26 @@
             playTone(frequency, duration, getVolume('matchTextSe', 7) / 10 * .12, type);
         }
 
-        function playSampleSE(name) {
-            const source = seSamples[name];
+        async function playSampleSE(name) {
             const volume = getVolume('matchTextSe', 7) / 10;
-            if (!source || volume <= 0) return;
-            const voice = source.cloneNode();
-            voice.volume = Math.min(1, volume);
-            voice.play().catch(() => {});
+            if (!seSamples[name] || volume <= 0) return;
+            ensureAudio();
+            const context = getAudioContext();
+            try {
+                if (!context) throw new Error('audio unavailable');
+                if (context.state === 'suspended') await context.resume();
+                const buffer = await loadSampleBuffer(name);
+                const voice = context.createBufferSource();
+                const gain = context.createGain();
+                voice.buffer = buffer;
+                gain.gain.value = Math.min(1, volume);
+                voice.connect(gain).connect(context.destination);
+                voice.start();
+            } catch (_) {
+                const fallback = seSamples[name].cloneNode();
+                fallback.volume = Math.min(1, volume);
+                fallback.play().catch(() => {});
+            }
         }
 
         function drawBackground() {
@@ -1393,7 +1475,7 @@
 
             const label = document.createElement('span');
             label.className = 'enemy-dead-label';
-            label.textContent = 'D E A D';
+            label.textContent = 'うぎゃー!!';
             label.style.left = `${rect.left + rect.width / 2}px`;
             label.style.top = `${rect.top + rect.height / 2}px`;
             document.body.appendChild(label);
@@ -1552,6 +1634,8 @@
             const cutin = document.getElementById('finish-cutin');
             const chars = [...text].slice(0, 2);
             cutin.setAttribute('aria-label', text);
+            cutin.classList.toggle('win', text === '勝ち');
+            cutin.classList.toggle('lose', text === '負け');
             cutin.querySelectorAll('.finish-char').forEach((element, index) => {
                 element.textContent = chars[index] || '';
             });
@@ -1620,19 +1704,24 @@
         async function playFinishCutin(token) {
             const cutin = document.getElementById('finish-cutin');
             const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const isLose = cutin.classList.contains('lose');
             cutin.hidden = false;
             cutin.classList.remove('play', 'fade');
             void cutin.offsetWidth;
             cutin.classList.add('play');
             playSampleSE('finish');
-            playSE(150, .18, 'sawtooth');
-            shakeScreen('strong');
-            setTimeout(() => {
-                if (token !== resultSequenceToken) return;
-                playSE(110, .22, 'square');
+            if (isLose) {
+                playSE(185, .38, 'sine');
+            } else {
+                playSE(150, .18, 'sawtooth');
                 shakeScreen('strong');
-            }, reducedMotion ? 0 : 240);
-            await wait(reducedMotion ? 80 : 1220);
+                setTimeout(() => {
+                    if (token !== resultSequenceToken) return;
+                    playSE(110, .22, 'square');
+                    shakeScreen('strong');
+                }, reducedMotion ? 0 : 240);
+            }
+            await wait(reducedMotion ? 80 : (isLose ? 1480 : 1220));
             if (token !== resultSequenceToken) return false;
             cutin.classList.add('fade');
             await wait(reducedMotion ? 10 : 180);
@@ -1708,7 +1797,7 @@
             nextStageButton.hidden = !(currentMode === 'solo' && cleared);
             if (currentMode === 'solo' && cleared) {
                 recordSoloStageResult(stars);
-                nextStageButton.textContent = selectedStageId >= MatchTextStages.STAGE_COUNT ? '＞ マップへ ＜' : '＞ 次のステージ ＜';
+                nextStageButton.textContent = selectedStageId >= MatchTextStages.STAGE_COUNT ? 'マップへ' : '次のステージ';
             }
             const resultCard = document.querySelector('.result-card');
             resultCard.classList.toggle('battle-result', isBattleResult);
@@ -2896,7 +2985,7 @@
         });
         document.getElementById('room-create-btn').addEventListener('click', async () => {
             const button = document.getElementById('room-create-btn');
-            button.disabled = true; button.textContent = '＞ 接続中… ＜';
+            button.disabled = true; button.textContent = '接続中…';
             document.getElementById('room-feedback').textContent = '';
             try {
                 const code = await OnlineBattle.createRoom();
@@ -2907,14 +2996,14 @@
             } catch (_) {
                 document.getElementById('room-feedback').textContent = '中継サーバーに接続できません';
             }
-            button.disabled = false; button.textContent = '＞ 部屋を作る ＜';
+            button.disabled = false; button.textContent = '部屋を作る';
         });
         document.getElementById('room-join-btn').addEventListener('click', async () => {
             const code = document.getElementById('room-code-input').value.trim();
             const feedback = document.getElementById('room-feedback');
             if (!/^\d{4}$/.test(code)) { feedback.textContent = '４桁の数字を入力してください'; return; }
             const button = document.getElementById('room-join-btn');
-            button.disabled = true; button.textContent = '＞ 入室中… ＜'; feedback.textContent = '';
+            button.disabled = true; button.textContent = '入室中…'; feedback.textContent = '';
             try {
                 await OnlineBattle.joinRoom(code);
                 document.getElementById('room-menu').hidden = true;
@@ -2926,7 +3015,7 @@
                 feedback.textContent = error.message === 'notfound' ? 'その番号の部屋は見つかりません' : error.message === 'full' ? 'その部屋は満室です' : error.message === 'badcode' ? '部屋番号が正しくありません' : '入室できません';
                 OnlineBattle.leave(true);
             }
-            button.disabled = false; button.textContent = '＞ 番号で入る ＜';
+            button.disabled = false; button.textContent = '番号で入る';
         });
         document.getElementById('friend-close-btn').addEventListener('click', () => {
             OnlineBattle.leave();
@@ -3002,9 +3091,17 @@
             else if (!document.getElementById('game-screen').hidden && !gameEnded) openDialog('pause-dialog');
         });
 
+        ['pointerdown', 'touchstart', 'keydown'].forEach(eventName => {
+            window.addEventListener(eventName, ensureAudio, { capture: true, passive: true });
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) ensureAudio();
+        });
+
         window.onload = () => {
             const savedFace = localStorage.getItem('matchTextBattleFace');
             if (BATTLE_FACES.some(item => item.glyph === savedFace)) selectedBattleFace = savedFace;
+            Object.values(seSamples).forEach(sample => sample.load());
             drawBackground();
             initAsciiSnow();
             initStageMap();
