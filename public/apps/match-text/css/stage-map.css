@@ -24,7 +24,7 @@
 .map-header-spacer { pointer-events: none; }
 .map-back { width: 76px; color: #aeb6b1; font-size: 10px; }
 .map-title { text-align: center; font-size: 15px; letter-spacing: .25em; text-shadow: 0 0 10px currentColor; }
-.map-area-label { justify-self: end; color: var(--area-color, #54d8a0); font-size: 9px; text-shadow: 0 0 9px currentColor; }
+.map-area-label { justify-self: center; color: var(--area-color, #54d8a0); font-size: 15px; text-shadow: 0 0 9px currentColor; }
 .map-footer-space { height: calc(var(--safe-bottom) + 76px); pointer-events: none; }
 .map-footer {
     position: fixed;
@@ -134,10 +134,12 @@
 .stage-node.locked, .stage-node.pending-lock { color: #555a58; filter: grayscale(1); opacity: .52; cursor: default; }
 .stage-node.locked, .stage-node.pending-lock { border-color: #454a48; background: rgba(5,5,5,.97); }
 .stage-node.locked .stage-node-stars, .stage-node.pending-lock .stage-node-stars { color: #444846; }
+.stage-node.current:not(.locked):not(.pending-lock) { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px rgba(247,216,74,.18), inset 0 0 9px rgba(247,216,74,.08); }
+.stage-node.current:not(.locked):not(.pending-lock) .stage-node-stars { color: var(--gold); text-shadow: 0 0 6px rgba(247,216,74,.55); }
 .stage-node:not(.locked):not(.pending-lock):active { transform: translate(-50%, -50%) scale(.92); }
 .stage-current-corner {
     position: absolute;
-    color: #f5f2e8;
+    color: var(--gold);
     font-size: 12px;
     line-height: 1;
     opacity: 0;

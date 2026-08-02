@@ -255,6 +255,9 @@
         .dialog-backdrop[hidden] { display: none; }
         .text-dialog { width: min(330px, 100%); background: transparent; padding: 4px 12px 18px; text-align: center; box-shadow: none; }
         .dialog-rule { color: #5e6768; white-space: nowrap; overflow: hidden; }
+        .text-dialog > .dialog-rule:first-child { margin-bottom: 32px; }
+        .text-dialog > .dialog-rule:first-child + h2 { margin-top: 0; }
+        .text-dialog > .dialog-rule:last-of-type { margin-top: 32px; }
         .text-dialog h2 { margin: 12px 0 18px; font-size: 19px; letter-spacing: .2em; }
         .dialog-actions { display: grid; width: min(250px, 100%); gap: 8px; margin: 15px auto 0; }
         .dialog-actions .text-button { width: 100%; color: #c8ceca; }
@@ -271,6 +274,18 @@
         .howto-section:first-child { border-top: 0; padding-top: 3px; }
         .howto-section h3 { margin: 0 0 7px; color: #eef1ea; font-size: 12px; letter-spacing: .12em; }
         .howto-section p { margin: 0; color: #abb3ae; font-size: 11px; line-height: 1.85; letter-spacing: .04em; }
+        .help-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; width: min(280px, 100%); margin: 13px auto 4px; }
+        .help-tab { min-height: 34px; border: 1px dashed #505956; background: rgba(5,5,5,.58); color: #7e8883; padding: 7px 4px; font: inherit; font-size: 10px; letter-spacing: .1em; cursor: pointer; }
+        .help-tab[aria-selected="true"] { border-color: #dce4df; color: #f1f3ed; text-shadow: 0 0 8px currentColor; }
+        .piece-help-scroll { max-height: min(52dvh, 420px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 0 8px 4px 2px; text-align: left; scrollbar-color: #5d6561 transparent; scrollbar-width: thin; }
+        .piece-help-scroll::-webkit-scrollbar { width: 4px; }
+        .piece-help-scroll::-webkit-scrollbar-thumb { background: #5d6561; }
+        .piece-help-cell { display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 64px; border-top: 1px dashed #3f4743; padding: 9px 3px; }
+        .piece-help-cell:first-child { border-top: 0; }
+        .piece-help-glyph { display: grid; place-items: center; width: 42px; height: 42px; color: var(--piece-help-color, #eef1ea); font-size: 24px; line-height: 1; text-shadow: 0 0 5px currentColor; }
+        .piece-help-glyph.stone-help { color: #858b87; text-shadow: 0 0 5px rgba(190,200,195,.45); }
+        .piece-help-name { margin-bottom: 4px; color: #eef1ea; font-size: 11px; letter-spacing: .1em; }
+        .piece-help-description { color: #9da6a1; font-size: 10px; line-height: 1.65; }
         #result-screen { display: grid; place-items: center; }
         .result-card { position: relative; z-index: 1; width: min(360px, calc(100vw - var(--safe-left) - var(--safe-right))); height: 100dvh; display: grid; grid-template-rows: 1fr auto 1fr; text-align: center; padding: var(--safe-top) 0 var(--safe-bottom); }
         .result-top { align-self: start; margin-top: 8px; transform: translateY(var(--result-shift)); }
@@ -279,6 +294,9 @@
         #result-heading { color: #aeb4b1; font-size: 13px; letter-spacing: .35em; }
         #result-stage-name { min-height: 1.4em; margin-top: 6px; color: #8f9993; font-size: 11px; letter-spacing: .12em; }
         #result-rank { margin: 14px 0 0; color: var(--gold); font-size: 44px; line-height: 1; text-shadow: 0 0 14px rgba(247,216,74,.42); }
+        #result-rank .result-star { display: inline-block; color: #545954; text-shadow: none; }
+        #result-rank .result-star.earned { color: var(--gold); text-shadow: 0 0 8px rgba(247,216,74,.58); }
+        #result-rank .result-star.star-award { animation: result-star-award .56s cubic-bezier(.14,.82,.18,1.22) both; }
         #result-rank.win { color: var(--gold); text-shadow: 0 0 7px rgba(247,216,74,.42); }
         #result-rank.lose { color: #5da8ff; text-shadow: 0 0 7px rgba(93,168,255,.42); }
         #result-rank.result-enter { animation: result-rank-enter .68s cubic-bezier(.16,.8,.2,1.15) both; }
@@ -299,28 +317,40 @@
         @keyframes result-rank-lose { 0% { opacity: 0; transform: translateY(-10px); filter: blur(3px); } 55% { opacity: .82; transform: translateY(4px); filter: blur(0); } 100% { opacity: 1; transform: translateY(0); } }
         .result-row { display: flex; justify-content: space-between; margin: 12px 34px; color: #909793; }
         .result-row strong { color: #f4f0df; font-weight: normal; }
+        .turn-bonus-row { align-items: center; font-size: 10px; }
+        .turn-bonus-row strong { display: grid; justify-items: end; gap: 2px; }
+        #result-turn-formula { color: #8f9892; font-size: 8px; }
+        #result-turn-bonus { color: var(--gold); font-size: 13px; text-shadow: 0 0 7px rgba(247,216,74,.45); }
+        .turn-bonus-row.bonus-enter { animation: turn-bonus-enter .42s cubic-bezier(.16,.86,.22,1.18) both; }
         #new-badge { position: relative; display: inline-block; color: #fff1a3; margin-right: 6px; font-size: 10px; text-shadow: 0 0 7px var(--gold); }
         #new-badge.spark { animation: new-badge-spark .78s cubic-bezier(.16,.9,.2,1.25) both, new-badge-glow 1.5s .78s ease-in-out infinite; }
         #new-badge.spark::before, #new-badge.spark::after { position: absolute; color: #fff; text-shadow: 0 0 8px var(--gold); animation: badge-star .65s ease-out both; }
         #new-badge.spark::before { content: '＊'; left: -9px; top: -8px; }
         #new-badge.spark::after { content: '＋'; right: -8px; bottom: -7px; animation-delay: .12s; }
-        #result-score { display: inline-block; transform-origin: center; }
-        #result-score.rolling { animation: score-drum .11s steps(2, end) infinite; text-shadow: 0 0 6px rgba(255,255,255,.35); }
+        #result-score { display: inline-flex; align-items: baseline; justify-content: flex-end; min-width: 6.3em; transform-origin: center; font-variant-numeric: tabular-nums; }
+        .score-digit { display: inline-block; width: 1.05em; text-align: center; transform-origin: 50% 55%; }
+        .score-digit.digit-rolling { animation: score-digit-drum .085s steps(2, end) infinite; text-shadow: 0 0 6px rgba(255,255,255,.35); }
+        .score-digit.digit-settled { animation: score-digit-lock .2s cubic-bezier(.16,.9,.2,1.2) both; }
         #result-score.score-settled { animation: score-lock .3s cubic-bezier(.16,.9,.2,1.2) both; }
         #result-score.new-score { color: var(--gold); }
         #result-score.new-score.new-glow { animation: new-score-glow 1.35s ease-in-out infinite; }
-        @keyframes score-drum { 0% { transform: translateY(-.24em) rotateX(-62deg); filter: blur(1px); } 50% { transform: translateY(.18em) rotateX(48deg); filter: blur(0); } 100% { transform: translateY(-.18em) rotateX(-54deg); filter: blur(1px); } }
+        @keyframes score-digit-drum { 0% { transform: translateY(-.28em) rotateX(-68deg); filter: blur(1px); } 50% { transform: translateY(.2em) rotateX(52deg); filter: blur(0); } 100% { transform: translateY(-.2em) rotateX(-58deg); filter: blur(1px); } }
+        @keyframes score-digit-lock { 0% { transform: translateY(-.18em) scaleY(1.28); } 62% { transform: translateY(.06em) scaleY(.9); } 100% { transform: translateY(0) scaleY(1); } }
         @keyframes score-lock { 0% { transform: scaleY(1.35) scaleX(.92); } 55% { transform: scaleY(.92) scaleX(1.05); } 100% { transform: scale(1); } }
         @keyframes new-badge-spark { 0% { opacity: 0; transform: scale(0) rotate(-22deg); } 58% { opacity: 1; transform: scale(1.5) rotate(8deg); filter: brightness(2.4); } 100% { opacity: 1; transform: scale(1) rotate(0); filter: brightness(1); } }
         @keyframes new-badge-glow { 0%,100% { text-shadow: 0 0 4px var(--gold); } 50% { text-shadow: 0 0 11px #fff, 0 0 18px var(--gold); } }
         @keyframes badge-star { 0% { opacity: 0; transform: scale(0) rotate(0); } 45% { opacity: 1; transform: scale(1.35) rotate(90deg); } 100% { opacity: 0; transform: scale(.4) rotate(180deg); } }
         @keyframes new-score-glow { 0%,100% { opacity: .82; text-shadow: 0 0 5px rgba(247,216,74,.45); } 50% { opacity: 1; text-shadow: 0 0 10px #fff0a1, 0 0 18px rgba(247,216,74,.9); } }
+        @keyframes turn-bonus-enter { 0% { opacity: 0; transform: translateY(8px) scale(.94); } 60% { opacity: 1; transform: translateY(-2px) scale(1.04); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes result-star-award { 0% { opacity: .2; transform: scale(.45) rotate(-18deg); filter: brightness(1); } 55% { opacity: 1; transform: scale(1.5) rotate(8deg); filter: brightness(2.5); } 100% { opacity: 1; transform: scale(1) rotate(0); filter: brightness(1); } }
         #result-actions { margin: 0 auto 16px; }
         .room-input { width: 100%; border: 0; border-bottom: 1px dashed #7f8987; outline: 0; background: transparent; color: #f4f0df; padding: 8px 4px; text-align: center; font: inherit; font-size: 25px; letter-spacing: .45em; text-indent: .45em; }
         .room-block { display: grid; gap: 8px; margin: 13px 0; }
         .room-label { color: #8f9793; font-size: 10px; letter-spacing: .16em; }
+        .friend-choice-actions { margin-top: 18px; }
+        .friend-dialog-note { margin: 10px 0 2px; color: #7f8984; font-size: 9px; line-height: 1.7; }
         #room-code { color: #ffda61; font-size: 38px; letter-spacing: .26em; text-indent: .26em; text-shadow: 0 0 9px currentColor; }
-        #room-status { min-height: 2.5em; color: #9da6a2; font-size: 11px; line-height: 1.7; }
+        #room-status { min-height: 2.5em; color: #9da6a2; font-size: 11px; line-height: 1.7; white-space: pre-line; }
         .battle-face { min-height: 25px; margin-bottom: 3px; font-size: 18px; line-height: 1; white-space: nowrap; text-shadow: 0 0 8px rgba(255,255,255,.28); }
         .face-dialog { width: min(350px, 100%); }
         .face-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; max-height: min(52dvh, 420px); margin: 12px 0 8px; padding: 1px 3px 1px 1px; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: #5d6561 transparent; scrollbar-width: thin; }
@@ -402,7 +432,7 @@
         @media (prefers-reduced-motion: reduce) {
             .snow-char, .start-menu { animation-duration: 8s; }
             .area-ascii-token { animation: none; top: var(--ascii-static-top, 50%); opacity: .1; }
-            #finish-cutin.play .finish-char, #result-rank.result-enter, #result-score.rolling, #result-score.score-settled, #new-badge.spark, #result-score.new-glow, .enemy-face, .enemy-corner, .enemy-attack-count, .stone-piece, .warning-track, .warning-band, .encounter-title { animation-duration: .01ms; animation-iteration-count: 1; }
+            #finish-cutin.play .finish-char, #result-rank.result-enter, .score-digit.digit-rolling, .score-digit.digit-settled, #result-score.score-settled, #new-badge.spark, #result-score.new-glow, #result-rank .result-star.star-award, .turn-bonus-row.bonus-enter, .enemy-face, .enemy-corner, .enemy-attack-count, .stone-piece, .warning-track, .warning-band, .encounter-title { animation-duration: .01ms; animation-iteration-count: 1; }
         }
     </style>
     <link rel="stylesheet" href="./css/stage-map.css">
@@ -428,7 +458,7 @@
         <div id="ascii-snow" aria-hidden="true"></div>
         <div class="title-utility">
             <button id="title-settings" class="text-button" type="button">設定</button>
-            <button id="title-howto" class="text-button" type="button">遊び方</button>
+            <button id="title-howto" class="text-button" type="button">ヘルプ</button>
         </div>
         <div class="title-center">
             <div class="title-logo">
@@ -448,8 +478,8 @@
     <section id="map-screen" class="screen" aria-label="ステージマップ" hidden>
         <header class="map-header">
             <span class="map-header-spacer" aria-hidden="true"></span>
-            <div class="map-title">ステージマップ</div>
-            <div id="map-area-label" class="map-area-label">エリア１</div>
+            <div id="map-area-label" class="map-title map-area-label">エリア1</div>
+            <span class="map-header-spacer" aria-hidden="true"></span>
         </header>
         <main id="map-track" aria-label="ステージ一覧"></main>
         <div class="map-footer-space" aria-hidden="true"></div>
@@ -494,6 +524,7 @@
                 <div id="result-battle-stats" hidden><span id="result-round-count">ラウンド１</span><span id="result-win-loss">勝ち×１　負け×０</span></div>
             </div>
             <div class="result-middle">
+                <div id="result-turn-bonus-row" class="result-row turn-bonus-row" hidden><span>ターンボーナス</span><strong><span id="result-turn-formula"></span><span id="result-turn-bonus"></span></strong></div>
                 <div class="result-row"><span>スコア</span><strong><span id="new-badge" hidden>NEW</span><span id="result-score">００００００</span></strong></div>
                 <div class="result-row"><span>ベスト</span><strong id="best-score">００００００</strong></div>
             </div>
@@ -515,7 +546,7 @@
             <div id="stage-detail-name" class="stage-detail-name">文字の目覚め</div>
             <div id="stage-detail-stars" aria-label="獲得した星">☆☆☆</div>
             <div id="stage-detail-enemies" aria-label="登場する敵"></div>
-            <div class="dialog-actions"><button id="stage-detail-start" class="text-button" type="button">はじめる</button></div>
+            <div class="dialog-actions"><button id="stage-detail-start" class="text-button" type="button">たたかう</button></div>
             <div class="dialog-rule">＋ーーーーーーーーーーーーーー＋</div>
             <button id="stage-detail-close" class="text-button dialog-outside-close stage-detail-close" type="button" aria-label="とじる">✗</button>
         </div>
@@ -547,24 +578,31 @@
     <div id="howto-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="howto-title" hidden>
         <div class="text-dialog howto-dialog">
             <div class="dialog-rule">＋ーーーーーーーーーーーーーー＋</div>
-            <h2 id="howto-title">遊び方</h2>
-            <div class="howto-scroll">
-                <section class="howto-section">
-                    <h3>基本の操作</h3>
-                    <p>文字を上下左右に入れ替え、同じ文字を縦か横に３つ以上つなげると消えます。敵の下にあるターゲットを必要な数だけ消しましょう。特殊文字のターゲットは、文字と色の両方が合ったときだけ減ります。</p>
-                </section>
-                <section class="howto-section">
-                    <h3>ひとりで遊ぶ</h3>
-                    <p>ターンが０になる前に、すべての敵のターゲットを消すとクリアです。敵をタップすると攻撃先を変えられます。敵は石を置いたり、盤面をシャッフルしたり、文字の色を変えたりします。高得点でクリアすると星が増えます。</p>
-                </section>
-                <section class="howto-section">
-                    <h3>ＣＰＵ対戦</h3>
-                    <p>自分とＣＰＵが同じターゲットで競います。相手より先にすべて消すとラウンド勝利です。開始前に顔文字とラウン数を選べます。対戦ではスコアと星は使いません。</p>
-                </section>
-                <section class="howto-section">
-                    <h3>フレンド対戦</h3>
-                    <p>顔文字とラウン数を選んだら、部屋を作って４桁の番号を友だちに伝えます。参加する人はその番号を入力します。先にターゲットをすべて消した人がラウン勝利です。通信が切れないよう、対戦中は画面を閉じないでください。</p>
-                </section>
+            <h2 id="howto-title">ヘルプ</h2>
+            <div id="help-play-panel" class="help-panel" role="tabpanel" aria-labelledby="help-play-tab">
+                <div class="howto-scroll">
+                    <section class="howto-section">
+                        <h3>基本の操作</h3>
+                        <p>文字を上下左右に入れ替え、同じ文字を縦か横に３つ以上つなげると消えます。敵の下にあるターゲットを必要な数だけ消しましょう。特殊文字のターゲットは、文字と色の両方が合ったときだけ減ります。</p>
+                    </section>
+                    <section class="howto-section">
+                        <h3>ひとりで遊ぶ</h3>
+                        <p>ターンが０になる前に、すべての敵のターゲットを消すとクリアです。敵をタップすると攻撃先を変えられます。敵は石を置いたり、盤面をシャッフルしたり、文字の色を変えたりします。早くクリアするほどリザルトでターンボーナスが加算され、高スコアと星を狙いやすくなります。</p>
+                    </section>
+                    <section class="howto-section">
+                        <h3>ＣＰＵ対戦</h3>
+                        <p>自分とＣＰＵが同じターゲットで競います。相手より先にすべて消すとラウンド勝利です。開始前に顔文字とラウンド数を選べます。対戦ではスコアと星は使いません。</p>
+                    </section>
+                    <section class="howto-section">
+                        <h3>フレンド対戦</h3>
+                        <p>部屋を作る人だけがラウンド数を選び、表示された４桁の番号を友だちに伝えます。参加する人は番号を入力して入室します。先にターゲットをすべて消した人がラウンド勝利です。</p>
+                    </section>
+                </div>
+            </div>
+            <div id="help-pieces-panel" class="help-panel" role="tabpanel" aria-labelledby="help-pieces-tab" hidden><div id="piece-help-list" class="piece-help-scroll" aria-label="ピースの種類"></div></div>
+            <div class="help-tabs" role="tablist" aria-label="ヘルプ項目">
+                <button id="help-play-tab" class="help-tab" data-help-tab="play" type="button" role="tab" aria-selected="true" aria-controls="help-play-panel">遊び方</button>
+                <button id="help-pieces-tab" class="help-tab" data-help-tab="pieces" type="button" role="tab" aria-selected="false" aria-controls="help-pieces-panel">ピースの種類</button>
             </div>
             <div class="dialog-rule">＋ーーーーーーーーーーーーーー＋</div>
             <button id="howto-close" class="text-button dialog-outside-close" type="button" aria-label="とじる">✗</button>
@@ -595,16 +633,36 @@
         </div>
     </div>
 
+    <div id="friend-method-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="friend-method-title" hidden>
+        <div class="text-dialog">
+            <div class="dialog-rule">＋－－－－－－－－＋</div>
+            <h2 id="friend-method-title">［ フレンド対戦 ］</h2>
+            <div class="dialog-actions friend-choice-actions">
+                <button id="friend-create-choice" class="text-button" type="button">部屋を作る</button>
+                <button id="friend-join-choice" class="text-button" type="button">番号で入る</button>
+            </div>
+            <div class="friend-dialog-note">部屋を作る人だけがラウンド数を選べます</div>
+            <div class="dialog-actions"><button id="friend-method-close" class="text-button" type="button">もどる</button></div>
+            <div class="dialog-rule">＋－－－－－－－－＋</div>
+        </div>
+    </div>
+
+    <div id="friend-join-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="friend-join-title" hidden>
+        <div class="text-dialog">
+            <div class="dialog-rule">＋－－－－－－－－＋</div>
+            <h2 id="friend-join-title">［ 番号で入る ］</h2>
+            <div class="room-block"><span class="room-label">＜ ４桁の部屋番号 ＞</span><input id="room-code-input" class="room-input" type="text" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off"><button id="room-join-btn" class="text-button" type="button">入室する</button></div>
+            <div id="room-feedback" class="room-label"></div>
+            <div class="dialog-actions"><button id="friend-join-close" class="text-button" type="button">もどる</button></div>
+            <div class="dialog-rule">＋－－－－－－－－＋</div>
+        </div>
+    </div>
+
     <div id="friend-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="friend-title" hidden>
         <div class="text-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
             <h2 id="friend-title">［ フレンド対戦 ］</h2>
-            <div id="room-menu">
-                <div class="room-block"><span class="room-label">＜ 新しい部屋 ＞</span><button id="room-create-btn" class="text-button" type="button">部屋を作る</button></div>
-                <div class="room-block"><span class="room-label">＜ ４桁の部屋番号 ＞</span><input id="room-code-input" class="room-input" type="text" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off"><button id="room-join-btn" class="text-button" type="button">番号で入る</button></div>
-                <div id="room-feedback" class="room-label"></div>
-            </div>
-            <div id="room-wait" hidden><div class="room-label">部屋番号</div><div id="room-code">0000</div><div id="room-status">相手の入室を待っています…</div></div>
+            <div id="room-wait"><div class="room-label">部屋番号</div><div id="room-code">----</div><div id="room-status">接続しています…</div></div>
             <div class="dialog-actions"><button id="friend-close-btn" class="text-button" type="button">もどる</button></div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
         </div>
@@ -630,6 +688,58 @@
             { char: '飛', special: 'fly', min: 1, max: 2 },
             { char: '虹', special: 'rainbow', min: 1, max: 1 }
         ];
+
+        const PIECE_HELP_ITEMS = [
+            ...PIECE_TYPES.map(type => ({ char: type.char, name: `${type.char}ピース`, color: type.color, description: '同じ文字を縦か横に３つ以上そろえると消えます。' })),
+            { char: '横', name: '横ピース', color: '#3b82f6', effect: 'special', description: '横に４つそろえると生成。消すと同じ横一列をまとめて消します。' },
+            { char: '縦', name: '縦ピース', color: '#ef4444', effect: 'special', description: '縦に４つそろえると生成。消すと同じ縦一列をまとめて消します。' },
+            { char: '爆', name: '爆ピース', color: '#eab308', effect: 'special', description: '縦横に広がる形でそろえると生成。消すと周囲を広く巻き込みます。' },
+            { char: '飛', name: '飛ピース', color: '#a855f7', effect: 'special', description: '同じ文字を２×２でそろえると生成。盤面を飛び、離れたピースを狙います。' },
+            { char: '虹', name: '虹ピース', effect: 'rainbow', description: '同じ文字を５つ以上そろえると生成。入れ替えた相手と同じ文字を盤面からまとめて消します。' },
+            { char: '石', name: '石ピース', effect: 'stone', description: '敵が生成する障害物です。動かせませんが、隣で文字をそろえると破壊できます。' }
+        ];
+
+        function renderPieceHelp() {
+            const list = document.getElementById('piece-help-list');
+            if (!list || list.childElementCount) return;
+            PIECE_HELP_ITEMS.forEach(item => {
+                const cell = document.createElement('div');
+                cell.className = 'piece-help-cell';
+                const glyph = document.createElement('span');
+                glyph.className = 'piece-help-glyph';
+                glyph.textContent = item.char;
+                glyph.setAttribute('aria-hidden', 'true');
+                if (item.effect === 'rainbow') glyph.classList.add('rainbow-anim');
+                else if (item.effect === 'stone') glyph.classList.add('stone-help');
+                else if (item.effect === 'special') {
+                    glyph.classList.add('special-anim');
+                    glyph.style.setProperty('--piece-color', item.color);
+                } else glyph.style.setProperty('--piece-help-color', item.color);
+                const copy = document.createElement('div');
+                const name = document.createElement('div');
+                name.className = 'piece-help-name';
+                name.textContent = item.name;
+                const description = document.createElement('div');
+                description.className = 'piece-help-description';
+                description.textContent = item.description;
+                copy.append(name, description);
+                cell.append(glyph, copy);
+                list.appendChild(cell);
+            });
+        }
+
+        function switchHelpTab(tabName = 'play') {
+            const selected = tabName === 'pieces' ? 'pieces' : 'play';
+            document.querySelectorAll('[data-help-tab]').forEach(button => {
+                const active = button.dataset.helpTab === selected;
+                button.setAttribute('aria-selected', String(active));
+                button.tabIndex = active ? 0 : -1;
+            });
+            document.getElementById('help-play-panel').hidden = selected !== 'play';
+            document.getElementById('help-pieces-panel').hidden = selected !== 'pieces';
+            const scroll = selected === 'pieces' ? document.querySelector('.piece-help-scroll') : document.querySelector('.howto-scroll');
+            if (scroll) scroll.scrollTop = 0;
+        }
 
         const SPECIAL_CHAR_BY_TYPE = Object.fromEntries(SPECIAL_PIECE_TYPES.map(type => [type.special, type.char]));
 
@@ -691,6 +801,8 @@
         let selectedStageEncounter = null;
         let pendingMapReward = null;
         let audioContext = null;
+        let bgmSourceNode = null;
+        let bgmGainNode = null;
         const seBuffers = Object.create(null);
         const seBufferPromises = Object.create(null);
         
@@ -1071,8 +1183,19 @@
             }
         }
 
+        function getStarCountFor(value) {
+            return STAGE.starScores.filter(threshold => value >= threshold).length;
+        }
+
         function getStarCount() {
-            return STAGE.starScores.filter(value => score >= value).length;
+            return getStarCountFor(score);
+        }
+
+        function getTurnBonusData() {
+            const stageId = Math.max(1, Number(selectedStageId) || 1);
+            const remaining = Math.max(0, turnsLeft);
+            const perTurn = 340 + stageId * 10;
+            return { remaining, perTurn, total: remaining * perTurn };
         }
 
         function updateStarGauge() {
@@ -1261,8 +1384,33 @@
             const context = getAudioContext();
             if (context?.state === 'suspended') context.resume().catch(() => {});
             if (context) preloadSampleSE();
-            bgmAudio.volume = getVolume('matchTextBgm', 5) / 10;
+            applyBgmVolume(getVolume('matchTextBgm', 5));
             if (bgmAudio.paused) bgmAudio.play().catch(() => {});
+        }
+
+        function applyBgmVolume(value) {
+            const normalized = Math.max(0, Math.min(10, Number(value) || 0)) / 10;
+            const context = getAudioContext();
+            if (context && !bgmGainNode) {
+                try {
+                    bgmSourceNode = context.createMediaElementSource(bgmAudio);
+                    bgmGainNode = context.createGain();
+                    bgmSourceNode.connect(bgmGainNode).connect(context.destination);
+                } catch (_) {
+                    bgmSourceNode = null;
+                    bgmGainNode = null;
+                }
+            }
+            if (context && bgmGainNode) {
+                bgmAudio.volume = 1;
+                bgmGainNode.gain.cancelScheduledValues(context.currentTime);
+                bgmGainNode.gain.setValueAtTime(bgmGainNode.gain.value, context.currentTime);
+                bgmGainNode.gain.linearRampToValueAtTime(normalized, context.currentTime + .04);
+            } else {
+                bgmAudio.volume = normalized;
+            }
+            bgmAudio.dataset.volume = String(normalized);
+            bgmAudio.dataset.volumeMode = bgmGainNode ? 'gain' : 'media';
         }
 
         function playTone(frequency, duration, volume, type = 'sine') {
@@ -1890,38 +2038,123 @@
             return true;
         }
 
-        function setResultScoreValue(value) {
-            document.getElementById('result-score').textContent = toFullWidth(String(Math.max(0, Math.floor(value))).padStart(6, '0'));
+        function resultScoreDigits(value, width = 6) {
+            return String(Math.max(0, Math.floor(value))).padStart(width, '0').split('');
         }
 
-        async function animateResultScore(finalScore, isNew, token) {
+        function setResultScoreValue(value) {
+            const scoreEl = document.getElementById('result-score');
+            const digits = resultScoreDigits(value);
+            scoreEl.replaceChildren(...digits.map(value => {
+                const digit = document.createElement('span');
+                digit.className = 'score-digit';
+                digit.textContent = toFullWidth(value);
+                return digit;
+            }));
+        }
+
+        async function animateScoreDigits(fromScore, toScore, token) {
+            const scoreEl = document.getElementById('result-score');
+            const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const width = Math.max(6, String(Math.max(0, Math.floor(toScore))).length);
+            const fromDigits = resultScoreDigits(fromScore, width);
+            const toDigits = resultScoreDigits(toScore, width);
+            scoreEl.replaceChildren(...fromDigits.map(value => {
+                const digit = document.createElement('span');
+                digit.className = 'score-digit';
+                digit.textContent = toFullWidth(value);
+                return digit;
+            }));
+            if (reducedMotion) {
+                scoreEl.querySelectorAll('.score-digit').forEach((digit, index) => { digit.textContent = toFullWidth(toDigits[index]); });
+                return true;
+            }
+
+            const digits = [...scoreEl.querySelectorAll('.score-digit')];
+            for (let index = digits.length - 1; index >= 0; index--) {
+                if (token !== resultSequenceToken) return false;
+                const digit = digits[index];
+                let rollingValue = Number(fromDigits[index]) || 0;
+                digit.classList.remove('digit-settled');
+                digit.classList.add('digit-rolling');
+                for (let step = 0; step < 6; step++) {
+                    rollingValue = (rollingValue + 1) % 10;
+                    digit.textContent = toFullWidth(rollingValue);
+                    await wait(18);
+                    if (token !== resultSequenceToken) return false;
+                }
+                digit.textContent = toFullWidth(toDigits[index]);
+                digit.classList.remove('digit-rolling');
+                void digit.offsetWidth;
+                digit.classList.add('digit-settled');
+                playSE(430 + (digits.length - 1 - index) * 54, .025, 'square');
+                await wait(28);
+            }
+            return token === resultSequenceToken;
+        }
+
+        function renderResultStars(count = 0) {
+            const rank = document.getElementById('result-rank');
+            rank.replaceChildren(...[0, 1, 2].map(index => {
+                const star = document.createElement('span');
+                star.className = `result-star${index < count ? ' earned' : ''}`;
+                star.textContent = index < count ? '★' : '☆';
+                return star;
+            }));
+        }
+
+        async function animateResultStars(finalStars, token) {
+            const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const stars = [...document.querySelectorAll('#result-rank .result-star')];
+            for (let index = 0; index < finalStars; index++) {
+                if (token !== resultSequenceToken) return false;
+                const star = stars[index];
+                if (!star) continue;
+                star.textContent = '★';
+                star.classList.add('earned');
+                if (!reducedMotion) {
+                    void star.offsetWidth;
+                    star.classList.add('star-award');
+                }
+                playSE(760 + index * 130, .1, 'sine');
+                await wait(reducedMotion ? 1 : 270);
+            }
+            return token === resultSequenceToken;
+        }
+
+        async function animateResultScore(baseScore, bonusData, finalStars, isNew, token) {
             const scoreEl = document.getElementById('result-score');
             const badge = document.getElementById('new-badge');
+            const bonusRow = document.getElementById('result-turn-bonus-row');
             const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
             badge.hidden = true;
             badge.classList.remove('spark');
             scoreEl.classList.remove('new-score', 'new-glow', 'score-settled');
-            scoreEl.classList.add('rolling');
             setResultScoreValue(0);
-
-            const duration = reducedMotion ? 1 : 1200;
-            const startedAt = performance.now();
-            let elapsed = 0;
-            while (elapsed < duration) {
-                await new Promise(resolve => requestAnimationFrame(resolve));
-                if (token !== resultSequenceToken) return;
-                elapsed = performance.now() - startedAt;
-                const progress = Math.min(1, elapsed / duration);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                setResultScoreValue(finalScore * eased);
-            }
-
-            if (token !== resultSequenceToken) return;
-            setResultScoreValue(finalScore);
-            scoreEl.classList.remove('rolling');
+            if (!await animateScoreDigits(0, baseScore, token)) return;
             scoreEl.classList.add('score-settled');
             playSE(760, .08, 'square');
-            await wait(reducedMotion ? 1 : 260);
+            await wait(reducedMotion ? 1 : 220);
+
+            const finalScore = baseScore + bonusData.total;
+            if (bonusData.total > 0) {
+                document.getElementById('result-turn-formula').textContent = `残り${toFullWidth(bonusData.remaining)} × ${toFullWidth(bonusData.perTurn)}`;
+                document.getElementById('result-turn-bonus').textContent = `＋${toFullWidth(String(bonusData.total).padStart(6, '0'))}`;
+                bonusRow.hidden = false;
+                bonusRow.classList.remove('bonus-enter');
+                void bonusRow.offsetWidth;
+                bonusRow.classList.add('bonus-enter');
+                playSE(920, .1, 'square');
+                await wait(reducedMotion ? 1 : 360);
+                scoreEl.classList.remove('score-settled');
+                if (!await animateScoreDigits(baseScore, finalScore, token)) return;
+                scoreEl.classList.add('score-settled');
+                playSE(860, .1, 'square');
+                await wait(reducedMotion ? 1 : 220);
+            }
+
+            if (!await animateResultStars(finalStars, token)) return;
+            await wait(reducedMotion ? 1 : 130);
             if (token !== resultSequenceToken || !isNew) return;
             scoreEl.classList.remove('score-settled');
             scoreEl.classList.add('new-score', 'new-glow');
@@ -1944,6 +2177,10 @@
             isProcessing = true;
             clearTimeout(completionCheckTimer);
             const token = ++resultSequenceToken;
+
+            const baseScore = score;
+            const turnBonus = currentMode === 'solo' && cleared ? getTurnBonusData() : { remaining: 0, perTurn: 0, total: 0 };
+            score = baseScore + turnBonus.total;
 
             const bestKey = 'matchTextBest';
             const oldBest = Number(localStorage.getItem(bestKey) || 0);
@@ -1976,10 +2213,16 @@
             resultRank.hidden = false;
             resultRank.classList.remove('win', 'lose', 'result-enter');
             if (isBattleResult) resultRank.classList.add(battleOutcome === 'win' ? 'win' : 'lose');
-            resultRank.textContent = isBattleResult ? (battleOutcome === 'win' ? '勝ち' : '負け') : '★'.repeat(stars) + '☆'.repeat(3 - stars);
+            if (isBattleResult) resultRank.textContent = battleOutcome === 'win' ? '勝ち' : '負け';
+            else renderResultStars(cleared ? 0 : stars);
             const resultScore = document.getElementById('result-score');
-            resultScore.classList.remove('rolling', 'score-settled', 'new-score', 'new-glow');
+            resultScore.classList.remove('score-settled', 'new-score', 'new-glow');
             setResultScoreValue(0);
+            const bonusRow = document.getElementById('result-turn-bonus-row');
+            bonusRow.hidden = true;
+            bonusRow.classList.remove('bonus-enter');
+            document.getElementById('result-turn-formula').textContent = '';
+            document.getElementById('result-turn-bonus').textContent = '';
             document.getElementById('best-score').textContent = toFullWidth(String(best).padStart(6, '0'));
             const badge = document.getElementById('new-badge');
             badge.hidden = true;
@@ -1993,7 +2236,7 @@
             playSE(cleared || battleOutcome === 'win' ? 880 : 130, .4, cleared || battleOutcome === 'win' ? 'sine' : 'sawtooth');
             if (!isBattleResult && !soloFailed) {
                 await wait(matchMedia('(prefers-reduced-motion: reduce)').matches ? 10 : 180);
-                await animateResultScore(score, isNew, token);
+                await animateResultScore(baseScore, turnBonus, stars, isNew, token);
             }
         }
 
@@ -3080,16 +3323,41 @@
                 const rivals = BATTLE_FACES.filter(candidate => candidate.glyph !== selectedBattleFace);
                 opponentBattleFace = rivals[Math.floor(Math.random() * rivals.length)].glyph;
                 startMode('battle');
-            } else if (mode === 'friend') openFriendMenu();
+            }
         }
 
-        function openFriendMenu() {
+        function openFriendMethodSelection() {
             ensureAudio();
-            document.getElementById('room-menu').hidden = false;
-            document.getElementById('room-wait').hidden = true;
             document.getElementById('room-feedback').textContent = '';
             document.getElementById('room-code-input').value = '';
+            openDialog('friend-method-dialog');
+        }
+
+        function openFriendJoinDialog() {
+            ensureAudio();
+            document.getElementById('room-feedback').textContent = '';
+            document.getElementById('room-code-input').value = '';
+            openDialog('friend-join-dialog');
+            setTimeout(() => document.getElementById('room-code-input').focus(), 60);
+        }
+
+        function openFriendWaitingDialog(code = '----', status = '接続しています…') {
+            document.getElementById('room-code').textContent = code;
+            document.getElementById('room-status').textContent = status;
             openDialog('friend-dialog');
+        }
+
+        async function createFriendRoom(rounds) {
+            selectedRoundCount = [1, 3, 5].includes(Number(rounds)) ? Number(rounds) : 1;
+            openFriendWaitingDialog('----', '部屋を作成しています…');
+            try {
+                const code = await OnlineBattle.createRoom();
+                document.getElementById('room-code').textContent = code;
+                document.getElementById('room-status').textContent = `相手の入室を待っています…\nラウンド${toFullWidth(selectedRoundCount)}`;
+            } catch (_) {
+                document.getElementById('room-code').textContent = '----';
+                document.getElementById('room-status').textContent = '中継サーバーに接続できません';
+            }
         }
 
         function renderFaceGrid() {
@@ -3113,7 +3381,8 @@
                     closeDialog('face-dialog');
                     const mode = pendingFaceMode;
                     pendingFaceMode = null;
-                    if (mode === 'battle' || mode === 'friend') openRoundSelection(mode);
+                    if (mode === 'battle') openRoundSelection(mode);
+                    else if (mode === 'friend') openFriendMethodSelection();
                 });
                 grid.appendChild(button);
             });
@@ -3137,31 +3406,34 @@
             button.addEventListener('click', () => {
                 const mode = pendingRoundMode;
                 const rounds = Number(button.dataset.roundCount);
+                pendingRoundMode = null;
                 closeDialog('round-dialog');
-                if (mode) beginBattleSeries(mode, rounds);
+                if (mode === 'friend-host') void createFriendRoom(rounds);
+                else if (mode) beginBattleSeries(mode, rounds);
             });
         });
         document.getElementById('round-cancel-btn').addEventListener('click', () => {
+            const mode = pendingRoundMode;
             pendingRoundMode = null;
             closeDialog('round-dialog');
+            if (mode === 'friend-host') openFriendMethodSelection();
+        });
+        document.getElementById('friend-create-choice').addEventListener('click', () => {
+            closeDialog('friend-method-dialog');
+            openRoundSelection('friend-host');
+        });
+        document.getElementById('friend-join-choice').addEventListener('click', () => {
+            closeDialog('friend-method-dialog');
+            openFriendJoinDialog();
+        });
+        document.getElementById('friend-method-close').addEventListener('click', () => closeDialog('friend-method-dialog'));
+        document.getElementById('friend-join-close').addEventListener('click', () => {
+            OnlineBattle.leave(true);
+            closeDialog('friend-join-dialog');
+            openFriendMethodSelection();
         });
         document.getElementById('room-code-input').addEventListener('input', event => {
             event.target.value = event.target.value.replace(/\D/g, '').slice(0, 4);
-        });
-        document.getElementById('room-create-btn').addEventListener('click', async () => {
-            const button = document.getElementById('room-create-btn');
-            button.disabled = true; button.textContent = '接続中…';
-            document.getElementById('room-feedback').textContent = '';
-            try {
-                const code = await OnlineBattle.createRoom();
-                document.getElementById('room-menu').hidden = true;
-                document.getElementById('room-wait').hidden = false;
-                document.getElementById('room-code').textContent = code;
-                document.getElementById('room-status').textContent = '相手の入室を待っています…';
-            } catch (_) {
-                document.getElementById('room-feedback').textContent = '中継サーバーに接続できません';
-            }
-            button.disabled = false; button.textContent = '部屋を作る';
         });
         document.getElementById('room-join-btn').addEventListener('click', async () => {
             const code = document.getElementById('room-code-input').value.trim();
@@ -3171,16 +3443,14 @@
             button.disabled = true; button.textContent = '入室中…'; feedback.textContent = '';
             try {
                 await OnlineBattle.joinRoom(code);
-                document.getElementById('room-menu').hidden = true;
-                document.getElementById('room-wait').hidden = false;
-                document.getElementById('room-code').textContent = code;
-                document.getElementById('room-status').textContent = '入室しました。開始を待っています…';
-                OnlineBattle.send({ t: 'ready', face: selectedBattleFace, rounds: selectedRoundCount });
+                closeDialog('friend-join-dialog');
+                openFriendWaitingDialog(code, '入室しました。開始を待っています…');
+                OnlineBattle.send({ t: 'ready', face: selectedBattleFace });
             } catch (error) {
                 feedback.textContent = error.message === 'notfound' ? 'その番号の部屋は見つかりません' : error.message === 'full' ? 'その部屋は満室です' : error.message === 'badcode' ? '部屋番号が正しくありません' : '入室できません';
                 OnlineBattle.leave(true);
             }
-            button.disabled = false; button.textContent = '番号で入る';
+            button.disabled = false; button.textContent = '入室する';
         });
         document.getElementById('friend-close-btn').addEventListener('click', () => {
             OnlineBattle.leave();
@@ -3192,9 +3462,11 @@
         });
         document.getElementById('title-howto').addEventListener('click', () => {
             ensureAudio();
-            document.querySelector('.howto-scroll').scrollTop = 0;
+            renderPieceHelp();
+            switchHelpTab('play');
             openDialog('howto-dialog');
         });
+        document.querySelectorAll('[data-help-tab]').forEach(button => button.addEventListener('click', () => switchHelpTab(button.dataset.helpTab)));
         document.getElementById('settings-close').addEventListener('click', () => closeDialog('settings-dialog'));
         document.getElementById('howto-close').addEventListener('click', () => closeDialog('howto-dialog'));
         document.getElementById('pause-btn').addEventListener('click', () => {
@@ -3237,7 +3509,7 @@
             const value = settingsVolumes[kind];
             document.getElementById(kind + '-bar').textContent = '■'.repeat(value) + '□'.repeat(10 - value);
             document.getElementById(kind + '-value').textContent = toFullWidth(value);
-            if (kind === 'bgm') bgmAudio.volume = value / 10;
+            if (kind === 'bgm') applyBgmVolume(value);
         }
 
         ['bgm', 'se'].forEach(renderVolume);
@@ -3258,6 +3530,8 @@
             else if (!document.getElementById('stage-detail-dialog').hidden) closeDialog('stage-detail-dialog');
             else if (!document.getElementById('round-dialog').hidden) document.getElementById('round-cancel-btn').click();
             else if (!document.getElementById('face-dialog').hidden) document.getElementById('face-cancel-btn').click();
+            else if (!document.getElementById('friend-join-dialog').hidden) document.getElementById('friend-join-close').click();
+            else if (!document.getElementById('friend-method-dialog').hidden) document.getElementById('friend-method-close').click();
             else if (!document.getElementById('friend-dialog').hidden) document.getElementById('friend-close-btn').click();
             else if (!document.getElementById('pause-dialog').hidden) closeDialog('pause-dialog');
             else if (!document.getElementById('game-screen').hidden && !gameEnded) openDialog('pause-dialog');

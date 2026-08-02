@@ -175,7 +175,7 @@
         if (!screen || !label) return;
         const visualArea = Math.floor((screen.scrollTop + innerHeight * .36) / MatchTextStages.AREA_HEIGHT);
         const area = Math.max(1, Math.min(MatchTextStages.AREA_COUNT, MatchTextStages.AREA_COUNT - visualArea));
-        label.textContent = `エリア${toFullWidth(area)}`;
+        label.textContent = `エリア${area}`;
         label.style.setProperty('--area-color', MatchTextStages.AREA_COLORS[area - 1]);
     }
 
