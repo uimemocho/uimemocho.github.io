@@ -142,13 +142,14 @@
         .game-zone-top { align-self: start; width: 100%; min-height: 0; }
         .game-zone-middle { align-self: center; width: 100%; min-height: 0; }
         .game-zone-bottom { align-self: end; width: 100%; min-height: 0; display: flex; justify-content: center; }
-        .hud { width: 100%; display: grid; grid-template-columns: 64px minmax(0, 1fr) 48px; align-items: start; padding: 0 8px; }
+        .hud { position: relative; width: 100%; min-height: 58px; display: grid; grid-template-columns: 64px minmax(0, 1fr) 48px; align-items: start; padding: 0 8px; }
         .turns { color: #d3d6d3; text-align: center; font-size: 11px; letter-spacing: 0; white-space: nowrap; }
         #turn-display { display: block; margin-top: 1px; color: #fff; font-size: 30px; line-height: 1; text-shadow: 0 0 9px rgba(255,255,255,.4); }
-        .score-zone { text-align: center; min-width: 0; }
+        .score-zone { position: absolute; top: 0; left: 50%; width: 176px; min-width: 176px; max-width: 176px; text-align: center; transform: translateX(-50%); }
+        #star-track, #score-bar, #score-display { display: block; width: 100%; text-align: center; }
         #star-track { color: #67675f; font-size: 18px; letter-spacing: .04em; white-space: nowrap; }
         #star-track .earned { color: var(--gold); text-shadow: 0 0 8px var(--gold); }
-        #score-bar { color: #887b38; font-size: clamp(8px, 2.8vw, 11px); letter-spacing: -.06em; white-space: nowrap; }
+        #score-bar { overflow: hidden; color: #887b38; font-size: 8px; letter-spacing: -.06em; white-space: nowrap; }
         #score-display { color: #ece7ce; font-size: 12px; margin-top: 2px; transition: .15s; }
         #pause-btn { justify-self: end; width: 30px; min-height: 28px; padding: 2px; color: #9fa4a1; font-size: 13px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
         #targets { display: flex; justify-content: center; align-items: flex-end; gap: 9px; min-height: 40px; }
@@ -394,6 +395,10 @@
             #pause-btn { width: 28px; min-height: 26px; padding: 1px; font-size: 12px; }
             .face-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
+        @media (max-width: 319px) {
+            .score-zone { width: 152px; min-width: 152px; max-width: 152px; }
+            #score-bar { font-size: 7px; }
+        }
         @media (prefers-reduced-motion: reduce) {
             .snow-char, .start-menu { animation-duration: 8s; }
             .area-ascii-token { animation: none; top: var(--ascii-static-top, 50%); opacity: .1; }
@@ -462,7 +467,7 @@
                     <div class="score-zone">
                         <div id="star-track" aria-label="星ゲージ">☆━━☆━━☆</div>
                         <div id="score-bar">▹░░░░░░░░░░░░░░░░░░░░◃</div>
-                        <div id="score-display">得点 ００００００</div>
+                        <div id="score-display">スコア ００００００</div>
                     </div>
                     <button id="pause-btn" class="text-button" type="button" aria-label="停止">Ⅱ</button>
                 </header>
@@ -2906,7 +2911,7 @@
 
         function updateScoreUI() {
             const el = document.getElementById('score-display');
-            el.textContent = '得点 ' + toFullWidth(String(score).padStart(6, '0'));
+            el.textContent = 'スコア ' + toFullWidth(String(score).padStart(6, '0'));
             updateStarGauge();
             el.style.color = '#ffffff';
             el.style.transform = 'scale(1.1)';
