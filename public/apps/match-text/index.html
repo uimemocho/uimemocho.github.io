@@ -109,7 +109,9 @@
 
         /* in game */
         #game-screen { display: grid; place-items: center; }
-        #game-ui { width: min(100vw, 390px); height: 100dvh; min-height: 450px; display: grid; grid-template-rows: auto minmax(46px, 1fr) auto; align-items: stretch; padding: var(--safe-top) 0 calc(var(--safe-bottom) + var(--board-rise)); }
+        #game-ascii-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .game-bg-token { position: absolute; top: -3em; color: var(--area-face-color, #74807b); font-size: clamp(9px, 2.8vw, 13px); line-height: 1; white-space: nowrap; opacity: .22; text-shadow: 0 0 5px currentColor; animation: text-snow linear infinite; will-change: transform, opacity; }
+        #game-ui { position: relative; z-index: 1; width: min(100vw, 390px); height: 100dvh; min-height: 450px; display: grid; grid-template-rows: auto minmax(46px, 1fr) auto; align-items: stretch; padding: var(--safe-top) 0 calc(var(--safe-bottom) + var(--board-rise)); }
         .game-zone-top { align-self: start; width: 100%; min-height: 0; }
         .game-zone-middle { align-self: center; width: 100%; min-height: 0; }
         .game-zone-bottom { align-self: end; width: 100%; min-height: 0; display: flex; justify-content: center; }
@@ -261,6 +263,10 @@
         .result-card.battle-result .result-bottom { align-self: start; margin-top: 24px; transform: none; }
         .result-card.battle-result #result-heading, .result-card.battle-result #result-stage-name { display: none; }
         .result-card.battle-result #result-rank { margin-top: 0; }
+        .result-card.solo-failed { grid-template-rows: 1fr 1fr; }
+        .result-card.solo-failed .result-top { align-self: end; margin: 0 0 24px; transform: none; }
+        .result-card.solo-failed .result-middle { display: none; }
+        .result-card.solo-failed .result-bottom { align-self: start; margin-top: 24px; transform: none; }
         @keyframes result-rank-enter { 0% { opacity: 0; transform: translateY(-12px) scale(1.35); letter-spacing: .35em; filter: blur(4px); } 62% { opacity: 1; transform: translateY(3px) scale(.96); filter: blur(0); } 100% { opacity: 1; transform: translateY(0) scale(1); letter-spacing: normal; } }
         @keyframes result-rank-lose { 0% { opacity: 0; transform: translateY(-10px); filter: blur(3px); } 55% { opacity: .82; transform: translateY(4px); filter: blur(0); } 100% { opacity: 1; transform: translateY(0); } }
         .result-row { display: flex; justify-content: space-between; margin: 12px 34px; color: #909793; }
@@ -416,6 +422,7 @@
     </section>
 
     <section id="game-screen" class="screen" aria-label="ゲーム画面" hidden>
+        <div id="game-ascii-bg" aria-hidden="true"></div>
         <main id="game-ui">
             <div class="game-zone-top">
                 <header class="hud">
@@ -1078,7 +1085,8 @@
 
         function initAsciiSnow() {
             const layer = document.getElementById('ascii-snow');
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*/=<>[]{}!?#%&青赤黄緑紫虹横縦爆飛';
+            const chars = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*/=<>[]{}!?#%&青赤黄緑紫虹横縦爆飛'];
+            const faces = shuffled(BATTLE_FACES.map(item => item.glyph));
             layer.innerHTML = '';
             const amount = Math.min(44, Math.max(24, Math.floor(innerWidth / 10)));
             for (let i = 0; i < amount; i++) {
@@ -1086,7 +1094,9 @@
                 el.className = 'snow-char';
                 const glyph = document.createElement('span');
                 glyph.className = 'snow-glyph';
-                glyph.textContent = chars[Math.floor(Math.random() * chars.length)];
+                glyph.textContent = i < Math.min(6, amount) || Math.random() < .2
+                    ? faces[i % faces.length]
+                    : chars[Math.floor(Math.random() * chars.length)];
                 const pieceType = PIECE_TYPES.find(piece => piece.char === glyph.textContent);
                 const specialType = SPECIAL_PIECE_TYPES.find(piece => piece.char === glyph.textContent);
                 if (pieceType) glyph.style.color = pieceType.color;
@@ -1103,6 +1113,49 @@
                 el.style.animationDelay = (-Math.random() * 18) + 's';
                 el.style.setProperty('--snow-rot', Math.random() < .5 ? '-1' : '1');
                 layer.appendChild(el);
+            }
+        }
+
+        function getAreaEnemyDefinitions(stageId) {
+            const area = Math.max(1, Math.min(3, Math.ceil((Number(stageId) || 1) / 10)));
+            const start = (area - 1) * 10 + 1;
+            const end = area * 10;
+            return ENEMY_DEFINITIONS.filter(enemy => {
+                for (let id = start; id <= end; id++) {
+                    const difficulty = MatchTextStages.getStage(id).difficulty;
+                    if (difficulty.forceBoss && enemy.name === '魔王') return true;
+                    if (difficulty.featuredEnemy === enemy.name) return true;
+                    if (enemy.name !== '魔王' && enemy.minStage <= id &&
+                        enemy.tier >= (difficulty.enemyTierMin || 1) &&
+                        enemy.tier <= (difficulty.enemyTierMax || 3)) return true;
+                }
+                return false;
+            });
+        }
+
+        function initGameAsciiBackground() {
+            const layer = document.getElementById('game-ascii-bg');
+            const asciiChars = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*/=<>[]{}!?#%&'];
+            const area = Math.max(1, Math.min(3, Math.ceil((Number(selectedStageId) || 1) / 10)));
+            const areaColors = ['#54d8a0', '#66a8ff', '#cf79ff'];
+            const definitions = currentMode === 'solo'
+                ? getAreaEnemyDefinitions(selectedStageId)
+                : ENEMY_DEFINITIONS.filter(enemy => enemy.name !== '魔王');
+            const faces = definitions.map(enemy => enemy.face);
+            const amount = Math.min(18, Math.max(12, Math.floor(innerWidth / 24)));
+            layer.innerHTML = '';
+            layer.style.setProperty('--area-face-color', currentMode === 'solo' ? areaColors[area - 1] : '#87918c');
+            for (let i = 0; i < amount; i++) {
+                const token = document.createElement('span');
+                token.className = 'game-bg-token';
+                token.textContent = Math.random() < .58
+                    ? (faces[Math.floor(Math.random() * faces.length)] || '(･_･)')
+                    : asciiChars[Math.floor(Math.random() * asciiChars.length)];
+                token.style.left = `${2 + Math.random() * 90}%`;
+                token.style.animationDuration = `${11 + Math.random() * 10}s`;
+                token.style.animationDelay = `${-Math.random() * 20}s`;
+                token.style.setProperty('--snow-rot', Math.random() < .5 ? '-1' : '1');
+                layer.appendChild(token);
             }
         }
 
@@ -1221,6 +1274,7 @@
             syncEnemyAggregate();
             document.getElementById('game-ui').classList.toggle('enemy-mode', currentMode === 'solo');
             document.querySelector('.score-zone').hidden = currentMode !== 'solo';
+            initGameAsciiBackground();
             combo = 0;
             gameEnded = false;
             updateScoreUI();
@@ -1840,6 +1894,7 @@
             if (isNew) localStorage.setItem(bestKey, String(score));
 
             const stars = currentMode === 'solo' ? (cleared ? Math.max(1, getStarCount()) : getStarCount()) : 0;
+            const soloFailed = currentMode === 'solo' && !cleared;
             const nextStageButton = document.getElementById('next-stage-btn');
             nextStageButton.hidden = !(currentMode === 'solo' && cleared);
             if (currentMode === 'solo' && cleared) {
@@ -1848,6 +1903,8 @@
             }
             const resultCard = document.querySelector('.result-card');
             resultCard.classList.toggle('battle-result', isBattleResult);
+            resultCard.classList.toggle('solo-failed', soloFailed);
+            document.querySelector('.result-middle').hidden = soloFailed;
             const stageData = MatchTextStages.getStage(selectedStageId);
             document.getElementById('result-heading').textContent = isBattleResult ? '' : stageData.name;
             document.getElementById('result-stage-name').textContent = isBattleResult ? '' : stageData.title;
@@ -1856,6 +1913,7 @@
             document.getElementById('result-round-count').textContent = `ラウンド${toFullWidth(battleSeries.total)}`;
             document.getElementById('result-win-loss').textContent = `勝ち×${toFullWidth(battleSeries.wins)}　負け×${toFullWidth(battleSeries.losses)}`;
             const resultRank = document.getElementById('result-rank');
+            resultRank.hidden = soloFailed;
             resultRank.classList.remove('win', 'lose', 'result-enter');
             if (isBattleResult) resultRank.classList.add(battleOutcome === 'win' ? 'win' : 'lose');
             resultRank.textContent = isBattleResult ? (battleOutcome === 'win' ? '勝ち' : '負け') : '★'.repeat(stars) + '☆'.repeat(3 - stars);
@@ -1873,7 +1931,7 @@
             void resultRank.offsetWidth;
             resultRank.classList.add('result-enter');
             playSE(cleared || battleOutcome === 'win' ? 880 : 130, .4, cleared || battleOutcome === 'win' ? 'sine' : 'sawtooth');
-            if (!isBattleResult) {
+            if (!isBattleResult && !soloFailed) {
                 await wait(matchMedia('(prefers-reduced-motion: reduce)').matches ? 10 : 180);
                 await animateResultScore(score, isNew, token);
             }
