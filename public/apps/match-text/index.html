@@ -731,7 +731,9 @@
             if (difficulty.forceBoss) {
                 const boss = ENEMY_DEFINITIONS.find(enemy => enemy.name === '魔王');
                 const finalPool = ENEMY_DEFINITIONS.filter(enemy => enemy.name !== '魔王' && enemy.tier === 3 && enemy.minStage <= difficulty.stageId);
-                definitions = [...shuffled(finalPool).slice(0, count - 1), boss];
+                const escorts = shuffled(finalPool).slice(0, count - 1);
+                const bossIndex = Math.floor(count / 2);
+                definitions = [...escorts.slice(0, bossIndex), boss, ...escorts.slice(bossIndex)];
             } else {
                 const pool = ENEMY_DEFINITIONS.filter(enemy =>
                     enemy.name !== '魔王' &&
@@ -1725,11 +1727,12 @@
             playSE(620, .12, 'square');
             const animation = text.animate([
                 { transform: 'translateX(115vw) scale(.9)', opacity: 0, offset: 0 },
-                { transform: 'translateX(34vw) scale(1)', opacity: 1, offset: .2, easing: 'cubic-bezier(.12,.72,.2,1)' },
-                { transform: 'translateX(3vw) scale(1.05)', opacity: 1, offset: .48, easing: 'ease-out' },
-                { transform: 'translateX(-3vw) scale(1.05)', opacity: 1, offset: .68, easing: 'linear' },
-                { transform: 'translateX(-115vw) scale(.96)', opacity: 0, offset: 1, easing: 'cubic-bezier(.4,0,1,1)' }
-            ], { duration: reducedMotion ? 60 : 1700, fill: 'both' });
+                { transform: 'translateX(28vw) scale(1)', opacity: 1, offset: .12, easing: 'cubic-bezier(.08,.82,.18,1)' },
+                { transform: 'translateX(2vw) scale(1.05)', opacity: 1, offset: .27, easing: 'cubic-bezier(.12,.76,.18,1)' },
+                { transform: 'translateX(-2vw) scale(1.05)', opacity: 1, offset: .68, easing: 'linear' },
+                { transform: 'translateX(-14vw) scale(1.03)', opacity: 1, offset: .78, easing: 'cubic-bezier(.4,0,.9,.3)' },
+                { transform: 'translateX(-115vw) scale(.96)', opacity: 0, offset: 1, easing: 'cubic-bezier(.72,0,1,.45)' }
+            ], { duration: reducedMotion ? 40 : 1050, fill: 'both' });
             await animation.finished.catch(() => {});
             cutin.hidden = true;
         }
@@ -1867,7 +1870,8 @@
             const best = isNew ? score : oldBest;
             if (isNew) localStorage.setItem(bestKey, String(score));
 
-            const stars = currentMode === 'solo' ? (cleared ? Math.max(1, getStarCount()) : getStarCount()) : 0;
+            const savedStars = currentMode === 'solo' ? MatchTextStages.getStars(selectedStageId) : 0;
+            const stars = currentMode === 'solo' ? (cleared ? Math.max(1, getStarCount()) : savedStars) : 0;
             const soloFailed = currentMode === 'solo' && !cleared;
             const nextStageButton = document.getElementById('next-stage-btn');
             nextStageButton.hidden = !(currentMode === 'solo' && cleared);
@@ -1887,7 +1891,7 @@
             document.getElementById('result-round-count').textContent = `ラウンド${toFullWidth(battleSeries.total)}`;
             document.getElementById('result-win-loss').textContent = `勝ち×${toFullWidth(battleSeries.wins)}　負け×${toFullWidth(battleSeries.losses)}`;
             const resultRank = document.getElementById('result-rank');
-            resultRank.hidden = soloFailed;
+            resultRank.hidden = false;
             resultRank.classList.remove('win', 'lose', 'result-enter');
             if (isBattleResult) resultRank.classList.add(battleOutcome === 'win' ? 'win' : 'lose');
             resultRank.textContent = isBattleResult ? (battleOutcome === 'win' ? '勝ち' : '負け') : '★'.repeat(stars) + '☆'.repeat(3 - stars);
