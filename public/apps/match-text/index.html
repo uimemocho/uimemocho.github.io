@@ -591,7 +591,7 @@
                     </section>
                     <section class="howto-section">
                         <h3>ＣＰＵ対戦</h3>
-                        <p>自分とＣＰＵが同じターゲットで競います。相手より先にすべて消すとラウンド勝利です。開始前に顔文字とラウンド数を選べます。対戦ではスコアと星は使いません。</p>
+                        <p>自分とＣＰＵが同じターゲットで競います。相手より先にすべて消すとラウンド勝利です。開始前にキャラクターとラウンド数を選べます。対戦ではスコアと星は使いません。</p>
                     </section>
                     <section class="howto-section">
                         <h3>フレンド対戦</h3>
@@ -612,8 +612,8 @@
     <div id="face-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="face-title" hidden>
         <div class="text-dialog face-dialog">
             <div class="dialog-rule">＋－－－－－－－－＋</div>
-            <h2 id="face-title">［ 顔文字を選択 ］</h2>
-            <div id="face-grid" class="face-grid" aria-label="対戦用顔文字"></div>
+            <h2 id="face-title">［ キャラクター選択 ］</h2>
+            <div id="face-grid" class="face-grid" aria-label="対戦用キャラクター"></div>
             <div class="dialog-actions"><button id="face-cancel-btn" class="text-button" type="button">もどる</button></div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
         </div>
@@ -1134,7 +1134,7 @@
                     const avatar = document.createElement('div');
                     avatar.className = 'battle-face';
                     avatar.textContent = side === 'player' ? selectedBattleFace : opponentBattleFace;
-                    avatar.setAttribute('aria-label', side === 'player' ? '自分の顔文字' : '相手の顔文字');
+                    avatar.setAttribute('aria-label', side === 'player' ? '自分のキャラクター' : '相手のキャラクター');
                     team.appendChild(avatar);
                 }
                 if (labelText) {
