@@ -1,0 +1,208 @@
+/* Stage map and solo-only effects are isolated here to keep the game core maintainable. */
+#map-screen {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+    scrollbar-color: #56615d transparent;
+}
+
+.map-header {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    align-items: center;
+    min-height: calc(var(--safe-top) + 52px);
+    padding: var(--safe-top) var(--safe-right) 8px var(--safe-left);
+    background: linear-gradient(#050505 55%, rgba(5,5,5,.88) 78%, transparent);
+    pointer-events: none;
+}
+.map-header > * { pointer-events: auto; }
+.map-back { justify-self: start; color: #aeb6b1; font-size: 10px; }
+.map-title { text-align: center; font-size: 15px; letter-spacing: .25em; text-shadow: 0 0 10px currentColor; }
+.map-area-label { justify-self: end; color: var(--area-color, #54d8a0); font-size: 9px; text-shadow: 0 0 9px currentColor; }
+
+#map-track {
+    position: relative;
+    width: min(100%, 430px);
+    min-height: 3000px;
+    margin: 0 auto;
+    padding-bottom: var(--safe-bottom);
+    isolation: isolate;
+}
+.map-area {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1000px;
+    overflow: hidden;
+    contain: layout paint style;
+    content-visibility: auto;
+    background:
+        radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--area-color) 11%, transparent), transparent 58%),
+        linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--area-color) 4%, transparent) 48%, transparent 100%);
+    animation: map-area-glow 5.5s ease-in-out infinite;
+    pointer-events: none;
+}
+.map-area::before, .map-area::after {
+    content: '';
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--area-color) 40%, transparent), transparent);
+}
+.map-area::before { top: 0; }
+.map-area::after { bottom: 0; }
+.map-ambient-char {
+    position: absolute;
+    color: var(--area-color);
+    font-size: clamp(10px, 3vw, 15px);
+    opacity: .2;
+    text-shadow: 0 0 10px currentColor;
+    animation: map-ambient-fall var(--fall-time, 13s) linear infinite;
+    animation-delay: var(--fall-delay, 0s);
+    animation-play-state: paused;
+    will-change: transform, opacity;
+}
+.map-area.in-view .map-ambient-char { animation-play-state: running; }
+@keyframes map-area-glow { 0%,100% { filter: brightness(.84); } 50% { filter: brightness(1.12); } }
+@keyframes map-ambient-fall {
+    0% { transform: translate3d(0,-70px,0) rotate(0); opacity: 0; }
+    15% { opacity: .28; }
+    55% { transform: translate3d(18px,510px,0) rotate(calc(48deg * var(--area-rot, 1))); }
+    100% { transform: translate3d(-12px,1040px,0) rotate(calc(96deg * var(--area-rot, 1))); opacity: 0; }
+}
+
+.stage-route {
+    position: absolute;
+    z-index: 1;
+    height: 14px;
+    color: #343a38;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 14px;
+    letter-spacing: .1em;
+    white-space: nowrap;
+    transform-origin: 50% 50%;
+    transition: color .5s, text-shadow .5s, filter .5s;
+    pointer-events: none;
+}
+.stage-route.active { color: #7d8d86; text-shadow: 0 0 7px currentColor; }
+.stage-route.route-awake { animation: route-awake .85s steps(8,end) both; }
+@keyframes route-awake { from { clip-path: inset(0 100% 0 0); filter: brightness(2.2); } to { clip-path: inset(0); filter: brightness(1); } }
+
+.stage-node {
+    position: absolute;
+    z-index: 4;
+    width: 74px;
+    min-height: 55px;
+    border: 1px dashed #5b6560;
+    background: rgba(5,5,5,.94);
+    color: #e5ebe6;
+    padding: 8px 4px 5px;
+    font: inherit;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: color .35s, filter .35s, opacity .35s, transform .35s;
+}
+.stage-node-label { display: block; font-size: 15px; letter-spacing: .04em; text-shadow: 0 0 8px currentColor; }
+.stage-node-stars { display: flex; justify-content: center; gap: 1px; min-height: 13px; margin-top: 5px; color: #555c58; font-size: 10px; }
+.stage-star.earned { color: var(--gold); text-shadow: 0 0 7px var(--gold); }
+.stage-node.locked, .stage-node.pending-lock { color: #555a58; filter: grayscale(1); opacity: .52; cursor: default; }
+.stage-node.locked, .stage-node.pending-lock { border-color: #454a48; background: rgba(5,5,5,.97); }
+.stage-node.locked .stage-node-stars, .stage-node.pending-lock .stage-node-stars { color: #444846; }
+.stage-node:not(.locked):not(.pending-lock):active { transform: translate(-50%, -50%) scale(.92); }
+.stage-current-corner {
+    position: absolute;
+    color: #f5f2e8;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0;
+    text-shadow: 0 0 7px currentColor;
+}
+.stage-current-corner.tl { top: 0; left: 0; }
+.stage-current-corner.tr { top: 0; right: 0; }
+.stage-current-corner.bl { bottom: 0; left: 0; }
+.stage-current-corner.br { right: 0; bottom: 0; }
+.stage-node.current:not(.locked):not(.pending-lock) .stage-current-corner { opacity: 1; animation: stage-current 1.4s ease-in-out infinite; }
+@keyframes stage-current { 0%,100% { opacity:.28; transform:scale(.82); } 50% { opacity:1; transform:scale(1.08); } }
+.stage-star.star-award { animation: stage-star-award .68s cubic-bezier(.15,.86,.2,1.25) both; }
+@keyframes stage-star-award { 0% { color:#555; opacity:0; transform:translateY(-22px) scale(2.4) rotate(-20deg); filter:blur(3px); } 70% { color:#fff4a0; opacity:1; transform:translateY(2px) scale(.88) rotate(5deg); filter:blur(0); } 100% { color:var(--gold); transform:none; text-shadow:0 0 10px var(--gold); } }
+.stage-node.unlocking { animation: stage-unlock .8s cubic-bezier(.15,.8,.2,1.2) both; }
+@keyframes stage-unlock { 0% { opacity:.25; color:#555; filter:grayscale(1) brightness(.55); transform:translate(-50%,-50%) scale(.68); } 55% { opacity:1; color:#fff; filter:brightness(2.2); transform:translate(-50%,-50%) scale(1.25); } 100% { opacity:1; color:#e5ebe6; filter:none; transform:translate(-50%,-50%) scale(1); } }
+.map-unlock-particle {
+    position: fixed;
+    z-index: 560;
+    color: var(--area-color);
+    font-size: 12px;
+    pointer-events: none;
+    text-shadow: 0 0 8px currentColor;
+    will-change: transform, opacity;
+}
+
+/* Shared enemy preview used by stage details and the encounter warning. */
+.enemy-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--preview-count), minmax(0, 108px));
+    justify-content: center;
+    gap: clamp(5px, 3vw, 13px);
+    width: 100%;
+}
+.enemy-preview { min-width: 0; text-align: center; }
+.enemy-preview-name { display: block; color: #b7bfba; font-size: 9px; white-space: nowrap; }
+.enemy-preview-face { display: block; overflow: hidden; margin: 5px 0 6px; font-size: clamp(15px, 5vw, 21px); line-height: 1.35; white-space: nowrap; text-shadow: 0 0 7px rgba(255,255,255,.3); animation: enemy-breathe 1.8s ease-in-out infinite; }
+.enemy-preview-targets { display: flex; justify-content: center; gap: 1px; }
+.enemy-preview-targets .target-item { width: clamp(22px, 7vw, 28px); }
+.enemy-preview-targets .target-char { font-size: clamp(15px, 4.5vw, 18px); }
+.enemy-preview-targets .target-count { font-size: 8px; }
+
+.stage-detail-dialog { width: min(370px, 100%); padding-bottom: 4px; }
+.stage-detail-title { margin: 12px 0 4px !important; font-size: 17px !important; letter-spacing: .13em !important; }
+.stage-detail-name { margin-bottom: 5px; color: #aeb7b1; font-size: 10px; letter-spacing: .12em; }
+#stage-detail-stars { min-height: 21px; margin-bottom: 18px; color: var(--gold); font-size: 14px; letter-spacing: .16em; text-shadow: 0 0 7px currentColor; }
+#stage-detail-enemies { margin: 0 0 16px; }
+.stage-detail-close { margin-top: 7px; color: #8c9490 !important; font-size: 18px; }
+
+/* A defeated enemy is rebuilt from text particles; no canvas or image allocation. */
+.enemy-card.dead-burst { opacity: 0 !important; filter: none !important; transition: opacity .08s linear; }
+.enemy-dead-label {
+    position: fixed;
+    z-index: 720;
+    color: #ff7070;
+    font-size: 15px;
+    letter-spacing: .22em;
+    pointer-events: none;
+    text-shadow: 0 0 11px currentColor;
+    animation: enemy-dead-label .76s cubic-bezier(.15,.8,.2,1) both;
+}
+.enemy-dead-char {
+    position: fixed;
+    z-index: 715;
+    color: var(--dead-color, #d8ded9);
+    font-size: var(--dead-size, 12px);
+    line-height: 1;
+    pointer-events: none;
+    text-shadow: 0 0 7px currentColor;
+    will-change: transform, opacity, filter;
+    animation: enemy-dead-scatter var(--dead-time, 820ms) cubic-bezier(.12,.7,.22,1) both;
+}
+@keyframes enemy-dead-label { 0% { opacity:0; transform:translate(-50%,-35%) scale(2.1); filter:blur(4px); } 38% { opacity:1; transform:translate(-50%,-50%) scale(.9); filter:blur(0); } 72% { opacity:1; transform:translate(-50%,-58%) scale(1.08); } 100% { opacity:0; transform:translate(-50%,-75%) scale(.72); filter:blur(2px); } }
+@keyframes enemy-dead-scatter {
+    0% { opacity:1; transform:translate3d(0,0,0) rotate(0) scale(1); filter:blur(0); }
+    30% { opacity:1; transform:translate3d(calc(var(--dead-x) * .25),calc(var(--dead-y) * .2),0) rotate(calc(var(--dead-rot) * .25)) scale(1.35); }
+    100% { opacity:0; transform:translate3d(var(--dead-x),var(--dead-y),0) rotate(var(--dead-rot)) scale(.35); filter:blur(2px); }
+}
+
+@media (max-width: 350px) {
+    .map-header { grid-template-columns: 68px 1fr 68px; }
+    .stage-node { width: 68px; }
+    .enemy-preview-grid { gap: 3px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .map-area, .map-ambient-char, .stage-current-corner, .stage-star.star-award, .stage-node.unlocking, .stage-route.route-awake, .enemy-dead-char, .enemy-dead-label { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
