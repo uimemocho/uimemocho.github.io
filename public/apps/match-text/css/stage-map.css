@@ -182,9 +182,10 @@
 .enemy-preview-targets .target-count { font-size: 8px; }
 
 .stage-detail-dialog { width: min(370px, 100%); padding-bottom: 4px; }
-.stage-detail-title { margin: 12px 0 4px !important; font-size: 17px !important; letter-spacing: .13em !important; }
+.stage-detail-dialog > .dialog-rule:first-child { margin-bottom: 16px; }
+.stage-detail-title { margin: 0 0 4px !important; font-size: 17px !important; letter-spacing: .13em !important; }
 .stage-detail-name { margin-bottom: 5px; color: #aeb7b1; font-size: 10px; letter-spacing: .12em; }
-#stage-detail-stars { min-height: 21px; margin-bottom: 18px; color: var(--gold); font-size: 14px; letter-spacing: .16em; text-shadow: 0 0 7px currentColor; }
+#stage-detail-stars { min-height: 21px; margin-bottom: 26px; color: var(--gold); font-size: 14px; letter-spacing: .16em; text-shadow: 0 0 7px currentColor; }
 #stage-detail-enemies { margin: 0 0 32px; }
 .stage-detail-close {
     display: block;
