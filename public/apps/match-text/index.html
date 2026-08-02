@@ -255,9 +255,9 @@
         .dialog-backdrop[hidden] { display: none; }
         .text-dialog { width: min(330px, 100%); background: transparent; padding: 4px 12px 18px; text-align: center; box-shadow: none; }
         .dialog-rule { color: #5e6768; white-space: nowrap; overflow: hidden; }
-        .text-dialog > .dialog-rule:first-child { margin-bottom: 32px; }
+        .text-dialog > .dialog-rule:first-child { margin-bottom: 24px; }
         .text-dialog > .dialog-rule:first-child + h2 { margin-top: 0; }
-        .text-dialog > .dialog-rule:last-of-type { margin-top: 32px; }
+        .text-dialog > .dialog-rule:last-of-type { margin-top: 24px; }
         .text-dialog h2 { margin: 12px 0 18px; font-size: 19px; letter-spacing: .2em; }
         .dialog-actions { display: grid; width: min(250px, 100%); gap: 8px; margin: 15px auto 0; }
         .dialog-actions .text-button { width: 100%; color: #c8ceca; }
@@ -691,11 +691,11 @@
 
         const PIECE_HELP_ITEMS = [
             ...PIECE_TYPES.map(type => ({ char: type.char, name: `${type.char}ピース`, color: type.color, description: '同じ文字を縦か横に３つ以上そろえると消えます。' })),
-            { char: '横', name: '横ピース', color: '#3b82f6', effect: 'special', description: '横に４つそろえると生成。消すと同じ横一列をまとめて消します。' },
-            { char: '縦', name: '縦ピース', color: '#ef4444', effect: 'special', description: '縦に４つそろえると生成。消すと同じ縦一列をまとめて消します。' },
-            { char: '爆', name: '爆ピース', color: '#eab308', effect: 'special', description: '縦横に広がる形でそろえると生成。消すと周囲を広く巻き込みます。' },
-            { char: '飛', name: '飛ピース', color: '#a855f7', effect: 'special', description: '同じ文字を２×２でそろえると生成。盤面を飛び、離れたピースを狙います。' },
-            { char: '虹', name: '虹ピース', effect: 'rainbow', description: '同じ文字を５つ以上そろえると生成。入れ替えた相手と同じ文字を盤面からまとめて消します。' },
+            { char: '横', name: '横ピース', color: '#3b82f6', effect: 'special', description: '同じ色を横一列に４個そろえると生成。同じ色のピースと３個以上でマッチさせて消すと、横一列をまとめて消します。' },
+            { char: '縦', name: '縦ピース', color: '#ef4444', effect: 'special', description: '同じ色を縦一列に４個そろえると生成。同じ色のピースと３個以上でマッチさせて消すと、縦一列をまとめて消します。' },
+            { char: '爆', name: '爆ピース', color: '#eab308', effect: 'special', description: '同じ色をＴ字・Ｌ字・十字に５個以上そろえると生成。同じ色のピースと３個以上でマッチさせて消すと、周囲を広く巻き込みます。' },
+            { char: '飛', name: '飛ピース', color: '#a855f7', effect: 'special', description: '同じ色を２×２の４個でそろえると生成。同じ色のピースと３個以上でマッチさせて消すと、離れたピースへ飛んで狙います。' },
+            { char: '虹', name: '虹ピース', effect: 'rainbow', description: '同じ色を縦か横一列に５個以上そろえると生成。虹は同色マッチではなく、消したい色の通常ピースと入れ替えると、その色を盤面からまとめて消します。' },
             { char: '石', name: '石ピース', effect: 'stone', description: '敵が生成する障害物です。動かせませんが、隣で文字をそろえると破壊できます。' }
         ];
 
