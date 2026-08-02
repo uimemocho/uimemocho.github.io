@@ -109,9 +109,7 @@
 
         /* in game */
         #game-screen { display: grid; place-items: center; }
-        #game-ascii-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-        .game-bg-token { position: absolute; top: -3em; color: var(--area-face-color, #74807b); font-size: clamp(9px, 2.8vw, 13px); line-height: 1; white-space: nowrap; opacity: .22; text-shadow: 0 0 5px currentColor; animation: text-snow linear infinite; will-change: transform, opacity; }
-        #game-ui { position: relative; z-index: 1; width: min(100vw, 390px); height: 100dvh; min-height: 450px; display: grid; grid-template-rows: auto minmax(46px, 1fr) auto; align-items: stretch; padding: var(--safe-top) 0 calc(var(--safe-bottom) + var(--board-rise)); }
+        #game-ui { width: min(100vw, 390px); height: 100dvh; min-height: 450px; display: grid; grid-template-rows: auto minmax(46px, 1fr) auto; align-items: stretch; padding: var(--safe-top) 0 calc(var(--safe-bottom) + var(--board-rise)); }
         .game-zone-top { align-self: start; width: 100%; min-height: 0; }
         .game-zone-middle { align-self: center; width: 100%; min-height: 0; }
         .game-zone-bottom { align-self: end; width: 100%; min-height: 0; display: flex; justify-content: center; }
@@ -414,15 +412,18 @@
 
     <section id="map-screen" class="screen" aria-label="ステージマップ" hidden>
         <header class="map-header">
-            <button id="map-back-btn" class="text-button map-back" type="button">もどる</button>
+            <span class="map-header-spacer" aria-hidden="true"></span>
             <div class="map-title">ステージマップ</div>
             <div id="map-area-label" class="map-area-label">エリア１</div>
         </header>
         <main id="map-track" aria-label="ステージ一覧"></main>
+        <div class="map-footer-space" aria-hidden="true"></div>
+        <footer class="map-footer">
+            <button id="map-back-btn" class="text-button map-back" type="button">もどる</button>
+        </footer>
     </section>
 
     <section id="game-screen" class="screen" aria-label="ゲーム画面" hidden>
-        <div id="game-ascii-bg" aria-hidden="true"></div>
         <main id="game-ui">
             <div class="game-zone-top">
                 <header class="hud">
@@ -1133,32 +1134,6 @@
             });
         }
 
-        function initGameAsciiBackground() {
-            const layer = document.getElementById('game-ascii-bg');
-            const asciiChars = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*/=<>[]{}!?#%&'];
-            const area = Math.max(1, Math.min(3, Math.ceil((Number(selectedStageId) || 1) / 10)));
-            const areaColors = ['#54d8a0', '#66a8ff', '#cf79ff'];
-            const definitions = currentMode === 'solo'
-                ? getAreaEnemyDefinitions(selectedStageId)
-                : ENEMY_DEFINITIONS.filter(enemy => enemy.name !== '魔王');
-            const faces = definitions.map(enemy => enemy.face);
-            const amount = Math.min(18, Math.max(12, Math.floor(innerWidth / 24)));
-            layer.innerHTML = '';
-            layer.style.setProperty('--area-face-color', currentMode === 'solo' ? areaColors[area - 1] : '#87918c');
-            for (let i = 0; i < amount; i++) {
-                const token = document.createElement('span');
-                token.className = 'game-bg-token';
-                token.textContent = Math.random() < .58
-                    ? (faces[Math.floor(Math.random() * faces.length)] || '(･_･)')
-                    : asciiChars[Math.floor(Math.random() * asciiChars.length)];
-                token.style.left = `${2 + Math.random() * 90}%`;
-                token.style.animationDuration = `${11 + Math.random() * 10}s`;
-                token.style.animationDelay = `${-Math.random() * 20}s`;
-                token.style.setProperty('--snow-rot', Math.random() < .5 ? '-1' : '1');
-                layer.appendChild(token);
-            }
-        }
-
         function getVolume(key, fallback) {
             const raw = localStorage.getItem(key);
             if (raw === null) return fallback;
@@ -1274,7 +1249,6 @@
             syncEnemyAggregate();
             document.getElementById('game-ui').classList.toggle('enemy-mode', currentMode === 'solo');
             document.querySelector('.score-zone').hidden = currentMode !== 'solo';
-            initGameAsciiBackground();
             combo = 0;
             gameEnded = false;
             updateScoreUI();

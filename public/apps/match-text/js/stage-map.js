@@ -51,11 +51,15 @@
         section.dataset.area = area;
         section.style.top = `${(MatchTextStages.AREA_COUNT - area) * MatchTextStages.AREA_HEIGHT}px`;
         section.style.setProperty('--area-color', MatchTextStages.AREA_COLORS[area - 1]);
+        const faces = getAreaEnemyDefinitions(area * MatchTextStages.AREA_SIZE).map(enemy => enemy.face);
+        const asciiChars = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*/=<>[]{}!?#%&'];
         const count = innerWidth <= 360 ? 9 : 13;
         for (let index = 0; index < count; index++) {
             const char = document.createElement('span');
             char.className = 'map-ambient-char';
-            char.textContent = `エリア${toFullWidth(area)}`;
+            char.textContent = index < Math.min(4, count) || Math.random() < .58
+                ? (faces[Math.floor(Math.random() * faces.length)] || '(･_･)')
+                : asciiChars[Math.floor(Math.random() * asciiChars.length)];
             char.style.left = `${4 + Math.random() * 86}%`;
             char.style.top = `${-100 + Math.random() * 920}px`;
             char.style.setProperty('--fall-time', `${11 + Math.random() * 8}s`);

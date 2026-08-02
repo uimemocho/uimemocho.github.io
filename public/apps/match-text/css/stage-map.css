@@ -21,9 +21,26 @@
     pointer-events: none;
 }
 .map-header > * { pointer-events: auto; }
-.map-back { justify-self: start; color: #aeb6b1; font-size: 10px; }
+.map-header-spacer { pointer-events: none; }
+.map-back { width: 76px; color: #aeb6b1; font-size: 10px; }
 .map-title { text-align: center; font-size: 15px; letter-spacing: .25em; text-shadow: 0 0 10px currentColor; }
 .map-area-label { justify-self: end; color: var(--area-color, #54d8a0); font-size: 9px; text-shadow: 0 0 9px currentColor; }
+.map-footer-space { height: calc(var(--safe-bottom) + 76px); pointer-events: none; }
+.map-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+    min-height: calc(var(--safe-bottom) + 68px);
+    padding: 16px var(--safe-right) var(--safe-bottom) var(--safe-left);
+    background: linear-gradient(180deg, transparent 0%, rgba(5,5,5,.88) 32%, #050505 68%);
+    pointer-events: none;
+}
+.map-footer > * { pointer-events: auto; }
 
 #map-track {
     position: relative;
@@ -61,6 +78,7 @@
     position: absolute;
     color: var(--area-color);
     font-size: clamp(10px, 3vw, 15px);
+    white-space: nowrap;
     opacity: .2;
     text-shadow: 0 0 10px currentColor;
     animation: map-ambient-fall var(--fall-time, 13s) linear infinite;
