@@ -87,11 +87,17 @@
         .title-logo .rule { color: #5d6464; letter-spacing: -.08em; }
         .title-logo h1 { margin: 10px 0; font-size: clamp(30px, 9vw, 48px); letter-spacing: .18em; text-shadow: 0 0 16px rgba(255,255,255,.32); transform: translateX(8px); }
         .title-logo .sub { color: #818b8d; font-size: 11px; letter-spacing: .42em; transform: translateX(4px); }
-        #title-settings {
+        .title-utility {
             position: absolute;
             top: var(--safe-top);
             right: var(--safe-right);
             z-index: 3;
+            display: grid;
+            width: max-content;
+            gap: 6px;
+        }
+        .title-utility .text-button {
+            width: 100%;
             min-height: 28px;
             padding: 3px 9px;
             color: #a5adae;
@@ -222,9 +228,19 @@
         .text-dialog h2 { margin: 12px 0 18px; font-size: 19px; letter-spacing: .2em; }
         .dialog-actions { display: grid; width: min(250px, 100%); gap: 8px; margin: 15px auto 0; }
         .dialog-actions .text-button { width: 100%; color: #c8ceca; }
+        .dialog-outside-close { display: block; width: 36px; min-height: 36px; margin: 64px auto 0; padding: 3px; color: #8c9490 !important; font-size: 16px; line-height: 1; letter-spacing: 0; }
         .setting-row { display: grid; grid-template-columns: 44px 42px 1fr 42px 24px; align-items: center; gap: 3px; margin: 17px 0; color: #aeb4af; font-size: 12px; }
         .setting-step { padding: 4px 1px; color: #89908c; letter-spacing: 0; }
         .volume-bar { color: #cdd8d5; letter-spacing: -.08em; white-space: nowrap; }
+        .howto-dialog { width: min(350px, 100%); padding-bottom: 4px; }
+        .howto-dialog h2 { margin-bottom: 12px; }
+        .howto-scroll { max-height: min(52dvh, 420px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 0 8px 4px 2px; text-align: left; scrollbar-color: #5d6561 transparent; scrollbar-width: thin; }
+        .howto-scroll::-webkit-scrollbar { width: 4px; }
+        .howto-scroll::-webkit-scrollbar-thumb { background: #5d6561; }
+        .howto-section { padding: 10px 3px 12px; border-top: 1px dashed #3f4743; }
+        .howto-section:first-child { border-top: 0; padding-top: 3px; }
+        .howto-section h3 { margin: 0 0 7px; color: #eef1ea; font-size: 12px; letter-spacing: .12em; }
+        .howto-section p { margin: 0; color: #abb3ae; font-size: 11px; line-height: 1.85; letter-spacing: .04em; }
         #result-screen { display: grid; place-items: center; }
         .result-card { width: min(360px, calc(100vw - var(--safe-left) - var(--safe-right))); height: 100dvh; display: grid; grid-template-rows: 1fr auto 1fr; text-align: center; padding: var(--safe-top) 0 var(--safe-bottom); }
         .result-top { align-self: start; margin-top: 8px; transform: translateY(var(--result-shift)); }
@@ -371,7 +387,10 @@
 
     <section id="title-screen" class="screen" aria-label="タイトル画面">
         <div id="ascii-snow" aria-hidden="true"></div>
-        <button id="title-settings" class="text-button" type="button">設定</button>
+        <div class="title-utility">
+            <button id="title-settings" class="text-button" type="button">設定</button>
+            <button id="title-howto" class="text-button" type="button">遊び方</button>
+        </div>
         <div class="title-center">
             <div class="title-logo">
                 <div class="rule">＋－－－－－－－－－－－＋</div>
@@ -453,7 +472,7 @@
             <div id="stage-detail-enemies" aria-label="登場する敵"></div>
             <div class="dialog-actions"><button id="stage-detail-start" class="text-button" type="button">はじめる</button></div>
             <div class="dialog-rule">＋ーーーーーーーーーーーーーー＋</div>
-            <button id="stage-detail-close" class="text-button stage-detail-close" type="button" aria-label="とじる">✗</button>
+            <button id="stage-detail-close" class="text-button dialog-outside-close stage-detail-close" type="button" aria-label="とじる">✗</button>
         </div>
     </div>
 
@@ -477,6 +496,33 @@
             <div class="setting-row"><span>ＳＥ</span><button class="text-button setting-step" data-volume="se" data-delta="-1" type="button">－</button><span id="se-bar" class="volume-bar">■■■■■■■□□□</span><button class="text-button setting-step" data-volume="se" data-delta="1" type="button">＋</button><span id="se-value">７</span></div>
             <div class="dialog-actions"><button id="settings-close" class="text-button" type="button">とじる</button></div>
             <div class="dialog-rule">＋－－－－－－－－＋</div>
+        </div>
+    </div>
+
+    <div id="howto-dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="howto-title" hidden>
+        <div class="text-dialog howto-dialog">
+            <div class="dialog-rule">＋ーーーーーーーーーーーーーー＋</div>
+            <h2 id="howto-title">遊び方</h2>
+            <div class="howto-scroll">
+                <section class="howto-section">
+                    <h3>基本の操作</h3>
+                    <p>文字を上下左右に入れ替え、同じ文字を縦か横に３つ以上つなげると消えます。敵の下にあるターゲットを必要な数だけ消しましょう。特殊文字のターゲットは、文字と色の両方が合ったときだけ減ります。</p>
+                </section>
+                <section class="howto-section">
+                    <h3>ひとりで遊ぶ</h3>
+                    <p>ターンが０になる前に、すべての敵のターゲットを消すとクリアです。敵をタップすると攻撃先を変えられます。敵は石を置いたり、盤面をシャッフルしたり、文字の色を変えたりします。高得点でクリアすると星が増えます。</p>
+                </section>
+                <section class="howto-section">
+                    <h3>ＣＰＵ対戦</h3>
+                    <p>自分とＣＰＵが同じターゲットで競います。相手より先にすべて消すとラウンド勝利です。開始前に顔文字とラウン数を選べます。対戦ではスコアと星は使いません。</p>
+                </section>
+                <section class="howto-section">
+                    <h3>フレンド対戦</h3>
+                    <p>顔文字とラウン数を選んだら、部屋を作って４桁の番号を友だちに伝えます。参加する人はその番号を入力します。先にターゲットをすべて消した人がラウン勝利です。通信が切れないよう、対戦中は画面を閉じないでください。</p>
+                </section>
+            </div>
+            <div class="dialog-rule">＋ーーーーーーーーーーーーーー＋</div>
+            <button id="howto-close" class="text-button dialog-outside-close" type="button" aria-label="とじる">✗</button>
         </div>
     </div>
 
@@ -1174,6 +1220,7 @@
             enemyTurnPending = false;
             syncEnemyAggregate();
             document.getElementById('game-ui').classList.toggle('enemy-mode', currentMode === 'solo');
+            document.querySelector('.score-zone').hidden = currentMode !== 'solo';
             combo = 0;
             gameEnded = false;
             updateScoreUI();
@@ -3025,7 +3072,13 @@
             ensureAudio();
             openDialog('settings-dialog');
         });
+        document.getElementById('title-howto').addEventListener('click', () => {
+            ensureAudio();
+            document.querySelector('.howto-scroll').scrollTop = 0;
+            openDialog('howto-dialog');
+        });
         document.getElementById('settings-close').addEventListener('click', () => closeDialog('settings-dialog'));
+        document.getElementById('howto-close').addEventListener('click', () => closeDialog('howto-dialog'));
         document.getElementById('pause-btn').addEventListener('click', () => {
             if (!gameEnded) openDialog('pause-dialog');
         });
@@ -3082,7 +3135,8 @@
 
         window.addEventListener('keydown', e => {
             if (e.key !== 'Escape') return;
-            if (!document.getElementById('settings-dialog').hidden) closeDialog('settings-dialog');
+            if (!document.getElementById('howto-dialog').hidden) closeDialog('howto-dialog');
+            else if (!document.getElementById('settings-dialog').hidden) closeDialog('settings-dialog');
             else if (!document.getElementById('stage-detail-dialog').hidden) closeDialog('stage-detail-dialog');
             else if (!document.getElementById('round-dialog').hidden) document.getElementById('round-cancel-btn').click();
             else if (!document.getElementById('face-dialog').hidden) document.getElementById('face-cancel-btn').click();
