@@ -1453,7 +1453,7 @@ const nmEl=document.getElementById('nm');
 const S_soft=document.getElementById('s_soft'), S_stick=document.getElementById('s_stick'), S_wob=document.getElementById('s_wob');
 
 let myList=[], lastPreset=0, curMode='preset';
-let editing={preset:null, canvas:null, tex:null, cut:false, thick:0.34, shade:[0.92,0.90,0.97]};
+let editing={preset:null, canvas:null, tex:null, mask:null, cut:false, thick:0.34, shade:[0.92,0.90,0.97]};
 
 /* ---------- 共通 ---------- */
 function chipEl(name,cnv,onClick,onDel){
@@ -1567,6 +1567,7 @@ document.getElementById('file').addEventListener('change',e=>{
         editing.preset=null; editing.canvas=res.canvas;
         editing.thick=res.thick; editing.shade=res.shade; editing.cut=res.cutout;
         editing.tex=compactTex(res.canvas,res.cutout,384);
+        editing.mask=compactMask(res.canvas,res.cutout,384);
         applyEditing(true); syncFileName(true);
         bubble(W/2,H/2,'よみこんだ！');
       }catch(err){ toast('この しゃしんは つかえませんでした'); }
@@ -1577,10 +1578,93 @@ document.getElementById('file').addEventListener('change',e=>{
 });
 
 /* 保存・一覧 */
+/* JPEG は とうめいを 黒でつぶすので、
+   ・色は JPEG（かるい）
+   ・かたち（アルファ）は 小さな PNG（mask）
+   に わけて もつ。そうしないと シェアした さきで まわりに 黒わくが つく。 */
+function avgTexColor(cnv){
+  const M=48, c=document.createElement('canvas'); c.width=c.height=M;
+  const x=c.getContext('2d'); x.drawImage(cnv,0,0,M,M);
+  const p=x.getImageData(0,0,M,M).data;
+  let r=0,g=0,b=0,n=0;
+  for(let i=0;i<p.length;i+=4) if(p[i+3]>24){ r+=p[i]; g+=p[i+1]; b+=p[i+2]; n++; }
+  if(!n) return '#ffffff';
+  return 'rgb('+Math.round(r/n)+','+Math.round(g/n)+','+Math.round(b/n)+')';
+}
 function compactTex(cnv,cut,size){
   const c=document.createElement('canvas'); c.width=c.height=size;
-  c.getContext('2d').drawImage(cnv,0,0,size,size);
-  return cut?c.toDataURL('image/png'):c.toDataURL('image/jpeg',0.86);
+  const x=c.getContext('2d');
+  if(cut){ x.drawImage(cnv,0,0,size,size); return c.toDataURL('image/png'); }
+  /* とうめいな ふちを 平均色で うめてから JPEG に する（境目の にじみよけ） */
+  x.fillStyle=avgTexColor(cnv); x.fillRect(0,0,size,size);
+  x.drawImage(cnv,0,0,size,size);
+  return c.toDataURL('image/jpeg',0.86);
+}
+/* アルファだけを 白＋透明の PNG に する。べた塗りなので とても かるい */
+function compactMask(cnv,cut,size){
+  if(cut) return null;                 /* 切りぬきは PNG なので アルファが のこる */
+  const c=document.createElement('canvas'); c.width=c.height=size;
+  const x=c.getContext('2d'); x.drawImage(cnv,0,0,size,size);
+  const d=x.getImageData(0,0,size,size), p=d.data;
+  for(let i=0;i<p.length;i+=4){ p[i]=255; p[i+1]=255; p[i+2]=255; }
+  x.putImageData(d,0,0);
+  return c.toDataURL('image/png');
+}
+const isDataImg=s=>typeof s==='string'&&s.indexOf('data:image')===0;
+/* mask の ない ふるいデータ：まわりが まっ黒なら その ぶんを けずって かたちを もどす */
+function repairLegacyShape(c){
+  const S=c.width, x=c.getContext('2d');
+  let d;
+  try{ d=x.getImageData(0,0,S,S).data; }catch(e){ return; }
+  const lum=i=>0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+  /* 外周が まっ黒でなければ さわらない */
+  for(let i=0;i<S;i++){
+    if(lum(i*4)>10) return;
+    if(lum(((S-1)*S+i)*4)>10) return;
+    if(lum((i*S)*4)>10) return;
+    if(lum((i*S+S-1)*4)>10) return;
+  }
+  /* 黒くない ところの そとわく（行・列ごと なので 暗い しゃしんでも けずりすぎない） */
+  let x0=S,y0=S,x1=-1,y1=-1;
+  for(let y=0;y<S;y++) for(let px=0;px<S;px++){
+    if(lum((y*S+px)*4)<16) continue;
+    if(px<x0)x0=px; if(px>x1)x1=px; if(y<y0)y0=y; if(y>y1)y1=y;
+  }
+  if(x1<0) return;
+  let w=x1-x0+1, h=y1-y0+1;
+  if(w<S*0.2||h<S*0.2) return;
+  /* 長いほうの へんは かならず 94% なので そこに そろえる */
+  const snap=(a,len)=>{ if(len<S*0.86) return [a,len];
+    const nl=S*0.94; return [(S-nl)/2,nl]; };
+  const sx=snap(x0,w), sy=snap(y0,h);
+  x0=sx[0]; w=sx[1]; y0=sy[0]; h=sy[1];
+  x.globalCompositeOperation='destination-in';
+  x.fillStyle='#fff';
+  rrect(x,x0,y0,w,h,Math.min(w,h)*0.10); x.fill();
+  x.globalCompositeOperation='source-over';
+}
+/* tex（＋mask）から かたちつきの しかくい テクスチャを くみたてる */
+function buildTexCanvas(o,size,cb){
+  if(!o||!isDataImg(o.tex)){ cb(null); return; }
+  const S=size||TEXSIZE;
+  const im=new Image();
+  im.onerror=()=>cb(null);
+  im.onload=()=>{
+    const c=document.createElement('canvas'); c.width=c.height=S;
+    const x=c.getContext('2d');
+    x.drawImage(im,0,0,S,S);
+    if(!isDataImg(o.mask)){ if(!o.cut) repairLegacyShape(c); cb(c); return; }
+    const mk=new Image();
+    mk.onerror=()=>cb(c);
+    mk.onload=()=>{
+      x.globalCompositeOperation='destination-in';
+      x.drawImage(mk,0,0,S,S);
+      x.globalCompositeOperation='source-over';
+      cb(c);
+    };
+    mk.src=o.mask;
+  };
+  im.src=o.tex;
 }
 function collect(){
   return {
@@ -1589,6 +1673,7 @@ function collect(){
     base: editing.preset?editing.preset:'photo',
     soft:+S_soft.value, stick:+S_stick.value, wob:+S_wob.value,
     tex: editing.preset?null:editing.tex,
+    mask: editing.preset?null:editing.mask,
     thick: editing.thick, shade: editing.shade, cut: !!editing.cut
   };
 }
@@ -1600,7 +1685,7 @@ function collectCurrent(){
     return {id:'s'+Date.now().toString(36)+Math.floor(Math.random()*900+100),
             name:(nmEl.value||'').trim()||t.name, base:t.id,
             soft:+S_soft.value, stick:+S_stick.value, wob:+S_wob.value,
-            tex:null, thick:0.34, shade:[0.92,0.90,0.97], cut:false};
+            tex:null, mask:null, thick:0.34, shade:[0.92,0.90,0.97], cut:false};
   }
   return collect();
 }
@@ -1630,7 +1715,7 @@ function renderMine(){
     });
     mineEl.appendChild(el);
     if(o.base==='photo'&&o.tex){
-      const im=new Image(); im.onload=()=>drawThumb(el,im); im.src=o.tex;
+      buildTexCanvas(o,128,c=>{ if(c) drawThumb(el,c); });
     }else{
       const t=TEMPLATES.filter(x=>x.id===o.base)[0]||TEMPLATES[0];
       drawThumb(el,t.canvas);
@@ -1645,16 +1730,13 @@ function loadCfg(o){
   nmEl.value=o.name; syncFileName(true);
   S_soft.value=o.soft; S_stick.value=o.stick; S_wob.value=o.wob;
   if(o.base==='photo'&&o.tex){
-    editing.preset=null; editing.tex=o.tex;
-    const im=new Image();
-    im.onload=()=>{
-      const c=newTexCanvas(); c.getContext('2d').drawImage(im,0,0,TEXSIZE,TEXSIZE);
+    editing.preset=null; editing.tex=o.tex; editing.mask=o.mask||null;
+    buildTexCanvas(o,TEXSIZE,c=>{
+      if(!c){ editing.preset='mochi'; editing.canvas=null; editing.tex=null; editing.mask=null; applyEditing(true); return; }
       editing.canvas=c; applyEditing(true);
-    };
-    im.onerror=()=>{ editing.preset='mochi'; editing.canvas=null; applyEditing(true); };
-    im.src=o.tex;
+    });
   }else{
-    editing.preset=o.base; editing.canvas=null; editing.tex=null; applyEditing(true);
+    editing.preset=o.base; editing.canvas=null; editing.tex=null; editing.mask=null; applyEditing(true);
   }
 }
 
@@ -1696,7 +1778,8 @@ function adopt(d){
     name:String(d.name||'もらった スクイーズ').slice(0,16),
     base:(d.base==='photo'?'photo':(TEMPLATES.filter(t=>t.id===d.base)[0]?d.base:'mochi')),
     soft:clamp(+d.soft||70,0,100), stick:clamp(+d.stick||40,0,100), wob:clamp(+d.wob||55,0,100),
-    tex:(typeof d.tex==='string'&&d.tex.indexOf('data:image')===0)?d.tex:null,
+    tex:isDataImg(d.tex)?d.tex:null,
+    mask:isDataImg(d.mask)?d.mask:null,
     thick:+d.thick||0.34,
     shade:(Array.isArray(d.shade)&&d.shade.length===3)?d.shade:[0.92,0.90,0.97],
     cut:!!d.cut
@@ -1721,10 +1804,7 @@ function paintReceiveThumb(o){
   ctx.clearRect(0,0,receiveThumb.width,receiveThumb.height);
   const draw=src=>ctx.drawImage(src,0,0,receiveThumb.width,receiveThumb.height);
   if(o.base==='photo'&&o.tex){
-    const im=new Image();
-    im.onload=()=>draw(im);
-    im.onerror=()=>draw(TEMPLATES[0].canvas);
-    im.src=o.tex;
+    buildTexCanvas(o,receiveThumb.width,c=>draw(c||TEMPLATES[0].canvas));
   }else{
     const t=TEMPLATES.filter(x=>x.id===o.base)[0]||TEMPLATES[0];
     draw(t.canvas);
@@ -1976,10 +2056,9 @@ function shrinkTex(){
   const sizes=[320,240,176];
   let out=null;
   for(let i=0;i<sizes.length;i++){
-    const c=document.createElement('canvas'); c.width=c.height=sizes[i];
-    c.getContext('2d').drawImage(editing.canvas,0,0,sizes[i],sizes[i]);
-    out=editing.cut?c.toDataURL('image/png'):c.toDataURL('image/jpeg',0.8);
-    if(out.length<170000) break;
+    out={tex:compactTex(editing.canvas,editing.cut,sizes[i]),
+         mask:compactMask(editing.canvas,editing.cut,sizes[i])};
+    if(out.tex.length+(out.mask?out.mask.length:0)<170000) break;
   }
   return out;
 }
@@ -2005,7 +2084,8 @@ function onRoomMsg(topic,text){
     name:String(d.name||'だれかの スクイーズ').slice(0,16),
     base:(d.base==='photo'?'photo':(TEMPLATES.filter(t=>t.id===d.base)[0]?d.base:'mochi')),
     soft:clamp(+d.soft||70,0,100), stick:clamp(+d.stick||40,0,100), wob:clamp(+d.wob||55,0,100),
-    tex:(typeof d.tex==='string'&&d.tex.indexOf('data:image')===0)?d.tex:null,
+    tex:isDataImg(d.tex)?d.tex:null,
+    mask:isDataImg(d.mask)?d.mask:null,
     thick:+d.thick||0.34,
     shade:(Array.isArray(d.shade)&&d.shade.length===3)?d.shade:[0.92,0.90,0.97],
     cut:!!d.cut
@@ -2028,7 +2108,7 @@ function renderRoom(){
     const o=roomItems[k];
     const el=chipEl(o.name,null,()=>{ loadCfg(o); bubble(W/2,H/2,'よみこんだ！'); });
     rlist.appendChild(el);
-    if(o.base==='photo'&&o.tex){ const im=new Image(); im.onload=()=>drawThumb(el,im); im.src=o.tex; }
+    if(o.base==='photo'&&o.tex){ buildTexCanvas(o,128,c=>{ if(c) drawThumb(el,c); }); }
     else{ const t=TEMPLATES.filter(x=>x.id===o.base)[0]||TEMPLATES[0]; drawThumb(el,t.canvas); }
   });
 }
@@ -2037,8 +2117,9 @@ document.getElementById('send').addEventListener('click',()=>{
   if(!currentReady()){ toast('さきに しゃしんを えらんでね'); return; }
   const o=collectCurrent(); o.app='punipuni-squeeze'; o.v=1; o.t=Date.now();
   if(o.base==='photo'){
-    o.tex=shrinkTex();
-    if(!o.tex){ toast('さきに しゃしんを えらんでね'); return; }
+    const s=shrinkTex();
+    if(!s||!s.tex){ toast('さきに しゃしんを えらんでね'); return; }
+    o.tex=s.tex; o.mask=s.mask;
   }
   const u=TE.encode(JSON.stringify(o));
   if(u.length>240000){ toast('しゃしんが おおきすぎて おくれませんでした'); return; }
