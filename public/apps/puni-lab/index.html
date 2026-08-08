@@ -150,7 +150,7 @@ body{
 .row{display:flex;align-items:center;gap:10px;margin:18px 2px 6px;}
 .card .row:first-child{margin-top:4px}
 .row .lb{width:96px;flex:0 0 auto;font-size:13px;}
-.row .lb i{font-style:normal;font-size:16px;margin-right:4px}
+.row .lb i{font-style:normal;font-size:16px;margin-right:5px;display:inline-block;vertical-align:-4px}
 input[type=range]{
   -webkit-appearance:none;appearance:none;flex:1;height:22px;background:transparent;margin:0;
 }
@@ -186,6 +186,14 @@ input[type=range]::-moz-range-thumb{
 .bigbtn.photo{background:var(--lime)}
 .bigbtn.reset{background:var(--tang)}
 .bigbtn i{font-style:normal;font-size:19px;display:block;margin-bottom:2px}
+/* ピクトグラム きょうつう。線は 文字色を つかう */
+#sprite{display:none}
+.ic{display:block;width:1em;height:1em;fill:currentColor;stroke:none;}
+.bigbtn i .ic{width:23px;height:23px;margin:0 auto}
+.tab i .ic{width:20px;height:20px}
+.row .lb i .ic{width:19px;height:19px}
+.icobtn .ic{width:24px;height:24px}
+.chip .del .ic{width:13px;height:13px}
 #file,#impfile{position:fixed;left:0;top:0;width:1px;height:1px;padding:0;margin:0;overflow:hidden;
   clip:rect(0 0 0 0);white-space:nowrap;border:0;opacity:0;}
 
@@ -359,9 +367,9 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
   <div id="top">
     <div id="logo"><span class="k k1">ぷ</span><span class="k k2">に</span><span class="k k3">ラ</span><span class="k k4">ボ</span><small>SQUEEZE LAB</small></div>
     <div class="spacer"></div>
-    <button class="icobtn" id="reset" title="もとにもどす">🔄</button>
-    <button class="icobtn" id="sound" title="おと">🔊</button>
-    <button class="icobtn" id="fold" type="button" title="UIを かくす" aria-label="UIを かくす" aria-pressed="false">⛶</button>
+    <button class="icobtn" id="reset" title="もとにもどす"><svg class="ic"><use href="#i-reset"/></svg></button>
+    <button class="icobtn" id="sound" title="おと"><svg class="ic"><use href="#i-sound"/></svg></button>
+    <button class="icobtn" id="fold" type="button" title="UIを かくす" aria-label="UIを かくす" aria-pressed="false"><svg class="ic"><use href="#i-expand"/></svg></button>
   </div>
 
   <div id="stage">
@@ -371,9 +379,9 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
   <div id="panel">
     <div id="tabs" role="tablist" aria-label="あそびかた">
-      <button class="tab on" id="tabP" type="button" role="tab" aria-selected="true" aria-controls="paneP"><i>🤚🏼</i>さわってみる</button>
-      <button class="tab" id="tabM" type="button" role="tab" aria-selected="false" aria-controls="paneM"><i>🎨</i>つくってみる</button>
-      <button class="tab" id="tabS" type="button" role="tab" aria-selected="false" aria-controls="paneS"><i>📤</i>おくりあう</button>
+      <button class="tab on" id="tabP" type="button" role="tab" aria-selected="true" aria-controls="paneP"><i><svg class="ic"><use href="#i-hand"/></svg></i>さわってみる</button>
+      <button class="tab" id="tabM" type="button" role="tab" aria-selected="false" aria-controls="paneM"><i><svg class="ic"><use href="#i-palette"/></svg></i>つくってみる</button>
+      <button class="tab" id="tabS" type="button" role="tab" aria-selected="false" aria-controls="paneS"><i><svg class="ic"><use href="#i-swap"/></svg></i>おくりあう</button>
     </div>
 
     <div class="pane" id="paneP" role="tabpanel" aria-labelledby="tabP">
@@ -393,7 +401,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
         <div class="cardhead">① しゃしんを えらぶ</div>
         <div class="pvrow">
           <div class="pv" id="pv"><span class="ph">？</span></div>
-          <label class="bigbtn photo" id="photo" for="file"><i>📷</i>しゃしんを<br>えらぶ</label>
+          <label class="bigbtn photo" id="photo" for="file"><i><svg class="ic"><use href="#i-camera"/></svg></i>しゃしんを えらぶ</label>
         </div>
         <div class="note">とうめいな しゃしん（PNG）は、そのかたちの ままの スクイーズに なるよ。</div>
       </div>
@@ -405,15 +413,15 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
       <div class="card">
         <div class="cardhead">③ さわりごこちを きめる</div>
-        <div class="row"><div class="lb"><i>🍮</i>やわらかさ</div><input type="range" id="s_soft" min="0" max="100" value="70"></div>
+        <div class="row"><div class="lb"><i><svg class="ic"><use href="#i-soft"/></svg></i>やわらかさ</div><input type="range" id="s_soft" min="0" max="100" value="70"></div>
         <div class="ends"><span>かたい</span><span>やわらかい</span></div>
-        <div class="row"><div class="lb"><i>🍯</i>ねばねば</div><input type="range" id="s_stick" min="0" max="100" value="40"></div>
+        <div class="row"><div class="lb"><i><svg class="ic"><use href="#i-sticky"/></svg></i>ねばねば</div><input type="range" id="s_stick" min="0" max="100" value="40"></div>
         <div class="ends"><span>さらさら</span><span>のびのび</span></div>
-        <div class="row"><div class="lb"><i>🫨</i>ぷるぷる</div><input type="range" id="s_wob" min="0" max="100" value="55"></div>
+        <div class="row"><div class="lb"><i><svg class="ic"><use href="#i-wobble"/></svg></i>ぷるぷる</div><input type="range" id="s_wob" min="0" max="100" value="55"></div>
         <div class="ends"><span>しずか</span><span>ぷるぷる</span></div>
       </div>
 
-      <button class="bigbtn save wide" id="save" type="button"><i>＋</i>マイスクイーズに ついか</button>
+      <button class="bigbtn save wide" id="save" type="button"><i><svg class="ic"><use href="#i-plus"/></svg></i>マイスクイーズに ついか</button>
 
       <div class="card">
         <div class="cardhead">ふっかつのじゅもん</div>
@@ -423,8 +431,8 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
           <span class="ext">.squeeze.json</span>
         </div>
         <div class="btns">
-          <button class="bigbtn share" id="share" type="button"><i>💾</i>ほぞん</button>
-          <label class="bigbtn imp" id="imp" for="impfile"><i>📁</i>よみこむ</label>
+          <button class="bigbtn share" id="share" type="button"><i><svg class="ic"><use href="#i-save"/></svg></i>ほぞん</button>
+          <label class="bigbtn imp" id="imp" for="impfile"><i><svg class="ic"><use href="#i-open"/></svg></i>よみこむ</label>
         </div>
       </div>
     </div>
@@ -434,13 +442,13 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
         <div class="cardhead">おへやを せんたく<span id="roomCount"></span></div>
         <div class="sub">おなじばんごうのおへやにはいるとマイスクイーズをおくりあえるよ♪</div>
         <div class="btns" id="roomStart">
-          <button class="bigbtn mkroom" id="mkRoom" type="button"><i>🏠</i>おへやを つくる</button>
-          <button class="bigbtn inroom" id="inRoom" type="button"><i>🚪</i>おへやに はいる</button>
+          <button class="bigbtn mkroom" id="mkRoom" type="button"><i><svg class="ic"><use href="#i-house"/></svg></i>おへやを つくる</button>
+          <button class="bigbtn inroom" id="inRoom" type="button"><i><svg class="ic"><use href="#i-doorin"/></svg></i>おへやに はいる</button>
         </div>
         <div class="rstat" id="rstat">おへやを つくるか、おともだちの ばんごうで はいってね。</div>
         <div class="rlog" id="rlog"></div>
-        <div class="btns off" id="sendRow"><button class="bigbtn send" id="send" type="button"><i>🤝</i>マイスクイーズをおくる</button></div>
-        <div class="btns off" id="leaveRow"><button class="bigbtn leave" id="leave" type="button"><i>👋</i>おへやを でる</button></div>
+        <div class="btns off" id="sendRow"><button class="bigbtn send" id="send" type="button"><i><svg class="ic"><use href="#i-send"/></svg></i>マイスクイーズをおくる</button></div>
+        <div class="btns off" id="leaveRow"><button class="bigbtn leave" id="leave" type="button"><i><svg class="ic"><use href="#i-doorout"/></svg></i>おへやを でる</button></div>
         <div id="rlist"></div>
       </div>
     </div>
@@ -501,7 +509,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="roomno" id="newRoomNo">----</div>
       <div class="btns">
         <button class="bigbtn leave" id="newRoomClose" type="button">とじる</button>
-        <button class="bigbtn mkroom" id="newRoomCopy" type="button"><i>📋</i>コピー</button>
+        <button class="bigbtn mkroom" id="newRoomCopy" type="button"><i><svg class="ic"><use href="#i-copy"/></svg></i>コピー</button>
       </div>
     </div>
   </div>
@@ -512,7 +520,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <input id="joinNo" type="text" inputmode="numeric" maxlength="6" placeholder="すうじで入力" autocomplete="off">
       <div class="btns">
         <button class="bigbtn leave" id="joinClose" type="button">とじる</button>
-        <button class="bigbtn inroom" id="joinOk" type="button"><i>🚪</i>はいる</button>
+        <button class="bigbtn inroom" id="joinOk" type="button"><i><svg class="ic"><use href="#i-doorin"/></svg></i>はいる</button>
       </div>
     </div>
   </div>
@@ -530,6 +538,31 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
   </div>
 
   <div id="toast"></div>
+
+  <!-- ピクトグラム: Material Symbols Outlined (Google, Apache License 2.0)
+       https://github.com/google/material-design-icons -->
+  <svg id="sprite" aria-hidden="true" focusable="false"><defs>
+    <symbol id="i-reset" viewBox="0 -960 960 960"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></symbol>
+    <symbol id="i-sound" viewBox="0 -960 960 960"><path d="M560-131v-82q90-26 145-100t55-168q0-94-55-168T560-749v-82q124 28 202 125.5T840-481q0 127-78 224.5T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm440 40v-322q47 22 73.5 66t26.5 96q0 51-26.5 94.5T560-320ZM400-606l-86 86H200v80h114l86 86v-252ZM300-480Z"/></symbol>
+    <symbol id="i-mute" viewBox="0 -960 960 960"><path d="M792-56 671-177q-25 16-53 27.5T560-131v-82q14-5 27.5-10t25.5-12L480-368v208L280-360H120v-240h128L56-792l56-56 736 736-56 56Zm-8-232-58-58q17-31 25.5-65t8.5-70q0-94-55-168T560-749v-82q124 28 202 125.5T840-481q0 53-14.5 102T784-288ZM650-422l-90-90v-130q47 22 73.5 66t26.5 96q0 15-2.5 29.5T650-422ZM480-592 376-696l104-104v208Zm-80 238v-94l-72-72H200v80h114l86 86Zm-36-130Z"/></symbol>
+    <symbol id="i-expand" viewBox="0 -960 960 960"><path d="M120-120v-200h80v120h120v80H120Zm520 0v-80h120v-120h80v200H640ZM120-640v-200h200v80H200v120h-80Zm640 0v-120H640v-80h200v200h-80Z"/></symbol>
+    <symbol id="i-hand" viewBox="0 -960 960 960"><path d="M419-80q-28 0-52.5-12T325-126L107-403l19-20q20-21 48-25t52 11l74 45v-328q0-17 11.5-28.5T340-760q17 0 29 11.5t12 28.5v472l-97-60 104 133q6 7 14 11t17 4h221q33 0 56.5-23.5T720-240v-160q0-17-11.5-28.5T680-440H461v-80h219q50 0 85 35t35 85v160q0 66-47 113T640-80H419ZM167-620q-13-22-20-47.5t-7-52.5q0-83 58.5-141.5T340-920q83 0 141.5 58.5T540-720q0 27-7 52.5T513-620l-69-40q8-14 12-28.5t4-31.5q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 17 4 31.5t12 28.5l-69 40Zm335 280Z"/></symbol>
+    <symbol id="i-palette" viewBox="0 -960 960 960"><path d="M480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 32.5-156t88-127Q256-817 330-848.5T488-880q80 0 151 27.5t124.5 76q53.5 48.5 85 115T880-518q0 115-70 176.5T640-280h-74q-9 0-12.5 5t-3.5 11q0 12 15 34.5t15 51.5q0 50-27.5 74T480-80Zm0-400Zm-220 40q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm120-160q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm200 0q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm120 160q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17ZM480-160q9 0 14.5-5t5.5-13q0-14-15-33t-15-57q0-42 29-67t71-25h70q66 0 113-38.5T800-518q0-121-92.5-201.5T488-800q-136 0-232 93t-96 227q0 133 93.5 226.5T480-160Z"/></symbol>
+    <symbol id="i-swap" viewBox="0 -960 960 960"><path d="M280-160 80-360l200-200 56 57-103 103h287v80H233l103 103-56 57Zm400-240-56-57 103-103H440v-80h287L624-743l56-57 200 200-200 200Z"/></symbol>
+    <symbol id="i-camera" viewBox="0 -960 960 960"><path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z"/></symbol>
+    <symbol id="i-soft" viewBox="0 -960 960 960"><path d="M160-400v-80h640v80H160Zm0-120v-80h640v80H160ZM440-80v-128l-64 64-56-56 160-160 160 160-56 56-64-62v126h-80Zm40-560L320-800l56-56 64 64v-128h80v128l64-64 56 56-160 160Z"/></symbol>
+    <symbol id="i-sticky" viewBox="0 -960 960 960"><path d="M491-200q12-1 20.5-9.5T520-230q0-14-9-22.5t-23-7.5q-41 3-87-22.5T343-375q-2-11-10.5-18t-19.5-7q-14 0-23 10.5t-6 24.5q17 91 80 130t127 35ZM480-80q-137 0-228.5-94T160-408q0-100 79.5-217.5T480-880q161 137 240.5 254.5T800-408q0 140-91.5 234T480-80Zm0-80q104 0 172-70.5T720-408q0-73-60.5-165T480-774Q361-665 300.5-573T240-408q0 107 68 177.5T480-160Zm0-320Z"/></symbol>
+    <symbol id="i-wobble" viewBox="0 -960 960 960"><path d="M0-360v-240h80v240H0Zm120 80v-400h80v400h-80Zm760-80v-240h80v240h-80Zm-120 80v-400h80v400h-80ZM320-120q-33 0-56.5-23.5T240-200v-560q0-33 23.5-56.5T320-840h320q33 0 56.5 23.5T720-760v560q0 33-23.5 56.5T640-120H320Zm0-80h320v-560H320v560Zm0 0v-560 560Z"/></symbol>
+    <symbol id="i-save" viewBox="0 -960 960 960"><path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z"/></symbol>
+    <symbol id="i-open" viewBox="0 -960 960 960"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640H447l-80-80H160v480l96-320h684L837-217q-8 26-29.5 41.5T760-160H160Zm84-80h516l72-240H316l-72 240Zm0 0 72-240-72 240Zm-84-400v-80 80Z"/></symbol>
+    <symbol id="i-house" viewBox="0 -960 960 960"><path d="M700-200h40v-100h100v-40H740v-100h-40v100H600v40h100v100Zm20 80q-83 0-141.5-58.5T520-320q0-83 58.5-141.5T720-520q83 0 141.5 58.5T920-320q0 83-58.5 141.5T720-120Zm-560-80v-480l320-240 320 240v92q-19-6-39-9t-41-3v-40L480-820 240-640v360h203q3 21 9 41t15 39H160Zm320-350Z"/></symbol>
+    <symbol id="i-doorin" viewBox="0 -960 960 960"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></symbol>
+    <symbol id="i-doorout" viewBox="0 -960 960 960"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/></symbol>
+    <symbol id="i-send" viewBox="0 -960 960 960"><path d="M475-160q4 0 8-2t6-4l328-328q12-12 17.5-27t5.5-30q0-16-5.5-30.5T817-607L647-777q-11-12-25.5-17.5T591-800q-15 0-30 5.5T534-777l-11 11 74 75q15 14 22 32t7 38q0 42-28.5 70.5T527-522q-20 0-38.5-7T456-550l-75-74-175 175q-3 3-4.5 6.5T200-435q0 8 6 14.5t14 6.5q4 0 8-2t6-4l136-136 56 56-135 136q-3 3-4.5 6.5T285-350q0 8 6 14t14 6q4 0 8-2t6-4l136-135 56 56-135 136q-3 2-4.5 6t-1.5 8q0 8 6 14t14 6q4 0 7.5-1.5t6.5-4.5l136-135 56 56-136 136q-3 3-4.5 6.5T454-180q0 8 6.5 14t14.5 6Zm-1 80q-37 0-65.5-24.5T375-166q-34-5-57-28t-28-57q-34-5-56.5-28.5T206-336q-38-5-62-33t-24-66q0-20 7.5-38.5T149-506l232-231 131 131q2 3 6 4.5t8 1.5q9 0 15-5.5t6-14.5q0-4-1.5-8t-4.5-6L398-777q-11-12-25.5-17.5T342-800q-15 0-30 5.5T285-777L144-635q-9 9-15 21t-8 24q-2 12 0 24.5t8 23.5l-58 58q-17-23-25-50.5T40-590q2-28 14-54.5T87-692l141-141q24-23 53.5-35t60.5-12q31 0 60.5 12t52.5 35l11 11 11-11q24-23 53.5-35t60.5-12q31 0 60.5 12t52.5 35l169 169q23 23 35 53t12 61q0 31-12 60.5T873-437L545-110q-14 14-32.5 22T474-80Zm-99-560Z"/></symbol>
+    <symbol id="i-copy" viewBox="0 -960 960 960"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></symbol>
+    <symbol id="i-plus" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></symbol>
+    <symbol id="i-close" viewBox="0 -960 960 960"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></symbol>
+  </defs></svg>
 </div>
 
 <script>
@@ -1585,6 +1618,10 @@ function buildPhotoTexture(img){
 const modal=document.getElementById('modal'), mtitle=document.getElementById('mtitle');
 const mtext=document.getElementById('mtext'), mok=document.getElementById('mok'), mclose=document.getElementById('mclose');
 let mokFn=null;
+/* ピクトグラムを 入れかえる */
+function setIcon(el,name){
+  el.innerHTML='<svg class="ic"><use href="#i-'+name+'"/></svg>';
+}
 /* さいしょの ガイド（#hint）と おなじ ところ＝ステージの 下のほうに 出す */
 function toast(msg){
   const t=document.getElementById('toast');
@@ -1632,7 +1669,7 @@ function chipEl(name,cnv,onClick,onDel){
   b.appendChild(th); b.appendChild(nm);
   b.addEventListener('click',onClick);
   if(onDel){
-    const d=document.createElement('span'); d.className='del'; d.textContent='✕';
+    const d=document.createElement('span'); d.className='del'; setIcon(d,'close');
     d.addEventListener('click',ev=>{ ev.stopPropagation(); onDel(); });
     b.appendChild(d);
   }
@@ -2494,7 +2531,7 @@ document.getElementById('reset').addEventListener('click',()=>{
 const soundBtn=document.getElementById('sound');
 soundBtn.addEventListener('click',()=>{
   SND.on=!SND.on;
-  soundBtn.textContent=SND.on?'🔊':'🔇';
+  setIcon(soundBtn,SND.on?'sound':'mute');
   soundBtn.classList.toggle('off',!SND.on);
   if(SND.on){ SND.ensure(); SND.mute(false); }
   else{ SND.stopAll(); SND.mute(true); }   /* 鳴っている音も即止める */
@@ -2507,7 +2544,7 @@ function toggleFold(){
   if(hidden) pageScrollBeforeFocus=window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0;
   appEl.classList.toggle('focus-mode',hidden);
   document.body.classList.toggle('focus-mode-active',hidden);
-  foldBtn.textContent='⛶';
+  setIcon(foldBtn,'expand');
   foldBtn.setAttribute('aria-pressed',hidden?'true':'false');
   foldBtn.setAttribute('aria-label',hidden?'UIを もどす':'UIを かくす');
   foldBtn.title=hidden?'UIを もどす':'UIを かくす';
