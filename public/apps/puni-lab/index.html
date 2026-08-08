@@ -437,8 +437,8 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="mtitle" id="mtitle"></div>
       <textarea id="mtext" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
       <div class="btns">
-        <button class="bigbtn" id="mok" type="button">コピー</button>
         <button class="bigbtn" id="mclose" type="button">とじる</button>
+        <button class="bigbtn" id="mok" type="button">コピー</button>
       </div>
     </div>
   </div>
@@ -450,8 +450,8 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="receivepv"><canvas id="receiveThumb" width="128" height="128" aria-hidden="true"></canvas></div>
       <div class="receivename" id="receiveName"></div>
       <div class="receiveactions">
-        <button class="bigbtn" id="receiveAccept" type="button">もらう</button>
         <button class="bigbtn" id="receiveDecline" type="button">もらわない</button>
+        <button class="bigbtn" id="receiveAccept" type="button">もらう</button>
       </div>
     </div>
   </div>
@@ -471,8 +471,8 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
         <span>ないようを りかいしました</span>
       </label>
       <div class="btns">
-        <button class="bigbtn send" id="agreeOk" type="button" disabled>どうい する</button>
         <button class="bigbtn leave" id="agreeClose" type="button">とじる</button>
+        <button class="bigbtn send" id="agreeOk" type="button" disabled>どうい する</button>
       </div>
     </div>
   </div>
@@ -483,8 +483,8 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="sub">この ばんごうを おともだちに おしえてね</div>
       <div class="roomno" id="newRoomNo">----</div>
       <div class="btns">
-        <button class="bigbtn mkroom" id="newRoomCopy" type="button"><i>📋</i>コピー</button>
         <button class="bigbtn leave" id="newRoomClose" type="button">とじる</button>
+        <button class="bigbtn mkroom" id="newRoomCopy" type="button"><i>📋</i>コピー</button>
       </div>
     </div>
   </div>
@@ -494,8 +494,8 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="mtitle" id="joinTitle">おへやの ばんごうを いれてね</div>
       <input id="joinNo" type="text" inputmode="numeric" maxlength="6" placeholder="すうじで入力" autocomplete="off">
       <div class="btns">
-        <button class="bigbtn inroom" id="joinOk" type="button"><i>🚪</i>はいる</button>
         <button class="bigbtn leave" id="joinClose" type="button">とじる</button>
+        <button class="bigbtn inroom" id="joinOk" type="button"><i>🚪</i>はいる</button>
       </div>
     </div>
   </div>
@@ -506,8 +506,8 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="sub" id="pickSub"></div>
       <div class="pickgrid" id="pickGrid"></div>
       <div class="btns">
-        <button class="bigbtn send" id="pickOk" type="button" disabled>けってい</button>
         <button class="bigbtn leave" id="pickClose" type="button">やめる</button>
+        <button class="bigbtn send" id="pickOk" type="button" disabled>けってい</button>
       </div>
     </div>
   </div>
@@ -2020,7 +2020,7 @@ receiveDecline.addEventListener('click',()=>finishReceive(false));
 receiveModal.addEventListener('keydown',e=>{
   if(e.key==='Escape'){ e.preventDefault(); finishReceive(false); return; }
   if(e.key!=='Tab') return;
-  const first=receiveAccept, last=receiveDecline;
+  const first=receiveDecline, last=receiveAccept;   /* ならびは もらわない → もらう */
   if(e.shiftKey&&document.activeElement===first){ e.preventDefault(); last.focus(); }
   else if(!e.shiftKey&&document.activeElement===last){ e.preventDefault(); first.focus(); }
 });
