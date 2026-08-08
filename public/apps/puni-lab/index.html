@@ -2375,7 +2375,7 @@ function refreshRoomUI(){
   roomStart.classList.toggle('off',!!MQ.joined);
   leaveRow.classList.toggle('off',!MQ.joined);
   sendRow.classList.toggle('off',!(MQ.joined&&n>=2));
-  roomCount.textContent=n?('おへやにいるひと：'+n+'人'):'';
+  roomCount.textContent=n?('おへやばんごう'+MQ.room+'：'+n+'人'):'';
 }
 function pubPresence(alive){
   if(!MQ.joined) return;
@@ -2393,7 +2393,7 @@ function stopPresence(){
 function prunePresence(){
   const now=Date.now(); let gone=0;
   Object.keys(members).forEach(k=>{ if(now-members[k]>70000){ delete members[k]; gone++; } });
-  if(gone){ logRoom('ひとり でていったみたい'); announceCount(); }
+  if(gone){ logRoom(gone+'人 でていったみたい'); announceCount(); }
 }
 function announceCount(){
   const n=memberCount();
@@ -2401,7 +2401,7 @@ function announceCount(){
   if(n===lastCount) return;
   lastCount=n;
   if(!n) return;
-  logRoom(n>=2?('いま おへやには '+n+'にん います'):'いま おへやには あなただけ です');
+  logRoom('いま おへやには '+n+'人 います');
 }
 function setStat(k,msg){
   const n=Object.keys(roomItems).length;
@@ -2430,7 +2430,7 @@ function onRoomMsg(topic,text){
     const who=seg.slice(PRES.length);
     if(who===MQ.cid) return;
     if(!text){
-      if(members[who]){ delete members[who]; logRoom('ひとり おへやを でました'); }
+      if(members[who]){ delete members[who]; logRoom('1人 おへやを でました'); }
       announceCount(); return;
     }
     let p=null; try{ p=JSON.parse(text); }catch(e){ p=null; }
