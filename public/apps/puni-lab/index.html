@@ -583,25 +583,30 @@ function drawCat(ctx){
        はみ出すと そこが スクイーズの かたち（アルファ）に なって しまう */
     ctx.beginPath(); ctx.moveTo(-64,52); ctx.quadraticCurveTo(-30,-80,4,-74);
     ctx.quadraticCurveTo(46,-56,62,54); ctx.quadraticCurveTo(0,26,-64,52); ctx.closePath();
-    ctx.fillStyle='#ffffff'; ctx.fill();
+    /* かおと おなじで、ふちに むかって かげを つける。
+       そうすると 線を ひかなくても そらの いろと 分かれる */
+    const eg=ctx.createRadialGradient(-8,-18,6, 0,-4,104);
+    eg.addColorStop(0,'#ffffff'); eg.addColorStop(.52,'#fdf6ef'); eg.addColorStop(1,'#e2cdbb');
+    ctx.fillStyle=eg; ctx.fill();
     ctx.beginPath(); ctx.moveTo(-34,40); ctx.quadraticCurveTo(-12,-44,4,-42);
     ctx.quadraticCurveTo(26,-32,36,42); ctx.quadraticCurveTo(0,22,-34,40); ctx.closePath();
     ctx.fillStyle='#ffb7c8'; ctx.fill(); ctx.restore();
   };
   ctx.save();
-  ear(cx-104,cy-128,-0.22); ear(cx+104,cy-128,0.22);
+  ear(cx-110,cy-116,-0.22); ear(cx+110,cy-116,0.22);
   /* 下ぶくれ：よこはばが いちばん ひろい ところを 中心より k だけ 下に おく。
-     上は すこし ほそく、下は まるく ふくらませる */
-  const rx=r, ry=r*0.93, k=22, yw=cy+k;
+     上は すこし ほそく、下は まるく ふくらませる。
+     よこは ひろめ（rx）、おでこ（ryT）は ひくめ */
+  const rx=r*1.06, ryT=r*0.80, ryB=r*0.93, k=22, yw=cy+k;
   ctx.beginPath();
-  ctx.moveTo(cx,cy-ry);
-  ctx.bezierCurveTo(cx+rx*0.53,cy-ry,     cx+rx,yw-(ry+k)*0.56, cx+rx,yw);
-  ctx.bezierCurveTo(cx+rx,yw+(ry-k)*0.60, cx+rx*0.66,cy+ry,     cx,cy+ry);
-  ctx.bezierCurveTo(cx-rx*0.66,cy+ry,     cx-rx,yw+(ry-k)*0.60, cx-rx,yw);
-  ctx.bezierCurveTo(cx-rx,yw-(ry+k)*0.56, cx-rx*0.53,cy-ry,     cx,cy-ry);
+  ctx.moveTo(cx,cy-ryT);
+  ctx.bezierCurveTo(cx+rx*0.53,cy-ryT,     cx+rx,yw-(ryT+k)*0.56, cx+rx,yw);
+  ctx.bezierCurveTo(cx+rx,yw+(ryB-k)*0.60, cx+rx*0.66,cy+ryB,     cx,cy+ryB);
+  ctx.bezierCurveTo(cx-rx*0.66,cy+ryB,     cx-rx,yw+(ryB-k)*0.60, cx-rx,yw);
+  ctx.bezierCurveTo(cx-rx,yw-(ryT+k)*0.56, cx-rx*0.53,cy-ryT,     cx,cy-ryT);
   ctx.closePath();
   const g=ctx.createRadialGradient(cx-76,cy-84,12,cx,cy,r*1.12);
-  g.addColorStop(0,'#ffffff'); g.addColorStop(.55,'#fefbf8'); g.addColorStop(1,'#efe1d6');
+  g.addColorStop(0,'#ffffff'); g.addColorStop(.55,'#fdf8f3'); g.addColorStop(1,'#e4cfbe');
   ctx.fillStyle=g; ctx.fill();
   ctx.save(); ctx.clip(); rim(ctx,cx,cy,r*1.08,'rgba(198,176,198,.24)'); ctx.restore();
   // かお
