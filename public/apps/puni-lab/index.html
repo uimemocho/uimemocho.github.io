@@ -126,9 +126,9 @@ body{
 .card:last-child{margin-bottom:0}
 .cardhead{font-size:13px;margin:0 0 10px 2px;letter-spacing:.04em;}
 /* みだしの みぎはしに いま なんにん いるか */
-/* せまい がめんでは 人数が つぎの ぎょうに おりかえる */
-#paneS .cardhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
-  gap:4px 10px;margin-right:2px}
+/* おへやに はいると 「おへやばんごう0000：1人」に かわる。
+   ばんごうと 人数だけ ピンク。ひとつづきに 見えるよう すきまは あけない */
+#paneS .cardhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:0;margin-right:2px}
 #roomCount{color:#E23F7C;font-size:12px;white-space:nowrap;letter-spacing:0}
 #roomCount:empty{display:none}
 
@@ -439,7 +439,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
     <div class="pane off" id="paneS" role="tabpanel" aria-labelledby="tabS" hidden>
       <div class="card">
-        <div class="cardhead">おへやを せんたく<span id="roomCount"></span></div>
+        <div class="cardhead"><span id="roomHead">おへやを せんたく</span><span id="roomCount"></span></div>
         <div class="sub">おなじばんごうのおへやにはいるとマイスクイーズをおくりあえるよ♪</div>
         <div class="btns" id="roomStart">
           <button class="bigbtn mkroom" id="mkRoom" type="button"><i><svg class="ic"><use href="#i-house"/></svg></i>おへやを つくる</button>
@@ -2355,6 +2355,7 @@ const rstat=document.getElementById('rstat'), rlist=document.getElementById('rli
 const rlog=document.getElementById('rlog');
 const roomStart=document.getElementById('roomStart');
 const roomCount=document.getElementById('roomCount');
+const roomHead=document.getElementById('roomHead');
 const sendRow=document.getElementById('sendRow'), leaveRow=document.getElementById('leaveRow');
 let roomItems={}, roomSeen={};
 
@@ -2375,7 +2376,9 @@ function refreshRoomUI(){
   roomStart.classList.toggle('off',!!MQ.joined);
   leaveRow.classList.toggle('off',!MQ.joined);
   sendRow.classList.toggle('off',!(MQ.joined&&n>=2));
-  roomCount.textContent=n?('おへやばんごう'+MQ.room+'：'+n+'人'):'';
+  /* はいる まえ＝みだし、はいった あと＝ばんごうと 人数 */
+  roomHead.textContent=n?'おへやばんごう':'おへやを せんたく';
+  roomCount.textContent=n?(MQ.room+'：'+n+'人'):'';
 }
 function pubPresence(alive){
   if(!MQ.joined) return;
