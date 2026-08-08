@@ -284,6 +284,9 @@ input[type=range]::-moz-range-thumb{
   z-index:70;background:var(--ink);color:#fff;font-size:13px;padding:12px 18px;border-radius:999px;
   max-width:88vw;text-align:center;line-height:1.5;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ステージの 下のほうに 出すとき（left/top は JS が いれる） */
+#toast.at{bottom:auto;left:0;transform:translate(-50%,-100%) translateY(10px)}
+#toast.at.on{transform:translate(-50%,-100%) translateY(0)}
 .bigbtn.save{background:var(--sun)}
 .bigbtn.share{background:#7FD4FF}
 .bigbtn.imp{background:#C9BEFF}
@@ -1581,9 +1584,19 @@ function buildPhotoTexture(img){
 const modal=document.getElementById('modal'), mtitle=document.getElementById('mtitle');
 const mtext=document.getElementById('mtext'), mok=document.getElementById('mok'), mclose=document.getElementById('mclose');
 let mokFn=null;
+/* さいしょの ガイド（#hint）と おなじ ところ＝ステージの 下のほうに 出す */
 function toast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('on');
+  t.textContent=msg;
+  const st=document.getElementById('stage').getBoundingClientRect();
+  if(st.width>0&&st.height>0){
+    t.classList.add('at');
+    t.style.left=Math.round(st.left+st.width/2)+'px';
+    t.style.top=Math.round(st.bottom-16)+'px';   /* ガイドと おなじ 高さ（わく 4px＋12px） */
+  }else{
+    t.classList.remove('at'); t.style.top=''; t.style.left='';
+  }
+  t.classList.add('on');
   clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2400);
 }
 function openModal(title,value,okLabel,fn,ro){
