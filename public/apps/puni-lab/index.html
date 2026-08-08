@@ -53,27 +53,21 @@ body{
   padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;
 }
 #logo{
-  font-weight:900;font-size:22px;letter-spacing:.02em;line-height:1;
+  font-weight:900;font-size:25px;letter-spacing:.02em;line-height:1;
   padding:4px 2px;
 }
-/* かなを 1文字ずつ カラフルに。
-   内がわに こい ふちどり、そのそとに 白い ふちどりを かさねて、
-   そらの いろの うえでも くっきり 見えるように する */
+/* かなを 1文字ずつ カラフルに。ふちどりで どの いろでも よめるように する */
 #logo .k{
   display:inline-block;
-  text-shadow:1.2px 0 0 var(--ink),-1.2px 0 0 var(--ink),0 1.2px 0 var(--ink),0 -1.2px 0 var(--ink),
-              .9px .9px 0 var(--ink),-.9px .9px 0 var(--ink),.9px -.9px 0 var(--ink),-.9px -.9px 0 var(--ink),
-              3.4px 0 0 #fff,-3.4px 0 0 #fff,0 3.4px 0 #fff,0 -3.4px 0 #fff,
-              2.5px 2.5px 0 #fff,-2.5px 2.5px 0 #fff,2.5px -2.5px 0 #fff,-2.5px -2.5px 0 #fff;
+  text-shadow:1.3px 0 0 var(--ink),-1.3px 0 0 var(--ink),0 1.3px 0 var(--ink),0 -1.3px 0 var(--ink),
+              1px 1px 0 var(--ink),-1px 1px 0 var(--ink),1px -1px 0 var(--ink),-1px -1px 0 var(--ink);
 }
 #logo .k1{color:#FF6FA5;transform:rotate(-5deg)}
 #logo .k2{color:#FFB01F;transform:rotate(3deg)}
 #logo .k3{color:#31C4E8;transform:rotate(-3deg)}
 #logo .k4{color:#54CE68;transform:rotate(5deg)}
 /* letter-spacing の ぶん 左に よって 見えるので 3px みぎへ */
-#logo small{display:block;font-size:10px;letter-spacing:.16em;margin-top:4px;margin-left:3px;color:#6A4BD8;
-  text-shadow:1.6px 0 0 #fff,-1.6px 0 0 #fff,0 1.6px 0 #fff,0 -1.6px 0 #fff,
-              1.2px 1.2px 0 #fff,-1.2px 1.2px 0 #fff,1.2px -1.2px 0 #fff,-1.2px -1.2px 0 #fff;}
+#logo small{display:block;font-size:11px;letter-spacing:.16em;margin-top:4px;margin-left:3px;color:#6A4BD8;}
 .spacer{flex:1}
 .icobtn{
   width:46px;height:46px;flex:0 0 auto;border-radius:16px;border:3px solid var(--ink);
@@ -91,8 +85,8 @@ body{
   border:4px solid var(--ink);
   overflow:hidden;touch-action:none;
   background:
-    radial-gradient(circle at 12px 12px, rgba(46,42,74,.07) 3px, rgba(0,0,0,0) 4px) 0 0/34px 34px,
-    linear-gradient(180deg,#F8FBFF 0%, #EDF4FD 100%);
+    radial-gradient(circle at 12px 12px, rgba(46,42,74,.08) 3px, rgba(0,0,0,0) 4px) 0 0/34px 34px,
+    linear-gradient(180deg,#EFF6FE 0%, #DEEBF8 100%);
 }
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;}
 #hint{
@@ -337,7 +331,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
   <div id="panel">
     <div id="tabs" role="tablist" aria-label="あそびかた">
-      <button class="tab on" id="tabP" type="button" role="tab" aria-selected="true" aria-controls="paneP">🤚🏻 さわってみる</button>
+      <button class="tab on" id="tabP" type="button" role="tab" aria-selected="true" aria-controls="paneP">🤚🏼 さわってみる</button>
       <button class="tab" id="tabM" type="button" role="tab" aria-selected="false" aria-controls="paneM">🎨 つくってみる</button>
       <button class="tab" id="tabS" type="button" role="tab" aria-selected="false" aria-controls="paneS">📤 おくりあう</button>
     </div>
@@ -595,16 +589,25 @@ function drawCat(ctx){
     ctx.fillStyle='#ffb7c8'; ctx.fill(); ctx.restore();
   };
   ctx.save();
-  ear(cx-108,cy-134,-0.22); ear(cx+108,cy-134,0.22);
-  ctx.beginPath(); ctx.ellipse(cx,cy,r,r*0.93,0,0,7);
+  ear(cx-104,cy-128,-0.22); ear(cx+104,cy-128,0.22);
+  /* 下ぶくれ：よこはばが いちばん ひろい ところを 中心より k だけ 下に おく。
+     上は すこし ほそく、下は まるく ふくらませる */
+  const rx=r, ry=r*0.93, k=22, yw=cy+k;
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-ry);
+  ctx.bezierCurveTo(cx+rx*0.53,cy-ry,     cx+rx,yw-(ry+k)*0.56, cx+rx,yw);
+  ctx.bezierCurveTo(cx+rx,yw+(ry-k)*0.60, cx+rx*0.66,cy+ry,     cx,cy+ry);
+  ctx.bezierCurveTo(cx-rx*0.66,cy+ry,     cx-rx,yw+(ry-k)*0.60, cx-rx,yw);
+  ctx.bezierCurveTo(cx-rx,yw-(ry+k)*0.56, cx-rx*0.53,cy-ry,     cx,cy-ry);
+  ctx.closePath();
   const g=ctx.createRadialGradient(cx-76,cy-84,12,cx,cy,r*1.12);
   g.addColorStop(0,'#ffffff'); g.addColorStop(.55,'#fefbf8'); g.addColorStop(1,'#efe1d6');
   ctx.fillStyle=g; ctx.fill();
   ctx.save(); ctx.clip(); rim(ctx,cx,cy,r*1.08,'rgba(198,176,198,.24)'); ctx.restore();
   // かお
   ctx.strokeStyle='#4a4468'; ctx.lineWidth=13; ctx.lineCap='round';
-  ctx.beginPath(); ctx.arc(cx-72,cy+8,30,Math.PI*1.15,Math.PI*1.85); ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx+72,cy+8,30,Math.PI*1.15,Math.PI*1.85); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx-84,cy+8,30,Math.PI*1.15,Math.PI*1.85); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx+84,cy+8,30,Math.PI*1.15,Math.PI*1.85); ctx.stroke();
   ctx.fillStyle='#ffa8bd';
   ctx.beginPath(); ctx.ellipse(cx-118,cy+52,30,19,0,0,7); ctx.fill();
   ctx.beginPath(); ctx.ellipse(cx+118,cy+52,30,19,0,0,7); ctx.fill();
