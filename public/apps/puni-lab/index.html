@@ -94,6 +94,7 @@ body{
     linear-gradient(180deg,#EFF6FE 0%, #DEEBF8 100%);
 }
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#stage.blank{pointer-events:none}
 #hint{
   position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
   background:rgba(255,255,255,.9);border:3px solid var(--ink);border-radius:999px;
@@ -1885,6 +1886,14 @@ function switchTab(w){
     else applyEditing(true);
     syncFileName(false);
   }
+  else if(w==='share'){
+    /* さわってみるの プリセットを ひきずらない。
+       マイスクイーズが あれば えらんでいる ものを、なければ なにも 出さない */
+    if(!editing.preset&&!editing.tex){
+      if(myList.length){ const s=selectedSqueeze()||myList[0]; selectedId=s.id; loadCfg(s); }
+      else clearEditing();
+    }else applyEditing(true);
+  }
   panel.scrollTop=0;
   setTimeout(()=>layout(false),40);
 }
@@ -1958,6 +1967,10 @@ function updateBodyVisible(){
   canvas.style.visibility = blank?'hidden':'';
   const hi=document.getElementById('hint');   /* hint は もっと下で 宣言される */
   if(hi) hi.style.visibility = blank?'hidden':'';
+  /* 見えていないのに さわれると、音や ふきだしだけ 出てしまう */
+  const st=document.getElementById('stage');
+  if(st) st.classList.toggle('blank',blank);
+  if(blank&&typeof releaseAll==='function') releaseAll();
 }
 function applyEditing(reTex){
   curMode='edit';
