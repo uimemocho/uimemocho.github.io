@@ -53,21 +53,25 @@ body{
   padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;
 }
 #logo{
-  font-weight:900;font-size:25px;letter-spacing:.02em;line-height:1;
+  font-weight:900;font-size:25px;letter-spacing:.04em;line-height:1;
   padding:4px 2px;
 }
+/* letter-spacing は さいごの 文字の あとにも つくので、その ぶんを もどす。
+   そうすると かなの 行と SQUEEZE LAB の 行の 左右が そろう */
+#logo .k4{margin-right:-.04em}
 /* かなを 1文字ずつ カラフルに。ふちどりで どの いろでも よめるように する */
 #logo .k{
   display:inline-block;
   text-shadow:1.3px 0 0 var(--ink),-1.3px 0 0 var(--ink),0 1.3px 0 var(--ink),0 -1.3px 0 var(--ink),
               1px 1px 0 var(--ink),-1px 1px 0 var(--ink),1px -1px 0 var(--ink),-1px -1px 0 var(--ink);
 }
-#logo .k1{color:#FF6FA5;transform:rotate(-5deg)}
-#logo .k2{color:#FFB01F;transform:rotate(3deg)}
-#logo .k3{color:#31C4E8;transform:rotate(-3deg)}
-#logo .k4{color:#54CE68;transform:rotate(5deg)}
-/* letter-spacing の ぶん 左に よって 見えるので 3px みぎへ */
-#logo small{display:block;font-size:11px;letter-spacing:.16em;margin-top:4px;margin-left:4px;color:#6A4BD8;}
+#logo .k1{color:#FF6FA5;transform:rotate(-3deg)}
+#logo .k2{color:#FFB01F;transform:rotate(2deg)}
+#logo .k3{color:#31C4E8;transform:rotate(-2deg)}
+#logo .k4{color:#54CE68;transform:rotate(3deg)}
+/* かなの 行と おなじ はばに なるよう 字間を ひろげ、
+   さいごの 1文字ぶんの あきを もどして 左右を そろえる */
+#logo small{display:block;font-size:11px;letter-spacing:.235em;margin:5px -.235em 0 0;color:#6A4BD8;}
 .spacer{flex:1}
 .icobtn{
   width:46px;height:46px;flex:0 0 auto;border-radius:16px;border:3px solid var(--ink);
@@ -120,6 +124,12 @@ body{
 }
 .card:last-child{margin-bottom:0}
 .cardhead{font-size:13px;margin:0 0 10px 2px;letter-spacing:.04em;}
+/* みだしの みぎはしに いま なんにん いるか */
+/* せまい がめんでは 人数が つぎの ぎょうに おりかえる */
+#paneS .cardhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+  gap:4px 10px;margin-right:2px}
+#roomCount{color:#E23F7C;font-size:12px;white-space:nowrap;letter-spacing:0}
+#roomCount:empty{display:none}
 
 #chips{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 8px;padding:4px 2px;}
 .chip{
@@ -417,7 +427,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
     <div class="pane off" id="paneS" role="tabpanel" aria-labelledby="tabS" hidden>
       <div class="card">
-        <div class="cardhead">おくりあう おへやを せんたく</div>
+        <div class="cardhead">おくりあう おへやを せんたく<span id="roomCount"></span></div>
         <div class="sub">おなじばんごうのおへやにはいるとマイスクイーズをおくりあえるよ♪</div>
         <div class="btns" id="roomStart">
           <button class="bigbtn mkroom" id="mkRoom" type="button"><i>🏠</i>おへやを つくる</button>
@@ -2212,6 +2222,7 @@ const MQ={
 const rstat=document.getElementById('rstat'), rlist=document.getElementById('rlist');
 const rlog=document.getElementById('rlog');
 const roomStart=document.getElementById('roomStart');
+const roomCount=document.getElementById('roomCount');
 const sendRow=document.getElementById('sendRow'), leaveRow=document.getElementById('leaveRow');
 let roomItems={}, roomSeen={};
 
@@ -2232,6 +2243,7 @@ function refreshRoomUI(){
   roomStart.classList.toggle('off',!!MQ.joined);
   leaveRow.classList.toggle('off',!MQ.joined);
   sendRow.classList.toggle('off',!(MQ.joined&&n>=2));
+  roomCount.textContent=n?('おへやにいるひと：'+n+'人'):'';
 }
 function pubPresence(alive){
   if(!MQ.joined) return;
