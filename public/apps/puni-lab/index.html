@@ -300,14 +300,17 @@ input[type=range]::-moz-range-thumb{
    ボタンの すぐ上でも しらせる。
    うきあがって 出て、しばらくで きえる（レイアウトは うごかさない） */
 .savewrap{position:relative}
+/* ステージに 出る しらせと おなじ みため（こんいろの 下じに 白もじ） */
 .savenote{
-  position:absolute;left:0;right:0;bottom:calc(100% + 8px);z-index:5;
-  font-size:12px;line-height:1.5;text-align:center;color:#1E6B39;
-  background:#E6F7E2;border:3px solid var(--ink);border-radius:16px;
-  padding:9px 12px;pointer-events:none;
-  opacity:0;transform:translateY(8px);transition:opacity .28s ease,transform .28s ease;
+  position:absolute;left:50%;bottom:calc(100% + 8px);z-index:5;
+  width:max-content;max-width:100%;
+  background:var(--ink);color:#fff;border-radius:999px;
+  font-size:13px;line-height:1.5;text-align:center;padding:12px 18px;
+  pointer-events:none;
+  opacity:0;transform:translateX(-50%) translateY(8px);
+  transition:opacity .25s ease,transform .25s ease;
 }
-.savenote.on{opacity:1;transform:translateY(0)}
+.savenote.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .bigbtn.save{background:var(--sun)}
 .bigbtn.share{background:#7FD4FF}
 .bigbtn.imp{background:#C9BEFF}
