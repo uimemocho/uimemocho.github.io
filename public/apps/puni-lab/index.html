@@ -164,7 +164,7 @@ input[type=range]::-moz-range-thumb{
 #s_wob::-webkit-slider-thumb{background:var(--gum)}
 .ends{display:flex;justify-content:space-between;font-weight:400;font-size:10px;opacity:.65;margin:0 2px 2px 108px}
 
-.btns{display:flex;gap:10px;margin-bottom:12px}
+.btns{display:flex;flex-wrap:wrap;gap:12px 10px;margin-bottom:12px}
 .card .btns{margin-bottom:0}
 .bigbtn{
   display:block;flex:1;border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--ink);
@@ -183,6 +183,8 @@ input[type=range]::-moz-range-thumb{
   flex:1;min-width:0;padding:12px 2px;border:3px solid var(--ink);border-radius:18px;background:var(--paper);
   box-shadow:0 4px 0 var(--ink);font-family:inherit;font-weight:800;font-size:12px;color:var(--ink);cursor:pointer;
 }
+.tab i{font-style:normal;font-size:19px;line-height:1;display:inline-block;
+  vertical-align:-4px;margin-right:5px;}
 .tab:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
 .tab.on{background:var(--pick)}
 .pane.off{display:none}
@@ -250,7 +252,7 @@ input[type=range]::-moz-range-thumb{
 .roomno{font-size:34px;letter-spacing:.24em;text-align:center;padding:14px 6px 14px 14px;
   margin:0 0 4px;border:3px solid var(--ink);border-radius:18px;background:#FFFDF4;
   -webkit-user-select:text;user-select:text;}
-.pickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;padding:4px 2px 2px}
+.pickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;padding:6px 2px 10px}
 .bigbtn.send{background:var(--lime)}
 .bigbtn.nw{background:#FFD1A8}
 #modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;
@@ -352,9 +354,9 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
   <div id="panel">
     <div id="tabs" role="tablist" aria-label="あそびかた">
-      <button class="tab on" id="tabP" type="button" role="tab" aria-selected="true" aria-controls="paneP">🤚🏼 さわってみる</button>
-      <button class="tab" id="tabM" type="button" role="tab" aria-selected="false" aria-controls="paneM">🎨 つくってみる</button>
-      <button class="tab" id="tabS" type="button" role="tab" aria-selected="false" aria-controls="paneS">📤 おくりあう</button>
+      <button class="tab on" id="tabP" type="button" role="tab" aria-selected="true" aria-controls="paneP"><i>🤚🏼</i>さわってみる</button>
+      <button class="tab" id="tabM" type="button" role="tab" aria-selected="false" aria-controls="paneM"><i>🎨</i>つくってみる</button>
+      <button class="tab" id="tabS" type="button" role="tab" aria-selected="false" aria-controls="paneS"><i>📤</i>おくりあう</button>
     </div>
 
     <div class="pane" id="paneP" role="tabpanel" aria-labelledby="tabP">
@@ -412,7 +414,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
     <div class="pane off" id="paneS" role="tabpanel" aria-labelledby="tabS" hidden>
       <div class="card">
-        <div class="cardhead">おくりあう</div>
+        <div class="cardhead">おくりあう おへやを せんたく</div>
         <div class="sub">おなじばんごうのおへやにはいるとマイスクイーズをおくりあえるよ♪</div>
         <div class="btns" id="roomStart">
           <button class="bigbtn mkroom" id="mkRoom" type="button"><i>🏠</i>おへやを つくる</button>
@@ -503,7 +505,10 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="mtitle" id="pickTitle"></div>
       <div class="sub" id="pickSub"></div>
       <div class="pickgrid" id="pickGrid"></div>
-      <div class="btns"><button class="bigbtn leave" id="pickClose" type="button">やめる</button></div>
+      <div class="btns">
+        <button class="bigbtn send" id="pickOk" type="button" disabled>けってい</button>
+        <button class="bigbtn leave" id="pickClose" type="button">やめる</button>
+      </div>
     </div>
   </div>
 
@@ -2268,7 +2273,9 @@ function leaveRoom(silent){
   MQ.close(silent);
   roomItems={}; roomSeen={}; members={}; lastCount=-1;
   clearReceiveQueue(); renderRoom(); refreshRoomUI();
-  if(!silent) logRoom('おへやを でました');
+  /* でたあとの ログは のこさない */
+  rlog.innerHTML='';
+  rstat.textContent='おへやを つくるか、おともだちの ばんごうで はいってね。';
 }
 function onRoomMsg(topic,text){
   const seg=topic.slice(topic.lastIndexOf('/')+1);
@@ -2369,20 +2376,33 @@ document.getElementById('leave').addEventListener('click',()=>leaveRoom(false));
 /* ---- マイスクイーズを えらぶ ダイアログ（おくる とき／いれかえる とき） ---- */
 const pickModal=document.getElementById('pickModal'), pickGrid=document.getElementById('pickGrid');
 const pickTitle=document.getElementById('pickTitle'), pickSub=document.getElementById('pickSub');
-let pickCancel=null;
+const pickOk=document.getElementById('pickOk');
+let pickCancel=null, pickChoose=null, pickSel=null;
+/* サムネを えらんで、「けってい」で かくてい する */
 function openPick(title,sub,list,onPick,onCancel){
   pickTitle.textContent=title; pickSub.textContent=sub||'';
-  pickGrid.innerHTML='';
+  pickGrid.innerHTML=''; pickSel=null; pickOk.disabled=true;
   list.forEach(o=>{
-    const el=chipEl(o.name,null,()=>onPick(o));
+    const el=chipEl(o.name,null,()=>{
+      pickSel=o; pickOk.disabled=false;
+      [].forEach.call(pickGrid.children,c=>c.classList.toggle('on',c===el));
+    });
     pickGrid.appendChild(el);
     if(o.base==='photo'&&o.tex) buildTexCanvas(o,128,c=>{ if(c) drawThumb(el,c); });
     else{ const t=TEMPLATES.filter(x=>x.id===o.base)[0]||TEMPLATES[0]; drawThumb(el,t.canvas); }
   });
-  pickCancel=onCancel||null;
+  pickChoose=onPick; pickCancel=onCancel||null;
   openDlg(pickModal);
 }
-function closePick(){ closeDlg(pickModal); pickCancel=null; setTimeout(showNextReceive,0); }
+function closePick(){
+  closeDlg(pickModal);
+  pickCancel=null; pickChoose=null; pickSel=null; pickOk.disabled=true;
+  setTimeout(showNextReceive,0);
+}
+pickOk.addEventListener('click',()=>{
+  if(!pickSel||!pickChoose) return;
+  pickChoose(pickSel);
+});
 document.getElementById('pickClose').addEventListener('click',()=>{
   const c=pickCancel; closePick(); if(c) c();
 });
