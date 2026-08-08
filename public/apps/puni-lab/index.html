@@ -537,6 +537,17 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
     </div>
   </div>
 
+  <div id="confirmModal" class="dlg off" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="mbox">
+      <div class="mtitle" id="confirmTitle"></div>
+      <div class="sub" id="confirmSub"></div>
+      <div class="btns">
+        <button class="bigbtn leave" id="confirmNo" type="button">やめる</button>
+        <button class="bigbtn send" id="confirmYes" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast"></div>
 
   <!-- ピクトグラム: Material Symbols Rounded (Google, Apache License 2.0)
@@ -1618,6 +1629,25 @@ function buildPhotoTexture(img){
 const modal=document.getElementById('modal'), mtitle=document.getElementById('mtitle');
 const mtext=document.getElementById('mtext'), mok=document.getElementById('mok'), mclose=document.getElementById('mclose');
 let mokFn=null;
+/* はい／いいえ を きく ダイアログ */
+const confirmModal=document.getElementById('confirmModal');
+let confirmFn=null;
+function askConfirm(title,sub,yesLabel,fn){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmSub').textContent=sub||'';
+  document.getElementById('confirmYes').textContent=yesLabel||'OK';
+  confirmFn=fn;
+  confirmModal.classList.remove('off');
+}
+document.getElementById('confirmYes').addEventListener('click',()=>{
+  const f=confirmFn; confirmFn=null;
+  confirmModal.classList.add('off');
+  if(f) f();
+});
+document.getElementById('confirmNo').addEventListener('click',()=>{
+  confirmFn=null; confirmModal.classList.add('off');
+});
+
 /* ピクトグラムを 入れかえる */
 function setIcon(el,name){
   el.innerHTML='<svg class="ic"><use href="#i-'+name+'"/></svg>';
@@ -1951,7 +1981,10 @@ function renderMine(){
     const el=chipEl(o.name,null,()=>{ loadCfg(o); toast('よみこみました'); },()=>{
       let i=-1; for(let k=0;k<myList.length;k++) if(myList[k].id===o.id) i=k;
       if(i<0) return;
-      myList.splice(i,1); persist(); renderMine(); toast('けしました');
+      myList.splice(i,1); persist();
+      /* 0こに なったら、えらばれていた ものも 画面から きえるように する */
+      if(!myList.length) clearEditing();
+      renderMine(); toast('けしました');
     });
     mineEl.appendChild(el);
     if(o.base==='photo'&&o.tex){
@@ -2007,8 +2040,9 @@ function b64dec(b){
   for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
   return new TextDecoder().decode(u);
 }
-function adopt(d){
-  if(!d||d.app!=='punipuni-squeeze') return null;
+/* とどいた／よみこんだ なかみを、あんぜんな かたちに ととのえる */
+function sanitize(d){
+  if(!d||typeof d!=='object') return null;
   const o={
     id:'s'+Date.now().toString(36)+Math.floor(Math.random()*900+100),
     name:String(d.name||'もらった スクイーズ').slice(0,16),
@@ -2021,6 +2055,18 @@ function adopt(d){
     cut:!!d.cut
   };
   if(o.base==='photo'&&!o.tex) o.base='mochi';
+  return o;
+}
+/* つくりかけを ぜんぶ すてる（マイスクイーズが 0こに なった とき など） */
+function clearEditing(){
+  editing.preset=null; editing.canvas=null; editing.tex=null; editing.mask=null;
+  editing.cut=false; editing.thick=0.34; editing.shade=[0.92,0.90,0.97];
+  nmEl.value=''; syncFileName(true);
+  applyEditing(true);
+}
+function adopt(d){
+  if(!d||d.app!=='punipuni-squeeze') return null;
+  const o=sanitize(d);
   /* いっぱいの ときは かってに けさずに、どれと いれかえるか えらんでもらう */
   if(myList.length>=4){
     openPick('どれと いれかえる？','マイスクイーズは 4こまで。いれかえる ものを えらんでね',myList.slice(),old=>{
@@ -2131,18 +2177,20 @@ function shareAsCode(o){
   }
   showCode(code);
 }
+/* しゃしんいりは コードに すると 長すぎるので ファイルだけ */
+function hasPhoto(o){ return (o.list||[]).some(x=>x.base==='photo'&&x.tex); }
 document.getElementById('share').addEventListener('click',()=>{
-  if(!currentReady()){ toast('さきに しゃしんを えらんでね'); return; }
-  const o=collectCurrent();
-  o.app='punipuni-squeeze'; o.v=1;
+  if(!myList.length){ toast('さきに マイスクイーズに ついか してね'); return; }
+  /* マイスクイーズを ぜんぶ 1つの ファイルに。よみこむと ぜんぶ もどる */
+  const o={app:'punipuni-squeeze', v:2, list:myList.slice(0,4)};
   const json=JSON.stringify(o);
-  const fname=safeName(fnameEl.value||o.name)+'.squeeze.json';
+  const fname=safeName(fnameEl.value||'my-squeezes')+'.squeeze.json';
   let file=null;
   try{ file=new File([json],fname,{type:'application/json'}); }catch(e){}
   if(file&&navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){
     let pr=null;
-    try{ pr=navigator.share({files:[file],title:o.name}); }catch(e){}
-    if(pr&&pr.then){ pr.then(()=>{},()=>{ if(o.base!=='photo') shareAsCode(o); else toast('「ばんごうで シェア」を つかってね'); }); return; }
+    try{ pr=navigator.share({files:[file],title:'マイスクイーズ'}); }catch(e){}
+    if(pr&&pr.then){ pr.then(()=>{},()=>{ if(hasPhoto(o)) toast('「おくりあう」を つかってね'); else shareAsCode(o); }); return; }
   }
   try{
     let url;
@@ -2151,10 +2199,10 @@ document.getElementById('share').addEventListener('click',()=>{
     const a=document.createElement('a'); a.href=url; a.download=fname; a.rel='noopener';
     document.body.appendChild(a); a.click(); a.remove();
     if(url.indexOf('blob:')===0) setTimeout(()=>URL.revokeObjectURL(url),5000);
-    toast('ファイルに かきだしました。うまくいかないときは「ばんごうで シェア」を つかってね');
+    toast('マイスクイーズ '+o.list.length+'こを ファイルに かきだしました');
   }catch(err){
-    if(o.base!=='photo') shareAsCode(o);
-    else toast('ほぞんできませんでした。「ばんごうで シェア」を つかってね');
+    if(hasPhoto(o)) toast('ほぞんできませんでした。「おくりあう」を つかってね');
+    else shareAsCode(o);
   }
 });
 document.getElementById('impfile').addEventListener('change',e=>{
@@ -2172,6 +2220,22 @@ document.getElementById('impfile').addEventListener('change',e=>{
     if(!d){
       const i=t.indexOf('PUNI1.');
       if(i>=0){ try{ d=JSON.parse(b64dec(t.slice(i+6).replace(/[^A-Za-z0-9+/=]/g,''))); }catch(err){} }
+    }
+    if(!d||d.app!=='punipuni-squeeze'){ toast('スクイーズの ファイルでは ないみたい'); return; }
+    /* v2＝マイスクイーズ ぜんぶ入り。v1（1こだけ）の ふるい ファイルも よめる */
+    if(Array.isArray(d.list)){
+      const list=d.list.map(sanitize).filter(Boolean).slice(0,4);
+      if(!list.length){ toast('スクイーズが はいっていませんでした'); return; }
+      const restore=()=>{
+        myList=list; persist(); renderMine(); loadOriginal(myList[0]);
+        switchTab('mine'); bubble(W/2,H/2,'もどした！'); buzz(12);
+        toast('マイスクイーズ '+list.length+'こを よみこみました');
+      };
+      if(myList.length) askConfirm('いまの マイスクイーズと いれかえる？',
+        'いま ある '+myList.length+'こは きえて、ファイルの '+list.length+'こに なります',
+        'いれかえる', restore);
+      else restore();
+      return;
     }
     if(!adopt(d)) toast('スクイーズの ファイルでは ないみたい');
   };
