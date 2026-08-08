@@ -246,7 +246,7 @@ input[type=range]::-moz-range-thumb{
   background:#FFFDF4;color:var(--ink);
 }
 #joinNo::placeholder{color:#C4BFD0;font-weight:400;letter-spacing:.22em}
-.rstat{font-weight:400;font-size:11px;line-height:1.6;opacity:.75;margin:10px 2px 10px}
+.rstat{font-weight:400;font-size:11px;line-height:1.6;opacity:.75;margin:0 2px 10px}
 /* おへやの ようす（なんにん いるか など）を ながす */
 .rlog{font-weight:400;font-size:11px;line-height:1.7;opacity:.85;margin:0 2px 12px;
   max-height:92px;overflow:auto;-webkit-overflow-scrolling:touch;}
@@ -441,11 +441,11 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="card">
         <div class="cardhead"><span id="roomHead">おへやを せんたく</span><span id="roomCount"></span></div>
         <div class="sub">おなじばんごうのおへやにはいるとマイスクイーズをおくりあえるよ♪</div>
+        <div class="rstat" id="rstat">おへやを つくるか、おともだちの ばんごうで はいってね。</div>
         <div class="btns" id="roomStart">
           <button class="bigbtn mkroom" id="mkRoom" type="button"><i><svg class="ic"><use href="#i-house"/></svg></i>おへやを つくる</button>
           <button class="bigbtn inroom" id="inRoom" type="button"><i><svg class="ic"><use href="#i-doorin"/></svg></i>おへやに はいる</button>
         </div>
-        <div class="rstat" id="rstat">おへやを つくるか、おともだちの ばんごうで はいってね。</div>
         <div class="rlog" id="rlog"></div>
         <div class="btns off" id="sendRow"><button class="bigbtn send" id="send" type="button"><i><svg class="ic"><use href="#i-send"/></svg></i>マイスクイーズをおくる</button></div>
         <div class="btns off" id="leaveRow"><button class="bigbtn leave" id="leave" type="button"><i><svg class="ic"><use href="#i-doorout"/></svg></i>おへやを でる</button></div>
