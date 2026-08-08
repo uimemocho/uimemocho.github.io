@@ -65,13 +65,14 @@ body{
   text-shadow:1.3px 0 0 var(--ink),-1.3px 0 0 var(--ink),0 1.3px 0 var(--ink),0 -1.3px 0 var(--ink),
               1px 1px 0 var(--ink),-1px 1px 0 var(--ink),1px -1px 0 var(--ink),-1px -1px 0 var(--ink);
 }
-#logo .k1{color:#FF6FA5;transform:rotate(-3deg)}
+/* 「ぷ」は 半濁点が みぎ上に あるので、つぎの 字との あいだを 少し あける */
+#logo .k1{color:#FF6FA5;transform:rotate(-3deg);margin-right:.07em}
 #logo .k2{color:#FFB01F;transform:rotate(2deg)}
 #logo .k3{color:#31C4E8;transform:rotate(-2deg)}
 #logo .k4{color:#54CE68;transform:rotate(3deg)}
 /* かなの 行と おなじ はばに なるよう 字間を ひろげ、
    さいごの 1文字ぶんの あきを もどして 左右を そろえる */
-#logo small{display:block;font-size:11px;letter-spacing:.235em;margin:5px -.235em 0 0;color:#6A4BD8;}
+#logo small{display:block;font-size:11px;letter-spacing:.235em;margin:5px -.235em 0 2px;color:#6A4BD8;}
 .spacer{flex:1}
 .icobtn{
   width:46px;height:46px;flex:0 0 auto;border-radius:16px;border:3px solid var(--ink);
@@ -384,6 +385,11 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
     <div class="pane off" id="paneM" role="tabpanel" aria-labelledby="tabM" hidden>
       <div class="card">
+        <div class="cardhead">マイスクイーズ（4こまで）</div>
+        <div id="mine"></div>
+      </div>
+
+      <div class="card">
         <div class="cardhead">① しゃしんを えらぶ</div>
         <div class="pvrow">
           <div class="pv" id="pv"><span class="ph">？</span></div>
@@ -408,11 +414,6 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       </div>
 
       <button class="bigbtn save wide" id="save" type="button"><i>＋</i>マイスクイーズに ついか</button>
-
-      <div class="card">
-        <div class="cardhead">マイスクイーズ（4こまで）</div>
-        <div id="mine"></div>
-      </div>
 
       <div class="card">
         <div class="cardhead">ふっかつのじゅもん</div>
@@ -1666,7 +1667,12 @@ function switchTab(w){
     tabEl.classList.toggle('on',active); tabEl.setAttribute('aria-selected',active?'true':'false');
   });
   if(w==='preset') selectPreset(lastPreset);
-  else if(w==='mine'){ applyEditing(true); syncFileName(false); }
+  else if(w==='mine'){
+    /* つくりかけが なければ、1こめの マイスクイーズを 出しておく */
+    if(!editing.preset&&!editing.tex&&myList.length) loadCfg(myList[0]);
+    else applyEditing(true);
+    syncFileName(false);
+  }
   panel.scrollTop=0;
   setTimeout(()=>layout(false),40);
 }
@@ -1703,6 +1709,7 @@ function selectPreset(i){
   [].forEach.call(chips.children,(el,k)=>el.classList.toggle('on',k===i));
   const t=TEMPLATES[i];
   applyTexOf(t); setSliders(t.soft,t.stick,t.wob);
+  updateBodyVisible();   /* プリセットは いつも 見える */
 }
 
 /* ---------- オリジナル（しゃしんから つくる） ---------- */
@@ -1728,10 +1735,20 @@ function updatePreview(){
   c.getContext('2d').drawImage(editingTemplate().canvas,0,0,128,128);
   pvEl.appendChild(c);
 }
+/* 「つくってみる」で まだ 1こも つくっていない ときは、
+   ステージに なにも 出さない（1こ できたら 1こめが 出る） */
+function updateBodyVisible(){
+  /* しゃしんを えらんで つくりかけ なら 出す。
+     それ いがいで 1こも ないときは 出さない（けして 0こに なった ときも おなじ） */
+  const blank = curMode==='edit' && !editing.tex && !myList.length;
+  canvas.style.visibility = blank?'hidden':'';
+  const hi=document.getElementById('hint');   /* hint は もっと下で 宣言される */
+  if(hi) hi.style.visibility = blank?'hidden':'';
+}
 function applyEditing(reTex){
   curMode='edit';
   if(reTex) applyTexOf(editingTemplate());
-  readSliders(); updatePreview();
+  readSliders(); updatePreview(); updateBodyVisible();
 }
 
 /* 写真を読み込む */
@@ -1890,8 +1907,8 @@ function renderMine(){
   mineEl.innerHTML='';
   if(!myList.length){
     const d=document.createElement('div'); d.className='empty';
-    d.textContent='まだ ありません。なまえを つけて「ほぞん」を おしてね。';
-    mineEl.appendChild(d); return;
+    d.textContent='まだ ありません。① しゃしんを えらんで、② なまえを つけて、③ さわりごこちを きめたら「マイスクイーズに ついか」を おしてね。';
+    mineEl.appendChild(d); updateBodyVisible(); return;
   }
   myList.forEach(o=>{
     const el=chipEl(o.name,null,()=>{ loadCfg(o); toast('よみこみました'); },()=>{
@@ -1907,6 +1924,7 @@ function renderMine(){
       drawThumb(el,t.canvas);
     }
   });
+  updateBodyVisible();   /* 1こめが できた／ぜんぶ けした ときに 出しわけ */
 }
 function loadOriginal(o){ loadCfg(o); }
 function loadCfg(o){
