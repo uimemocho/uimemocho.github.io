@@ -194,7 +194,7 @@ input[type=range]::-moz-range-thumb{
 .row .lb i .ic{width:19px;height:19px}
 .icobtn .ic{width:24px;height:24px}
 .chip .del .ic{width:13px;height:13px}
-#file,#impfile{position:fixed;left:0;top:0;width:1px;height:1px;padding:0;margin:0;overflow:hidden;
+#file,#impfile,#efile{position:fixed;left:0;top:0;width:1px;height:1px;padding:0;margin:0;overflow:hidden;
   clip:rect(0 0 0 0);white-space:nowrap;border:0;opacity:0;}
 
 #tabs{display:flex;gap:8px;margin-bottom:12px}
@@ -299,6 +299,23 @@ input[type=range]::-moz-range-thumb{
 /* スマホだと ステージの ふきだしが 画面の そとに なるので、
    ボタンの すぐ上でも しらせる。
    うきあがって 出て、しばらくで きえる（レイアウトは うごかさない） */
+/* あきスロットは しゃしんを えらぶ と おなじ ？ の ブランク */
+.chip.blank{pointer-events:none;opacity:.6}
+/* なかみの canvas が ないので、たてよこを そろえる */
+.chip.blank .thumb{display:grid;place-items:center;aspect-ratio:1/1}
+.chip .ph{font-size:22px;opacity:.35;font-weight:800}
+/* へんしゅうボタンは わくの 下、まんなか */
+#editRow{display:flex;justify-content:center;margin:14px 0 0}
+#editRow.off{display:none}
+#editBtn{flex:0 0 auto;width:auto;min-width:200px;padding-left:24px;padding-right:24px}
+.bigbtn.edit{background:#C9BEFF}
+#enm{
+  width:100%;padding:12px 14px;border:3px solid var(--ink);border-radius:18px;
+  font-family:inherit;font-weight:800;font-size:15px;background:#FFFDF4;color:var(--ink);
+}
+#enm::placeholder{color:#B9B3C8}
+#editModal .cardhead{margin-top:16px}
+#editModal .cardhead:first-of-type{margin-top:0}
 .savewrap{position:relative}
 /* ステージに 出る しらせと おなじ みため（こんいろの 下じに 白もじ） */
 .savenote{
@@ -410,6 +427,9 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       <div class="card">
         <div class="cardhead">マイスクイーズ（4こまで）</div>
         <div id="mine"></div>
+        <div class="btns off" id="editRow">
+          <button class="bigbtn edit" id="editBtn" type="button"><i><svg class="ic"><use href="#i-edit"/></svg></i>へんしゅうする</button>
+        </div>
       </div>
 
       <div class="card">
@@ -566,6 +586,35 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
     </div>
   </div>
 
+  <div id="editModal" class="dlg off" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <div class="mbox">
+      <div class="mtitle" id="editTitle">マイスクイーズを へんしゅう</div>
+
+      <div class="cardhead">① しゃしんを えらぶ</div>
+      <div class="pvrow">
+        <div class="pv" id="epv"><span class="ph">？</span></div>
+        <label class="bigbtn photo" id="ephoto" for="efile"><i><svg class="ic"><use href="#i-camera"/></svg></i>しゃしんを えらぶ</label>
+      </div>
+
+      <div class="cardhead">② なまえを つける</div>
+      <input id="enm" type="text" maxlength="16" placeholder="ぼくの スクイーズ" autocomplete="off" autocapitalize="off">
+
+      <div class="cardhead">③ さわりごこちを きめる</div>
+      <div class="row"><div class="lb"><i><svg class="ic"><use href="#i-soft"/></svg></i>やわらかさ</div><input type="range" id="e_soft" min="0" max="100" value="70"></div>
+      <div class="ends"><span>かたい</span><span>やわらかい</span></div>
+      <div class="row"><div class="lb"><i><svg class="ic"><use href="#i-sticky"/></svg></i>ねばねば</div><input type="range" id="e_stick" min="0" max="100" value="40"></div>
+      <div class="ends"><span>さらさら</span><span>のびのび</span></div>
+      <div class="row"><div class="lb"><i><svg class="ic"><use href="#i-wobble"/></svg></i>ぷるぷる</div><input type="range" id="e_wob" min="0" max="100" value="55"></div>
+      <div class="ends"><span>しずか</span><span>ぷるぷる</span></div>
+
+      <div class="btns">
+        <button class="bigbtn leave" id="editCancel" type="button">やめる</button>
+        <button class="bigbtn send" id="editOk" type="button">けってい</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="efile" accept="image/*">
+
   <div id="toast"></div>
 
   <!-- ピクトグラム: Material Symbols Rounded (Google, Apache License 2.0)
@@ -590,6 +639,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
     <symbol id="i-send" viewBox="0 -960 960 960"><path d="M475-160q4 0 8-2t6-4l328-328q12-12 17.5-27t5.5-30q0-16-5.5-30.5T817-607L647-777q-11-12-25.5-17.5T591-800q-15 0-30 5.5T534-777l-11 11 74 75q15 14 22 32t7 38q0 42-28.5 70.5T527-522q-20 0-38.5-7T456-550l-75-74-175 175q-3 3-4.5 6.5T200-435q0 8 6 14.5t14 6.5q4 0 8-2t6-4l108-108q11-11 27.5-11.5T398-528q11 11 11 28t-11 28L291-364q-3 3-4.5 6.5T285-350q0 8 6 14t14 6q4 0 8-2t6-4l108-107q11-11 27.5-11.5T483-443q11 11 11 28t-11 28L376-279q-3 2-4.5 6t-1.5 8q0 8 6 14t14 6q4 0 7.5-1.5t6.5-4.5l108-107q11-11 27.5-11.5T568-358q11 11 11 28t-11 28L460-194q-3 3-4.5 6.5T454-180q0 8 6.5 14t14.5 6Zm-1 80q-37 0-65.5-24.5T375-166q-34-5-57-28t-28-57q-34-5-56.5-28.5T206-336q-38-5-62-33t-24-66q0-20 7.5-38.5T149-506l175-175q23-23 56.5-23t56.5 23l75 75q2 3 6 4.5t8 1.5q9 0 15-5.5t6-14.5q0-4-1.5-8t-4.5-6L398-777q-11-12-25.5-17.5T342-800q-15 0-30 5.5T285-777L144-635q-14 14-20 33t-3 38q3 17-7 30t-27 15q-17 2-30-7.5T42-553q-6-38 5.5-74.5T87-692l141-141q24-23 53.5-35t60.5-12q31 0 60.5 12t52.5 35l11 11 11-11q24-23 53.5-35t60.5-12q31 0 60.5 12t52.5 35l169 169q23 23 35 53t12 61q0 31-12 60.5T873-437L545-110q-14 14-32.5 22T474-80Zm-98-560Z"/></symbol>
     <symbol id="i-copy" viewBox="0 -960 960 960"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z"/></symbol>
     <symbol id="i-plus" viewBox="0 -960 960 960"><path d="M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z"/></symbol>
+    <symbol id="i-edit" viewBox="0 -960 960 960"><path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></symbol>
     <symbol id="i-close" viewBox="0 -960 960 960"><path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/></symbol>
   </defs></svg>
 </div>
@@ -1647,6 +1697,81 @@ function buildPhotoTexture(img){
 const modal=document.getElementById('modal'), mtitle=document.getElementById('mtitle');
 const mtext=document.getElementById('mtext'), mok=document.getElementById('mok'), mclose=document.getElementById('mclose');
 let mokFn=null;
+/* ---- マイスクイーズの へんしゅう ---- */
+const editModal=document.getElementById('editModal');
+const epv=document.getElementById('epv'), enm=document.getElementById('enm');
+const E_soft=document.getElementById('e_soft'), E_stick=document.getElementById('e_stick'), E_wob=document.getElementById('e_wob');
+let editDraft=null;
+
+function paintEditPv(){
+  epv.innerHTML='';
+  const blank=()=>{ const s=document.createElement('span'); s.className='ph'; s.textContent='？'; epv.appendChild(s); };
+  const draw=cnv=>{ const c=document.createElement('canvas'); c.width=c.height=128;
+    c.getContext('2d').drawImage(cnv,0,0,128,128); epv.innerHTML=''; epv.appendChild(c); };
+  const d=editDraft; if(!d){ blank(); return; }
+  if(d.base==='photo'&&d.tex) buildTexCanvas(d,128,c=>{ if(c) draw(c); else blank(); });
+  else{ const tp=TEMPLATES.filter(x=>x.id===d.base)[0]||TEMPLATES[0]; draw(tp.canvas); }
+}
+function openEdit(){
+  const o=selectedSqueeze()||myList[0];
+  if(!o){ toast('さきに マイスクイーズを ついか してね'); return; }
+  editDraft={id:o.id, name:o.name, base:o.base, soft:o.soft, stick:o.stick, wob:o.wob,
+             tex:o.tex, mask:o.mask, thick:o.thick, shade:o.shade, cut:!!o.cut};
+  enm.value=o.name; E_soft.value=o.soft; E_stick.value=o.stick; E_wob.value=o.wob;
+  paintEditPv();
+  editModal.classList.remove('off');
+}
+document.getElementById('editBtn').addEventListener('click',openEdit);
+document.getElementById('editCancel').addEventListener('click',()=>{
+  editDraft=null; editModal.classList.add('off');
+});
+/* へんしゅう ダイアログの しゃしん さしかえ */
+document.getElementById('efile').addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0];
+  e.target.value='';
+  try{ e.target.blur(); }catch(err){}
+  if(!f||!editDraft) return;
+  const fr=new FileReader();
+  fr.onerror=()=>toast('しゃしんを ひらけませんでした');
+  fr.onload=()=>{
+    const img=new Image();
+    img.onerror=()=>toast('この しゃしんは よみこめませんでした');
+    img.onload=()=>{
+      try{
+        const res=buildPhotoTexture(img);
+        if(!res){ toast('この しゃしんは つかえませんでした'); return; }
+        editDraft.base='photo';
+        editDraft.thick=res.thick; editDraft.shade=res.shade; editDraft.cut=res.cutout;
+        editDraft.tex=compactTex(res.canvas,res.cutout,384);
+        editDraft.mask=compactMask(res.canvas,res.cutout,384);
+        paintEditPv();
+      }catch(err){ toast('この しゃしんは つかえませんでした'); }
+    };
+    img.src=fr.result;
+  };
+  fr.readAsDataURL(f);
+});
+document.getElementById('editOk').addEventListener('click',()=>{
+  if(!editDraft) return;
+  let i=-1; for(let k=0;k<myList.length;k++) if(myList[k].id===editDraft.id) i=k;
+  if(i<0){ editDraft=null; editModal.classList.add('off'); toast('へんしゅうできませんでした'); return; }
+  const cur=myList[i];
+  myList[i]={
+    id:cur.id,
+    name:(enm.value||'').trim()||cur.name,
+    base:editDraft.base,
+    soft:clamp(+E_soft.value,0,100), stick:clamp(+E_stick.value,0,100), wob:clamp(+E_wob.value,0,100),
+    tex:editDraft.tex, mask:editDraft.mask,
+    thick:editDraft.thick, shade:editDraft.shade, cut:!!editDraft.cut
+  };
+  selectedId=cur.id;
+  persist();                      /* ふっかつのじゅもんは myList を そのまま かきだす */
+  renderMine(); loadCfg(myList[i]);
+  editDraft=null; editModal.classList.add('off');
+  saveNote('マイスクイーズを へんしゅうしました');
+  buzz(10);
+});
+
 /* はい／いいえ を きく ダイアログ */
 const confirmModal=document.getElementById('confirmModal');
 let confirmFn=null;
@@ -1700,6 +1825,8 @@ modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
 const chips=document.getElementById('chips');
 const pvEl=document.getElementById('pv');
 const mineEl=document.getElementById('mine');
+const editRow=document.getElementById('editRow');
+let selectedId=null;   /* いま えらんでいる マイスクイーズ */
 const nmEl=document.getElementById('nm');
 const S_soft=document.getElementById('s_soft'), S_stick=document.getElementById('s_stick'), S_wob=document.getElementById('s_wob');
 
@@ -1754,7 +1881,9 @@ function switchTab(w){
   if(w==='preset') selectPreset(lastPreset);
   else if(w==='mine'){
     /* つくりかけが なければ、1こめの マイスクイーズを 出しておく */
-    if(!editing.preset&&!editing.tex&&myList.length) loadCfg(myList[0]);
+    if(!editing.preset&&!editing.tex&&myList.length){
+      const s=selectedSqueeze()||myList[0]; selectedId=s.id; loadCfg(s); renderMine();
+    }
     else applyEditing(true);
     syncFileName(false);
   }
@@ -2002,33 +2131,43 @@ document.getElementById('save').addEventListener('click',()=>{
       closePick();
       if(i<0){ toast('いれかえられませんでした'); return; }
       const gone=myList[i].name;
-      myList[i]=o; nmEl.value=o.name;
+      myList[i]=o; selectedId=o.id; nmEl.value=o.name;
       persist(); renderMine(); bubble(W/2,H/2,'いれかえた！'); buzz(10);
       saveNote('マイスクイーズを いれかえました（'+myList.length+'／4）');
     },()=>{ toast('いれかえませんでした'); });
     return;
   }
-  myList.push(o);
+  myList.push(o); selectedId=o.id;
   nmEl.value=o.name;
   persist(); renderMine(); bubble(W/2,H/2,'ついかした！'); buzz(10);
   saveNote('マイスクイーズに ついかしました（'+myList.length+'／4）');
 });
+/* あいている ところは ？ の からっぽ サムネを ならべる */
+function blankChip(){
+  const d=document.createElement('div'); d.className='chip blank';
+  const th=document.createElement('div'); th.className='thumb';
+  const sp=document.createElement('span'); sp.className='ph'; sp.textContent='？';
+  th.appendChild(sp);
+  const nm=document.createElement('div'); nm.className='nm';
+  d.appendChild(th); d.appendChild(nm); return d;
+}
+function selectedSqueeze(){ return myList.filter(x=>x.id===selectedId)[0]||null; }
 function renderMine(){
   mineEl.innerHTML='';
-  if(!myList.length){
-    const d=document.createElement('div'); d.className='empty';
-    d.textContent='まだ ありません。① しゃしんを えらんで、② なまえを つけて、③ さわりごこちを きめたら「マイスクイーズに ついか」を おしてね。';
-    mineEl.appendChild(d); updateBodyVisible(); return;
-  }
   myList.forEach(o=>{
-    const el=chipEl(o.name,null,()=>{ loadCfg(o); toast('よみこみました'); },()=>{
+    const el=chipEl(o.name,null,()=>{
+      selectedId=o.id; loadCfg(o); renderMine(); toast('えらびました');
+    },()=>{
       let i=-1; for(let k=0;k<myList.length;k++) if(myList[k].id===o.id) i=k;
       if(i<0) return;
       myList.splice(i,1); persist();
+      if(selectedId===o.id) selectedId=myList.length?myList[0].id:null;
       /* 0こに なったら、えらばれていた ものも 画面から きえるように する */
       if(!myList.length) clearEditing();
+      else { const s=selectedSqueeze(); if(s) loadCfg(s); }
       renderMine(); toast('けしました');
     });
+    el.classList.toggle('on',o.id===selectedId);
     mineEl.appendChild(el);
     if(o.base==='photo'&&o.tex){
       buildTexCanvas(o,128,c=>{ if(c) drawThumb(el,c); });
@@ -2037,6 +2176,13 @@ function renderMine(){
       drawThumb(el,t.canvas);
     }
   });
+  for(let i=myList.length;i<4;i++) mineEl.appendChild(blankChip());
+  if(!myList.length){
+    const d=document.createElement('div'); d.className='empty';
+    d.textContent='まだ ありません。① しゃしんを えらんで、② なまえを つけて、③ さわりごこちを きめたら「マイスクイーズに ついか」を おしてね。';
+    mineEl.appendChild(d);
+  }
+  editRow.classList.toggle('off',!myList.length);
   updateBodyVisible();   /* 1こめが できた／ぜんぶ けした ときに 出しわけ */
 }
 function loadOriginal(o){ loadCfg(o); }
@@ -2117,12 +2263,12 @@ function adopt(d){
       let i=-1; for(let k=0;k<myList.length;k++) if(myList[k].id===old.id) i=k;
       closePick();
       if(i<0){ toast('いれかえられませんでした'); return; }
-      myList[i]=o; persist(); renderMine(); loadOriginal(o);
+      myList[i]=o; selectedId=o.id; persist(); renderMine(); loadOriginal(o);
       switchTab('mine'); bubble(W/2,H/2,'いれかえた！'); buzz(12);
     },()=>{ toast('いれかえませんでした'); });
     return o;
   }
-  myList.push(o); persist(); renderMine(); loadOriginal(o);
+  myList.push(o); selectedId=o.id; persist(); renderMine(); loadOriginal(o);
   switchTab('mine'); bubble(W/2,H/2,'よみこんだ！'); buzz(12);
   return o;
 }
@@ -2271,7 +2417,7 @@ document.getElementById('impfile').addEventListener('change',e=>{
       const list=d.list.map(sanitize).filter(Boolean).slice(0,4);
       if(!list.length){ toast('スクイーズが はいっていませんでした'); return; }
       const restore=()=>{
-        myList=list; persist(); renderMine(); loadOriginal(myList[0]);
+        myList=list; selectedId=myList[0].id; persist(); renderMine(); loadOriginal(myList[0]);
         switchTab('mine'); bubble(W/2,H/2,'もどした！'); buzz(12);
         toast('マイスクイーズ '+list.length+'こを よみこみました');
       };
