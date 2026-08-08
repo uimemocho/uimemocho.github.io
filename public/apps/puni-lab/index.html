@@ -18,8 +18,8 @@ src:url(data:font/woff2;base64,d09GMgABAAAAAG4UABAAAAABH7wAAG24AAEPGgAAAAAAAAAAA
   --ink:#2E2A4A;
   --sun:#FFC93C;
   --gum:#FF7BA9;
-  --pick:#FF6FA5;   /* えらばれている ものの いろ（ロゴの「ぷ」と おなじ） */
-  --pickink:#E23F7C;
+  --pick:#FFC93C;   /* えらばれている ものの いろ */
+  --pickink:#B4680E;
   --lime:#8BE04E;
   --grape:#8B6CFF;
   --tang:#FF8A3D;
@@ -54,22 +54,26 @@ body{
 }
 #logo{
   font-weight:900;font-size:22px;letter-spacing:.02em;line-height:1;
-  padding:8px 14px;border-radius:999px;
-  background:linear-gradient(135deg,#E9FBFF 0%,#FFFFFF 48%,#FFF6DC 100%);
-  border:3px solid var(--ink);
-  transform:rotate(-2deg);
+  padding:4px 2px;
 }
-/* かなを 1文字ずつ カラフルに。ふちどりで どの いろでも よめるように する */
+/* かなを 1文字ずつ カラフルに。
+   内がわに こい ふちどり、そのそとに 白い ふちどりを かさねて、
+   そらの いろの うえでも くっきり 見えるように する */
 #logo .k{
   display:inline-block;
   text-shadow:1.2px 0 0 var(--ink),-1.2px 0 0 var(--ink),0 1.2px 0 var(--ink),0 -1.2px 0 var(--ink),
-              .9px .9px 0 var(--ink),-.9px .9px 0 var(--ink),.9px -.9px 0 var(--ink),-.9px -.9px 0 var(--ink);
+              .9px .9px 0 var(--ink),-.9px .9px 0 var(--ink),.9px -.9px 0 var(--ink),-.9px -.9px 0 var(--ink),
+              3.4px 0 0 #fff,-3.4px 0 0 #fff,0 3.4px 0 #fff,0 -3.4px 0 #fff,
+              2.5px 2.5px 0 #fff,-2.5px 2.5px 0 #fff,2.5px -2.5px 0 #fff,-2.5px -2.5px 0 #fff;
 }
 #logo .k1{color:#FF6FA5;transform:rotate(-5deg)}
 #logo .k2{color:#FFB01F;transform:rotate(3deg)}
 #logo .k3{color:#31C4E8;transform:rotate(-3deg)}
 #logo .k4{color:#54CE68;transform:rotate(5deg)}
-#logo small{display:block;font-size:10px;letter-spacing:.16em;margin-top:3px;color:#6A4BD8;}
+/* letter-spacing の ぶん 左に よって 見えるので 3px みぎへ */
+#logo small{display:block;font-size:10px;letter-spacing:.16em;margin-top:4px;margin-left:3px;color:#6A4BD8;
+  text-shadow:1.6px 0 0 #fff,-1.6px 0 0 #fff,0 1.6px 0 #fff,0 -1.6px 0 #fff,
+              1.2px 1.2px 0 #fff,-1.2px 1.2px 0 #fff,1.2px -1.2px 0 #fff,-1.2px -1.2px 0 #fff;}
 .spacer{flex:1}
 .icobtn{
   width:46px;height:46px;flex:0 0 auto;border-radius:16px;border:3px solid var(--ink);
@@ -87,8 +91,8 @@ body{
   border:4px solid var(--ink);
   overflow:hidden;touch-action:none;
   background:
-    radial-gradient(circle at 12px 12px, rgba(46,42,74,.10) 3px, rgba(0,0,0,0) 4px) 0 0/34px 34px,
-    linear-gradient(180deg,var(--sky2) 0%, #C6EBFF 100%);
+    radial-gradient(circle at 12px 12px, rgba(46,42,74,.07) 3px, rgba(0,0,0,0) 4px) 0 0/34px 34px,
+    linear-gradient(180deg,#F8FBFF 0%, #EDF4FD 100%);
 }
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;}
 #hint{
@@ -280,7 +284,8 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 #app.focus-mode #top>*:not(#fold){display:none;}
 #app.focus-mode #fold{
   display:grid;position:fixed;z-index:45;
-  top:calc(env(safe-area-inset-top) + 12px);right:calc(env(safe-area-inset-right) + 12px);
+  /* ステージの ふち（8px）から さらに 内がわへ。かどに はりつかせない */
+  top:calc(env(safe-area-inset-top) + 24px);right:calc(env(safe-area-inset-right) + 24px);
   background:var(--sun);opacity:1;
 }
 #app.focus-mode #stage{
@@ -332,7 +337,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
   <div id="panel">
     <div id="tabs" role="tablist" aria-label="あそびかた">
-      <button class="tab on" id="tabP" type="button" role="tab" aria-selected="true" aria-controls="paneP">🤚 さわってみる</button>
+      <button class="tab on" id="tabP" type="button" role="tab" aria-selected="true" aria-controls="paneP">🤚🏻 さわってみる</button>
       <button class="tab" id="tabM" type="button" role="tab" aria-selected="false" aria-controls="paneM">🎨 つくってみる</button>
       <button class="tab" id="tabS" type="button" role="tab" aria-selected="false" aria-controls="paneS">📤 おくりあう</button>
     </div>
@@ -502,9 +507,9 @@ function drawMochi(ctx){
   ctx.save();
   sq(ctx,256,268,206,178,2.7);
   const g=ctx.createRadialGradient(196,176,10,256,280,255);
-  g.addColorStop(0,'#ffffff'); g.addColorStop(.55,'#fefbf8'); g.addColorStop(1,'#efe1d6');
+  g.addColorStop(0,'#fffefa'); g.addColorStop(.55,'#faf1e2'); g.addColorStop(1,'#e6d3bb');
   ctx.fillStyle=g; ctx.fill(); ctx.clip();
-  rim(ctx,256,268,224,'rgba(198,176,198,.26)');
+  rim(ctx,256,268,224,'rgba(198,170,148,.26)');
   for(let i=0;i<520;i++){
     ctx.fillStyle='rgba(255,255,255,'+(0.12+Math.random()*0.42)+')';
     ctx.beginPath(); ctx.arc(Math.random()*512,Math.random()*512,Math.random()*2.3+0.4,0,7); ctx.fill();
@@ -580,21 +585,22 @@ function drawCat(ctx){
   const cx=256, cy=282, r=186;
   const ear=(ex,ey,rot,flip)=>{
     ctx.save(); ctx.translate(ex,ey); ctx.rotate(rot);
-    /* 付け根は あたまの 下に ふかく さしこむ。そうしないと そこの ふちが 見えてしまう */
-    ctx.beginPath(); ctx.moveTo(-64,52); ctx.quadraticCurveTo(-30,-64,4,-58);
-    ctx.quadraticCurveTo(46,-40,62,54); ctx.lineTo(62,200); ctx.lineTo(-64,200); ctx.closePath();
+    /* 付け根は まるごと あたまの だ円の 内がわに おさめる。
+       はみ出すと そこが スクイーズの かたち（アルファ）に なって しまう */
+    ctx.beginPath(); ctx.moveTo(-64,52); ctx.quadraticCurveTo(-30,-80,4,-74);
+    ctx.quadraticCurveTo(46,-56,62,54); ctx.quadraticCurveTo(0,26,-64,52); ctx.closePath();
     ctx.fillStyle='#ffffff'; ctx.fill();
-    ctx.beginPath(); ctx.moveTo(-34,40); ctx.quadraticCurveTo(-12,-30,4,-28);
-    ctx.quadraticCurveTo(26,-18,36,42); ctx.quadraticCurveTo(0,22,-34,40); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(-34,40); ctx.quadraticCurveTo(-12,-44,4,-42);
+    ctx.quadraticCurveTo(26,-32,36,42); ctx.quadraticCurveTo(0,22,-34,40); ctx.closePath();
     ctx.fillStyle='#ffb7c8'; ctx.fill(); ctx.restore();
   };
   ctx.save();
-  ear(cx-116,cy-152,-0.22); ear(cx+116,cy-152,0.22);
+  ear(cx-108,cy-134,-0.22); ear(cx+108,cy-134,0.22);
   ctx.beginPath(); ctx.ellipse(cx,cy,r,r*0.93,0,0,7);
   const g=ctx.createRadialGradient(cx-76,cy-84,12,cx,cy,r*1.12);
-  g.addColorStop(0,'#ffffff'); g.addColorStop(.55,'#fbfbfe'); g.addColorStop(1,'#e7ecf7');
+  g.addColorStop(0,'#ffffff'); g.addColorStop(.55,'#fefbf8'); g.addColorStop(1,'#efe1d6');
   ctx.fillStyle=g; ctx.fill();
-  ctx.save(); ctx.clip(); rim(ctx,cx,cy,r*1.08,'rgba(150,164,200,.24)'); ctx.restore();
+  ctx.save(); ctx.clip(); rim(ctx,cx,cy,r*1.08,'rgba(198,176,198,.24)'); ctx.restore();
   // かお
   ctx.strokeStyle='#4a4468'; ctx.lineWidth=13; ctx.lineCap='round';
   ctx.beginPath(); ctx.arc(cx-72,cy+8,30,Math.PI*1.15,Math.PI*1.85); ctx.stroke();
@@ -675,11 +681,11 @@ function drawBalloon(ctx){
 
 /* テンプレート定義 ------------------------------------------------ */
 const TEMPLATES=[
- {id:'cat',    name:'ねこ',      draw:drawCat,    soft:64, stick:30, wob:62, inner:[1.00,0.99,0.98], trans:0.28, gloss:0.34, thick:0.40, shade:[0.90,0.92,1.02], snd:{f:250,noise:0.4,q:2.0}},
+ {id:'cat',    name:'ねこ',      draw:drawCat,    soft:64, stick:30, wob:62, inner:[1.00,0.96,0.95], trans:0.28, gloss:0.34, thick:0.40, shade:[0.92,0.88,0.98], snd:{f:250,noise:0.4,q:2.0}},
  {id:'slime',  name:'スライム',  draw:drawSlime,  soft:94, stick:96, wob:48, inner:[0.72,1.00,0.48], trans:0.95, gloss:0.95, thick:0.36, shade:[0.60,0.90,1.20], snd:{f:110,noise:0.95,q:1.1}},
  {id:'pudding',name:'プリン',    draw:drawPudding,soft:74, stick:14, wob:96, inner:[1.00,0.88,0.50], trans:0.62, gloss:0.60, thick:0.30, shade:[0.96,0.76,0.58], snd:{f:220,noise:0.35,q:2.4}},
  {id:'gummy',  name:'グミ',      draw:drawGummy,  soft:34, stick:10, wob:82, inner:[0.80,0.55,1.00], trans:0.98, gloss:0.90, thick:0.46, shade:[0.66,0.56,1.02], snd:{f:300,noise:0.25,q:3.2}},
- {id:'mochi',  name:'おもち',    draw:drawMochi,  soft:78, stick:74, wob:32, inner:[1.00,0.95,0.94], trans:0.35, gloss:0.30, thick:0.42, shade:[0.90,0.86,1.00], snd:{f:170,noise:0.55,q:1.6}},
+ {id:'mochi',  name:'おもち',    draw:drawMochi,  soft:78, stick:74, wob:32, inner:[1.00,0.95,0.88], trans:0.35, gloss:0.30, thick:0.42, shade:[0.95,0.89,0.92], snd:{f:170,noise:0.55,q:1.6}},
  {id:'bread',  name:'しょくパン',draw:drawBread,  soft:52, stick:46, wob:18, inner:[1.00,0.86,0.62], trans:0.16, gloss:0.16, thick:0.30, shade:[0.96,0.80,0.62], snd:{f:150,noise:0.7,q:1.3}},
  {id:'egg',    name:'めだまやき',draw:drawEgg,    soft:86, stick:58, wob:56, inner:[1.00,0.96,0.86], trans:0.5,  gloss:0.55, thick:0.26, shade:[0.98,0.88,0.78], snd:{f:190,noise:0.6,q:1.5}},
  {id:'balloon',name:'ふうせん',  draw:drawBalloon,soft:46, stick:6,  wob:92, inner:[1.00,0.60,0.60], trans:0.55, gloss:1.00, thick:0.50, shade:[0.86,0.54,0.86], snd:{f:330,noise:0.3,q:2.8}}
@@ -717,7 +723,7 @@ varying vec2 vUV; varying vec4 vJ;
 void main(){
   vec4 c=texture2D(uTex,vUV);
   if(c.a<0.006) discard;
-  if(uShadow>0.5){ gl_FragColor=vec4(0.0,0.0,0.0,c.a*0.18); return; }
+  if(uShadow>0.5){ gl_FragColor=vec4(0.0,0.0,0.0,c.a*0.10); return; }
 
   vec4 nm=texture2D(uNrm,vUV);
   vec2 guv=(nm.rg*2.0-1.0)*uGrad;   /* 高さの勾配（テクスチャ空間） */
