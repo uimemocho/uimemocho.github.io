@@ -297,11 +297,17 @@ input[type=range]::-moz-range-thumb{
 #toast.at{bottom:auto;left:0;transform:translate(-50%,-100%) translateY(10px)}
 #toast.at.on{transform:translate(-50%,-100%) translateY(0)}
 /* スマホだと ステージの ふきだしが 画面の そとに なるので、
-   ボタンの すぐ上でも しらせる */
-.savenote{font-size:12px;line-height:1.5;text-align:center;color:#1E6B39;
+   ボタンの すぐ上でも しらせる。
+   うきあがって 出て、しばらくで きえる（レイアウトは うごかさない） */
+.savewrap{position:relative}
+.savenote{
+  position:absolute;left:0;right:0;bottom:calc(100% + 8px);z-index:5;
+  font-size:12px;line-height:1.5;text-align:center;color:#1E6B39;
   background:#E6F7E2;border:3px solid var(--ink);border-radius:16px;
-  padding:9px 12px;margin:0 0 10px;}
-.savenote.off{display:none}
+  padding:9px 12px;pointer-events:none;
+  opacity:0;transform:translateY(8px);transition:opacity .28s ease,transform .28s ease;
+}
+.savenote.on{opacity:1;transform:translateY(0)}
 .bigbtn.save{background:var(--sun)}
 .bigbtn.share{background:#7FD4FF}
 .bigbtn.imp{background:#C9BEFF}
@@ -427,8 +433,10 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
         <div class="ends"><span>しずか</span><span>ぷるぷる</span></div>
       </div>
 
-      <div class="savenote off" id="saveNote" role="status" aria-live="polite"></div>
-      <button class="bigbtn save wide" id="save" type="button"><i><svg class="ic"><use href="#i-plus"/></svg></i>マイスクイーズに ついか</button>
+      <div class="savewrap">
+        <div class="savenote" id="saveNote" role="status" aria-live="polite"></div>
+        <button class="bigbtn save wide" id="save" type="button"><i><svg class="ic"><use href="#i-plus"/></svg></i>マイスクイーズに ついか</button>
+      </div>
 
       <div class="card">
         <div class="cardhead">ふっかつのじゅもん</div>
@@ -1693,7 +1701,7 @@ const nmEl=document.getElementById('nm');
 const S_soft=document.getElementById('s_soft'), S_stick=document.getElementById('s_stick'), S_wob=document.getElementById('s_wob');
 
 let myList=[], lastPreset=0, curMode='preset';
-let editing={preset:null, canvas:null, tex:null, mask:null, cut:false, thick:0.34, shade:[0.92,0.90,0.97]};
+let editing={preset:null, canvas:null, tex:null, mask:null, cut:false, thick:0.34, shade:[0.92,0.90,0.97], fromPhoto:false};
 
 /* ---------- 共通 ---------- */
 function chipEl(name,cnv,onClick,onDel){
@@ -1799,14 +1807,16 @@ function editingTemplate(){
   }
   return TEMPLATES[0];                /* まだ しゃしんが ないとき */
 }
+/* ①の サムネは「いま えらんだ しゃしん」せんよう。
+   マイスクイーズを えらんだ ときは 出さない（あたらしく よみこむ ばしょ なので） */
 function updatePreview(){
   pvEl.innerHTML='';
-  if(!editing.canvas&&!editing.preset){
+  if(!editing.fromPhoto||!editing.canvas){
     const sp=document.createElement('span'); sp.className='ph'; sp.textContent='？';
     pvEl.appendChild(sp); return;
   }
   const c=document.createElement('canvas'); c.width=c.height=128;
-  c.getContext('2d').drawImage(editingTemplate().canvas,0,0,128,128);
+  c.getContext('2d').drawImage(editing.canvas,0,0,128,128);
   pvEl.appendChild(c);
 }
 /* 「つくってみる」で まだ 1こも つくっていない ときは、
@@ -1841,7 +1851,7 @@ document.getElementById('file').addEventListener('change',e=>{
       try{
         const res=buildPhotoTexture(img);
         if(!res){ toast('この しゃしんは つかえませんでした'); return; }
-        editing.preset=null; editing.canvas=res.canvas;
+        editing.preset=null; editing.canvas=res.canvas; editing.fromPhoto=true;
         editing.thick=res.thick; editing.shade=res.shade; editing.cut=res.cutout;
         editing.tex=compactTex(res.canvas,res.cutout,384);
         editing.mask=compactMask(res.canvas,res.cutout,384);
@@ -1972,9 +1982,12 @@ function currentReady(){
 /* ボタンの すぐ上に しばらく のこる しらせ */
 function saveNote(msg){
   const el=document.getElementById('saveNote');
-  el.textContent=msg; el.classList.remove('off');
+  el.textContent=msg;
+  el.classList.remove('on');
+  void el.offsetWidth;              /* いちど もどしてから 出すと まいかい ふわっと する */
+  el.classList.add('on');
   clearTimeout(saveNote._t);
-  saveNote._t=setTimeout(()=>el.classList.add('off'),4000);
+  saveNote._t=setTimeout(()=>el.classList.remove('on'),2600);
 }
 document.getElementById('save').addEventListener('click',()=>{
   if(!editing.preset&&!editing.tex){ toast('さきに しゃしんを えらんでね'); return; }
@@ -1988,14 +2001,14 @@ document.getElementById('save').addEventListener('click',()=>{
       const gone=myList[i].name;
       myList[i]=o; nmEl.value=o.name;
       persist(); renderMine(); bubble(W/2,H/2,'いれかえた！'); buzz(10);
-      saveNote('「'+gone+'」を 「'+o.name+'」に いれかえました');
+      saveNote('マイスクイーズを いれかえました（'+myList.length+'／4）');
     },()=>{ toast('いれかえませんでした'); });
     return;
   }
   myList.push(o);
   nmEl.value=o.name;
   persist(); renderMine(); bubble(W/2,H/2,'ついかした！'); buzz(10);
-  saveNote('「'+o.name+'」を マイスクイーズに ついかしました（'+myList.length+'／4）');
+  saveNote('マイスクイーズに ついかしました（'+myList.length+'／4）');
 });
 function renderMine(){
   mineEl.innerHTML='';
@@ -2025,6 +2038,7 @@ function renderMine(){
 }
 function loadOriginal(o){ loadCfg(o); }
 function loadCfg(o){
+  editing.fromPhoto=false;   /* ①の サムネには 出さない */
   editing.thick=o.thick||0.34;
   editing.shade=o.shade||[0.92,0.90,0.97];
   editing.cut=!!o.cut;
@@ -2087,7 +2101,7 @@ function sanitize(d){
 /* つくりかけを ぜんぶ すてる（マイスクイーズが 0こに なった とき など） */
 function clearEditing(){
   editing.preset=null; editing.canvas=null; editing.tex=null; editing.mask=null;
-  editing.cut=false; editing.thick=0.34; editing.shade=[0.92,0.90,0.97];
+  editing.cut=false; editing.thick=0.34; editing.shade=[0.92,0.90,0.97]; editing.fromPhoto=false;
   nmEl.value=''; syncFileName(true);
   applyEditing(true);
 }
