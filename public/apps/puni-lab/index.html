@@ -296,6 +296,12 @@ input[type=range]::-moz-range-thumb{
 /* ステージの 下のほうに 出すとき（left/top は JS が いれる） */
 #toast.at{bottom:auto;left:0;transform:translate(-50%,-100%) translateY(10px)}
 #toast.at.on{transform:translate(-50%,-100%) translateY(0)}
+/* スマホだと ステージの ふきだしが 画面の そとに なるので、
+   ボタンの すぐ上でも しらせる */
+.savenote{font-size:12px;line-height:1.5;text-align:center;color:#1E6B39;
+  background:#E6F7E2;border:3px solid var(--ink);border-radius:16px;
+  padding:9px 12px;margin:0 0 10px;}
+.savenote.off{display:none}
 .bigbtn.save{background:var(--sun)}
 .bigbtn.share{background:#7FD4FF}
 .bigbtn.imp{background:#C9BEFF}
@@ -421,6 +427,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
         <div class="ends"><span>しずか</span><span>ぷるぷる</span></div>
       </div>
 
+      <div class="savenote off" id="saveNote" role="status" aria-live="polite"></div>
       <button class="bigbtn save wide" id="save" type="button"><i><svg class="ic"><use href="#i-plus"/></svg></i>マイスクイーズに ついか</button>
 
       <div class="card">
@@ -1962,13 +1969,33 @@ function collectCurrent(){
 function currentReady(){
   return curMode==='preset' || !!editing.preset || !!editing.tex;
 }
+/* ボタンの すぐ上に しばらく のこる しらせ */
+function saveNote(msg){
+  const el=document.getElementById('saveNote');
+  el.textContent=msg; el.classList.remove('off');
+  clearTimeout(saveNote._t);
+  saveNote._t=setTimeout(()=>el.classList.add('off'),4000);
+}
 document.getElementById('save').addEventListener('click',()=>{
   if(!editing.preset&&!editing.tex){ toast('さきに しゃしんを えらんでね'); return; }
-  if(myList.length>=4){ toast('マイスクイーズは 4こまで。いらないものを ✕で けしてね'); return; }
   const o=collect();                    /* いつも「あたらしい1こ」として ついか */
+  /* いっぱいなら、どれと いれかえるか えらんでもらう */
+  if(myList.length>=4){
+    openPick('どれと いれかえる？','マイスクイーズは 4こまで。いれかえる ものを えらんでね',myList.slice(),old=>{
+      let i=-1; for(let k=0;k<myList.length;k++) if(myList[k].id===old.id) i=k;
+      closePick();
+      if(i<0){ toast('いれかえられませんでした'); return; }
+      const gone=myList[i].name;
+      myList[i]=o; nmEl.value=o.name;
+      persist(); renderMine(); bubble(W/2,H/2,'いれかえた！'); buzz(10);
+      saveNote('「'+gone+'」を 「'+o.name+'」に いれかえました');
+    },()=>{ toast('いれかえませんでした'); });
+    return;
+  }
   myList.push(o);
   nmEl.value=o.name;
   persist(); renderMine(); bubble(W/2,H/2,'ついかした！'); buzz(10);
+  saveNote('「'+o.name+'」を マイスクイーズに ついかしました（'+myList.length+'／4）');
 });
 function renderMine(){
   mineEl.innerHTML='';
