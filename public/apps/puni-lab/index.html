@@ -52,11 +52,22 @@ body{
 }
 #logo{
   font-weight:900;font-size:22px;letter-spacing:.02em;line-height:1;
-  padding:8px 14px;border-radius:999px;background:var(--sun);
+  padding:8px 14px;border-radius:999px;
+  background:linear-gradient(135deg,#E9FBFF 0%,#FFFFFF 48%,#FFF6DC 100%);
   border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);
   transform:rotate(-2deg);
 }
-#logo small{display:block;font-size:10px;letter-spacing:.16em;opacity:.75;margin-top:3px;}
+/* かなを 1文字ずつ カラフルに。ふちどりで どの いろでも よめるように する */
+#logo .k{
+  display:inline-block;
+  text-shadow:1.2px 0 0 var(--ink),-1.2px 0 0 var(--ink),0 1.2px 0 var(--ink),0 -1.2px 0 var(--ink),
+              .9px .9px 0 var(--ink),-.9px .9px 0 var(--ink),.9px -.9px 0 var(--ink),-.9px -.9px 0 var(--ink);
+}
+#logo .k1{color:#FF6FA5;transform:rotate(-5deg)}
+#logo .k2{color:#FFB01F;transform:rotate(3deg)}
+#logo .k3{color:#31C4E8;transform:rotate(-3deg)}
+#logo .k4{color:#54CE68;transform:rotate(5deg)}
+#logo small{display:block;font-size:10px;letter-spacing:.16em;margin-top:3px;color:#6A4BD8;}
 .spacer{flex:1}
 .icobtn{
   width:46px;height:46px;flex:0 0 auto;border-radius:16px;border:3px solid var(--ink);
@@ -197,7 +208,8 @@ input[type=range]::-moz-range-thumb{
   flex:1;min-width:0;padding:11px 12px;border:3px solid var(--ink);border-radius:16px;
   font-family:inherit;font-weight:800;font-size:14px;background:#FFFDF4;color:var(--ink);
 }
-#fname::placeholder{color:#B9B3C8}
+/* からっぽの ときの ガイド。入力した 文字より うすく・ほそく して 見わける */
+#fname::placeholder{color:#C4BFD0;font-weight:400;letter-spacing:.02em}
 .ext{font-weight:400;font-size:11px;opacity:.6;white-space:nowrap}
 .empty{grid-column:1/-1;font-weight:400;font-size:11px;opacity:.65;padding:6px 2px 4px;line-height:1.6}
 .chip{position:relative}
@@ -304,7 +316,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 <body>
 <div id="app">
   <div id="top">
-    <div id="logo">ぷにラボ<small>SQUEEZE LAB</small></div>
+    <div id="logo"><span class="k k1">ぷ</span><span class="k k2">に</span><span class="k k3">ラ</span><span class="k k4">ボ</span><small>SQUEEZE LAB</small></div>
     <div class="spacer"></div>
     <button class="icobtn" id="reset" title="もとにもどす">🔄</button>
     <button class="icobtn" id="sound" title="おと">🔊</button>
@@ -363,10 +375,10 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       </div>
 
       <div class="card">
-        <div class="cardhead">コードをほぞん/よみこみ</div>
+        <div class="cardhead">ふっかつのじゅもん</div>
         <div class="sub">マイスクイーズをコードでほぞんしたりよみこんだりできます</div>
         <div class="fnrow">
-          <input id="fname" type="text" maxlength="24" placeholder="ファイルめい" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <input id="fname" type="text" maxlength="24" placeholder="半角英数字で入力" autocomplete="off" autocapitalize="off" spellcheck="false">
           <span class="ext">.squeeze.json</span>
         </div>
         <div class="btns">
