@@ -18,6 +18,8 @@ src:url(data:font/woff2;base64,d09GMgABAAAAAG4UABAAAAABH7wAAG24AAEPGgAAAAAAAAAAA
   --ink:#2E2A4A;
   --sun:#FFC93C;
   --gum:#FF7BA9;
+  --pick:#FF6FA5;   /* えらばれている ものの いろ（ロゴの「ぷ」と おなじ） */
+  --pickink:#E23F7C;
   --lime:#8BE04E;
   --grape:#8B6CFF;
   --tang:#FF8A3D;
@@ -133,8 +135,8 @@ body{
 .chip canvas{width:100%;height:auto;display:block;border-radius:15px}
 .chip .nm{font-size:10px;margin-top:8px;line-height:1.25}
 .chip:active .thumb{transform:translateY(4px);box-shadow:0 0 0 var(--ink);}
-.chip.on .thumb{background:var(--sun);transform:scale(1.04) rotate(-3deg);}
-.chip.on .nm{color:var(--tang)}
+.chip.on .thumb{background:var(--pick);transform:scale(1.04) rotate(-3deg);}
+.chip.on .nm{color:var(--pickink)}
 
 .row{display:flex;align-items:center;gap:10px;margin:18px 2px 6px;}
 .card .row:first-child{margin-top:4px}
@@ -184,7 +186,7 @@ input[type=range]::-moz-range-thumb{
   box-shadow:0 4px 0 var(--ink);font-family:inherit;font-weight:800;font-size:12px;color:var(--ink);cursor:pointer;
 }
 .tab:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
-.tab.on{background:var(--sun)}
+.tab.on{background:var(--pick)}
 .pane.off{display:none}
 .cardhead.mt{margin-top:18px}
 #nm{
@@ -363,7 +365,7 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
         <div class="ends"><span>かたい</span><span>やわらかい</span></div>
         <div class="row"><div class="lb"><i>🍯</i>ねばねば</div><input type="range" id="s_stick" min="0" max="100" value="40"></div>
         <div class="ends"><span>さらさら</span><span>のびのび</span></div>
-        <div class="row"><div class="lb"><i>🌊</i>ぷるぷる</div><input type="range" id="s_wob" min="0" max="100" value="55"></div>
+        <div class="row"><div class="lb"><i>🫨</i>ぷるぷる</div><input type="range" id="s_wob" min="0" max="100" value="55"></div>
         <div class="ends"><span>しずか</span><span>ぷるぷる</span></div>
       </div>
 
@@ -578,9 +580,10 @@ function drawCat(ctx){
   const cx=256, cy=282, r=186;
   const ear=(ex,ey,rot,flip)=>{
     ctx.save(); ctx.translate(ex,ey); ctx.rotate(rot);
+    /* 付け根は あたまの 下に ふかく さしこむ。そうしないと そこの ふちが 見えてしまう */
     ctx.beginPath(); ctx.moveTo(-64,52); ctx.quadraticCurveTo(-30,-64,4,-58);
-    ctx.quadraticCurveTo(46,-40,62,54); ctx.quadraticCurveTo(0,26,-64,52); ctx.closePath();
-    ctx.fillStyle='#fff1d9'; ctx.fill();
+    ctx.quadraticCurveTo(46,-40,62,54); ctx.lineTo(62,200); ctx.lineTo(-64,200); ctx.closePath();
+    ctx.fillStyle='#ffffff'; ctx.fill();
     ctx.beginPath(); ctx.moveTo(-34,40); ctx.quadraticCurveTo(-12,-30,4,-28);
     ctx.quadraticCurveTo(26,-18,36,42); ctx.quadraticCurveTo(0,22,-34,40); ctx.closePath();
     ctx.fillStyle='#ffb7c8'; ctx.fill(); ctx.restore();
@@ -589,11 +592,11 @@ function drawCat(ctx){
   ear(cx-116,cy-152,-0.22); ear(cx+116,cy-152,0.22);
   ctx.beginPath(); ctx.ellipse(cx,cy,r,r*0.93,0,0,7);
   const g=ctx.createRadialGradient(cx-76,cy-84,12,cx,cy,r*1.12);
-  g.addColorStop(0,'#fffdf8'); g.addColorStop(.55,'#fff1dc'); g.addColorStop(1,'#ecd0aa');
+  g.addColorStop(0,'#ffffff'); g.addColorStop(.55,'#fbfbfe'); g.addColorStop(1,'#e7ecf7');
   ctx.fillStyle=g; ctx.fill();
-  ctx.save(); ctx.clip(); rim(ctx,cx,cy,r*1.08,'rgba(196,144,124,.28)'); ctx.restore();
+  ctx.save(); ctx.clip(); rim(ctx,cx,cy,r*1.08,'rgba(150,164,200,.24)'); ctx.restore();
   // かお
-  ctx.strokeStyle='#3a2a22'; ctx.lineWidth=13; ctx.lineCap='round';
+  ctx.strokeStyle='#4a4468'; ctx.lineWidth=13; ctx.lineCap='round';
   ctx.beginPath(); ctx.arc(cx-72,cy+8,30,Math.PI*1.15,Math.PI*1.85); ctx.stroke();
   ctx.beginPath(); ctx.arc(cx+72,cy+8,30,Math.PI*1.15,Math.PI*1.85); ctx.stroke();
   ctx.fillStyle='#ffa8bd';
@@ -601,10 +604,10 @@ function drawCat(ctx){
   ctx.beginPath(); ctx.ellipse(cx+118,cy+52,30,19,0,0,7); ctx.fill();
   ctx.beginPath(); ctx.moveTo(cx-16,cy+48); ctx.lineTo(cx+16,cy+48); ctx.lineTo(cx,cy+64); ctx.closePath();
   ctx.fillStyle='#ff8fa8'; ctx.fill();
-  ctx.strokeStyle='#3a2a22'; ctx.lineWidth=9;
+  ctx.strokeStyle='#4a4468'; ctx.lineWidth=9;
   ctx.beginPath(); ctx.moveTo(cx,cy+62); ctx.quadraticCurveTo(cx-22,cy+92,cx-38,cy+66); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx,cy+62); ctx.quadraticCurveTo(cx+22,cy+92,cx+38,cy+66); ctx.stroke();
-  ctx.lineWidth=6; ctx.strokeStyle='rgba(58,42,34,.55)';
+  ctx.lineWidth=6; ctx.strokeStyle='rgba(74,68,104,.45)';
   for(let s=-1;s<=1;s+=2) for(let k=0;k<3;k++){
     ctx.beginPath(); ctx.moveTo(cx+s*66,cy+30+k*22);
     ctx.lineTo(cx+s*152,cy+16+k*30); ctx.stroke();
@@ -672,14 +675,14 @@ function drawBalloon(ctx){
 
 /* テンプレート定義 ------------------------------------------------ */
 const TEMPLATES=[
- {id:'mochi',  name:'おもち',    draw:drawMochi,  soft:78, stick:74, wob:32, inner:[1.00,0.95,0.94], trans:0.35, gloss:0.30, thick:0.42, shade:[0.83,0.77,0.93], snd:{f:170,noise:0.55,q:1.6}},
- {id:'slime',  name:'スライム',  draw:drawSlime,  soft:94, stick:96, wob:48, inner:[0.72,1.00,0.48], trans:0.95, gloss:0.95, thick:0.36, shade:[0.44,0.76,1.26], snd:{f:110,noise:0.95,q:1.1}},
- {id:'pudding',name:'プリン',    draw:drawPudding,soft:74, stick:14, wob:96, inner:[1.00,0.88,0.50], trans:0.62, gloss:0.60, thick:0.30, shade:[0.88,0.62,0.44], snd:{f:220,noise:0.35,q:2.4}},
- {id:'gummy',  name:'グミ',      draw:drawGummy,  soft:34, stick:10, wob:82, inner:[0.80,0.55,1.00], trans:0.98, gloss:0.90, thick:0.46, shade:[0.50,0.42,0.88], snd:{f:300,noise:0.25,q:3.2}},
- {id:'cat',    name:'ねこ',      draw:drawCat,    soft:64, stick:30, wob:62, inner:[1.00,0.94,0.88], trans:0.28, gloss:0.34, thick:0.40, shade:[0.84,0.72,0.80], snd:{f:250,noise:0.4,q:2.0}},
- {id:'bread',  name:'しょくパン',draw:drawBread,  soft:52, stick:46, wob:18, inner:[1.00,0.86,0.62], trans:0.16, gloss:0.16, thick:0.30, shade:[0.88,0.68,0.50], snd:{f:150,noise:0.7,q:1.3}},
- {id:'egg',    name:'めだまやき',draw:drawEgg,    soft:86, stick:58, wob:56, inner:[1.00,0.96,0.86], trans:0.5,  gloss:0.55, thick:0.26, shade:[0.90,0.78,0.70], snd:{f:190,noise:0.6,q:1.5}},
- {id:'balloon',name:'ふうせん',  draw:drawBalloon,soft:46, stick:6,  wob:92, inner:[1.00,0.60,0.60], trans:0.55, gloss:1.00, thick:0.50, shade:[0.74,0.38,0.72], snd:{f:330,noise:0.3,q:2.8}}
+ {id:'cat',    name:'ねこ',      draw:drawCat,    soft:64, stick:30, wob:62, inner:[1.00,0.99,0.98], trans:0.28, gloss:0.34, thick:0.40, shade:[0.90,0.92,1.02], snd:{f:250,noise:0.4,q:2.0}},
+ {id:'slime',  name:'スライム',  draw:drawSlime,  soft:94, stick:96, wob:48, inner:[0.72,1.00,0.48], trans:0.95, gloss:0.95, thick:0.36, shade:[0.60,0.90,1.20], snd:{f:110,noise:0.95,q:1.1}},
+ {id:'pudding',name:'プリン',    draw:drawPudding,soft:74, stick:14, wob:96, inner:[1.00,0.88,0.50], trans:0.62, gloss:0.60, thick:0.30, shade:[0.96,0.76,0.58], snd:{f:220,noise:0.35,q:2.4}},
+ {id:'gummy',  name:'グミ',      draw:drawGummy,  soft:34, stick:10, wob:82, inner:[0.80,0.55,1.00], trans:0.98, gloss:0.90, thick:0.46, shade:[0.66,0.56,1.02], snd:{f:300,noise:0.25,q:3.2}},
+ {id:'mochi',  name:'おもち',    draw:drawMochi,  soft:78, stick:74, wob:32, inner:[1.00,0.95,0.94], trans:0.35, gloss:0.30, thick:0.42, shade:[0.90,0.86,1.00], snd:{f:170,noise:0.55,q:1.6}},
+ {id:'bread',  name:'しょくパン',draw:drawBread,  soft:52, stick:46, wob:18, inner:[1.00,0.86,0.62], trans:0.16, gloss:0.16, thick:0.30, shade:[0.96,0.80,0.62], snd:{f:150,noise:0.7,q:1.3}},
+ {id:'egg',    name:'めだまやき',draw:drawEgg,    soft:86, stick:58, wob:56, inner:[1.00,0.96,0.86], trans:0.5,  gloss:0.55, thick:0.26, shade:[0.98,0.88,0.78], snd:{f:190,noise:0.6,q:1.5}},
+ {id:'balloon',name:'ふうせん',  draw:drawBalloon,soft:46, stick:6,  wob:92, inner:[1.00,0.60,0.60], trans:0.55, gloss:1.00, thick:0.50, shade:[0.86,0.54,0.86], snd:{f:330,noise:0.3,q:2.8}}
 ];
 TEMPLATES.forEach(t=>{ const c=newTexCanvas(); t.draw(c.getContext('2d')); t.canvas=c; });
 
@@ -1760,16 +1763,11 @@ function safeName(n){
 const fnameEl=document.getElementById('fname');
 let fnameTouched=false;
 fnameEl.addEventListener('input',()=>{ fnameTouched=true; });
-function defaultFileName(){
-  const n=(nmEl.value||'').trim();
-  if(n) return safeName(n);
-  if(curMode==='preset') return safeName(TEMPLATES[lastPreset].name);
-  return 'squeeze';
-}
+/* はじめは からっぽ。じぶんで つけなければ スクイーズの なまえを つかう */
 function syncFileName(force){
   if(fnameTouched&&!force) return;
   if(force) fnameTouched=false;
-  fnameEl.value=defaultFileName();
+  fnameEl.value='';
 }
 nmEl.addEventListener('input',()=>syncFileName(false));
 function b64enc(str){
