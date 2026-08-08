@@ -219,17 +219,38 @@ input[type=range]::-moz-range-thumb{
   font-size:10px;line-height:1;display:grid;place-items:center;
 }
 .btns .bigbtn{font-size:12px;padding:13px 2px}
-.roomrow{display:flex;gap:8px;align-items:stretch;margin-bottom:4px}
-#room{
-  flex:1;min-width:0;padding:12px 14px;border:3px solid var(--ink);border-radius:18px;
-  font-family:inherit;font-weight:800;font-size:17px;letter-spacing:.14em;text-align:center;
+#joinNo{
+  width:100%;padding:12px 14px;border:3px solid var(--ink);border-radius:18px;
+  font-family:inherit;font-weight:800;font-size:22px;letter-spacing:.22em;text-align:center;
   background:#FFFDF4;color:var(--ink);
 }
-#room::placeholder{color:#B9B3C8;letter-spacing:.14em}
-#dice{flex:0 0 54px;padding:12px 0;font-size:18px}
-#join{flex:0 0 94px;background:#7FD4FF;font-size:13px}
-#join.on{background:var(--gum)}
-.rstat{font-weight:400;font-size:11px;line-height:1.6;opacity:.75;margin:10px 2px 12px}
+#joinNo::placeholder{color:#C4BFD0;font-weight:400;letter-spacing:.22em}
+.rstat{font-weight:400;font-size:11px;line-height:1.6;opacity:.75;margin:10px 2px 10px}
+/* おへやの ようす（なんにん いるか など）を ながす */
+.rlog{font-weight:400;font-size:11px;line-height:1.7;opacity:.85;margin:0 2px 12px;
+  max-height:92px;overflow:auto;-webkit-overflow-scrolling:touch;}
+.rlog div{padding:1px 0}
+#roomStart.off,#sendRow.off,#leaveRow.off{display:none}
+.bigbtn.mkroom{background:#FFD1A8}
+.bigbtn.inroom{background:#9AD8FF}
+.bigbtn.leave{background:#E6E2F2}
+/* おくりあう の ダイアログ */
+.dlg{position:fixed;inset:0;z-index:80;display:grid;place-items:center;
+  background:rgba(46,42,74,.5);
+  padding:calc(env(safe-area-inset-top) + 18px) calc(env(safe-area-inset-right) + 18px)
+          calc(env(safe-area-inset-bottom) + 18px) calc(env(safe-area-inset-left) + 18px);}
+.dlg.off{display:none}
+.dlg .mbox{max-height:86vh;max-height:86dvh;overflow:auto}
+.agreelist{font-weight:400;font-size:12px;line-height:1.8;margin:0 2px 12px;padding-left:1.2em}
+.agreerow{display:flex;gap:10px;align-items:flex-start;background:#F3F7FF;
+  border:3px solid var(--ink);border-radius:16px;padding:11px 12px;margin:0 0 4px;cursor:pointer;}
+.agreerow input{width:22px;height:22px;flex:0 0 auto;margin:0;accent-color:var(--gum);}
+.agreerow span{font-size:12px;line-height:1.6}
+.bigbtn[disabled]{opacity:.42;pointer-events:none}
+.roomno{font-size:34px;letter-spacing:.24em;text-align:center;padding:14px 6px 14px 14px;
+  margin:0 0 4px;border:3px solid var(--ink);border-radius:18px;background:#FFFDF4;
+  -webkit-user-select:text;user-select:text;}
+.pickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;padding:4px 2px 2px}
 .bigbtn.send{background:var(--lime)}
 .bigbtn.nw{background:#FFD1A8}
 #modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;
@@ -391,15 +412,16 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
 
     <div class="pane off" id="paneS" role="tabpanel" aria-labelledby="tabS" hidden>
       <div class="card">
-        <div class="cardhead">ばんごうで シェア</div>
-        <div class="sub">おなじばんごうにはいったひとと、マイスクイーズをおくりあえます</div>
-        <div class="roomrow">
-          <input id="room" type="text" inputmode="numeric" maxlength="6" placeholder="1234" autocomplete="off">
-          <button class="bigbtn" id="dice" type="button">🎲</button>
-          <button class="bigbtn" id="join" type="button">はいる</button>
+        <div class="cardhead">おくりあう</div>
+        <div class="sub">おなじばんごうのおへやにはいるとマイスクイーズをおくりあえるよ♪</div>
+        <div class="btns" id="roomStart">
+          <button class="bigbtn mkroom" id="mkRoom" type="button"><i>🏠</i>おへやを つくる</button>
+          <button class="bigbtn inroom" id="inRoom" type="button"><i>🚪</i>おへやに はいる</button>
         </div>
-        <div class="rstat" id="rstat">ばんごうを きめて「はいる」を おしてね。</div>
-        <div class="btns"><button class="bigbtn send" id="send" type="button"><i>📡</i>マイスクイーズをおくる</button></div>
+        <div class="rstat" id="rstat">おへやを つくるか、おともだちの ばんごうで はいってね。</div>
+        <div class="rlog" id="rlog"></div>
+        <div class="btns off" id="sendRow"><button class="bigbtn send" id="send" type="button"><i>📡</i>マイスクイーズをおくる</button></div>
+        <div class="btns off" id="leaveRow"><button class="bigbtn leave" id="leave" type="button"><i>👋</i>おへやを でる</button></div>
         <div id="rlist"></div>
       </div>
     </div>
@@ -431,6 +453,60 @@ body.focus-mode-active{position:fixed;inset:0;width:100%;height:100vh;height:100
       </div>
     </div>
   </div>
+
+  <div id="agreeModal" class="dlg off" role="dialog" aria-modal="true" aria-labelledby="agreeTitle">
+    <div class="mbox">
+      <div class="mtitle" id="agreeTitle">おくりあう まえに よんでね</div>
+      <ul class="agreelist">
+        <li>おくったものは、おなじ おへやに いる ひと ぜんいんに とどきます。</li>
+        <li>ばんごうが わかれば だれでも はいれます。しらない ひとが いるかも しれません。</li>
+        <li>なまえ・すんでいるところ・がっこう・でんわばんごうなど、じぶんや おともだちの ことが わかる しゃしんや もじは おくらないでね。</li>
+        <li>とどいたものは「もらう」「もらわない」を えらべます。</li>
+        <li>おうちの ひとと いっしょに つかってね。</li>
+      </ul>
+      <label class="agreerow" for="agreeChk">
+        <input type="checkbox" id="agreeChk">
+        <span>ないようを りかいしました</span>
+      </label>
+      <div class="btns">
+        <button class="bigbtn send" id="agreeOk" type="button" disabled>どうい する</button>
+        <button class="bigbtn leave" id="agreeClose" type="button">とじる</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="newRoomModal" class="dlg off" role="dialog" aria-modal="true" aria-labelledby="newRoomTitle">
+    <div class="mbox">
+      <div class="mtitle" id="newRoomTitle">おへやが できました</div>
+      <div class="sub">この ばんごうを おともだちに おしえてね</div>
+      <div class="roomno" id="newRoomNo">----</div>
+      <div class="btns">
+        <button class="bigbtn mkroom" id="newRoomCopy" type="button"><i>📋</i>コピー</button>
+        <button class="bigbtn leave" id="newRoomClose" type="button">とじる</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="joinModal" class="dlg off" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+    <div class="mbox">
+      <div class="mtitle" id="joinTitle">おへやの ばんごうを いれてね</div>
+      <input id="joinNo" type="text" inputmode="numeric" maxlength="6" placeholder="すうじで入力" autocomplete="off">
+      <div class="btns">
+        <button class="bigbtn inroom" id="joinOk" type="button"><i>🚪</i>はいる</button>
+        <button class="bigbtn leave" id="joinClose" type="button">とじる</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pickModal" class="dlg off" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+    <div class="mbox">
+      <div class="mtitle" id="pickTitle"></div>
+      <div class="sub" id="pickSub"></div>
+      <div class="pickgrid" id="pickGrid"></div>
+      <div class="btns"><button class="bigbtn leave" id="pickClose" type="button">やめる</button></div>
+    </div>
+  </div>
+
   <div id="toast"></div>
 </div>
 
@@ -1565,7 +1641,28 @@ function switchTab(w){
 }
 document.getElementById('tabP').addEventListener('click',()=>switchTab('preset'));
 document.getElementById('tabM').addEventListener('click',()=>switchTab('mine'));
-document.getElementById('tabS').addEventListener('click',()=>switchTab('share'));
+document.getElementById('tabS').addEventListener('click',()=>{ switchTab('share'); maybeAgree(); });
+
+/* ---- はじめて「おくりあう」を ひらいた ときの やくそく ---- */
+const agreeModal=document.getElementById('agreeModal');
+const agreeChk=document.getElementById('agreeChk'), agreeOk=document.getElementById('agreeOk');
+let shareAgreed=false;
+STORE.get('shareAgreed').then(v=>{ shareAgreed=(v==='1'); });
+function maybeAgree(){ if(!shareAgreed) openAgree(); }
+function openAgree(){
+  agreeChk.checked=false; agreeOk.disabled=true;
+  agreeModal.classList.remove('off');
+}
+/* やくそくに どういするまで おへやは つかえない */
+function requireAgree(){ if(shareAgreed) return true; openAgree(); return false; }
+agreeChk.addEventListener('change',()=>{ agreeOk.disabled=!agreeChk.checked; });
+agreeOk.addEventListener('click',()=>{
+  if(!agreeChk.checked) return;
+  shareAgreed=true; STORE.set('shareAgreed','1');
+  agreeModal.classList.add('off');
+  toast('ありがとう！おへやを つくれるよ');
+});
+document.getElementById('agreeClose').addEventListener('click',()=>agreeModal.classList.add('off'));
 
 /* ---------- プリセット ---------- */
 TEMPLATES.forEach((t,i)=>{ chips.appendChild(chipEl(t.name,t.canvas,()=>selectPreset(i))); });
@@ -1838,7 +1935,17 @@ function adopt(d){
     cut:!!d.cut
   };
   if(o.base==='photo'&&!o.tex) o.base='mochi';
-  while(myList.length>=4) myList.shift();
+  /* いっぱいの ときは かってに けさずに、どれと いれかえるか えらんでもらう */
+  if(myList.length>=4){
+    openPick('どれと いれかえる？','マイスクイーズは 4こまで。いれかえる ものを えらんでね',myList.slice(),old=>{
+      let i=-1; for(let k=0;k<myList.length;k++) if(myList[k].id===old.id) i=k;
+      closePick();
+      if(i<0){ toast('いれかえられませんでした'); return; }
+      myList[i]=o; persist(); renderMine(); loadOriginal(o);
+      switchTab('mine'); bubble(W/2,H/2,'いれかえた！'); buzz(12);
+    },()=>{ toast('いれかえませんでした'); });
+    return o;
+  }
   myList.push(o); persist(); renderMine(); loadOriginal(o);
   switchTab('mine'); bubble(W/2,H/2,'よみこんだ！'); buzz(12);
   return o;
@@ -1865,6 +1972,8 @@ function paintReceiveThumb(o){
 }
 function showNextReceive(){
   if(receiveCurrent||!receiveQueue.length) return;
+  /* いれかえを えらんでいる さいちゅうに つぎのを かさねない */
+  if(!pickModal.classList.contains('off')) return;
   receiveCurrent=receiveQueue.shift();
   receiveReturnFocus=document.activeElement;
   receiveName.textContent=receiveCurrent.item.name;
@@ -1886,8 +1995,9 @@ function finishReceive(accept){
   setStat(MQ.joined?'ok':'off',MQ.joined?'ばんごう '+MQ.room+' に はいりました':'ルームを でました');
   if(accept){
     const d=Object.assign({app:'punipuni-squeeze',v:1},current.item);
+    const wasFull=myList.length>=4;   /* いっぱいなら いれかえダイアログが 出る */
     adopt(d);
-    toast(current.item.name+'を もらいました');
+    if(!wasFull) toast(current.item.name+'を もらいました');
   }else{
     toast('うけとりませんでした');
   }
@@ -2091,39 +2201,92 @@ const MQ={
 };
 
 /* ---- ルームUI ---- */
-const roomEl=document.getElementById('room'), joinBtn=document.getElementById('join');
 const rstat=document.getElementById('rstat'), rlist=document.getElementById('rlist');
+const rlog=document.getElementById('rlog');
+const roomStart=document.getElementById('roomStart');
+const sendRow=document.getElementById('sendRow'), leaveRow=document.getElementById('leaveRow');
 let roomItems={}, roomSeen={};
-roomEl.addEventListener('input',()=>{ roomEl.value=roomEl.value.replace(/[^0-9]/g,'').slice(0,6); });
-document.getElementById('dice').addEventListener('click',()=>{
-  roomEl.value=String(Math.floor(Math.random()*9000)+1000);
-});
+
+/* だれが いるかは「p_<cid>」topic の retain で しらせあう。
+   20びょうごとに いきていることを おくり、70びょう こえたら いなくなったと みなす */
+const PRES='p_';
+let members={}, presTimer=0, pruneTimer=0, lastCount=-1;
+
+function logRoom(msg){
+  const d=document.createElement('div'); d.textContent=msg;
+  rlog.appendChild(d);
+  while(rlog.children.length>10) rlog.removeChild(rlog.firstChild);
+  rlog.scrollTop=rlog.scrollHeight;
+}
+function memberCount(){ return MQ.joined?1+Object.keys(members).length:0; }
+function refreshRoomUI(){
+  const n=memberCount();
+  roomStart.classList.toggle('off',!!MQ.joined);
+  leaveRow.classList.toggle('off',!MQ.joined);
+  sendRow.classList.toggle('off',!(MQ.joined&&n>=2));
+}
+function pubPresence(alive){
+  if(!MQ.joined) return;
+  MQ.pub(PRES+MQ.cid, alive?TE.encode(JSON.stringify({t:Date.now()})):new Uint8Array(0), true);
+}
+function startPresence(){
+  stopPresence();
+  pubPresence(true);
+  presTimer=setInterval(()=>pubPresence(true),20000);
+  pruneTimer=setInterval(prunePresence,8000);
+}
+function stopPresence(){
+  clearInterval(presTimer); clearInterval(pruneTimer); presTimer=0; pruneTimer=0;
+}
+function prunePresence(){
+  const now=Date.now(); let gone=0;
+  Object.keys(members).forEach(k=>{ if(now-members[k]>70000){ delete members[k]; gone++; } });
+  if(gone){ logRoom('ひとり でていったみたい'); announceCount(); }
+}
+function announceCount(){
+  const n=memberCount();
+  refreshRoomUI();
+  if(n===lastCount) return;
+  lastCount=n;
+  if(!n) return;
+  logRoom(n>=2?('いま おへやには '+n+'にん います'):'いま おへやには あなただけ です');
+}
 function setStat(k,msg){
   const n=Object.keys(roomItems).length;
   rstat.textContent=msg+(k==='ok'&&n?'（とどいた スクイーズ '+n+'こ）':'');
-  joinBtn.textContent=(k==='ok')?'でる':'はいる';
-  joinBtn.classList.toggle('on',k==='ok');
+  if(k==='ok'&&MQ.joined){ if(!presTimer){ startPresence(); lastCount=-1; } announceCount(); }
+  else{ if(presTimer) stopPresence(); refreshRoomUI(); }
 }
-function shrinkTex(){
-  if(!editing.canvas) return null;
-  const sizes=[320,240,176];
-  let out=null;
-  for(let i=0;i<sizes.length;i++){
-    out={tex:compactTex(editing.canvas,editing.cut,sizes[i]),
-         mask:compactMask(editing.canvas,editing.cut,sizes[i])};
-    if(out.tex.length+(out.mask?out.mask.length:0)<170000) break;
-  }
-  return out;
-}
-joinBtn.addEventListener('click',()=>{
-  if(MQ.joined){ MQ.close(); roomItems={}; roomSeen={}; clearReceiveQueue(); renderRoom(); return; }
-  let r=(roomEl.value||'').replace(/[^0-9]/g,'');
-  if(r.length<3){ r=String(Math.floor(Math.random()*9000)+1000); roomEl.value=r; }
-  roomItems={}; roomSeen={}; clearReceiveQueue(); renderRoom();
+function joinRoom(r){
+  roomItems={}; roomSeen={}; members={}; lastCount=-1;
+  clearReceiveQueue(); renderRoom();
+  rlog.innerHTML=''; logRoom('ばんごう '+r+' の おへやに はいります…');
   MQ.open(r,onRoomMsg,setStat);
-});
+}
+function leaveRoom(silent){
+  pubPresence(false); stopPresence();
+  MQ.close(silent);
+  roomItems={}; roomSeen={}; members={}; lastCount=-1;
+  clearReceiveQueue(); renderRoom(); refreshRoomUI();
+  if(!silent) logRoom('おへやを でました');
+}
 function onRoomMsg(topic,text){
-  const cid=topic.slice(topic.lastIndexOf('/')+1);
+  const seg=topic.slice(topic.lastIndexOf('/')+1);
+  if(seg.indexOf(PRES)===0){
+    const who=seg.slice(PRES.length);
+    if(who===MQ.cid) return;
+    if(!text){
+      if(members[who]){ delete members[who]; logRoom('ひとり おへやを でました'); }
+      announceCount(); return;
+    }
+    let p=null; try{ p=JSON.parse(text); }catch(e){ p=null; }
+    const at=p&&+p.t||0;
+    if(at&&Date.now()-at>70000) return;   /* ふるい のこりカスは むし */
+    if(!members[who]) logRoom('だれかが おへやに はいってきました');
+    members[who]=Date.now();
+    announceCount(); return;
+  }
+  const cid=seg;
   if(cid===MQ.cid) return;
   if(!text){ delete roomItems[cid]; renderRoom(); setStat('ok','ばんごう '+MQ.room+' に はいりました'); return; }
   let d=null;
@@ -2165,21 +2328,98 @@ function renderRoom(){
     else{ const t=TEMPLATES.filter(x=>x.id===o.base)[0]||TEMPLATES[0]; drawThumb(el,t.canvas); }
   });
 }
-document.getElementById('send').addEventListener('click',()=>{
-  if(!MQ.joined){ toast('さきに ばんごうを いれて「はいる」を おしてね'); return; }
-  if(!currentReady()){ toast('さきに しゃしんを えらんでね'); return; }
-  const o=collectCurrent(); o.app='punipuni-squeeze'; o.v=1; o.t=Date.now();
-  if(o.base==='photo'){
-    const s=shrinkTex();
-    if(!s||!s.tex){ toast('さきに しゃしんを えらんでね'); return; }
-    o.tex=s.tex; o.mask=s.mask;
+/* ---- おへやを つくる / はいる ---- */
+const newRoomModal=document.getElementById('newRoomModal');
+const newRoomNo=document.getElementById('newRoomNo');
+const joinModal=document.getElementById('joinModal'), joinNo=document.getElementById('joinNo');
+function openDlg(el){ el.classList.remove('off'); }
+function closeDlg(el){ el.classList.add('off'); }
+function copyText(v){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(v).then(()=>toast('コピーしました！'),()=>toast('ながおしして コピーしてね'));
+    return;
   }
-  const u=TE.encode(JSON.stringify(o));
-  if(u.length>240000){ toast('しゃしんが おおきすぎて おくれませんでした'); return; }
-  if(MQ.pub(MQ.cid,u,true)){ bubble(W/2,H/2,'おくった！'); buzz(10); }
-  else toast('おくれませんでした');
+  toast('ばんごうを ながおしして コピーしてね');
+}
+document.getElementById('mkRoom').addEventListener('click',()=>{
+  if(!requireAgree()) return;
+  const r=String(Math.floor(Math.random()*9000)+1000);
+  joinRoom(r);
+  newRoomNo.textContent=r;
+  openDlg(newRoomModal);
 });
-window.addEventListener('pagehide',()=>{ try{ MQ.close(true); }catch(e){} });
+document.getElementById('newRoomCopy').addEventListener('click',()=>copyText(newRoomNo.textContent));
+document.getElementById('newRoomClose').addEventListener('click',()=>closeDlg(newRoomModal));
+document.getElementById('inRoom').addEventListener('click',()=>{
+  if(!requireAgree()) return;
+  joinNo.value=''; openDlg(joinModal);
+  setTimeout(()=>{ try{ joinNo.focus(); }catch(e){} },60);
+});
+joinNo.addEventListener('input',()=>{ joinNo.value=joinNo.value.replace(/[^0-9]/g,'').slice(0,6); });
+joinNo.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); doJoin(); } });
+function doJoin(){
+  const r=(joinNo.value||'').replace(/[^0-9]/g,'');
+  if(r.length<3){ toast('ばんごうを 3つ いじょう いれてね'); return; }
+  closeDlg(joinModal); joinRoom(r);
+}
+document.getElementById('joinOk').addEventListener('click',doJoin);
+document.getElementById('joinClose').addEventListener('click',()=>closeDlg(joinModal));
+document.getElementById('leave').addEventListener('click',()=>leaveRoom(false));
+
+/* ---- マイスクイーズを えらぶ ダイアログ（おくる とき／いれかえる とき） ---- */
+const pickModal=document.getElementById('pickModal'), pickGrid=document.getElementById('pickGrid');
+const pickTitle=document.getElementById('pickTitle'), pickSub=document.getElementById('pickSub');
+let pickCancel=null;
+function openPick(title,sub,list,onPick,onCancel){
+  pickTitle.textContent=title; pickSub.textContent=sub||'';
+  pickGrid.innerHTML='';
+  list.forEach(o=>{
+    const el=chipEl(o.name,null,()=>onPick(o));
+    pickGrid.appendChild(el);
+    if(o.base==='photo'&&o.tex) buildTexCanvas(o,128,c=>{ if(c) drawThumb(el,c); });
+    else{ const t=TEMPLATES.filter(x=>x.id===o.base)[0]||TEMPLATES[0]; drawThumb(el,t.canvas); }
+  });
+  pickCancel=onCancel||null;
+  openDlg(pickModal);
+}
+function closePick(){ closeDlg(pickModal); pickCancel=null; setTimeout(showNextReceive,0); }
+document.getElementById('pickClose').addEventListener('click',()=>{
+  const c=pickCancel; closePick(); if(c) c();
+});
+
+/* ---- おくる ---- */
+function sendSqueeze(o){
+  const fire=(tex,mask)=>{
+    const d={app:'punipuni-squeeze',v:1,t:Date.now(),
+      name:o.name, base:o.base, soft:o.soft, stick:o.stick, wob:o.wob,
+      tex:tex||null, mask:mask||null, thick:o.thick, shade:o.shade, cut:!!o.cut};
+    const u=TE.encode(JSON.stringify(d));
+    if(u.length>240000){ toast('しゃしんが おおきすぎて おくれませんでした'); return; }
+    if(MQ.pub(MQ.cid,u,true)){
+      bubble(W/2,H/2,'おくった！'); buzz(10); logRoom('「'+o.name+'」を おくりました');
+    }else toast('おくれませんでした');
+  };
+  if(o.base!=='photo'){ fire(null,null); return; }
+  buildTexCanvas(o,TEXSIZE,c=>{
+    if(!c){ toast('おくれませんでした'); return; }
+    const sizes=[320,240,176];
+    let tex=null,mask=null;
+    for(let i=0;i<sizes.length;i++){
+      tex=compactTex(c,!!o.cut,sizes[i]); mask=compactMask(c,!!o.cut,sizes[i]);
+      if(tex.length+(mask?mask.length:0)<170000) break;
+    }
+    fire(tex,mask);
+  });
+}
+document.getElementById('send').addEventListener('click',()=>{
+  if(!MQ.joined){ toast('さきに おへやに はいってね'); return; }
+  if(memberCount()<2){ toast('おともだちが はいるまで まってね'); return; }
+  if(!myList.length){ toast('さきに「つくってみる」で マイスクイーズを ほぞんしてね'); return; }
+  openPick('どれを おくる？','えらぶと おへやの みんなに とどきます',myList.slice(),o=>{
+    closePick(); sendSqueeze(o);
+  });
+});
+window.addEventListener('pagehide',()=>{ try{ pubPresence(false); MQ.close(true); }catch(e){} });
 
 /* ---------- そのほか ---------- */
 document.getElementById('reset').addEventListener('click',()=>{
