@@ -427,6 +427,51 @@ h1 {
   line-height: 1.7;
 }
 
+.legal {
+  max-width: 680px;
+  padding: clamp(56px, 7vw, 104px) 0 clamp(72px, 8vw, 112px);
+}
+
+.legal-title {
+  margin: 0 0 28px;
+  font-size: clamp(32px, 4.4vw, 54px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+}
+
+.legal-lead {
+  margin: 0 0 56px;
+  font-size: clamp(15px, 1.15vw, 17px);
+  font-weight: 500;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.legal .section-title {
+  margin: 48px 0 16px;
+}
+
+.legal p {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.95;
+}
+
+.legal a {
+  color: var(--blue);
+  text-underline-offset: 3px;
+}
+
+.legal-meta {
+  margin: 56px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
 footer {
   min-height: 80px;
   padding: 0 var(--pad);
@@ -441,7 +486,7 @@ footer {
   text-transform: uppercase;
 }
 
-footer span:last-child {
+footer span:not(:first-child) {
   color: var(--muted);
 }
 

@@ -25,10 +25,14 @@ jobs:
       - name: Assemble static site
         run: |
           mkdir -p _site/data
-          cp index.html app.js styles.css _site/
+          cp index.html privacy.html app.js styles.css _site/
           cp -R data/. _site/data/
           if [ -d public ]; then cp -R public/. _site/; fi
           touch _site/.nojekyll
+      - name: Inject analytics
+        env:
+          GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
+        run: node scripts/inject-analytics.mjs _site
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
