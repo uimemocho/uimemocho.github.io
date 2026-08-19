@@ -142,5 +142,17 @@
     "sourceEntry": "punipuni_squeeze_lab_v2.8.html",
     "publishedAt": "2026-08-06T01:11:13Z",
     "updatedAt": "2026-08-08T07:39:44Z"
+  },
+  {
+    "slug": "ant-nest-diary",
+    "title": "アリの巣日記",
+    "kind": "game",
+    "description": "女王アリから巣を育て、季節・天候・天敵を乗り越えてコロニーの繁栄を目指す生態シミュレーションゲーム。",
+    "url": "/apps/ant-nest-diary/",
+    "thumbnail": null,
+    "sourceFolder": "260819_アリの巣日記",
+    "sourceEntry": "ant_nest_sim_v1.3.html",
+    "publishedAt": "2026-08-19T12:37:01Z",
+    "updatedAt": "2026-08-19T12:37:01Z"
   }
 ]

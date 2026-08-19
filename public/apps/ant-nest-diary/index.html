@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>アリの巣日記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a12; --bg2:#100e1c;
+  --panel:#171528; --panel2:#211d38; --panel3:#2b2547;
+  --line:#3a3560; --line2:#544c86;
+  --txt:#e9e6f5; --dim:#948dae;
+  --amber:#ffb63d; --lime:#9ae04a; --cyan:#5ad0f0; --red:#ff5f5f; --violet:#b28cff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt)}
+body{font-family:'DotGothic16','Hiragino Kaku Gothic ProN',sans-serif;font-size:13px;line-height:1.55;
+  padding:8px 8px calc(16px + env(safe-area-inset-bottom));min-height:100vh}
+.m{font-family:'Press Start 2P','Courier New',monospace;letter-spacing:0}
+.dim{color:var(--dim)}
+#app{display:flex;flex-direction:column;gap:8px;max-width:1180px;margin:0 auto}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+
+/* ---- pixel panel ---- */
+.px{background:var(--panel);border:2px solid var(--line);box-shadow:0 3px 0 #05040a}
+.px h3{margin:0;padding:7px 9px;background:var(--panel3);border-bottom:2px solid var(--line);
+  font-family:'Press Start 2P',monospace;font-size:8px;color:var(--amber);letter-spacing:.5px}
+.pad{padding:9px}
+
+/* ---- top bar ---- */
+#topbar{display:flex;align-items:center;gap:10px;padding:8px 10px;flex-wrap:wrap}
+#topbar .dbig{font-family:'Press Start 2P',monospace;font-size:19px;color:var(--amber);line-height:1}
+#topbar .dbig small{font-size:9px;color:var(--dim);margin-left:3px}
+#ymd{font-size:12px;color:var(--dim);display:block;margin-top:3px}
+.envs{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
+.chip{background:var(--panel2);border:2px solid var(--line);padding:4px 7px;font-size:11px;white-space:nowrap}
+.chip b{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--txt)}
+.chip.sp{color:#ffb3d0}.chip.su{color:#8be08b}.chip.au{color:var(--amber)}.chip.wi{color:var(--cyan)}
+
+/* ---- stage ---- */
+#stage{position:relative;background:#05040a;border:2px solid var(--line);box-shadow:0 3px 0 #05040a;
+  height:min(56vh,520px);overflow:hidden}
+#viewport{position:absolute;inset:0;overflow:auto;touch-action:pan-x pan-y;
+  scrollbar-width:none}
+#viewport::-webkit-scrollbar{width:0;height:0}
+#cv{display:block;margin:auto;image-rendering:pixelated;image-rendering:crisp-edges;
+  height:calc(min(56vh,520px)*var(--z,1));width:auto;
+  max-width:calc(100% * var(--z,1))}
+#stage.zoomed #viewport{cursor:grab}
+#stage.zoomed #viewport.grabbing{cursor:grabbing}
+#stage.digmode{outline:2px solid var(--lime);outline-offset:-2px}
+#stage.digmode #viewport{cursor:crosshair}
+#toast{position:absolute;left:6px;right:6px;bottom:6px;display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.tmsg{background:#0b0a12ee;border-left:4px solid var(--amber);padding:5px 8px;font-size:11px;
+  animation:tin .25s ease-out}
+.tmsg.bad{border-color:var(--red)}.tmsg.good{border-color:var(--lime)}.tmsg.sea{border-color:var(--cyan)}
+@keyframes tin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ov{position:absolute;inset:0;background:#07060edd;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;gap:12px;padding:20px;text-align:center;z-index:5}
+.ov.hidden{display:none}
+.ov .tt{font-family:'Press Start 2P',monospace;font-size:15px;color:var(--amber);line-height:1.7}
+.ov .tt.jp{font-family:'DotGothic16',sans-serif;font-size:30px;letter-spacing:3px;line-height:1.3}
+.ov .tt2{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--cyan)}
+.ov p{margin:0;font-size:12px;color:var(--dim);max-width:330px}
+
+/* ---- buttons ---- */
+.btn{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--txt);background:var(--panel2);
+  border:2px solid var(--line2);border-bottom-width:4px;padding:8px 9px;cursor:pointer;user-select:none}
+.btn:active{transform:translateY(2px);border-bottom-width:2px}
+.btn.on{background:var(--amber);color:#26170a;border-color:#ffd694}
+.btn.big{font-size:11px;padding:12px 18px;background:var(--amber);color:#26170a;border-color:#ffd694}
+.btn.gh{background:var(--panel);border-color:var(--line)}
+.btn.jp{font-family:'DotGothic16',sans-serif;font-size:12px}
+.btn:disabled{opacity:.35;cursor:default}
+
+#controls{display:flex;flex-direction:column;gap:6px;padding:8px}
+.row{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.row .lb{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);margin-right:2px}
+.grow{flex:1}
+
+/* ---- stats ---- */
+#stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px;padding:8px}
+.st{background:var(--panel2);border:2px solid var(--line);padding:6px 7px}
+.st .k{font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px}
+.st .k i{width:7px;height:7px;display:inline-block;background:var(--amber)}
+.st .v{font-family:'Press Start 2P',monospace;font-size:12px;margin-top:4px}
+.st .v small{font-size:8px;color:var(--dim);margin-left:2px}
+
+/* ---- tabs ---- */
+#tabs{display:flex;gap:0;border:2px solid var(--line);background:var(--panel)}
+#tabs button{flex:1;font-family:'DotGothic16',sans-serif;font-size:12px;background:transparent;color:var(--dim);
+  border:0;border-right:2px solid var(--line);padding:9px 2px;cursor:pointer}
+#tabs button:last-child{border-right:0}
+#tabs button.on{background:var(--panel3);color:var(--amber)}
+
+.bar{height:9px;background:#0d0b18;border:2px solid var(--line);position:relative;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--lime);width:0%}
+.bar.f i{background:var(--amber)}.bar.w i{background:#8a6a5a}
+.krow{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:3px 0}
+.krow b{font-family:'Press Start 2P',monospace;font-size:9px}
+table.t{width:100%;border-collapse:collapse;font-size:12px}
+table.t th,table.t td{padding:4px 5px;border-bottom:1px solid #2a2545;text-align:left}
+table.t th{color:var(--dim);font-weight:400;font-size:11px}
+table.t td.n{text-align:right;font-family:'Press Start 2P',monospace;font-size:9px}
+
+/* ---- sliders ---- */
+.sl{margin:9px 0}
+.sl .hd{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.sl .hd b{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--amber)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:10px;background:#0d0b18;border:2px solid var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:18px;margin-top:-6px;
+  background:var(--amber);border:2px solid #ffd694;cursor:pointer}
+input[type=range]::-moz-range-track{height:10px;background:#0d0b18;border:2px solid var(--line)}
+input[type=range]::-moz-range-thumb{width:14px;height:16px;border-radius:0;background:var(--amber);border:2px solid #ffd694}
+
+#logbox{max-height:250px;overflow-y:auto}
+.lg{display:flex;gap:7px;padding:4px 0;border-bottom:1px solid #241f3d;font-size:12px}
+.lg .d{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--dim);flex:0 0 46px;padding-top:2px}
+.lg.good .t{color:var(--lime)}.lg.bad .t{color:var(--red)}.lg.sea .t{color:var(--cyan)}
+#chart{width:100%;height:auto;image-rendering:pixelated;background:#0d0b18;border:2px solid var(--line)}
+.legend{display:flex;gap:10px;font-size:11px;margin-top:6px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:4px}.legend i{width:9px;height:4px;display:block}
+.note{font-size:11px;color:var(--dim);line-height:1.6}
+select{font-family:'DotGothic16',sans-serif;font-size:12px;background:var(--panel2);color:var(--txt);
+  border:2px solid var(--line2);padding:6px}
+/* ---- fullscreen / observation mode: header + stage only ---- */
+#btnFs{margin-left:6px}
+body.fs{padding:0;overflow:hidden}
+body.fs #app{max-width:none;margin:0;gap:0;flex-direction:column;
+  height:100vh;height:100dvh}
+body.fs #app>.col:first-child{flex:1 1 auto;min-height:0;gap:0;display:flex;flex-direction:column}
+body.fs #app>.col:last-child{display:none}
+body.fs #controls{display:none}
+body.fs #topbar{border-width:0 0 2px 0;box-shadow:none;
+  padding-top:calc(8px + env(safe-area-inset-top))}
+body.fs #stage{flex:1 1 auto;height:auto;min-height:0;border-width:0;box-shadow:none}
+body.fs #cv{height:calc(100% * var(--z,1));max-width:calc(100% * var(--z,1))}
+body.fs #toast{bottom:calc(6px + env(safe-area-inset-bottom))}
+
+@media(min-width:920px){
+  #app{flex-direction:row;align-items:flex-start}
+  #app>.col:first-child{flex:0 0 400px}
+  #app>.col:last-child{flex:1}
+  #stage{height:min(72vh,620px)}
+  #cv{height:calc(min(72vh,620px)*var(--z,1))}
+  body.fs #app>.col:first-child{flex:1 1 auto}
+  body.fs #stage{height:auto}
+  body.fs #cv{height:calc(100% * var(--z,1));max-width:calc(100% * var(--z,1))}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="col">
+    <header class="px" id="topbar">
+      <div>
+        <div class="dbig"><span id="dayNum">1</span><small>DAY</small></div>
+        <span id="ymd">1年目 5月15日</span>
+      </div>
+      <div class="envs">
+        <span class="chip" id="seasonChip">春</span>
+        <span class="chip" id="weatherChip">晴れ</span>
+        <span class="chip" id="tempChip"><b>21</b>℃</span>
+        <span class="chip" id="nestTempChip">巣内 <b>19</b>℃</span>
+      </div>
+      <button class="btn gh" id="btnFs" title="全画面モード (F)">⛶ 全画面</button>
+    </header>
+
+    <div id="stage">
+      <div id="viewport"><canvas id="cv" width="288" height="448"></canvas></div>
+      <div id="toast"></div>
+      <div class="ov" id="ovStart">
+        <div class="tt jp">アリの巣日記</div>
+        <div class="tt2">ANT NEST DIARY</div>
+        <p>結婚飛行を終えた1匹の女王アリが、地中に部屋を掘り、翅を落として繁殖を始める。<br>
+        卵→幼虫→蛹→羽化まで約48日。気温・季節・天候・天敵が巣の運命を左右する。</p>
+        <p class="dim">モデル種：クロオオアリ（Camponotus japonicus）</p>
+        <button class="btn big" id="btnStart">巣を作りはじめる</button>
+      </div>
+      <div class="ov hidden" id="ovEnd">
+        <div class="tt" id="endTitle">COLONY<br>LOST</div>
+        <p id="endText"></p>
+        <div id="endStats" class="note"></div>
+        <button class="btn big" id="btnRestart">もう一度</button>
+      </div>
+    </div>
+
+    <div class="px" id="controls">
+      <div class="row">
+        <button class="btn" id="btnPlay" style="min-width:74px">▶ PLAY</button>
+        <span class="lb">SPEED</span>
+        <button class="btn spd on" data-s="1">x1</button>
+        <button class="btn spd" data-s="2">x2</button>
+        <button class="btn spd" data-s="5">x5</button>
+        <button class="btn spd" data-s="20">x20</button>
+        <button class="btn spd" data-s="60">x60</button>
+      </div>
+      <div class="row">
+        <span class="lb">SKIP</span>
+        <button class="btn gh skip" data-d="1">+1日</button>
+        <button class="btn gh skip" data-d="7">+7日</button>
+        <button class="btn gh skip" data-d="30">+30日</button>
+        <button class="btn gh jp grow" id="btnDig">⛏ 掘削を指示</button>
+      </div>
+      <div class="row">
+        <span class="lb">VIEW</span>
+        <button class="btn zm on" data-z="1">x1</button>
+        <button class="btn zm" data-z="2">x2</button>
+        <button class="btn zm" data-z="3">x3</button>
+        <span class="note">拡大するとドラッグで巣の中を見て回れます／キー: <b>space</b> 停止・<b>1-5</b> 速度・<b>Z</b> 拡大・<b>F</b> 全画面</span>
+      </div>
+      <div class="row" id="digOpts" style="display:none">
+        <span class="lb">ROOM</span>
+        <select id="digType">
+          <option value="nursery">育児室</option>
+          <option value="storage">貯蔵室</option>
+          <option value="refuse">ゴミ捨て場</option>
+          <option value="winter">越冬室</option>
+          <option value="tunnel">通路のみ</option>
+        </select>
+        <span class="note">画面の土をタップすると掘削予定に追加</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="px" id="statsWrap">
+      <h3>COLONY STATUS</h3>
+      <div id="stats"></div>
+    </div>
+
+    <nav id="tabs">
+      <button class="on" data-t="status">状況</button>
+      <button data-t="roles">配分</button>
+      <button data-t="log">日誌</button>
+      <button data-t="chart">記録</button>
+    </nav>
+
+    <div class="px" id="panels">
+      <div class="pad" id="pStatus"></div>
+      <div class="pad" id="pRoles" style="display:none">
+        <div class="note">働きアリの仕事の割り当て。合計は自動で100%に正規化されます。</div>
+        <div class="sl" data-r="forage"><div class="hd"><span>🌿 採餌（食料を集める）</span><b><span class="rv">40</span>%</b></div>
+          <input type="range" min="0" max="100" value="40"></div>
+        <div class="sl" data-r="dig"><div class="hd"><span>⛏ 掘削（巣を広げる）</span><b><span class="rv">35</span>%</b></div>
+          <input type="range" min="0" max="100" value="35"></div>
+        <div class="sl" data-r="nurse"><div class="hd"><span>🥚 育児（幼虫の世話）</span><b><span class="rv">25</span>%</b></div>
+          <input type="range" min="0" max="100" value="25"></div>
+        <div class="row" style="margin:10px 0 4px">
+          <button class="btn gh jp" data-preset="grow">拡張優先</button>
+          <button class="btn gh jp" data-preset="food">採餌優先</button>
+          <button class="btn gh jp" data-preset="breed">増殖優先</button>
+          <button class="btn gh jp" data-preset="winter">越冬準備</button>
+        </div>
+        <hr style="border:0;border-top:2px solid var(--line);margin:12px 0">
+        <div class="sl" data-r="soldier"><div class="hd"><span>⚔ 兵アリ生産率</span><b><span class="rv">6</span>%</b></div>
+          <input type="range" min="0" max="25" value="6"></div>
+        <div class="note">兵アリ（大型働きアリ）は採餌も掘削もしませんが、他コロニーの襲撃と天敵の被害を減らします。働きアリ150匹以上で生産可能。</div>
+      </div>
+      <div id="pLog" style="display:none"><div class="pad" id="logbox"></div></div>
+      <div class="pad" id="pChart" style="display:none">
+        <canvas id="chart" width="320" height="140"></canvas>
+        <div class="legend">
+          <span><i style="background:#9ae04a"></i>働きアリ</span>
+          <span><i style="background:#5ad0f0"></i>幼虫・卵・蛹</span>
+          <span><i style="background:#ffb63d"></i>食料</span>
+          <span><i style="background:#ff5f5f"></i>兵アリ</span>
+        </div>
+        <div id="records" class="note" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script id="core">
+/* =========================================================================
+   アリの巣日記 / ANT NEST DIARY v1.3 — simulation core (pure logic, no DOM)
+   Model species: Camponotus japonicus / クロオオアリ
+   Time is integrated continuously in units of DAYS, so real-time playback,
+   fast-forward and day-skip all produce identical results.
+   ========================================================================= */
+const SIM = (function(){
+'use strict';
+
+const TW=72, TH=112, TS=4;        // tile grid & pixel size
+const SURF=22, CX=36;             // surface row, colony center column
+const CM=1.15;                    // cm per tile (nest depth ≈ 1m)
+const T={SKY:0,SOIL:1,DUG:2,ROCK:3,ROOT:4};
+
+// --- development (days at optimal temperature) ---
+const EGG_D=12, LAR_D=20, PUP_D=16;   // egg->larva->pupa->adult ≈ 48d
+const W_MAX=430, S_MAX=620;           // max lifespan buckets (days)
+const QUEEN_MAX=4200;                 // ~11.5 years
+
+// --- economy constants ---
+const EAT_ADULT=0.018, EAT_LARVA=0.040, EAT_QUEEN=0.055;
+const DIG_RATE=0.62;      // tiles / digger / day
+const QUEEN_DIG=3.0;
+const FORAGE_BASE=1.05;
+const NURSE_CAP=16;       // brood tended per nurse
+const MONTH=[31,28,31,30,31,30,31,31,30,31,30,31];
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hash2(x,y,s){let h=(x*374761393+y*668265263+s*1442695040)|0;
+  h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296;}
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const idx=(x,y)=>y*TW+x;
+const inB=(x,y)=>x>=0&&y>=0&&x<TW&&y<TH;
+function sum(a){let s=0;for(let i=0;i<a.length;i++)s+=a[i];return s;}
+function scale(a,f){for(let i=0;i<a.length;i++)a[i]*=f;}
+function shift(a){const o=a[a.length-1];for(let i=a.length-1;i>0;i--)a[i]=a[i-1];a[0]=0;return o;}
+
+/* ---------- environment ---------- */
+function doyOf(st){return ((st.doy0+st.day)%365+365)%365;}
+function md(doy){let d=Math.floor(doy),m=0;while(d>=MONTH[m]){d-=MONTH[m];m++;if(m>11){m=0;}}return[m+1,d+1];}
+function airTemp(doy){return 15.6-10.9*Math.cos(2*Math.PI*(doy-19)/365);}      // Tokyo-like
+function nestTemp(doy,depthTiles){
+  const t=airTemp(doy),mean=15.6,f=Math.exp(-(depthTiles*CM)/95);
+  return mean+(t-mean)*f;
+}
+function seasonOf(doy){const m=md(doy)[0];return m<=2||m===12?3:m<=5?0:m<=8?1:2;} // 0春1夏2秋3冬
+const SEASON_NAME=['春','夏','秋','冬'];
+function devRate(t){ // brood development speed vs temperature
+  if(t<13)return 0;
+  if(t<22)return (t-13)/9*1.0;
+  if(t<30)return 1.0+(t-22)/8*0.18;
+  if(t<36)return 1.18-(t-30)/6*0.88;
+  return 0.1;
+}
+function forageFactor(t){
+  if(t<7)return 0;
+  if(t<18)return (t-7)/11;
+  if(t<28)return 1+(t-18)/10*0.18;
+  if(t<36)return 1.18-(t-28)/8*0.85;
+  return 0.2;
+}
+
+/* ---------- pathfinding (A*) ---------- */
+function Heap(){this.a=[];}
+Heap.prototype.push=function(n,p){const a=this.a;a.push({n:n,p:p});let i=a.length-1;
+  while(i>0){const q=(i-1)>>1;if(a[q].p<=a[i].p)break;const t=a[q];a[q]=a[i];a[i]=t;i=q;}};
+Heap.prototype.pop=function(){const a=this.a,top=a[0],last=a.pop();
+  if(a.length){a[0]=last;let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;
+    if(l<a.length&&a[l].p<a[m].p)m=l;if(r<a.length&&a[r].p<a[m].p)m=r;
+    if(m===i)break;const t=a[m];a[m]=a[i];a[i]=t;i=m;}}return top;};
+Heap.prototype.size=function(){return this.a.length;};
+
+function tileCost(g,i,y){
+  const t=g[i];
+  if(t===T.ROCK)return -1;
+  if(t===T.SKY&&y<SURF)return -1;
+  if(t===T.DUG)return 0.08;
+  if(t===T.ROOT)return 2.4;
+  return 1+ (y-SURF)*0.006;               // deeper soil is harder
+}
+function findPath(st,sx,sy,gx,gy){
+  const g=st.grid,N=TW*TH;
+  const dist=new Float32Array(N).fill(1e9),prev=new Int32Array(N).fill(-1),seen=new Uint8Array(N);
+  const h=new Heap(),s=idx(sx,sy);dist[s]=0;h.push(s,0);
+  const goal=idx(gx,gy);
+  const D=[[1,0],[-1,0],[0,1],[0,-1]];
+  while(h.size()){
+    const c=h.pop().n;
+    if(seen[c])continue;seen[c]=1;
+    if(c===goal)break;
+    const cx=c%TW,cy=(c/TW)|0;
+    for(let k=0;k<4;k++){
+      const nx=cx+D[k][0],ny=cy+D[k][1];
+      if(!inB(nx,ny)||ny<SURF-1)continue;
+      const ni=idx(nx,ny);if(seen[ni])continue;
+      const w=tileCost(g,ni,ny);if(w<0)continue;
+      const nd=dist[c]+w;
+      if(nd<dist[ni]){dist[ni]=nd;prev[ni]=c;
+        h.push(ni,nd+(Math.abs(nx-gx)+Math.abs(ny-gy))*0.85);}
+    }
+  }
+  if(prev[goal]<0&&goal!==s)return null;
+  const out=[];let c=goal;
+  while(c!==s&&c>=0){out.push(c);c=prev[c];}
+  out.reverse();return out;
+}
+function nearestDug(st,gx,gy){
+  let best=null,bd=1e9;
+  for(let i=0;i<st.dugList.length;i++){
+    const t=st.dugList[i],x=t%TW,y=(t/TW)|0;
+    const d=(x-gx)*(x-gx)+(y-gy)*(y-gy);
+    if(d<bd){bd=d;best={x:x,y:y};}
+  }
+  return best||{x:CX,y:SURF};
+}
+function ellipse(st,cx,cy,rx,ry){
+  const out=[];
+  for(let y=cy-ry;y<=cy+ry;y++)for(let x=cx-rx;x<=cx+rx;x++){
+    if(!inB(x,y)||y<SURF)continue;
+    const d=((x-cx)/(rx+0.45))**2+((y-cy)/(ry+0.45))**2;
+    if(d<=1&&st.grid[idx(x,y)]!==T.ROCK)out.push(idx(x,y));
+  }
+  return out;
+}
+
+/* ---------- terrain ---------- */
+function genTerrain(st){
+  const g=st.grid,r=st.rng;
+  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++)g[idx(x,y)]=y<SURF?T.SKY:T.SOIL;
+  for(let k=0;k<34;k++){
+    const rx=1+Math.floor(r()*(TW-2)),ry=SURF+7+Math.floor(r()*(TH-SURF-9));
+    const w=1+Math.floor(r()*3),hh=1+Math.floor(r()*2);
+    for(let y=ry-hh;y<=ry+hh;y++)for(let x=rx-w;x<=rx+w;x++){
+      if(!inB(x,y)||y<SURF+4)continue;
+      if(((x-rx)/(w+.6))**2+((y-ry)/(hh+.6))**2<=1)g[idx(x,y)]=T.ROCK;
+    }
+  }
+  for(let y=TH-9;y<TH;y++)for(let x=0;x<TW;x++)   // bedrock floor
+    if(hash2(x,y,st.seed+7)<0.30+(y-(TH-9))*0.12)g[idx(x,y)]=T.ROCK;
+  for(let p=0;p<st.plants.length;p++){            // plant roots
+    let x=st.plants[p].x,y=SURF-1;
+    const len=10+Math.floor(r()*16);
+    for(let d=0;d<len;d++){
+      y++;if(!inB(x,y))break;
+      if(g[idx(x,y)]===T.SOIL)g[idx(x,y)]=T.ROOT;
+      if(r()<0.45)x+=r()<0.5?-1:1;x=clamp(x,1,TW-2);
+    }
+  }
+  for(let y=SURF;y<SURF+14;y++){const i=idx(CX,y);if(g[i]!==T.SOIL)g[i]=T.SOIL;}
+}
+
+/* ---------- state ---------- */
+function newState(seed){
+  seed=seed||((Math.random()*1e9)|0);
+  const rng=mulberry32(seed);
+  const plants=[];
+  for(let i=0;i<6;i++)plants.push({x:4+Math.floor(rng()*(TW-8)),k:Math.floor(rng()*3)});
+  plants.push({x:CX+9+Math.floor(rng()*8),k:3});          // aphid plant
+  const st={
+    seed:seed,rng:rng,plants:plants,
+    grid:new Uint8Array(TW*TH),
+    day:0,acc:0,doy0:134,dayInt:0,ver:1,dugList:[],dirty:[],lastCarved:idx(CX,SURF),
+    queen:{alive:true,age:0,reserve:1.0,dead:false},
+    egg:new Float64Array(EGG_D),
+    line:{w:{lar:new Float64Array(LAR_D),pup:new Float64Array(PUP_D)},
+          s:{lar:new Float64Array(LAR_D),pup:new Float64Array(PUP_D)},
+          a:{lar:new Float64Array(LAR_D),pup:new Float64Array(PUP_D)}},
+    wrk:new Float64Array(W_MAX),sol:new Float64Array(S_MAX),
+    alateF:0,alateM:0,
+    food:0.0,waste:0,
+    devAcc:0,eggAcc:0,digAcc:0,
+    chambers:[],projects:[],
+    roles:{forage:.40,dig:.35,nurse:.25},soldierRatio:.06,
+    sealed:true,founded:false,dormant:false,
+    weather:{type:'clear',left:0},bonus:0,raidCd:20,
+    log:[],history:[],
+    over:false,overReason:'',
+    stats:{born:0,died:0,dug:0,maxW:0,alatesOut:0,eggsLaid:0,queens:0},
+  };
+  genTerrain(st);
+  // founding: vertical shaft + first chamber
+  const shaft=[];for(let y=SURF;y<=SURF+13;y++)shaft.push(idx(CX,y));
+  const cham=ellipse(st,CX,SURF+15,2,2);
+  st.projects.push({tiles:shaft.concat(cham),i:0,chType:'queen',cx:CX,cy:SURF+15,room:cham});
+  log(st,'女王アリが地面に降り、翅を落とした。','good');
+  log(st,'土を掘り、最初の部屋を作りはじめる。');
+  return st;
+}
+function log(st,text,kind){
+  st.log.unshift({d:Math.floor(st.day)+1,t:text,k:kind||'info'});
+  if(st.log.length>260)st.log.pop();
+}
+
+/* ---------- accessors ---------- */
+const workers=st=>sum(st.wrk);
+const soldiers=st=>sum(st.sol);
+const adults=st=>sum(st.wrk)+sum(st.sol);
+function larvaTotal(st){return sum(st.line.w.lar)+sum(st.line.s.lar)+sum(st.line.a.lar);}
+function pupaTotal(st){return sum(st.line.w.pup)+sum(st.line.s.pup)+sum(st.line.a.pup);}
+function eggTotal(st){return sum(st.egg);}
+function broodTotal(st){return eggTotal(st)+larvaTotal(st)+pupaTotal(st);}
+function capacity(st,type){
+  let c=0;
+  for(let i=0;i<st.chambers.length;i++){const ch=st.chambers[i];if(ch.type!==type)continue;
+    c+=ch.tiles.length*(type==='nursery'?7:type==='storage'?16:8);}
+  if(type==='nursery')c+=14;                     // queen chamber holds some brood
+  if(type==='storage')c+=10;
+  if(type==='refuse')c+=12;
+  return c;
+}
+function nestDepth(st){
+  let d=SURF;
+  for(let i=0;i<st.dugList.length;i++){const y=(st.dugList[i]/TW)|0;if(y>d)d=y;}
+  return Math.round((d-SURF)*CM);
+}
+function deepestChamber(st){
+  let d=0;for(let i=0;i<st.chambers.length;i++)if(st.chambers[i].cy>d)d=st.chambers[i].cy;
+  return Math.round((d-SURF)*CM);
+}
+function stageOf(st){
+  const w=workers(st);
+  if(!st.founded)return 0;
+  if(w<30)return 1;if(w<150)return 2;if(w<600)return 3;if(w<1800)return 4;return 5;
+}
+const STAGE_NAME=['創設期','初期コロニー','発展期','成長期','成熟期','大コロニー'];
+const STAGE_NEXT=[1,30,150,600,1800,null];
+
+/* ---------- digging ---------- */
+function carve(st,i){
+  st.grid[i]=T.DUG;st.dugList.push(i);st.dirty.push(i);st.ver++;st.lastCarved=i;st.stats.dug++;
+}
+function finishProject(st,p){
+  if(!p.chType||p.chType==='tunnel')return;
+  const tiles=p.room.filter(function(i){
+    if(st.grid[i]!==T.DUG)return false;
+    const x=i%TW,y=(i/TW)|0;
+    return (x>0&&st.grid[i-1]===T.DUG)||(x<TW-1&&st.grid[i+1]===T.DUG)||
+           (y>SURF&&st.grid[i-TW]===T.DUG)||(y<TH-1&&st.grid[i+TW]===T.DUG);
+  });
+  if(!tiles.length)return;
+  st.chambers.push({type:p.chType,tiles:tiles,cx:p.cx,cy:p.cy});
+  const nm={queen:'女王室',nursery:'育児室',storage:'貯蔵室',refuse:'ゴミ捨て場',winter:'越冬室'}[p.chType];
+  log(st,nm+'が完成した（深さ'+Math.round((p.cy-SURF)*CM)+'cm）。',p.chType==='queen'?'good':'info');
+}
+function digStep(st,diggerDays){
+  st.digAcc+=diggerDays;
+  let guard=0;
+  while(st.digAcc>0&&st.projects.length&&guard++<400){
+    const p=st.projects[0];
+    while(p.i<p.tiles.length&&st.grid[p.tiles[p.i]]===T.DUG)p.i++;
+    if(p.i>=p.tiles.length){finishProject(st,p);st.projects.shift();continue;}
+    const ti=p.tiles[p.i],g=st.grid[ti];
+    if(g===T.ROCK){p.i++;continue;}
+    const cost=(g===T.ROOT?2.4:1)*(1+((ti/TW|0)-SURF)*0.008);
+    if(st.digAcc>=cost){st.digAcc-=cost;carve(st,ti);p.i++;}
+    else break;
+  }
+  if(!st.projects.length)st.digAcc=Math.min(st.digAcc,3);
+}
+function addProject(st,chType,gx,gy,rx,ry){
+  gx=clamp(gx,2,TW-3);gy=clamp(gy,SURF+2,TH-6);
+  if(st.grid[idx(gx,gy)]===T.ROCK){
+    let ok=false;
+    for(let k=1;k<=4&&!ok;k++)for(const d of [[k,0],[-k,0],[0,k],[0,-k]]){
+      const nx=gx+d[0],ny=gy+d[1];
+      if(inB(nx,ny)&&ny>SURF&&st.grid[idx(nx,ny)]!==T.ROCK){gx=nx;gy=ny;ok=true;break;}
+    }
+    if(!ok)return false;
+  }
+  const s=nearestDug(st,gx,gy);
+  const path=findPath(st,s.x,s.y,gx,gy);
+  if(!path)return false;
+  const room=chType&&chType!=='tunnel'?ellipse(st,gx,gy,rx,ry):[];
+  const seen={},tiles=[];
+  for(const t of path.concat(room)){if(!seen[t]&&st.grid[t]!==T.ROCK){seen[t]=1;tiles.push(t);}}
+  st.projects.push({tiles:tiles,i:0,chType:chType,cx:gx,cy:gy,room:room});
+  return true;
+}
+function shaftBottom(st){
+  let y=SURF;
+  for(let i=0;i<st.dugList.length;i++){
+    const t=st.dugList[i];
+    if(Math.abs((t%TW)-CX)<=2){const ty=(t/TW)|0;if(ty>y)y=ty;}
+  }
+  return y;
+}
+function connected(st,a,b){
+  if(st.grid[a]!==T.DUG||st.grid[b]!==T.DUG)return false;
+  const seen=new Uint8Array(TW*TH),q=[a];seen[a]=1;let h=0;
+  const D=[[1,0],[-1,0],[0,1],[0,-1]];
+  while(h<q.length){
+    const c=q[h++];if(c===b)return true;
+    const cx=c%TW,cy=(c/TW)|0;
+    for(let k=0;k<4;k++){
+      const nx=cx+D[k][0],ny=cy+D[k][1];
+      if(nx<0||ny<0||nx>=TW||ny>=TH)continue;
+      const ni=ny*TW+nx;
+      if(seen[ni]||st.grid[ni]!==T.DUG)continue;
+      seen[ni]=1;q.push(ni);
+    }
+  }
+  return false;
+}
+function reachSet(st,start){
+  const seen=new Uint8Array(TW*TH);
+  if(st.grid[start]!==T.DUG)return seen;
+  const q=[start];seen[start]=1;let h=0;
+  const D=[[1,0],[-1,0],[0,1],[0,-1]];
+  while(h<q.length){
+    const c=q[h++],cx=c%TW,cy=(c/TW)|0;
+    for(let k=0;k<4;k++){
+      const nx=cx+D[k][0],ny=cy+D[k][1];
+      if(nx<0||ny<0||nx>=TW||ny>=TH)continue;
+      const ni=ny*TW+nx;
+      if(seen[ni]||st.grid[ni]!==T.DUG)continue;
+      seen[ni]=1;q.push(ni);
+    }
+  }
+  return seen;
+}
+/* Any chamber cut off from the entrance gets a repair tunnel. Guarantees the
+   nest stays one connected network after floods and cave-ins. */
+function ensureEntrance(st){
+  if(!st.founded||!st.chambers.length)return;
+  if(st.projects.length&&st.projects[0].repair)return;
+  const ent=idx(CX,SURF);
+  const seen=reachSet(st,ent);
+  let target=-1;
+  if(!seen[ent])target=st.chambers[0].tiles[0];
+  else{
+    for(let i=0;i<st.chambers.length;i++){
+      const tl=st.chambers[i].tiles;
+      let ok=false;
+      for(let k=0;k<tl.length;k++)if(seen[tl[k]]){ok=true;break;}
+      if(!ok){target=tl[0];break;}
+    }
+  }
+  if(target<0)return;
+  const path=findPath(st,target%TW,(target/TW)|0,CX,SURF);
+  if(!path)return;
+  const tiles=path.filter(t=>st.grid[t]!==T.DUG&&st.grid[t]!==T.ROCK);
+  if(!tiles.length)return;
+  st.projects.unshift({tiles:tiles,i:0,chType:'tunnel',cx:CX,cy:SURF,room:[],repair:true});
+  log(st,'崩れた通路を掘り直している。');
+}
+function planNeeds(st){
+  if(st.projects.length>=1||!st.founded)return;
+  const w=workers(st),r=st.rng;
+  const size=w<60?2:w<250?3:w<900?4:5;
+  const rooms=st.chambers.length;
+  const brood=broodTotal(st);
+  const season=seasonOf(doyOf(st));
+  let need=null;
+  if(brood>capacity(st,'nursery')*0.72)need='nursery';
+  else if(st.food>capacity(st,'storage')*0.70||(season>=1&&capacity(st,'storage')<w*1.1))need='storage';
+  else if(st.waste>capacity(st,'refuse')*0.70)need='refuse';
+  else if(season===2&&w>25&&deepestChamber(st)<52)need='winter';
+  else if(w>40&&rooms<Math.min(26,3+Math.floor(w/40)))need=r()<0.55?'nursery':'storage';
+  if(!need)return;
+  let wantY=need==='winter'?SURF+Math.round(56/CM)+Math.floor(r()*6)
+                           :SURF+12+Math.round(rooms*1.7)+Math.floor(r()*7);
+  wantY=Math.min(wantY,TH-9);
+  if(shaftBottom(st)<wantY-3){                       // deepen the main shaft first
+    addProject(st,'tunnel',CX+(Math.floor(r()*3)-1),Math.min(wantY+2,TH-9),0,0);
+    return;
+  }
+  const side=rooms%2?1:-1;
+  const dist=4+Math.floor(r()*5)+Math.min(9,Math.floor(rooms*0.45));
+  addProject(st,need,CX+side*dist,clamp(wantY+Math.floor(r()*5)-2,SURF+5,TH-9),
+             size,Math.max(2,size-1));
+}
+function manualDig(st,tx,ty,type){
+  if(ty<SURF+1)return false;
+  const rx=type==='tunnel'?0:3,ry=type==='tunnel'?0:2;
+  const ok=addProject(st,type,tx,ty,rx,ry);
+  if(ok)log(st,'掘削を指示：深さ'+Math.round((ty-SURF)*CM)+'cm付近。');
+  return ok;
+}
+
+/* ---------- events ---------- */
+function rollWeather(st){
+  const doy=doyOf(st),m=md(doy)[0],r=st.rng();
+  if(st.weather.left>0){st.weather.left--;return;}
+  let pRain=m===6||m===7?0.42:m===9?0.30:m>=12||m<=2?0.16:0.22;
+  if(r<pRain*0.22){st.weather.type='storm';st.weather.left=Math.floor(st.rng()*2);
+    log(st,'激しい雷雨。巣に水が流れ込む危険がある。','bad');}
+  else if(r<pRain){st.weather.type='rain';st.weather.left=Math.floor(st.rng()*3);}
+  else if(r<pRain+0.25){st.weather.type='cloudy';st.weather.left=Math.floor(st.rng()*2);}
+  else st.weather.type='clear';
+  if((m>=12||m<=2)&&st.weather.type==='rain'&&airTemp(doy)<3)st.weather.type='snow';
+}
+function flood(st){
+  // shallow chambers take damage in storms
+  let lost=0;
+  const shallow=st.chambers.filter(c=>(c.cy-SURF)*CM<22);
+  if(!shallow.length)return;
+  const p=0.35;
+  if(st.rng()<p){
+    const f=0.10+st.rng()*0.22;
+    for(const k of ['w','s','a']){scale(st.line[k].lar,1-f);scale(st.line[k].pup,1-f*0.6);}
+    scale(st.egg,1-f*1.3);
+    lost=1;
+    // collapse a few shallow tunnels
+    for(let n=0;n<3+Math.floor(st.rng()*5);n++){
+      const t=st.dugList[Math.floor(st.rng()*st.dugList.length)];
+      if(t===undefined)break;const y=(t/TW)|0;
+      if((y-SURF)*CM<14&&t!==idx(CX,SURF)){st.grid[t]=T.SOIL;st.dirty.push(t);
+        st.dugList.splice(st.dugList.indexOf(t),1);st.ver++;}
+    }
+    log(st,'浸水！ 浅い部屋の卵と幼虫が失われ、通路が崩れた。','bad');
+  }
+}
+function raid(st){
+  const w=workers(st),s=soldiers(st);
+  if(w<120)return;
+  st.raidCd--;if(st.raidCd>0)return;
+  if(st.rng()>0.10)return;
+  st.raidCd=25+Math.floor(st.rng()*40);
+  const power=w*0.02+s*0.16;
+  const enemy=(w*0.10+30)*(0.6+st.rng()*0.9);
+  const lossW=clamp(enemy/(1+power)*0.9,0,w*0.34);
+  const lossS=clamp(enemy/(1+power)*0.25,0,s*0.45);
+  scale(st.wrk,1-lossW/Math.max(1,w));scale(st.sol,1-lossS/Math.max(1,s));
+  st.stats.died+=lossW+lossS;st.waste+=(lossW+lossS)*0.02;
+  const stolen=Math.min(st.food*0.2,lossW*0.05);st.food-=stolen;
+  log(st,'他のアリのコロニーが襲撃してきた。働きアリ'+Math.round(lossW)+'匹、兵アリ'+Math.round(lossS)+'匹を失った。','bad');
+}
+function predator(st){
+  const w=workers(st);if(w<8)return;
+  const doy=doyOf(st);if(forageFactor(airTemp(doy))<=0)return;
+  if(st.rng()>0.035)return;
+  const s=soldiers(st);
+  const base=w*(0.006+st.rng()*0.020)/(1+s*0.010);
+  scale(st.wrk,1-base/Math.max(1,w));st.stats.died+=base;
+  const who=['ハエトリグモ','アリジゴク','カマキリ','ムクドリ','ヒキガエル'][Math.floor(st.rng()*5)];
+  if(base>=1)log(st,who+'に採餌中の働きアリ'+Math.round(base)+'匹が捕食された。','bad');
+}
+function goodEvent(st){
+  if(st.rng()<0.030&&workers(st)>15&&st.bonus<=0){
+    st.bonus=8+Math.floor(st.rng()*10);
+    const k=['アブラムシの群れ','熟した果実','死んだ甲虫','花外蜜腺のある木'][Math.floor(st.rng()*4)];
+    log(st,k+'を発見。しばらく食料が豊富になる。','good');
+  }
+}
+function nuptial(st){
+  const doy=doyOf(st),tot=st.alateF+st.alateM;
+  if(tot<1)return;
+  if(doy<128||doy>176)return;
+  if(st.weather.type!=='clear'&&st.weather.type!=='cloudy')return;
+  if(st.rng()<0.16){
+    st.stats.alatesOut+=Math.round(tot);st.stats.queens+=Math.round(st.alateF);
+    log(st,'結婚飛行！ 新女王'+Math.round(st.alateF)+'匹・オス'+Math.round(st.alateM)+'匹が巣立った。','good');
+    st.alateF=0;st.alateM=0;
+  }
+}
+function killQueen(st){
+  st.queen.alive=false;st.queen.dead=true;
+  log(st,'女王アリが死亡した。もう新しい卵は産まれない。','bad');
+}
+
+/* ---------- daily tick ---------- */
+function dayTick(st){
+  st.dayInt++;
+  const dW=shift(st.wrk),dS=shift(st.sol);
+  st.stats.died+=dW+dS;st.waste+=(dW+dS)*0.02;
+  if(st.queen.alive){
+    st.queen.age++;
+    if(st.queen.age>QUEEN_MAX*0.78&&st.rng()<0.0035)killQueen(st);
+  }
+  rollWeather(st);
+  if(st.weather.type==='storm')flood(st);
+  if(st.bonus>0)st.bonus--;
+  predator(st);raid(st);goodEvent(st);nuptial(st);
+  ensureEntrance(st);planNeeds(st);
+  const doy=doyOf(st),season=seasonOf(doy);
+  if(st.lastSeason!==season){
+    st.lastSeason=season;
+    const msg=['春が来た。気温が上がり、女王が産卵を再開する。','夏。採餌がもっとも活発になる季節。',
+      '秋。越冬に備えて食料を蓄える時期。','冬。アリたちは巣の奥深くで動きを止める。'][season];
+    log(st,msg,'sea');
+  }
+  st.history.push({d:st.dayInt,w:workers(st),b:broodTotal(st),f:st.food,s:soldiers(st)});
+  if(st.history.length>4200)st.history.shift();
+  if(workers(st)>st.stats.maxW)st.stats.maxW=workers(st);
+  if(!st.over&&!st.queen.alive&&adults(st)<1&&broodTotal(st)<1){
+    st.over=true;st.overReason='女王を失い、最後の働きアリも死に絶えた。';
+    log(st,'コロニーは消滅した。','bad');
+  }
+  if(!st.over&&st.queen.alive&&adults(st)<1&&broodTotal(st)<1&&st.founded){
+    st.over=true;st.overReason='働きアリも幼虫もいなくなり、女王だけが取り残された。';
+    log(st,'コロニーは崩壊した。','bad');
+  }
+}
+
+/* ---------- main step (dt in days) ---------- */
+function step(st,dt){
+  if(st.over)return;
+  st.day+=dt;
+  const doy=doyOf(st);
+  const tAir=airTemp(doy);
+  const broodDepth=st.chambers.length?
+    st.chambers.reduce((a,c)=>a+(c.type==='nursery'||c.type==='queen'?c.cy-SURF:0),0)/
+    Math.max(1,st.chambers.filter(c=>c.type==='nursery'||c.type==='queen').length):14;
+  const tNest=nestTemp(doy,broodDepth);
+  st.tNest=tNest;st.tAir=tAir;
+  const dv=devRate(tNest);
+  st.dormant=dv<=0.02;
+
+  const W=workers(st),S=soldiers(st),A=W+S;
+  const lar=larvaTotal(st),brood=broodTotal(st);
+
+  /* --- role headcount --- */
+  const act=st.dormant?0:1;
+  const nurses=W*st.roles.nurse;
+  const diggers=W*st.roles.dig*act;
+  const foragers=W*st.roles.forage*act*(forageFactor(tAir)>0?1:0);
+
+  /* --- food --- */
+  const wmul={clear:1,cloudy:.9,rain:.42,storm:.12,snow:.05}[st.weather.type]||1;
+  const terr=0.7+0.66*Math.pow(Math.max(1,A),0.62);
+  const cap=terr*forageFactor(tAir)*wmul*(st.bonus>0?1.5:1)*FORAGE_BASE;
+  let gain=cap*(1-Math.exp(-foragers/Math.max(1,terr*2.0)));
+  if(!st.founded)gain=0;
+  const dm=st.dormant?0.10:1, dl=st.dormant?0.03:1;
+  let eat=A*EAT_ADULT*dm+lar*EAT_LARVA*dl+(st.queen.alive?EAT_QUEEN*dm:0);
+  if(!st.founded)eat=0;                       // claustral founding: fed by flight-muscle reserves
+  st.food+=(gain-eat)*dt;
+  const fcap=capacity(st,'storage');
+  if(st.food>fcap)st.food=fcap;
+  let starving=false;
+  if(st.food<0){
+    st.food=0;starving=true;
+    for(const k of ['w','s','a'])scale(st.line[k].lar,1-0.55*dt);
+    scale(st.egg,1-0.8*dt);
+    scale(st.wrk,1-0.018*dt);scale(st.sol,1-0.018*dt);
+    if(st.queen.alive&&!st.founded&&st.rng()<0.02*dt)killQueen(st);
+  }
+  /* founding queen lives on her flight-muscle reserves */
+  if(!st.founded&&st.queen.alive){
+    st.queen.reserve-=0.0090*dt;
+    if(st.queen.reserve<=0){st.queen.reserve=0;
+      if(st.rng()<0.06*dt)killQueen(st);}
+  }
+
+  /* --- laying --- */
+  if(st.queen.alive){
+    let lay=0;
+    if(!st.founded){
+      if(st.stats.eggsLaid<19&&st.day>1.5&&st.chambers.length>0)lay=2.2;
+    }else{
+      const mat=clamp(st.queen.age/700,0.18,1);
+      const seas=seasonOf(doy);
+      const target=A*(seas===2?0.45:seas===3?0.30:0.12)+2.0;
+      const foodF=clamp(st.food/target,0,1);
+      const nurseF=clamp((nurses*NURSE_CAP+6)/Math.max(1,brood*0.9),0.05,1);
+      const spaceF=clamp(capacity(st,'nursery')/Math.max(1,brood*1.05),0.05,1);
+      lay=31*mat*clamp(dv,0,1)*foodF*nurseF*spaceF;
+      lay=Math.min(lay,2+W*0.30);
+    }
+    st.egg[0]+=lay*dt;st.stats.eggsLaid+=lay*dt;
+  }
+
+  /* --- brood development --- */
+  st.devAcc+=dv*dt;
+  let g2=0;
+  while(st.devAcc>=1&&g2++<60){
+    st.devAcc-=1;
+    const hatched=shift(st.egg);
+    if(hatched>0){
+      let aShare=0,sShare=0;
+      const mature=W>=650&&st.queen.age>430;
+      if(mature&&doy>40&&doy<150&&st.food>fcap*0.35)aShare=0.16;
+      if(W>=150)sShare=st.soldierRatio*(1-aShare);
+      st.line.a.lar[0]+=hatched*aShare;
+      st.line.s.lar[0]+=hatched*sShare;
+      st.line.w.lar[0]+=hatched*(1-aShare-sShare);
+    }
+    for(const k of ['w','s','a']){
+      const pupated=shift(st.line[k].lar);
+      st.line[k].pup[0]+=pupated;
+      const emerged=shift(st.line[k].pup);
+      if(emerged>0){
+        st.stats.born+=emerged;
+        if(k==='w'){st.wrk[0]+=emerged;
+          if(!st.founded){
+            st.founded=true;st.sealed=false;
+            log(st,'最初の働きアリが羽化した。巣の入口が開かれる。','good');
+          }}
+        else if(k==='s')st.sol[0]+=emerged;
+        else{st.alateF+=emerged*0.55;st.alateM+=emerged*0.45;}
+      }
+    }
+    // nurse shortage / overcrowding losses
+    const bd=broodTotal(st),ncap=Math.max(6,nurses*NURSE_CAP+(st.founded?0:26));
+    if(bd>ncap){
+      const over=clamp((bd-ncap)/Math.max(1,bd),0,0.6)*0.055;
+      for(const k of ['w','s','a'])scale(st.line[k].lar,1-over);
+      scale(st.egg,1-over*1.2);
+    }
+  }
+
+  /* --- adult mortality (continuous hazard) --- */
+  let hz=0.0011+st.roles.forage*0.0042*act;
+  if(st.dormant)hz=0.0007;
+  if(st.dormant&&deepestChamber(st)<40)hz+=0.0035;              // too shallow to overwinter
+  if(st.waste>capacity(st,'refuse'))hz+=0.0025;                 // disease from refuse
+  if(starving)hz+=0.0018;
+  scale(st.wrk,1-hz*dt);scale(st.sol,1-hz*0.75*dt);
+
+  /* --- waste --- */
+  st.waste+=A*0.0035*dt+lar*0.002*dt;
+  const rcap=capacity(st,'refuse');
+  if(st.waste>rcap)st.waste=Math.min(st.waste,rcap*1.6);
+  if(!st.dormant)st.waste=Math.max(0,st.waste-W*st.roles.dig*0.004*dt);
+
+  /* --- digging --- */
+  let dd=diggers*DIG_RATE;
+  if(!st.founded&&st.queen.alive)dd=QUEEN_DIG;
+  /* dormant colonies stop excavating, but a breached nest is still repaired */
+  if(st.dormant&&st.projects.length&&st.projects[0].repair)dd=W*0.10*DIG_RATE;
+  digStep(st,dd*dt);
+
+  /* --- day boundary --- */
+  let guard=0;
+  while(Math.floor(st.day)>st.dayInt&&guard++<400)dayTick(st);
+}
+
+/* Every path through time — x1 playback, x60 fast-forward, +30日 skip — is
+   consumed as whole quanta of SIM_DT, with any frame remainder carried in
+   st.acc. 1/32 is exact in binary and divides 1, 7 and 30 days evenly, so a
+   skip advances the calendar by precisely the number of days on the button and
+   the speed setting never changes how the colony develops. */
+const SIM_DT=1/32;
+function advance(st,days){
+  if(st.over||!(days>0))return;
+  st.acc+=days;
+  let guard=0;
+  while(st.acc>=SIM_DT&&!st.over&&guard++<400000){step(st,SIM_DT);st.acc-=SIM_DT;}
+  if(st.acc<1e-9)st.acc=0;
+}
+function skipDays(st,n){advance(st,n);}
+
+return {TW:TW,TH:TH,TS:TS,SURF:SURF,CX:CX,T:T,CM:CM,DT:SIM_DT,
+  EGG_D:EGG_D,LAR_D:LAR_D,PUP_D:PUP_D,
+  newState:newState,step:step,advance:advance,skipDays:skipDays,manualDig:manualDig,
+  workers:workers,soldiers:soldiers,adults:adults,
+  eggTotal:eggTotal,larvaTotal:larvaTotal,pupaTotal:pupaTotal,broodTotal:broodTotal,
+  capacity:capacity,nestDepth:nestDepth,deepestChamber:deepestChamber,
+  doyOf:doyOf,md:md,airTemp:airTemp,nestTemp:nestTemp,seasonOf:seasonOf,
+  SEASON_NAME:SEASON_NAME,STAGE_NAME:STAGE_NAME,STAGE_NEXT:STAGE_NEXT,stageOf:stageOf,
+  idx:idx,inB:inB,hash2:hash2,log:log};
+})();
+</script>
+
+<script id="ui">
+(function(){
+'use strict';
+if(typeof document==='undefined')return;
+const S=SIM,TW=S.TW,TH=S.TH,TS=S.TS,SURF=S.SURF,CX=S.CX,T=S.T;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+
+/* ---------- offscreen soil layer ---------- */
+const soilCv=document.createElement('canvas');soilCv.width=TW*TS;soilCv.height=TH*TS;
+const sctx=soilCv.getContext('2d');
+
+let st=null,running=false,speed=1,digMode=false,digType='nursery';
+let lastT=0,acc=0;
+const SEC_PER_DAY=20;
+const AGENT_CAP=190;
+const agents=[];
+const fieldCache=new Map();
+const surfaceFood=[];
+let pher=new Float32Array(TW);
+let toastQ=[],logSeen=0;
+
+/* ---------- palette ---------- */
+const P={
+  rock:['#63636f','#575761','#6d6d7a'],
+  root:'#a87a42',
+  tunnel:'#1b1109',tunnelFloor:'#2c1c0d',cut:'rgba(255,226,186,.14)',
+  grass:['#4e9440','#3f7a34','#5aa84a'],
+};
+function soilColor(x,y,v){
+  const d=(y-SURF);
+  let base;
+  if(d<3)base=[70,48,32];
+  else if(d<16)base=[92,60,38];
+  else if(d<38)base=[108,74,44];
+  else if(d<64)base=[122,90,56];
+  else base=[132,106,74];
+  const n=(S.hash2(x,y,7)-0.5)*22+(S.hash2(x,y,31)<0.06?-26:0);
+  return 'rgb('+Math.max(0,base[0]+n|0)+','+Math.max(0,base[1]+n|0)+','+Math.max(0,base[2]+n|0)+')';
+}
+function drawTile(c,x,y){
+  const i=y*TW+x,g=st.grid[i],px=x*TS,py=y*TS;
+  if(y<SURF){c.clearRect(px,py,TS,TS);return;}
+  if(g===T.DUG){
+    c.fillStyle=P.tunnel;c.fillRect(px,py,TS,TS);
+    if(y+1<TH&&st.grid[i+TW]!==T.DUG){c.fillStyle=P.tunnelFloor;c.fillRect(px,py+TS-1,TS,1);}
+    if(y-1>=SURF&&st.grid[i-TW]!==T.DUG){c.fillStyle='rgba(0,0,0,.45)';c.fillRect(px,py,TS,1);}
+    return;
+  }
+  if(g===T.ROCK){
+    c.fillStyle=P.rock[(S.hash2(x,y,3)*3)|0];c.fillRect(px,py,TS,TS);
+    c.fillStyle='rgba(255,255,255,.10)';c.fillRect(px,py,TS,1);
+    c.fillStyle='rgba(0,0,0,.25)';c.fillRect(px,py+TS-1,TS,1);
+    return;
+  }
+  if(g===T.ROOT){
+    c.fillStyle=soilColor(x,y,0);c.fillRect(px,py,TS,TS);
+    c.fillStyle=P.root;c.fillRect(px+1,py,2,TS);
+    c.fillStyle='rgba(0,0,0,.25)';c.fillRect(px+2,py,1,TS);
+    cutEdge(c,x,y,px,py);
+    return;
+  }
+  c.fillStyle=soilColor(x,y,0);c.fillRect(px,py,TS,TS);
+  const h=S.hash2(x,y,11);
+  if(h<0.05){c.fillStyle='rgba(0,0,0,.28)';c.fillRect(px+((h*40)|0)%3,py+1,1,1);}
+  else if(h>0.965){c.fillStyle='rgba(255,255,255,.10)';c.fillRect(px+2,py+2,1,1);}
+  cutEdge(c,x,y,px,py);
+}
+function cutEdge(c,x,y,px,py){
+  const i=y*TW+x;
+  c.fillStyle=P.cut;
+  if(y+1<TH&&st.grid[i+TW]===T.DUG)c.fillRect(px,py+TS-1,TS,1);
+  if(y-1>=SURF&&st.grid[i-TW]===T.DUG)c.fillRect(px,py,TS,1);
+  if(x+1<TW&&st.grid[i+1]===T.DUG)c.fillRect(px+TS-1,py,1,TS);
+  if(x-1>=0&&st.grid[i-1]===T.DUG)c.fillRect(px,py,1,TS);
+}
+function rebuildSoil(){
+  sctx.clearRect(0,0,soilCv.width,soilCv.height);
+  for(let y=SURF;y<TH;y++)for(let x=0;x<TW;x++)drawTile(sctx,x,y);
+  drawSurfaceStrip();
+}
+function drawSurfaceStrip(){
+  // grass tufts sitting on top of the soil, drawn into the soil layer
+  for(let x=0;x<TW;x++){
+    const py=SURF*TS;
+    sctx.fillStyle=P.grass[(S.hash2(x,1,5)*3)|0];
+    sctx.fillRect(x*TS,py,TS,2);
+    if(S.hash2(x,2,9)<0.42){sctx.fillRect(x*TS+((S.hash2(x,3,4)*3)|0),py-2,1,2);}
+  }
+}
+function flushDirty(){
+  if(!st.dirty.length)return;
+  for(let k=0;k<st.dirty.length;k++){
+    const i=st.dirty[k],x=i%TW,y=(i/TW)|0;
+    sctx.clearRect(x*TS,y*TS,TS,TS);
+    drawTile(sctx,x,y);
+    for(const d of [-1,1,-TW,TW]){
+      const j=i+d;if(j<0||j>=TW*TH)continue;
+      const jx=j%TW,jy=(j/TW)|0;if(jy<SURF)continue;
+      sctx.clearRect(jx*TS,jy*TS,TS,TS);drawTile(sctx,jx,jy);
+    }
+    if(y===SURF)drawSurfaceStrip();
+  }
+  st.dirty.length=0;
+}
+
+/* ---------- navigation fields ---------- */
+function getField(key,tiles){
+  const c=fieldCache.get(key);
+  if(c&&c.ver===st.ver)return c.f;
+  const f=new Int32Array(TW*TH).fill(-1),q=[];
+  for(const t of tiles){if(t>=0&&t<TW*TH&&f[t]!==0){f[t]=0;q.push(t);}}
+  let h=0;
+  while(h<q.length){
+    const cur=q[h++],cx=cur%TW,cy=(cur/TW)|0,d=f[cur];
+    for(const dd of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nx=cx+dd[0],ny=cy+dd[1];
+      if(nx<0||ny<0||nx>=TW||ny>=TH)continue;
+      const ni=ny*TW+nx;
+      if(f[ni]!==-1)continue;
+      if(st.grid[ni]!==T.DUG)continue;
+      f[ni]=d+1;q.push(ni);
+    }
+  }
+  if(fieldCache.size>40)fieldCache.clear();
+  fieldCache.set(key,{ver:st.ver,f:f});
+  return f;
+}
+function chamberField(ch,i){return getField('c'+i,ch.tiles);}
+function entranceField(){return getField('ent',[S.idx(CX,SURF)]);}
+function digField(){return getField('dg'+st.lastCarved,[st.lastCarved]);}
+
+/* ---------- agents ---------- */
+function newAgent(role){
+  const t=st.dugList.length?st.dugList[(Math.random()*st.dugList.length)|0]:S.idx(CX,SURF);
+  return {x:(t%TW+0.5)*TS,y:(((t/TW)|0)+0.5)*TS,vx:0,vy:0,role:role,
+    ph:0,carry:0,mode:'in',tgt:null,wob:Math.random()*6.28,tmr:0};
+}
+function roleOf(i,n){
+  const r=st.roles,sol=S.soldiers(st),W=S.workers(st);
+  const solShare=W+sol>0?sol/(W+sol):0;
+  const f=i/n;
+  if(f<solShare)return 'soldier';
+  const g=(f-solShare)/Math.max(0.001,1-solShare);
+  if(g<r.forage)return 'forage';
+  if(g<r.forage+r.dig)return 'dig';
+  return 'nurse';
+}
+function syncAgents(){
+  const pop=Math.round(S.adults(st));
+  let want=Math.min(AGENT_CAP,pop);
+  if(st.queen.alive)want+=1;
+  while(agents.length<want)agents.push(newAgent('nurse'));
+  while(agents.length>want)agents.pop();
+  const nw=agents.length-(st.queen.alive?1:0);
+  for(let i=0;i<agents.length;i++){
+    if(st.queen.alive&&i===0){agents[i].role='queen';continue;}
+    const k=st.queen.alive?i-1:i;
+    agents[i].role=nw>0?roleOf(k,nw):'nurse';
+  }
+}
+function moveField(a,f,sp,dt){
+  const tx=Math.floor(a.x/TS),ty=Math.floor(a.y/TS);
+  if(tx<0||ty<0||tx>=TW||ty>=TH)return true;
+  const cur=f[ty*TW+tx];
+  if(cur<0){ // stranded: return to the main nest
+    let t=st.chambers.length?st.chambers[0].tiles[0]:st.dugList[0];
+    if(t===undefined)t=st.dugList[(Math.random()*st.dugList.length)|0];
+    if(t!==undefined){a.x=(t%TW+0.5)*TS;a.y=(((t/TW)|0)+0.5)*TS;}
+    return false;
+  }
+  if(cur===0)return true;
+  let bx=tx,by=ty,bv=cur;
+  for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const nx=tx+d[0],ny=ty+d[1];
+    if(nx<0||ny<0||nx>=TW||ny>=TH)continue;
+    const v=f[ny*TW+nx];
+    if(v>=0&&v<bv){bv=v;bx=nx;by=ny;}
+  }
+  const gx=(bx+0.5)*TS,gy=(by+0.5)*TS;
+  const dx=gx-a.x,dy=gy-a.y,L=Math.hypot(dx,dy)||1;
+  a.vx=dx/L*sp;a.vy=dy/L*sp;
+  a.x+=a.vx*dt;a.y+=a.vy*dt;
+  return false;
+}
+function wander(a,sp,dt){
+  a.wob+=dt*(2+Math.random());
+  const tx=Math.floor(a.x/TS),ty=Math.floor(a.y/TS);
+  let ok=[];
+  for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const nx=tx+d[0],ny=ty+d[1];
+    if(nx<0||ny<0||nx>=TW||ny>=TH)continue;
+    if(st.grid[ny*TW+nx]===T.DUG)ok.push(d);
+  }
+  if(!ok.length)return;
+  if(!a.wd||Math.random()<dt*1.6)a.wd=ok[(Math.random()*ok.length)|0];
+  let d=a.wd;
+  if(!ok.some(o=>o[0]===d[0]&&o[1]===d[1])){d=ok[(Math.random()*ok.length)|0];a.wd=d;}
+  a.vx=d[0]*sp*0.6;a.vy=d[1]*sp*0.6;
+  a.x+=a.vx*dt;a.y+=a.vy*dt;
+}
+function pickChamber(types){
+  const list=st.chambers.map((c,i)=>({c:c,i:i})).filter(o=>types.indexOf(o.c.type)>=0);
+  if(!list.length)return null;
+  return list[(Math.random()*list.length)|0];
+}
+function updateAgents(dt){
+  const sp=26;
+  const dorm=st.dormant;
+  const forageOK=!dorm&&SIM.airTemp(SIM.doyOf(st))>9&&st.founded&&!st.sealed;
+  for(let i=0;i<agents.length;i++){
+    const a=agents[i];
+    a.ph+=dt*10;
+    if(a.role==='queen'){
+      if(!st.founded){
+        if(!st.dugList.length){a.x=(CX+0.5)*TS;a.y=SURF*TS-2+Math.sin(a.ph*3)*0.8;a.vx=1;a.vy=0;continue;}
+        if(st.projects.length){
+          if(moveField(a,digField(),sp*0.8,dt)){a.tmr+=dt;a.x+=Math.sin(a.ph*2.2)*7*dt;
+            if(a.tmr>0.7){a.tmr=0;spawnDust(a.x,a.y);}}
+          continue;
+        }
+      }
+      const q=st.chambers.find(c=>c.type==='queen');
+      if(q){const f=chamberField(q,st.chambers.indexOf(q));
+        if(moveField(a,f,sp*0.45,dt))wander(a,sp*0.22,dt);}
+      else wander(a,sp*0.3,dt);
+      continue;
+    }
+    if(dorm){ // huddle in the deepest chamber
+      let deep=null,dy=-1;
+      for(let k=0;k<st.chambers.length;k++)if(st.chambers[k].cy>dy){dy=st.chambers[k].cy;deep=k;}
+      if(deep!==null){const f=chamberField(st.chambers[deep],deep);
+        if(moveField(a,f,sp*0.35,dt))wander(a,sp*0.1,dt);}
+      continue;
+    }
+    if(a.role==='forage'){
+      if(!forageOK){if(!a.tgt)a.tgt=pickChamber(['nursery','storage','queen']);
+        if(a.tgt){if(moveField(a,chamberField(a.tgt.c,a.tgt.i),sp*0.7,dt))wander(a,sp*0.4,dt);}
+        else wander(a,sp*0.5,dt);continue;}
+      updateForager(a,sp,dt);continue;
+    }
+    if(a.role==='dig'){
+      if(st.projects.length){
+        const f=digField();
+        if(moveField(a,f,sp,dt)){
+          a.tmr+=dt;
+          a.x+=Math.sin(a.ph*2.2)*8*dt;
+          if(a.tmr>0.6){a.tmr=0;spawnDust(a.x,a.y);}
+        }
+      }else wander(a,sp*0.6,dt);
+      continue;
+    }
+    if(a.role==='soldier'){
+      if(!a.tgt||Math.random()<dt*0.18)a.tgt=Math.random()<0.5?'ent':pickChamber(['nursery','queen','storage']);
+      if(a.tgt==='ent'){if(moveField(a,entranceField(),sp*0.85,dt))wander(a,sp*0.5,dt);}
+      else if(a.tgt){if(moveField(a,chamberField(a.tgt.c,a.tgt.i),sp*0.85,dt))wander(a,sp*0.5,dt);}
+      else wander(a,sp*0.5,dt);
+      continue;
+    }
+    // nurse
+    if(!a.tgt||Math.random()<dt*0.22)a.tgt=pickChamber(['nursery','queen'])||pickChamber(['storage']);
+    if(a.tgt){if(moveField(a,chamberField(a.tgt.c,a.tgt.i),sp*0.75,dt))wander(a,sp*0.3,dt);}
+    else wander(a,sp*0.5,dt);
+  }
+}
+function updateForager(a,sp,dt){
+  const entY=SURF*TS,ground=SURF*TS-2;
+  if(a.mode==='in'){
+    if(moveField(a,entranceField(),sp,dt)){a.mode='out';a.y=ground;a.dir=Math.random()<0.5?-1:1;}
+    return;
+  }
+  if(a.mode==='out'){
+    // surface walk, biased by pheromone toward food
+    let best=null,bd=1e9;
+    for(const f of surfaceFood){const d=Math.abs(f.x-a.x);if(d<bd){bd=d;best=f;}}
+    let dir=a.dir||1;
+    if(best&&bd<90)dir=Math.sign(best.x-a.x)||1;
+    else{
+      const tx=Math.floor(a.x/TS);
+      const l=pher[Math.max(0,tx-1)]||0,r=pher[Math.min(TW-1,tx+1)]||0;
+      if(Math.abs(l-r)>0.05)dir=r>l?1:-1;
+      if(Math.random()<dt*0.5)dir=Math.random()<0.5?-1:1;
+    }
+    a.dir=dir;
+    a.x+=dir*sp*0.9*dt;
+    a.y=ground+Math.sin(a.ph*1.4)*0.6;
+    a.vx=dir;a.vy=0;
+    const tx=Math.floor(a.x/TS);
+    if(tx>=0&&tx<TW)pher[tx]=Math.min(1,pher[tx]+dt*0.2);
+    if(a.x<4||a.x>TW*TS-4)a.dir=-dir;
+    if(best&&Math.abs(best.x-a.x)<3){
+      a.carry=1;best.amt-=1;a.mode='back';
+      if(best.amt<=0)surfaceFood.splice(surfaceFood.indexOf(best),1);
+      const t2=Math.floor(a.x/TS);for(let k=-2;k<=2;k++){const q=t2+k;if(q>=0&&q<TW)pher[q]=1;}
+    }
+    if(Math.random()<dt*0.05)a.mode='back';
+    return;
+  }
+  if(a.mode==='back'){
+    const ex=(CX+0.5)*TS;
+    if(Math.abs(a.x-ex)>2.5){a.x+=Math.sign(ex-a.x)*sp*1.05*dt;a.vx=Math.sign(ex-a.x);a.vy=0;
+      a.y=ground+Math.sin(a.ph*1.4)*0.6;return;}
+    a.mode='store';a.y=entY+2;a.tgt=pickChamber(['storage','nursery','queen']);
+    return;
+  }
+  if(a.mode==='store'){
+    if(!a.tgt){a.mode='in';a.carry=0;return;}
+    if(moveField(a,chamberField(a.tgt.c,a.tgt.i),sp,dt)){a.carry=0;a.mode='in';a.tgt=null;}
+    return;
+  }
+}
+/* dust particles */
+const dust=[];
+function spawnDust(x,y){if(dust.length>90)return;
+  dust.push({x:x,y:y,vx:(Math.random()-0.5)*14,vy:-6-Math.random()*10,l:0.5});}
+function updateDust(dt){for(let i=dust.length-1;i>=0;i--){const d=dust[i];
+  d.x+=d.vx*dt;d.y+=d.vy*dt;d.vy+=60*dt;d.l-=dt;if(d.l<=0)dust.splice(i,1);}}
+
+/* surface food spawning (visual) */
+function updateSurfaceFood(dt){
+  if(!st.founded)return;
+  const tA=SIM.airTemp(SIM.doyOf(st));
+  if(tA<9||st.dormant)return;
+  if(surfaceFood.length<7&&Math.random()<dt*0.9){
+    surfaceFood.push({x:6+Math.random()*(TW*TS-12),amt:2+((Math.random()*4)|0),
+      k:(Math.random()*3)|0});
+  }
+  for(let i=0;i<TW;i++)pher[i]*=Math.max(0,1-dt*0.25);
+}
+
+/* ---------- rendering ---------- */
+function skyColors(dayF){
+  const el=Math.sin((dayF-0.25)*Math.PI*2);
+  if(el>0.20)return ['#5fa8d8','#a9d9ee'];
+  if(el>-0.02)return ['#c9743f','#f0b46a'];
+  if(el>-0.18)return ['#31355e','#6b4a63'];
+  return ['#0c1230','#1d2650'];
+}
+function render(){
+  const dayF=st.day%1;
+  const sc=skyColors(dayF);
+  const gr=ctx.createLinearGradient(0,0,0,SURF*TS);
+  gr.addColorStop(0,sc[0]);gr.addColorStop(1,sc[1]);
+  ctx.fillStyle=gr;ctx.fillRect(0,0,cv.width,SURF*TS);
+  // sun / moon
+  const el=Math.sin((dayF-0.25)*Math.PI*2);
+  const sx=(dayF-0.25)/0.5*cv.width;
+  const sy=SURF*TS-8-el*(SURF*TS-24);
+  if(el>-0.06){ctx.fillStyle='#ffe9a0';ctx.fillRect(sx-3,sy-3,7,7);ctx.fillRect(sx-4,sy-2,9,5);ctx.fillRect(sx-2,sy-4,5,9);}
+  else drawMoon(((dayF+0.25)%1-0.25)/0.5*cv.width,20);
+  // distant hills
+  ctx.fillStyle='rgba(20,40,30,.35)';
+  for(let x=0;x<cv.width;x+=4){
+    const h=8+Math.sin(x*0.05)*4+Math.sin(x*0.13)*3;
+    ctx.fillRect(x,SURF*TS-h,4,h);
+  }
+  // plants
+  for(const p of st.plants)drawPlant(p);
+  // soil layer
+  flushDirty();
+  ctx.drawImage(soilCv,0,0);
+  // entrance mound
+  drawEntrance();
+  // chamber contents
+  drawChambers();
+  // surface food
+  for(const f of surfaceFood)drawFoodItem(f);
+  // pheromone trail
+  ctx.fillStyle='rgba(255,220,120,.16)';
+  for(let x=0;x<TW;x++)if(pher[x]>0.08)ctx.fillRect(x*TS,SURF*TS-1,TS,1);
+  // agents
+  for(const a of agents)drawAnt(a);
+  // dust
+  ctx.fillStyle='#a58256';
+  for(const d of dust)ctx.fillRect(d.x|0,d.y|0,1,1);
+  // weather
+  drawWeather(dayF);
+  // night tint above ground
+  if(el<0.05){
+    const k=Math.min(0.55,(0.05-el)*0.8);
+    ctx.fillStyle='rgba(8,10,30,'+k+')';ctx.fillRect(0,0,cv.width,SURF*TS+2);
+  }
+  // depth ruler — the nest's vertical scale is the core readable stat
+  for(let d=20;d<=120;d+=20){
+    const y=Math.round(SURF*TS+d/SIM.CM*TS);
+    if(y>=cv.height-6)break;
+    ctx.fillStyle='rgba(255,255,255,.16)';ctx.fillRect(0,y,4,1);
+    pxText(d+'cm',6,y-2,'rgba(255,255,255,.30)');
+  }
+  if(st.dormant){ctx.fillStyle='rgba(120,180,255,.10)';ctx.fillRect(0,SURF*TS,cv.width,cv.height-SURF*TS);}
+}
+/* Moon phase follows the real synodic month (29.53 d), so the night sky is a
+   readable secondary clock alongside the day counter. Lit if dx >= w*cos(2πp). */
+function drawMoon(mx,my){
+  const p=((st.day+7.4)%29.53)/29.53, c=Math.cos(2*Math.PI*p), r=4;
+  for(let dy=-r;dy<=r;dy++){
+    const w=Math.sqrt(Math.max(0,r*r-dy*dy));
+    for(let dx=-r;dx<=r;dx++){
+      if(dx*dx+dy*dy>r*r)continue;
+      const lit=dx>=w*c;
+      if(!lit)continue;
+      ctx.fillStyle=(dx+dy)%3===0?'#d8d8ee':'#eeeef8';
+      ctx.fillRect(Math.round(mx+dx),my+dy,1,1);
+    }
+  }
+}
+/* 3x5 bitmap glyphs — canvas text would be antialiased and break the pixel grid */
+const GLYPH={'0':[7,5,5,5,7],'1':[2,6,2,2,7],'2':[7,1,7,4,7],'3':[7,1,7,1,7],'4':[5,5,7,1,1],
+  '5':[7,4,7,1,7],'6':[7,4,7,5,7],'7':[7,1,1,1,1],'8':[7,5,7,5,7],'9':[7,5,7,1,7],
+  'c':[0,3,4,4,3],'m':[0,5,7,5,5]};
+function pxText(s,x,y,col){
+  ctx.fillStyle=col;
+  for(let i=0;i<s.length;i++){
+    const g=GLYPH[s[i]];if(!g){x+=4;continue;}
+    for(let r=0;r<5;r++)for(let b=0;b<3;b++)if(g[r]>>(2-b)&1)ctx.fillRect(x+b,y+r,1,1);
+    x+=4;
+  }
+}
+function drawPlant(p){
+  const x=p.x*TS,y=SURF*TS;
+  if(p.k===3){ // aphid plant
+    ctx.fillStyle='#3f7a34';ctx.fillRect(x+1,y-16,2,16);
+    ctx.fillRect(x-3,y-14,4,1);ctx.fillRect(x+3,y-11,4,1);
+    ctx.fillStyle='#6fbf4a';ctx.fillRect(x-5,y-16,4,2);ctx.fillRect(x+3,y-13,5,2);
+    ctx.fillStyle='#9ade5c';
+    for(let i=0;i<4;i++)ctx.fillRect(x+1+((i%2)?2:-2),y-15+i*3,1,1);
+    return;
+  }
+  ctx.fillStyle='#3f7a34';
+  if(p.k===0){ctx.fillRect(x,y-7,1,7);ctx.fillRect(x+2,y-5,1,5);ctx.fillRect(x-2,y-4,1,4);
+    ctx.fillStyle='#5aa84a';ctx.fillRect(x-1,y-8,1,1);ctx.fillRect(x+3,y-6,1,1);}
+  else if(p.k===1){ctx.fillRect(x,y-10,1,10);ctx.fillStyle='#e6d76a';ctx.fillRect(x-1,y-12,3,2);}
+  else{ctx.fillRect(x,y-5,2,5);ctx.fillStyle='#2f5f28';ctx.fillRect(x-2,y-6,6,2);}
+}
+function drawEntrance(){
+  const x=CX*TS+2,y=SURF*TS;
+  ctx.fillStyle='#7d5c3d';
+  ctx.fillRect(x-10,y-1,21,3);ctx.fillRect(x-8,y-3,17,2);ctx.fillRect(x-6,y-5,13,2);
+  ctx.fillStyle='#93704b';ctx.fillRect(x-10,y-1,21,1);ctx.fillRect(x-6,y-5,13,1);
+  ctx.fillStyle=st.sealed?'#6b4a30':'#100a05';
+  ctx.fillRect(x-3,y-5,7,6);
+  ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(x-3,y-5,7,1);
+  if(!st.sealed){ctx.fillStyle='#2a1a0e';ctx.fillRect(x-2,y-6,5,1);}
+}
+function drawFoodItem(f){
+  const y=SURF*TS-3;
+  const c=['#d8c24a','#c86a3a','#8fd05a'][f.k];
+  ctx.fillStyle=c;ctx.fillRect(f.x-1,y,3,3);
+  ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(f.x-1,y,1,1);
+}
+function drawChambers(){
+  const eggN=SIM.eggTotal(st),larN=SIM.larvaTotal(st),pupN=SIM.pupaTotal(st);
+  const nurse=st.chambers.filter(c=>c.type==='nursery'||c.type==='queen');
+  const store=st.chambers.filter(c=>c.type==='storage'||c.type==='queen');
+  const refuse=st.chambers.filter(c=>c.type==='refuse');
+  const capN=Math.max(1,nurse.reduce((a,c)=>a+c.tiles.length*7,0));
+  const capS=Math.max(1,store.reduce((a,c)=>a+c.tiles.length*9,0));
+  const capR=Math.max(1,refuse.reduce((a,c)=>a+c.tiles.length*8,0));
+  const brood=eggN+larN+pupN;
+  const fillN=Math.min(1,brood/capN),fillS=Math.min(1,st.food/capS),fillR=Math.min(1,st.waste/capR);
+  const eShare=brood>0?eggN/brood:0,lShare=brood>0?larN/brood:0;
+  for(const ch of nurse){
+    const n=Math.round(ch.tiles.length*4*fillN);
+    for(let k=0;k<n;k++){
+      const t=ch.tiles[k%ch.tiles.length],x=(t%TW)*TS,y=((t/TW)|0)*TS;
+      const r=SIM.hash2(t,k,17),ox=(SIM.hash2(t,k,5)*(TS-1))|0,oy=(SIM.hash2(t,k,9)*(TS-1))|0;
+      if(r<eShare){ctx.fillStyle='#f2e8cf';ctx.fillRect(x+ox,y+oy,1,1);}
+      else if(r<eShare+lShare){ctx.fillStyle='#f7edd0';ctx.fillRect(x+ox,y+oy,2,1);
+        ctx.fillStyle='rgba(190,160,120,.6)';ctx.fillRect(x+ox,y+oy,1,1);}
+      else{ctx.fillStyle='#d6b07a';ctx.fillRect(x+ox,y+oy,2,2);}
+    }
+  }
+  for(const ch of store){
+    const n=Math.round(ch.tiles.length*3*fillS);
+    for(let k=0;k<n;k++){
+      const t=ch.tiles[k%ch.tiles.length],x=(t%TW)*TS,y=((t/TW)|0)*TS;
+      const ox=(SIM.hash2(t,k,21)*(TS-1))|0,oy=(SIM.hash2(t,k,23)*(TS-1))|0;
+      ctx.fillStyle=SIM.hash2(t,k,29)<0.5?'#e0a53a':'#c8892b';
+      ctx.fillRect(x+ox,y+oy,1,1);
+    }
+  }
+  for(const ch of refuse){
+    const n=Math.round(ch.tiles.length*3*fillR);
+    for(let k=0;k<n;k++){
+      const t=ch.tiles[k%ch.tiles.length],x=(t%TW)*TS,y=((t/TW)|0)*TS;
+      const ox=(SIM.hash2(t,k,31)*(TS-1))|0,oy=(SIM.hash2(t,k,33)*(TS-1))|0;
+      ctx.fillStyle=SIM.hash2(t,k,37)<0.5?'#5a4a40':'#6a3a34';
+      ctx.fillRect(x+ox,y+oy,1,1);
+    }
+  }
+  // pending dig markers
+  if(st.projects.length){
+    const p=st.projects[0];
+    ctx.fillStyle='rgba(154,224,74,.28)';
+    for(let k=p.i;k<Math.min(p.tiles.length,p.i+90);k++){
+      const t=p.tiles[k];if(st.grid[t]===T.DUG)continue;
+      ctx.fillRect((t%TW)*TS+1,((t/TW)|0)*TS+1,2,2);
+    }
+  }
+}
+function drawAnt(a){
+  const x=Math.round(a.x),y=Math.round(a.y);
+  const hor=Math.abs(a.vx)>=Math.abs(a.vy);
+  const dx=hor?(a.vx>=0?1:-1):0, dy=hor?0:(a.vy>=0?1:-1);
+  let body='#5d452e',head='#241710',hi='#c19a6b';
+  let len=3;
+  if(a.role==='queen'){body='#7c4a22';head='#2c1409';hi='#f0b45a';len=5;}
+  else if(a.role==='soldier'){body='#6b4530';head='#9a4526';hi='#c78a5e';len=4;}
+  ctx.fillStyle=body;
+  for(let i=0;i<len;i++)ctx.fillRect(x-dx*i,y-dy*i,1,1);
+  ctx.fillStyle=head;ctx.fillRect(x+dx,y+dy,1,1);
+  ctx.fillStyle=hi;ctx.fillRect(x-dx*(len-1),y-dy*(len-1),1,1);
+  if(a.role==='queen'){ctx.fillStyle='#d99a3c';ctx.fillRect(x-dx*2-(hor?0:1),y-dy*2-(hor?1:0),2,2);}
+  // legs flicker
+  if(((a.ph*6)|0)%2===0){ctx.fillStyle='rgba(0,0,0,.55)';
+    if(hor){ctx.fillRect(x,y-1,1,1);ctx.fillRect(x-dx,y+1,1,1);}
+    else{ctx.fillRect(x-1,y,1,1);ctx.fillRect(x+1,y-dy,1,1);}}
+  if(a.carry){ctx.fillStyle='#ffd24a';ctx.fillRect(x+dx*2,y+dy*2-1,2,2);}
+}
+function drawWeather(dayF){
+  const w=st.weather.type;
+  if(w==='rain'||w==='storm'){
+    const n=w==='storm'?70:34,gy=SURF*TS-2;
+    for(let i=0;i<n;i++){
+      const s=(i*97+((st.day*4200)|0))%(cv.width);
+      const y=((i*53+((st.day*9000)|0))%gy);
+      ctx.fillStyle='rgba(150,200,255,.5)';ctx.fillRect(s,y,1,Math.min(3,gy-y));
+    }
+    ctx.fillStyle='rgba(180,215,255,.35)';
+    for(let i=0;i<10;i++){
+      const s=(i*171+((st.day*2600)|0))%(cv.width);
+      ctx.fillRect(s,gy,2,1);
+    }
+    if(w==='storm'&&Math.random()<0.02){ctx.fillStyle='rgba(255,255,255,.35)';
+      ctx.fillRect(0,0,cv.width,SURF*TS);}
+  }else if(w==='snow'){
+    for(let i=0;i<28;i++){
+      const s=(i*131+((st.day*900)|0))%(cv.width);
+      const y=((i*71+((st.day*2200)|0))%(SURF*TS-2));
+      ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillRect(s,y,1,1);
+    }
+    ctx.fillStyle='rgba(235,242,255,.9)';ctx.fillRect(0,SURF*TS-1,cv.width,2);
+  }
+}
+
+/* ---------- HUD ---------- */
+const $=id=>document.getElementById(id);
+function fmt(n){n=Math.round(n);return n>=10000?(n/1000).toFixed(1)+'k':String(n);}
+function updateHUD(){
+  const doy=SIM.doyOf(st),m=SIM.md(doy),season=SIM.seasonOf(doy);
+  $('dayNum').textContent=Math.floor(st.day)+1;
+  const yr=1+Math.floor((st.doy0+st.day)/365);
+  $('ymd').textContent=yr+'年目 '+m[0]+'月'+m[1]+'日';
+  const sc=$('seasonChip');sc.textContent=SIM.SEASON_NAME[season]+(st.dormant?'・休眠':'');
+  sc.className='chip '+['sp','su','au','wi'][season];
+  $('weatherChip').textContent={clear:'☀ 晴れ',cloudy:'☁ くもり',rain:'☂ 雨',storm:'⚡ 雷雨',snow:'❄ 雪'}[st.weather.type];
+  $('tempChip').innerHTML='気温 <b>'+Math.round(st.tAir||0)+'</b>℃';
+  $('nestTempChip').innerHTML='巣内 <b>'+Math.round(st.tNest||0)+'</b>℃';
+
+  const W=SIM.workers(st),So=SIM.soldiers(st),E=SIM.eggTotal(st),
+        L=SIM.larvaTotal(st),Pu=SIM.pupaTotal(st);
+  const fcap=SIM.capacity(st,'storage');
+  $('stats').innerHTML=[
+    stat('#9ae04a','働きアリ',fmt(W),''),
+    stat('#ff5f5f','兵アリ',fmt(So),''),
+    stat('#f2e8cf','卵',fmt(E),''),
+    stat('#f7edd0','幼虫',fmt(L),''),
+    stat('#d6b07a','蛹',fmt(Pu),''),
+    stat('#ffb63d','食料',fmt(st.food),'/'+fmt(fcap)),
+    stat('#5ad0f0','部屋',String(st.chambers.length),''),
+    stat('#b28cff','深さ',String(SIM.nestDepth(st)),'cm'),
+  ].join('');
+
+  if(curTab==='status')renderStatus();
+  if(curTab==='chart')renderChart();
+  renderLog();
+}
+function stat(col,k,v,u){
+  return '<div class="st"><div class="k"><i style="background:'+col+'"></i>'+k+'</div>'+
+    '<div class="v">'+v+(u?'<small>'+u+'</small>':'')+'</div></div>';
+}
+function bar(v,max,cls){
+  const p=Math.max(0,Math.min(100,v/Math.max(0.001,max)*100));
+  return '<div class="bar '+(cls||'')+'"><i style="width:'+p.toFixed(1)+'%"></i></div>';
+}
+function renderStatus(){
+  const W=SIM.workers(st),So=SIM.soldiers(st),B=SIM.broodTotal(st);
+  const stg=SIM.stageOf(st),nx=SIM.STAGE_NEXT[stg];
+  const ncap=SIM.capacity(st,'nursery'),fcap=SIM.capacity(st,'storage'),rcap=SIM.capacity(st,'refuse');
+  const rooms={};st.chambers.forEach(c=>rooms[c.type]=(rooms[c.type]||0)+1);
+  const RN={queen:'女王室',nursery:'育児室',storage:'貯蔵室',refuse:'ゴミ捨て場',winter:'越冬室'};
+  const proj=st.projects.length?st.projects[0]:null;
+  const projName=proj?(RN[proj.chType]||'通路')+'（残り'+Math.max(0,proj.tiles.length-proj.i)+'区画）':'なし';
+  $('pStatus').innerHTML=
+    '<div class="krow"><span>コロニー階級</span><b style="color:var(--amber)">'+SIM.STAGE_NAME[stg]+'</b></div>'+
+    (nx?bar(W,nx)+'<div class="note" style="margin:4px 0 10px">次の段階まで 働きアリ '+fmt(Math.max(0,nx-W))+'匹</div>':
+      '<div class="note" style="margin:4px 0 10px">最大階級に到達</div>')+
+    '<div class="krow"><span>育児室の空き</span><b>'+fmt(B)+' / '+fmt(ncap)+'</b></div>'+bar(B,ncap)+
+    '<div class="krow" style="margin-top:6px"><span>貯蔵食料</span><b>'+fmt(st.food)+' / '+fmt(fcap)+'</b></div>'+bar(st.food,fcap,'f')+
+    '<div class="krow" style="margin-top:6px"><span>ゴミ</span><b>'+fmt(st.waste)+' / '+fmt(rcap)+'</b></div>'+bar(st.waste,rcap,'w')+
+    '<table class="t" style="margin-top:12px">'+
+    row('女王',st.queen.alive?(Math.floor(st.queen.age/365)+'歳 '+(st.queen.age%365)+'日'):'不在')+
+    row('働きアリ / 兵アリ',fmt(W)+' / '+fmt(So))+
+    row('卵・幼虫・蛹',fmt(B))+
+    row('羽アリ（待機中）',fmt(st.alateF+st.alateM))+
+    row('巣の最深部',SIM.nestDepth(st)+' cm')+
+    row('最深の部屋',SIM.deepestChamber(st)+' cm')+
+    row('部屋の内訳',Object.keys(rooms).map(k=>RN[k]+'×'+rooms[k]).join(' / ')||'なし')+
+    row('掘削中',projName)+
+    row('累計 産卵 / 羽化',fmt(st.stats.eggsLaid)+' / '+fmt(st.stats.born))+
+    row('累計 死亡',fmt(st.stats.died))+
+    row('掘った区画',fmt(st.stats.dug))+
+    row('巣立った新女王',fmt(st.stats.queens))+
+    '</table>'+
+    (st.dormant?'<div class="note" style="margin-top:8px;color:var(--cyan)">巣内が低温のため休眠中。産卵と発育が止まっています。越冬室が浅いと死亡率が上がります。</div>':'')+
+    (SIM.deepestChamber(st)<40&&SIM.seasonOf(SIM.doyOf(st))>=2?
+      '<div class="note" style="margin-top:8px;color:var(--red)">越冬に必要な深さ（40cm以上）の部屋がありません。</div>':'')+
+    '<div class="legend" style="margin-top:12px">'+
+      '<span><i style="background:#f2e8cf"></i>卵</span>'+
+      '<span><i style="background:#f7edd0"></i>幼虫</span>'+
+      '<span><i style="background:#d6b07a"></i>蛹</span>'+
+      '<span><i style="background:#e0a53a"></i>食料</span>'+
+      '<span><i style="background:#6a3a34"></i>ゴミ</span>'+
+      '<span><i style="background:#9ae04a"></i>掘削予定</span></div>'+
+    '<details style="margin-top:10px"><summary class="note" style="cursor:pointer">'+
+      'シミュレーションのモデル値</summary><div class="note" style="margin-top:6px">'+
+      'モデル種：クロオオアリ（Camponotus japonicus）／単独創設<br>'+
+      '発育：卵12日 → 幼虫20日 → 蛹16日（適温時。巣内が13℃を下回ると停止）<br>'+
+      '巣内温度：地上気温を深さで減衰させた値（深いほど年較差が小さい）<br>'+
+      '働きアリ寿命 約1年、女王 約10年以上／兵アリは働きアリ150匹から生産可能<br>'+
+      '結婚飛行：働きアリ650匹以上・女王が2年目以降・5〜6月の晴天時<br>'+
+      '倍速と日数スキップは同じ連続モデルを積分するため、結果は変わりません。'+
+      '</div></details>';
+}
+function row(k,v){return '<tr><th>'+k+'</th><td class="n">'+v+'</td></tr>';}
+function renderLog(){
+  if(st.log.length===logSeen)return;
+  logSeen=st.log.length;
+  $('logbox').innerHTML=st.log.slice(0,120).map(l=>
+    '<div class="lg '+l.k+'"><div class="d">'+l.d+'d</div><div class="t">'+l.t+'</div></div>').join('');
+}
+function renderChart(){
+  const c=$('chart'),g=c.getContext('2d');
+  g.clearRect(0,0,c.width,c.height);
+  g.fillStyle='#0d0b18';g.fillRect(0,0,c.width,c.height);
+  const h=st.history;
+  if(h.length<2){g.fillStyle='#948dae';g.font='8px monospace';g.fillText('NO DATA',8,20);return;}
+  const N=c.width-16,step=Math.max(1,Math.ceil(h.length/N));
+  const pts=[];for(let i=0;i<h.length;i+=step)pts.push(h[i]);
+  let mw=1,mb=1,mf=1;
+  for(const p of pts){mw=Math.max(mw,p.w,p.s);mb=Math.max(mb,p.b);mf=Math.max(mf,p.f);}
+  g.strokeStyle='#252041';g.lineWidth=1;
+  for(let i=1;i<4;i++){const y=(c.height-14)*i/4+2;g.beginPath();g.moveTo(8,y);g.lineTo(c.width-8,y);g.stroke();}
+  const line=(key,max,col)=>{
+    g.strokeStyle=col;g.lineWidth=2;g.beginPath();
+    pts.forEach((p,i)=>{
+      const x=8+i/(pts.length-1||1)*(c.width-16);
+      const y=c.height-14-(p[key]/max)*(c.height-20);
+      i?g.lineTo(x,y):g.moveTo(x,y);
+    });g.stroke();
+  };
+  line('b',mb,'#5ad0f0');line('f',mf,'#ffb63d');line('s',mw,'#ff5f5f');line('w',mw,'#9ae04a');
+  g.fillStyle='#948dae';g.font='7px monospace';
+  g.fillText('1d',8,c.height-4);g.fillText(pts[pts.length-1].d+'d',c.width-30,c.height-4);
+  g.fillText('MAX '+Math.round(mw),8,10);
+  $('records').innerHTML=
+    '最大働きアリ数 <b>'+fmt(st.stats.maxW)+'</b>匹 ／ 巣立った羽アリ <b>'+fmt(st.stats.alatesOut)+'</b>匹 ／ '+
+    '経過 <b>'+(Math.floor(st.day)+1)+'</b>日（約'+(st.day/365).toFixed(1)+'年）';
+}
+function pushToast(l){
+  const d=document.createElement('div');
+  d.className='tmsg '+(l.k==='good'?'good':l.k==='bad'?'bad':l.k==='sea'?'sea':'');
+  d.textContent=l.t;
+  $('toast').appendChild(d);
+  setTimeout(()=>{d.remove();},4200);
+  while($('toast').children.length>3)$('toast').firstChild.remove();
+}
+let lastLogLen=0;
+function watchLog(){
+  if(st.log.length>lastLogLen){
+    const add=st.log.slice(0,Math.min(3,st.log.length-lastLogLen));
+    add.reverse().forEach(l=>{if(l.k!=='info'||Math.random()<1)pushToast(l);});
+    lastLogLen=st.log.length;
+  }
+}
+
+/* ---------- loop ---------- */
+function loop(t){
+  requestAnimationFrame(loop);
+  if(!st)return;
+  const dtR=Math.min(0.05,(t-lastT)/1000||0);lastT=t;
+  if(running&&!st.over){
+    SIM.advance(st,dtR/SEC_PER_DAY*speed);
+    const vdt=dtR*Math.min(speed,4);
+    updateAgents(vdt);updateDust(vdt);updateSurfaceFood(vdt);
+    syncAgents();
+  }
+  render();
+  acc+=dtR;
+  if(acc>0.2){acc=0;updateHUD();watchLog();checkOver();}
+}
+function checkOver(){
+  if(st.over&&$('ovEnd').classList.contains('hidden')){
+    running=false;setPlay();
+    $('endTitle').innerHTML='COLONY<br>LOST';
+    $('endText').textContent=st.overReason;
+    $('endStats').innerHTML='生存日数 <b>'+(Math.floor(st.day)+1)+'日</b>／最大働きアリ <b>'+
+      fmt(st.stats.maxW)+'匹</b>／巣立った新女王 <b>'+fmt(st.stats.queens)+'匹</b>';
+    $('ovEnd').classList.remove('hidden');
+  }
+}
+
+/* ---------- controls ---------- */
+function setPlay(){$('btnPlay').textContent=running?'❚❚ PAUSE':'▶ PLAY';$('btnPlay').classList.toggle('on',running);}
+$('btnPlay').onclick=()=>{if(!st)return;running=!running;setPlay();};
+document.querySelectorAll('.spd').forEach(b=>b.onclick=()=>{
+  speed=+b.dataset.s;document.querySelectorAll('.spd').forEach(x=>x.classList.toggle('on',x===b));});
+document.querySelectorAll('.skip').forEach(b=>b.onclick=()=>{
+  if(!st||st.over)return;
+  const n=+b.dataset.d,w0=SIM.workers(st),f0=st.food;
+  SIM.skipDays(st,n);
+  fieldCache.clear();syncAgents();
+  const dw=SIM.workers(st)-w0;
+  SIM.log(st,n+'日が経過した。（働きアリ '+(dw>=0?'+':'')+Math.round(dw)+
+    ' / 食料 '+(st.food-f0>=0?'+':'')+Math.round(st.food-f0)+'）','sea');
+  updateHUD();watchLog();checkOver();
+});
+$('btnDig').onclick=()=>{
+  digMode=!digMode;
+  $('btnDig').classList.toggle('on',digMode);
+  $('digOpts').style.display=digMode?'flex':'none';
+  $('stage').classList.toggle('digmode',digMode);
+};
+$('digType').onchange=e=>{digType=e.target.value;};
+
+/* ---------- view: zoom & pan ---------- */
+const vp=$('viewport');
+let zoom=1;
+function centerOnNest(){
+  const r=cv.getBoundingClientRect();
+  const px=r.width/cv.width, py=r.height/cv.height;
+  const deep=st?Math.max(SURF+10,SIM.deepestChamber(st)+SURF):SURF+20;
+  vp.scrollLeft=CX*TS*px-vp.clientWidth/2;
+  vp.scrollTop=(SURF*TS+(deep-SURF)*TS*0.5)*py-vp.clientHeight/2;
+}
+function setZoom(z){
+  zoom=z;
+  document.documentElement.style.setProperty('--z',z);
+  $('stage').classList.toggle('zoomed',z>1);
+  document.querySelectorAll('.zm').forEach(b=>b.classList.toggle('on',+b.dataset.z===z));
+  requestAnimationFrame(centerOnNest);
+}
+document.querySelectorAll('.zm').forEach(b=>b.onclick=()=>setZoom(+b.dataset.z));
+
+/* ---------- fullscreen (observation) mode ---------- */
+/* Everything except the header collapses, so the cross-section fills the
+   viewport. The toggle lives in the header because that is the only bar left
+   on screen — otherwise there would be no way back. */
+let fsMode=false;
+function setFs(on){
+  fsMode=on;
+  document.body.classList.toggle('fs',on);
+  const b=$('btnFs');
+  b.textContent=on?'⤡ 通常表示':'⛶ 全画面';
+  b.classList.toggle('on',on);
+  requestAnimationFrame(centerOnNest);
+}
+$('btnFs').onclick=()=>{
+  const on=!fsMode;
+  setFs(on);
+  /* Native fullscreen is a bonus; iOS Safari has no element API, and a denied
+     request must not leave the layout half-switched. */
+  try{
+    const de=document.documentElement;
+    if(on){if(de.requestFullscreen&&!document.fullscreenElement)
+      Promise.resolve(de.requestFullscreen()).catch(()=>{});}
+    else if(document.fullscreenElement&&document.exitFullscreen)
+      Promise.resolve(document.exitFullscreen()).catch(()=>{});
+  }catch(e){}
+};
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement&&fsMode)setFs(false);
+});
+
+/* Keyboard control, so playback stays reachable while the buttons are hidden */
+window.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const t=e.target;
+  if(t&&t.matches&&t.matches('input,select,textarea,button'))return;
+  const k=e.key;
+  if(k===' '){e.preventDefault();if(st&&!st.over){running=!running;setPlay();}}
+  else if(k==='f'||k==='F'){e.preventDefault();$('btnFs').onclick();}
+  else if(k>='1'&&k<='5'){const b=document.querySelectorAll('.spd')[+k-1];if(b)b.click();}
+  else if(k==='z'||k==='Z'){e.preventDefault();setZoom(zoom>=3?1:zoom+1);}
+  else if(k==='Escape'&&fsMode&&!document.fullscreenElement){setFs(false);}
+});
+
+/* A drag pans the view; only a tap that stayed put counts as a dig order. */
+let drag=null;
+vp.addEventListener('pointerdown',e=>{
+  drag={x:e.clientX,y:e.clientY,sl:vp.scrollLeft,st:vp.scrollTop,moved:0,id:e.pointerId};
+  if(zoom>1&&e.pointerType==='mouse'){vp.classList.add('grabbing');vp.setPointerCapture(e.pointerId);}
+});
+vp.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+  drag.moved=Math.max(drag.moved,Math.abs(dx)+Math.abs(dy));
+  if(zoom>1&&e.pointerType==='mouse'){vp.scrollLeft=drag.sl-dx;vp.scrollTop=drag.st-dy;}
+});
+function endDrag(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  const wasTap=drag.moved<6;
+  vp.classList.remove('grabbing');
+  drag=null;
+  if(!wasTap||!digMode||!st)return;
+  const r=cv.getBoundingClientRect();
+  const x=Math.floor((e.clientX-r.left)/r.width*cv.width/TS);
+  const y=Math.floor((e.clientY-r.top)/r.height*cv.height/TS);
+  if(!SIM.inB(x,y))return;
+  if(y<=SURF){pushToast({t:'地下を指定してください。',k:'bad'});return;}
+  const ok=SIM.manualDig(st,x,y,digType);
+  if(!ok)pushToast({t:'そこへは掘り進められません（岩盤）。',k:'bad'});
+  fieldCache.clear();
+}
+vp.addEventListener('pointerup',endDrag);
+vp.addEventListener('pointercancel',e=>{if(drag&&e.pointerId===drag.id){vp.classList.remove('grabbing');drag=null;}});
+let curTab='status';
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+  curTab=b.dataset.t;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $('pStatus').style.display=curTab==='status'?'':'none';
+  $('pRoles').style.display=curTab==='roles'?'':'none';
+  $('pLog').style.display=curTab==='log'?'':'none';
+  $('pChart').style.display=curTab==='chart'?'':'none';
+  if(st)updateHUD();
+});
+function readRoles(){
+  const g={},els=document.querySelectorAll('.sl[data-r]');
+  els.forEach(el=>{const k=el.dataset.r,v=+el.querySelector('input').value;
+    el.querySelector('.rv').textContent=v;if(k!=='soldier')g[k]=v;});
+  const tot=(g.forage+g.dig+g.nurse)||1;
+  if(st){st.roles={forage:g.forage/tot,dig:g.dig/tot,nurse:g.nurse/tot};
+    st.soldierRatio=+document.querySelector('.sl[data-r=soldier] input').value/100;}
+}
+document.querySelectorAll('.sl input').forEach(i=>i.addEventListener('input',readRoles));
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{
+  const p={grow:[25,55,20],food:[60,15,25],breed:[35,15,50],winter:[55,25,20]}[b.dataset.preset];
+  const map={forage:p[0],dig:p[1],nurse:p[2]};
+  document.querySelectorAll('.sl[data-r]').forEach(el=>{
+    const k=el.dataset.r;if(map[k]!==undefined)el.querySelector('input').value=map[k];});
+  readRoles();
+});
+
+/* ---------- start ---------- */
+function start(){
+  st=SIM.newState();
+  fieldCache.clear();agents.length=0;dust.length=0;surfaceFood.length=0;
+  pher=new Float32Array(TW);
+  lastLogLen=0;logSeen=-1;
+  rebuildSoil();st.dirty.length=0;
+  readRoles();
+  syncAgents();
+  running=true;setPlay();
+  $('ovStart').classList.add('hidden');$('ovEnd').classList.add('hidden');
+  updateHUD();
+}
+$('btnStart').onclick=start;
+$('btnRestart').onclick=start;
+requestAnimationFrame(t=>{lastT=t;requestAnimationFrame(loop);});
+
+/* Read-only handle for inspecting a running colony from the console:
+   ANTSIM.state.chambers, ANTSIM.SIM.skipDays(ANTSIM.state, 30), … */
+window.ANTSIM={SIM:SIM,get state(){return st;},setZoom:setZoom,
+  setFullscreen:setFs,get fullscreen(){return fsMode;},restart:start};
+})();
+</script>
+</body>
+</html>
