@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#08080b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LIGHT TIMER v3.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@100;400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080b; --surface:#101016; --surface2:#16161e;
+  --border:#252530; --border-hi:#35354a;
+  --text:#e8e8f0; --text-dim:#6a6a80; --text-muted:#3a3a4a;
+  --accent:#00e878; --accent2:#ff2e5c; --accent3:#2e8cff;
+  --warn:#ffa726;
+  --phase:#00e878;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'LINE Seed JP','Noto Sans JP',system-ui,sans-serif;
+  overflow:hidden; overscroll-behavior:none;
+  -webkit-user-select:none; user-select:none;
+}
+
+/* ===== 発光レイヤー（UIの背面） ===== */
+.flash{position:fixed;inset:0;z-index:0;display:none;pointer-events:none;overflow:hidden}
+.flash.on{display:block}
+.flash canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* ===== 基本ビュー ===== */
+.app{
+  position:fixed;inset:0;z-index:1;will-change:transform;
+  height:100vh;height:100dvh;
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.ambient{
+  position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s;
+  background:radial-gradient(circle at 50% 50%,var(--phase) 0%,transparent 62%);
+}
+.stage{
+  flex:1 1 auto;min-height:0;position:relative;
+  display:grid;place-items:center;padding:12px;
+}
+.dial{
+  position:relative;
+  width:min(76vmin,440px);aspect-ratio:1;height:auto;
+  max-width:100%;max-height:100%;
+  container-type:inline-size;
+}
+.dial svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:#1c1c26;stroke-width:2.2}
+.ring-fg{
+  fill:none;stroke:var(--phase);stroke-width:2.2;stroke-linecap:round;
+  filter:drop-shadow(0 0 3px var(--phase));
+  transition:stroke .4s;
+}
+.dial::before{
+  content:"";position:absolute;inset:-3%;border-radius:50%;
+  background:rgba(6,6,10,.84);opacity:0;transition:opacity .18s;
+}
+.app.alerting .dial::before{opacity:1}
+.app.alerting .time{text-shadow:0 0 26px var(--phase)}
+
+.time{
+  position:absolute;left:0;right:0;top:50%;
+  transform:translateY(calc(-50% - .02em));
+  text-align:center;white-space:nowrap;
+  font-weight:800;line-height:1;letter-spacing:.005em;color:var(--text);
+  font-size:clamp(38px,15vmin,92px);
+  font-size:23cqw;
+}
+.time.long{
+  font-size:clamp(26px,10vmin,60px);
+  font-size:15cqw;
+}
+.time .d{display:inline-block;width:.68em;text-align:center}
+.time .d.c{width:.30em}
+
+/* ===== バーボタン（開始／設定を段で並べる） ===== */
+.controls{
+  flex:0 0 auto;width:100%;max-width:520px;margin:0 auto;
+  display:flex;flex-direction:column;gap:10px;
+  padding:0 20px calc(22px + env(safe-area-inset-bottom));
+}
+.bar{
+  width:100%;min-height:62px;padding:16px 20px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;gap:11px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.14);
+  color:var(--text);font-family:inherit;font-size:13px;font-weight:700;letter-spacing:5px;
+  cursor:pointer;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  transition:transform .12s,background .2s,border-color .2s,color .2s,opacity .2s;
+}
+.bar:active{transform:scale(.985)}
+.bar:focus-visible{outline:2px solid var(--text);outline-offset:3px}
+.bar .ic{width:21px;height:21px;fill:currentColor;display:none;flex:0 0 auto}
+.bar .ic-gear{display:block}
+.bar[data-state="play"]  .ic-play {display:block}
+.bar[data-state="pause"] .ic-pause{display:block}
+.bar[data-state="stop"]  .ic-stop {display:block}
+.bar-label{line-height:1;transform:translateY(.5px)}
+.bar-main[data-state="play"]{
+  background:rgba(0,232,120,.14);border-color:rgba(0,232,120,.55);color:var(--accent);
+}
+.bar-main[data-state="stop"]{
+  background:rgba(255,255,255,.92);border-color:#fff;color:#07070b;
+}
+.app.alerting #settingsBtn{opacity:0;pointer-events:none}
+
+/* ===== 設定シート ===== */
+.sheet-backdrop{
+  position:fixed;inset:0;z-index:70;background:rgba(4,4,8,.6);
+  opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;
+}
+.sheet-backdrop.open{opacity:1;visibility:visible}
+.sheet{
+  position:fixed;z-index:75;left:0;right:0;bottom:0;
+  max-height:min(86vh,86dvh,700px);
+  display:flex;flex-direction:column;
+  background:var(--surface);border-top:1px solid var(--border-hi);
+  border-radius:14px 14px 0 0;
+  transform:translateY(101%);transition:transform .24s cubic-bezier(.3,.9,.3,1);
+}
+.sheet.open{transform:translateY(0)}
+.sheet-head{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;
+  padding:14px;border-bottom:1px solid var(--border);
+}
+.sheet-title{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--text)}
+.sheet-close{
+  margin-left:auto;min-height:36px;padding:9px 18px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:18px;
+  color:var(--text);font-family:inherit;font-size:10px;letter-spacing:2px;cursor:pointer;
+}
+.sheet-close:hover,.sheet-close:focus-visible{border-color:var(--border-hi);outline:none}
+.sheet-body{
+  flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  display:flex;flex-direction:column;gap:16px;
+  padding:16px 14px calc(30px + env(safe-area-inset-bottom));
+}
+@media (orientation:landscape){
+  .sheet{
+    left:auto;top:0;bottom:0;width:min(380px,88vw);max-height:none;
+    border-radius:14px 0 0 14px;border-top:none;border-left:1px solid var(--border-hi);
+    transform:translateX(101%);padding-right:env(safe-area-inset-right);
+  }
+  .sheet.open{transform:translateX(0)}
+}
+
+.sec-title{display:flex;align-items:center;gap:7px;font-size:9px;font-weight:700;letter-spacing:2.5px;color:var(--text-dim);margin-bottom:8px}
+.sec-title i{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 5px var(--accent);flex:0 0 auto}
+.sec-title.c2 i{background:var(--accent2);box-shadow:0 0 5px var(--accent2)}
+.sec-title.c3 i{background:var(--accent3);box-shadow:0 0 5px var(--accent3)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.chip{
+  flex:1 1 auto;min-width:58px;min-height:38px;padding:8px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:19px;
+  color:var(--text-dim);font-family:inherit;font-size:10px;cursor:pointer;transition:.15s;
+}
+.chip:hover,.chip:focus-visible{border-color:var(--border-hi);color:var(--text);outline:none}
+.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,232,120,.08)}
+.chip.holding{border-color:var(--accent);color:var(--accent);background:rgba(0,232,120,.14);transform:scale(.95)}
+.row{display:flex;gap:6px;align-items:center}
+.row+.row{margin-top:6px}
+.btn{
+  flex:1;min-height:44px;padding:12px 10px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:.15s;
+}
+.btn:hover,.btn:focus-visible{border-color:var(--border-hi);outline:none}
+.num-input{
+  width:64px;padding:9px 4px;text-align:center;
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--accent);font-family:inherit;font-size:15px;font-weight:700;
+}
+.num-input:focus{outline:none;border-color:var(--accent)}
+.unit{font-size:10px;color:var(--text-dim)}
+.lv-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lv-card{
+  padding:10px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  text-align:left;cursor:pointer;transition:.15s;font-family:inherit;color:var(--text)
+}
+.lv-card:hover,.lv-card:focus-visible{border-color:var(--border-hi);outline:none}
+.lv-card.active{border-color:var(--accent);background:rgba(0,232,120,.08)}
+.lv-card.active.warn{border-color:var(--accent2);background:rgba(255,46,92,.09)}
+.lv-name{font-size:10px;font-weight:700}
+.lv-desc{font-size:8px;color:var(--text-dim);margin-top:3px;line-height:1.45}
+.swatches{display:flex;gap:6px;flex-wrap:wrap}
+.sw{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);cursor:pointer;transition:.15s;padding:0}
+.sw.active{border-color:var(--text);box-shadow:0 0 0 2px var(--text)}
+.p-row{display:flex;align-items:center;gap:10px;min-height:34px}
+.p-label{flex:0 0 auto;width:100px;font-size:10px;color:var(--text-dim)}
+.p-select{
+  flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:inherit;font-size:10px;
+}
+.p-select:focus{outline:none;border-color:var(--accent)}
+.chk{display:flex;align-items:center;gap:9px;font-size:10px;color:var(--text);cursor:pointer;min-height:34px}
+.chk input{width:16px;height:16px;accent-color:var(--accent)}
+.note{font-size:8px;line-height:1.65;color:var(--text-muted)}
+.note b{color:var(--warn);font-weight:700}
+
+/* ===== 確認モーダル / トースト ===== */
+.modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;background:rgba(4,4,8,.86);padding:20px}
+.modal.on{display:grid}
+.modal-box{max-width:360px;width:100%;background:var(--surface);border:1px solid var(--accent2);border-radius:12px;padding:18px}
+.modal-title{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent2);margin-bottom:10px}
+.modal-body{font-size:10px;line-height:1.85;color:var(--text-dim);margin-bottom:16px}
+.btn-danger{color:var(--accent2);border-color:#3a1c26}
+.btn-ghost{color:var(--text-dim)}
+.toast{
+  position:fixed;left:50%;bottom:calc(164px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:95;background:var(--accent);color:#04140c;font-size:10px;font-weight:700;
+  padding:9px 18px;border-radius:16px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.ring-fg{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="flash" id="flashLayer"><canvas id="alertCanvas"></canvas></div>
+
+<div class="app" id="appRoot">
+  <div class="ambient" id="ambient"></div>
+  <div class="stage">
+  <div class="dial">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle class="ring-bg" cx="50" cy="50" r="46"></circle>
+      <circle class="ring-fg" id="ringFg" cx="50" cy="50" r="46" stroke-dasharray="289.03" stroke-dashoffset="0"></circle>
+    </svg>
+    <div class="time" id="timeText" role="timer" aria-live="off">05:00</div>
+  </div>
+  </div>
+
+  <div class="controls">
+    <!-- Material Symbols Rounded / play_arrow, pause, stop (Google, Apache License 2.0) -->
+    <button class="bar bar-main" id="startBtn" data-state="play" aria-label="開始">
+      <svg class="ic ic-play" viewBox="0 -960 960 960" aria-hidden="true"><path d="M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Z"/></svg>
+      <svg class="ic ic-pause" viewBox="0 -960 960 960" aria-hidden="true"><path d="M640-200q-33 0-56.5-23.5T560-280v-400q0-33 23.5-56.5T640-760q33 0 56.5 23.5T720-680v400q0 33-23.5 56.5T640-200Zm-320 0q-33 0-56.5-23.5T240-280v-400q0-33 23.5-56.5T320-760q33 0 56.5 23.5T400-680v400q0 33-23.5 56.5T320-200Z"/></svg>
+      <svg class="ic ic-stop" viewBox="0 -960 960 960" aria-hidden="true"><path d="M240-320v-320q0-33 23.5-56.5T320-720h320q33 0 56.5 23.5T720-640v320q0 33-23.5 56.5T640-240H320q-33 0-56.5-23.5T240-320Z"/></svg>
+      <span class="bar-label" id="startLabel">開始</span>
+    </button>
+    <!-- Material Symbols Rounded / settings (Google, Apache License 2.0) -->
+    <button class="bar" id="settingsBtn" aria-label="設定" aria-expanded="false" aria-controls="drawer">
+      <svg class="ic ic-gear" viewBox="0 -960 960 960" aria-hidden="true"><path d="M433-80q-27 0-46.5-18T363-142l-9-66q-13-5-24.5-12T307-235l-62 26q-25 11-50 2t-39-32l-47-82q-14-23-8-49t27-43l53-40q-1-7-1-13.5v-27q0-6.5 1-13.5l-53-40q-21-17-27-43t8-49l47-82q14-23 39-32t50 2l62 26q11-8 23-15t24-12l9-66q4-26 23.5-44t46.5-18h94q27 0 46.5 18t23.5 44l9 66q13 5 24.5 12t22.5 15l62-26q25-11 50-2t39 32l47 82q14 23 8 49t-27 43l-53 40q1 7 1 13.5v27q0 6.5-2 13.5l53 40q21 17 27 43t-8 49l-48 82q-14 23-39 32t-50-2l-60-26q-11 8-23 15t-24 12l-9 66q-4 26-23.5 44T527-80h-94Zm49-260q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Z"/></svg>
+      <span class="bar-label">設定</span>
+    </button>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+<aside class="sheet" id="drawer" role="dialog" aria-modal="true" aria-label="設定">
+  <div class="sheet-head">
+    <span class="sheet-title">設定</span>
+    <button class="sheet-close" id="sheetClose">閉じる</button>
+  </div>
+  <div class="sheet-body">
+
+    <div>
+      <div class="sec-title"><i></i>時間</div>
+      <div class="chips" id="presets"></div>
+      <div class="row">
+        <button class="chip" data-adj="-60">−1分</button>
+        <button class="chip" data-adj="-10">−10秒</button>
+        <button class="chip" data-adj="10">+10秒</button>
+        <button class="chip" data-adj="60">+1分</button>
+      </div>
+      <div class="row" style="justify-content:center">
+        <input class="num-input" id="inMin" type="number" min="0" max="180" inputmode="numeric" value="5" aria-label="分">
+        <span class="unit">分</span>
+        <input class="num-input" id="inSec" type="number" min="0" max="59" inputmode="numeric" value="0" aria-label="秒">
+        <span class="unit">秒</span>
+        <button class="chip" id="applyEdit" style="flex:0 0 auto;min-width:60px">決定</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-ghost" id="resetBtn">リセット</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title c2"><i></i>アラート強度</div>
+      <div class="lv-grid" id="lvGrid"></div>
+    </div>
+
+    <div>
+      <div class="sec-title c3"><i></i>発光色</div>
+      <div class="swatches" id="swatches"></div>
+    </div>
+
+    <div>
+      <div class="sec-title"><i></i>動作</div>
+      <div class="p-row">
+        <span class="p-label">予告発光</span>
+        <select class="p-select" id="preSel">
+          <option value="0">なし</option>
+          <option value="10" selected>残り10秒から</option>
+          <option value="30">残り30秒から</option>
+          <option value="60">残り1分から</option>
+        </select>
+      </div>
+      <div class="p-row">
+        <span class="p-label">自動停止</span>
+        <select class="p-select" id="autoSel">
+          <option value="15">15秒</option>
+          <option value="30">30秒</option>
+          <option value="60" selected>60秒</option>
+          <option value="0">停止するまで</option>
+        </select>
+      </div>
+      <label class="chk"><input type="checkbox" id="wakeChk" checked>計測中は画面を消灯させない</label>
+      <label class="chk"><input type="checkbox" id="vibChk">バイブレーションも併用する</label>
+      <label class="chk"><input type="checkbox" id="ambChk" checked>残り時間で背景を発光させる</label>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="testBtn">アラートをテスト</button>
+      <button class="btn" id="fsBtn">全画面</button>
+    </div>
+
+    <div class="note" id="safetyNote">
+      <b>光過敏性発作にご注意ください。</b>強度3は毎秒3回を超える点滅を含みます。強度4はカウント中も毎秒閃光し、画面が揺れます（0到達時は毎秒2発）。てんかんの既往がある方、光刺激や動きに弱い方、暗所での至近距離使用は避け、強度1〜2をご利用ください。周囲の人の視界に入る環境でも同様です。
+    </div>
+
+  </div>
+</aside>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-title">強度3・4の確認</div>
+    <div class="modal-body">
+      強度3は毎秒3回を超える高速ストロボ、強度4はカウント中から毎秒の強い閃光と画面の揺れ（0到達時は毎秒2発）を全画面で行います。光過敏性発作や映像酔いを誘発する可能性があります。てんかんの既往がある方、体調不良時、暗所での至近距離使用、他者の視界に入る場所での使用は避けてください。
+    </div>
+    <div class="row">
+      <button class="btn btn-ghost" id="modalNg">やめる</button>
+      <button class="btn btn-danger" id="modalOk">理解して使用する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ========== 定義 ========== */
+var PRESETS = [
+  {label:"1分", sec:60},{label:"3分", sec:180},{label:"5分", sec:300},
+  {label:"10分", sec:600},{label:"15分", sec:900},{label:"25分", sec:1500}
+];
+var LEVELS = [
+  {id:1,name:"1 ソフト",   desc:"ゆっくり明滅。深夜・共有スペース向け",   hz:0.6, warn:false},
+  {id:2,name:"2 ノーマル", desc:"はっきりした脈動。手元で気づく標準設定", hz:1.8, warn:false},
+  {id:3,name:"3 ストロング",desc:"高速ストロボ。視界の端でも気づく",       hz:4.5, warn:true},
+  {id:4,name:"4 ドパガキ", desc:"カウント中も毎秒ランダム色で閃光＋揺れ。0到達で毎秒2発に加速",hz:1,warn:true}
+];
+var COLORS = [
+  {id:"green",  name:"グリーン", css:"#00e878", hue:150},
+  {id:"cyan",   name:"シアン",   css:"#22d3ee", hue:189},
+  {id:"amber",  name:"アンバー", css:"#ffa726", hue:36},
+  {id:"red",    name:"レッド",   css:"#ff2e5c", hue:345},
+  {id:"magenta",name:"マゼンタ", css:"#e838ff", hue:290},
+  {id:"white",  name:"ホワイト", css:"#ffffff", hue:0},
+  {id:"rainbow",name:"レインボー",css:"linear-gradient(135deg,#ff2e5c,#ffa726,#00e878,#22d3ee,#a855f7)", hue:-1}
+];
+
+var S = {level:2, color:"green", preSec:10, autoStop:60, wake:true, vib:false, ambient:true};
+
+/* ========== 状態 ========== */
+var totalMs = 300000, remainMs = 300000;
+var running = false, endAt = 0;
+var alerting = false, closing = false, alertStartAt = 0;
+var lastSec = -1, tickSlot = 0, tickAt = 0;
+var wakeLock = null, rafId = null, vibTimer = null;
+
+/* ========== DOM ========== */
+var $ = function(id){ return document.getElementById(id); };
+var timeText=$("timeText"), ringFg=$("ringFg"), ambient=$("ambient"),
+    startBtn=$("startBtn"), appRoot=$("appRoot"),
+    flashLayer=$("flashLayer"), alertCanvas=$("alertCanvas"), toastEl=$("toast"), modal=$("modal");
+var dialEl = document.querySelector(".dial");
+var ctx = alertCanvas.getContext("2d");
+var RING_LEN = 289.03;
+
+/* 発光エフェクトの中心。ダイヤルは操作バーの分だけ画面中心より上にあるため、
+   キャンバス中心ではなく実際のリング中心を実測して合わせる */
+var CX = 0, CY = 0, MAXR = 0;
+function updateCenter(){
+  var w = alertCanvas.clientWidth || window.innerWidth;
+  var h = alertCanvas.clientHeight || window.innerHeight;
+  var prev = appRoot.style.transform;
+  appRoot.style.transform = "";        /* 揺れの分を除いた静止位置で測る */
+  var r = dialEl.getBoundingClientRect();
+  appRoot.style.transform = prev;
+  if(r.width > 0){
+    CX = r.left + r.width/2;
+    CY = r.top + r.height/2;
+  } else {
+    CX = w/2; CY = h/2;
+  }
+  /* 中心から最も遠い画面隅までの距離＝リングが画面外へ抜けきる半径 */
+  MAXR = Math.max(
+    Math.sqrt(CX*CX + CY*CY),
+    Math.sqrt((w-CX)*(w-CX) + CY*CY),
+    Math.sqrt(CX*CX + (h-CY)*(h-CY)),
+    Math.sqrt((w-CX)*(w-CX) + (h-CY)*(h-CY))
+  );
+}
+
+/* ========== ユーティリティ ========== */
+function fmt(ms){
+  if(ms < 0) ms = 0;
+  var t = Math.ceil(ms/1000);
+  var h = Math.floor(t/3600), m = Math.floor((t%3600)/60), s = t%60;
+  var p = function(n){ return (n<10?"0":"")+n; };
+  return h>0 ? h+":"+p(m)+":"+p(s) : p(m)+":"+p(s);
+}
+function renderTime(str){
+  var out = "";
+  for(var i=0;i<str.length;i++){
+    var c = str.charAt(i);
+    out += '<span class="d'+(c===":"?" c":"")+'">'+c+'</span>';
+  }
+  timeText.innerHTML = out;
+  timeText.classList.toggle("long", str.length > 5);
+}
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ toastEl.classList.remove("show"); }, 1500);
+}
+function colorOf(id){
+  for(var i=0;i<COLORS.length;i++){ if(COLORS[i].id===id) return COLORS[i]; }
+  return COLORS[0];
+}
+function levelOf(n){
+  for(var i=0;i<LEVELS.length;i++){ if(LEVELS[i].id===n) return LEVELS[i]; }
+  return LEVELS[1];
+}
+
+/* ========== 設定UI生成 ========== */
+var presetWrap = $("presets");
+PRESETS.forEach(function(p){
+  var b = document.createElement("button");
+  b.className = "chip"; b.textContent = p.label; b.dataset.sec = p.sec;
+  b.addEventListener("click", function(){ setTotal(p.sec*1000); });
+  presetWrap.appendChild(b);
+});
+var lvGrid = $("lvGrid");
+LEVELS.forEach(function(L){
+  var b = document.createElement("button");
+  b.className = "lv-card" + (L.warn ? " warn" : "");
+  b.dataset.lv = L.id;
+  b.innerHTML = '<div class="lv-name">'+L.name+'</div><div class="lv-desc">'+L.desc+'</div>';
+  b.addEventListener("click", function(){ requestLevel(L.id); });
+  lvGrid.appendChild(b);
+});
+var swWrap = $("swatches");
+COLORS.forEach(function(C){
+  var b = document.createElement("button");
+  b.className = "sw"; b.dataset.col = C.id; b.title = C.name;
+  b.setAttribute("aria-label", C.name);
+  b.style.background = C.css;
+  b.addEventListener("click", function(){ S.color = C.id; syncUI(); });
+  swWrap.appendChild(b);
+});
+
+/* ========== 表示同期 ========== */
+function phaseColor(){
+  if(alerting){
+    if(S.level === 4){
+      var slot = Math.floor((performance.now() - alertStartAt)/1000);
+      return "hsl("+dopaHue(slot)+",100%,58%)";
+    }
+    var AC = colorOf(S.color);
+    return AC.hue < 0 ? "#ff2e5c" : AC.css;
+  }
+  if(!running) return "#00e878";
+  var left = remainMs/1000;
+  if(S.preSec > 0 && left <= S.preSec) return "#ff2e5c";
+  if(left <= totalMs/1000*0.25) return "#ffa726";
+  return "#00e878";
+}
+
+function syncUI(){
+  renderTime(fmt(remainMs));
+  var ratio = totalMs > 0 ? Math.max(0, Math.min(1, remainMs/totalMs)) : 0;
+  ringFg.setAttribute("stroke-dashoffset", (RING_LEN*(1-ratio)).toFixed(2));
+  document.documentElement.style.setProperty("--phase", phaseColor());
+
+  if(S.ambient && running){
+    var urgent = S.preSec > 0 && remainMs/1000 <= S.preSec;
+    var strength = Math.pow(1-ratio, 2.2)*0.28 + (urgent ? 0.2 : 0);
+    ambient.style.opacity = Math.min(0.48, strength).toFixed(3);
+  } else {
+    ambient.style.opacity = 0;
+  }
+
+  var st = alerting ? "stop" : running ? "pause" : "play";
+  var label = (st === "play") ? (remainMs < totalMs ? "再開" : "開始") : "停止";
+  startBtn.setAttribute("data-state", st);
+  startBtn.setAttribute("aria-label", label);
+  $("startLabel").textContent = label;
+
+  var chips = presetWrap.children;
+  for(var i=0;i<chips.length;i++){
+    chips[i].classList.toggle("active", !running && Number(chips[i].dataset.sec)*1000 === totalMs);
+  }
+  var cards = lvGrid.children;
+  for(var j=0;j<cards.length;j++){
+    cards[j].classList.toggle("active", Number(cards[j].dataset.lv) === S.level);
+  }
+  var sws = swWrap.children;
+  for(var k=0;k<sws.length;k++){
+    sws[k].classList.toggle("active", sws[k].dataset.col === S.color);
+  }
+}
+
+/* ========== タイマー制御 ========== */
+function setTotal(ms){
+  ms = Math.max(1000, Math.min(ms, 24*3600*1000));
+  totalMs = ms; remainMs = ms;
+  if(running) stop(false);
+  $("inMin").value = Math.floor(ms/60000);
+  $("inSec").value = Math.floor(ms/1000)%60;
+  syncUI();
+}
+function start(){
+  if(remainMs <= 0) remainMs = totalMs;
+  endAt = performance.now() + remainMs;
+  running = true;
+  lastSec = -1;
+  requestWake();
+  loop();
+  syncUI();
+}
+function pause(){
+  running = false;
+  remainMs = Math.max(0, endAt - performance.now());
+  cancelAnimationFrame(rafId);
+  hideTick();
+  releaseWake();
+  syncUI();
+}
+function stop(resetTime){
+  running = false;
+  cancelAnimationFrame(rafId);
+  hideTick();
+  releaseWake();
+  if(resetTime !== false) remainMs = totalMs;
+  syncUI();
+}
+function loop(){
+  rafId = requestAnimationFrame(loop);
+  if(!running) return;
+  remainMs = endAt - performance.now();
+
+  /* 表示秒が1つ減るたびに閃光を1発打つ */
+  var sec = Math.max(0, Math.ceil(remainMs/1000));
+  if(sec !== lastSec){
+    lastSec = sec;
+    tickSlot++;
+    tickAt = performance.now();
+  }
+
+  if(remainMs <= 0){
+    remainMs = 0; running = false;
+    cancelAnimationFrame(rafId);
+    syncUI();
+    fire();
+    return;
+  }
+  syncUI();
+  renderTick();
+}
+
+/* カウント中の1秒発光はドパガキ（強度4）専用 */
+function tickActive(){
+  return S.level === 4;
+}
+
+function renderTick(){
+  if(!tickActive()){ hideTick(); return; }
+  if(!flashLayer.classList.contains("on")){
+    flashLayer.classList.add("on");
+    resizeCanvas();
+  }
+  var u = (performance.now() - tickAt)/1000;
+  drawPunch(u, tickSlot, 1, false);
+  if(!REDUCE){
+    /* カウント中の揺れは0到達時の6割 */
+    var a = SHAKE_AMP*0.6*Math.exp(-u*8);
+    var x = (Math.sin(u*47.3) + Math.sin(u*29.1)*0.6)*a*0.62;
+    var y = (Math.cos(u*41.7) + Math.sin(u*33.5)*0.6)*a*0.62;
+    appRoot.style.transform = "translate("+x.toFixed(2)+"px,"+y.toFixed(2)+"px)";
+  }
+}
+
+function hideTick(){
+  if(alerting || closing) return;
+  if(flashLayer.classList.contains("on")){
+    flashLayer.classList.remove("on");
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,alertCanvas.width,alertCanvas.height);
+  }
+  appRoot.style.transform = "";
+}
+
+/* ========== アラート（点滅発光のみ） ========== */
+function anim(el, frames, opts, done){
+  if(el && typeof el.animate === "function"){
+    var a = el.animate(frames, opts);
+    if(done) a.onfinish = done;
+    return a;
+  }
+  if(done) setTimeout(done, (opts.duration||0)+(opts.delay||0));
+  return null;
+}
+function killAnims(el){
+  if(el && typeof el.getAnimations === "function"){
+    el.getAnimations().forEach(function(a){ a.cancel(); });
+  }
+}
+
+function fire(){
+  alerting = true; closing = false;
+  alertStartAt = performance.now();
+  render._lastHue = null;
+  setSheet(false);
+  clearTimeout(stopAlert._safety);
+  killAnims(flashLayer);
+  flashLayer.style.opacity = "";
+  flashLayer.classList.add("on");
+  appRoot.classList.add("alerting");
+  resizeCanvas();
+  requestWake();
+  startVib();
+  drawLoop();
+  syncUI();
+  if(S.autoStop > 0) fire._t = setTimeout(stopAlert, S.autoStop*1000);
+}
+
+function stopAlert(){
+  if(!alerting || closing) return;
+  alerting = false; closing = true;
+  clearTimeout(fire._t);
+  cancelAnimationFrame(fire._raf);
+  stopVib();
+  var w = alertCanvas.clientWidth, h = alertCanvas.clientHeight;
+  ctx.clearRect(0,0,w,h); ctx.fillStyle = "#000"; ctx.fillRect(0,0,w,h);
+  killAnims(flashLayer);
+  anim(flashLayer, [{opacity:1},{opacity:0}], {duration:170, easing:"ease-out", fill:"forwards"}, finishClose);
+  stopAlert._safety = setTimeout(finishClose, 500);
+}
+
+function finishClose(){
+  if(!closing) return;
+  closing = false;
+  clearTimeout(stopAlert._safety);
+  killAnims(flashLayer);
+  flashLayer.classList.remove("on");
+  appRoot.classList.remove("alerting");
+  flashLayer.style.opacity = "";
+  appRoot.style.transform = "";
+  ctx.clearRect(0,0,alertCanvas.width,alertCanvas.height);
+  releaseWake();
+  remainMs = totalMs;
+  syncUI();
+}
+
+function startVib(){
+  if(!S.vib || !navigator.vibrate) return;
+  var L = levelOf(S.level);
+  var pat = L.id===1 ? [400,600] : L.id===2 ? [220,180,220,900] :
+            L.id===3 ? [90,70,90,70,90,500] : [60,40,60,40,60,40,180,120];
+  navigator.vibrate(pat);
+  var span = pat.reduce(function(a,b){ return a+b; }, 0);
+  vibTimer = setInterval(function(){ navigator.vibrate(pat); }, span);
+}
+function stopVib(){
+  clearInterval(vibTimer);
+  if(navigator.vibrate) navigator.vibrate(0);
+}
+
+function resizeCanvas(){
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  alertCanvas.width = Math.round(alertCanvas.clientWidth * dpr);
+  alertCanvas.height = Math.round(alertCanvas.clientHeight * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  updateCenter();
+}
+/* タイムアップ中は画面を揺らし続ける。強度で振幅が変わる */
+/* 画面の揺れはドパガキ（強度4）専用 */
+var SHAKE_AMP = 10;
+var REDUCE = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+function applyShake(t){
+  if(REDUCE || S.level !== 4){ appRoot.style.transform = ""; return; }
+  /* 閃光と同じ0.5秒周期で「パンッ」と揺れて収まる */
+  var a = SHAKE_AMP*Math.exp(-(t % 0.5)*12);
+  var x = (Math.sin(t*47.3) + Math.sin(t*29.1)*0.6)*a*0.62;
+  var y = (Math.cos(t*41.7) + Math.sin(t*33.5)*0.6)*a*0.62;
+  var r = Math.sin(t*37.9)*0.38*(a/SHAKE_AMP);
+  appRoot.style.transform = "translate("+x.toFixed(2)+"px,"+y.toFixed(2)+"px) rotate("+r.toFixed(3)+"deg)";
+}
+
+function drawLoop(){
+  fire._raf = requestAnimationFrame(drawLoop);
+  if(!alerting) return;
+  var t = (performance.now() - alertStartAt)/1000;
+  render(t);
+  applyShake(t);
+}
+
+/* ドパガキ用：1秒ごとにランダムな色相へ切り替える（その1秒間は同じ色を保持）。
+   黄金角(137.508°)で回しながら乱数を足すことで、隣り合う秒が必ず離れた色相になる */
+function dopaHue(slot){
+  var x = Math.sin(slot*127.1 + 311.7)*43758.5453;
+  var r = x - Math.floor(x);
+  return (slot*137.508 + r*90) % 360;
+}
+
+function punchColor(slot){
+  var C = colorOf(S.color);
+  if(S.level === 4 || C.hue < 0) return "hsl("+dopaHue(slot)+",100%,56%)";
+  return C.css;
+}
+
+/* 閃光1発分の描画。strong=true で 0到達時の強化版になる */
+function drawPunch(u, slot, gain, strong){
+  var w = alertCanvas.clientWidth, h = alertCanvas.clientHeight;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  ctx.globalAlpha = 1; ctx.fillStyle = "#000"; ctx.fillRect(0,0,w,h);
+
+  var decay = strong ? 13 : 8;
+  var env = u < 0.025 ? u/0.025 : Math.exp(-(u-0.025)*decay);
+
+  ctx.globalAlpha = Math.min(1, env*gain);
+  ctx.fillStyle = punchColor(slot);
+  ctx.fillRect(0,0,w,h);
+
+  var core = strong ? 0.10 : 0.07;
+  if(u < core && gain > 0.3){
+    ctx.globalAlpha = (1 - u/core)*0.95*gain;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0,0,w,h);
+  }
+
+  var maxR = MAXR;
+  var rings = strong ? 2 : 1;
+  var span = strong ? 0.32 : 0.45;
+  for(var i=0;i<rings;i++){
+    var rp = (u - i*0.08)/span;
+    if(rp <= 0 || rp >= 1) continue;
+    ctx.globalAlpha = (1-rp)*0.9*gain;
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 4 + (1-rp)*26;
+    ctx.beginPath();
+    ctx.arc(CX, CY, (1-Math.pow(1-rp,3))*maxR, 0, Math.PI*2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function render(t){
+  var w = alertCanvas.clientWidth, h = alertCanvas.clientHeight;
+  var C = colorOf(S.color), L = levelOf(S.level);
+  var hue = C.hue < 0 ? (t*180)%360 : C.hue;
+  var base = C.id === "white" ? "hsl(0,0%,100%)" : "hsl("+hue+",100%,55%)";
+
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = "#000"; ctx.fillRect(0,0,w,h);
+
+  var phase = (t*L.hz)%1;
+
+  if(L.id === 1){
+    ctx.globalAlpha = 0.14 + 0.30*(0.5+0.5*Math.sin(t*Math.PI*2*L.hz));
+    ctx.fillStyle = base; ctx.fillRect(0,0,w,h);
+    ctx.globalAlpha = 1;
+    return;
+  }
+  if(L.id === 2){
+    var e = Math.pow(0.5+0.5*Math.sin(t*Math.PI*2*L.hz), 2.4);
+    ctx.globalAlpha = 0.18 + 0.62*e;
+    ctx.fillStyle = base; ctx.fillRect(0,0,w,h);
+    var g = ctx.createRadialGradient(CX,CY,0,CX,CY,MAXR*0.85);
+    g.addColorStop(0,"rgba(255,255,255,"+(0.45*e).toFixed(3)+")");
+    g.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+    return;
+  }
+  if(L.id === 3){
+    if(phase < 0.5){
+      ctx.globalAlpha = 1; ctx.fillStyle = base; ctx.fillRect(0,0,w,h);
+      if(phase < 0.12){ ctx.globalAlpha = 0.9; ctx.fillStyle = "#fff"; ctx.fillRect(0,0,w,h); }
+    } else {
+      ctx.globalAlpha = 0.10; ctx.fillStyle = base; ctx.fillRect(0,0,w,h);
+    }
+    ctx.globalAlpha = 1;
+    var rr = (t*1.6)%1;
+    ctx.strokeStyle = "rgba(255,255,255,"+((1-rr)*0.55).toFixed(3)+")";
+    ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.arc(CX, CY, rr*MAXR, 0, Math.PI*2); ctx.stroke();
+    return;
+  }
+
+  /* LEVEL 4：0到達時は0.5秒周期＝毎秒2発。カウント中の1発より強い */
+  var P4 = 0.5;
+  var slot = Math.floor(t/P4);
+  var hue = dopaHue(slot);
+  if(hue !== render._lastHue){
+    render._lastHue = hue;
+    document.documentElement.style.setProperty("--phase", "hsl("+hue+",100%,58%)");
+  }
+  drawPunch(t - slot*P4, slot, 1, true);
+}
+
+/* ========== Wake Lock ========== */
+function requestWake(){
+  if(!S.wake || !("wakeLock" in navigator) || wakeLock) return;
+  navigator.wakeLock.request("screen").then(function(wl){
+    wakeLock = wl;
+    wl.addEventListener("release", function(){ wakeLock = null; });
+  }).catch(function(){});
+}
+function releaseWake(){
+  if(alerting || running) return;
+  if(wakeLock){ wakeLock.release().catch(function(){}); wakeLock = null; }
+}
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState === "visible" && (running || alerting)) requestWake();
+});
+
+/* ========== 設定シート ========== */
+function setSheet(open){
+  $("drawer").classList.toggle("open", open);
+  $("sheetBackdrop").classList.toggle("open", open);
+  $("settingsBtn").setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+/* ========== イベント ========== */
+startBtn.addEventListener("click", function(){
+  /* 発光中のタップは appRoot 側で既に停止処理へ回っているため、
+     ここで計測を開始し直さないよう closing も見る */
+  if(alerting || closing){ stopAlert(); return; }
+  running ? pause() : start();
+});
+$("settingsBtn").addEventListener("click", function(){ setSheet(true); });
+$("sheetClose").addEventListener("click", function(){ setSheet(false); });
+$("sheetBackdrop").addEventListener("click", function(){ setSheet(false); });
+$("resetBtn").addEventListener("click", function(){ stop(true); toast("リセットしました"); });
+
+/* ±ボタン：単発タップと、長押しによる加速リピート */
+var HOLD_DELAY = 420;   /* 押し始めからリピート開始まで */
+var REP_START  = 300;   /* リピート初速 */
+var REP_MIN    = 55;    /* 最速 */
+var REP_DECAY  = 0.72;  /* 1秒あたりの間隔の減衰率 */
+
+function applyAdj(sec){
+  var d = sec*1000;
+  if(running){
+    endAt += d;
+    remainMs = Math.max(1000, endAt - performance.now());
+    endAt = performance.now() + remainMs;
+    totalMs = Math.max(totalMs, remainMs);
+    syncUI();
+  } else {
+    setTotal(totalMs + d);
+  }
+}
+
+Array.prototype.forEach.call(document.querySelectorAll("[data-adj]"), function(b){
+  var step = Number(b.dataset.adj);
+  var holdT = null, repT = null, resetT = null, viaPointer = false, t0 = 0;
+
+  function tick(){
+    applyAdj(step);
+    var held = (performance.now() - t0)/1000;
+    var iv = Math.max(REP_MIN, REP_START*Math.pow(REP_DECAY, held));
+    repT = setTimeout(tick, iv);
+  }
+  function begin(e){
+    if(e.button != null && e.button !== 0) return;
+    clearTimeout(resetT);
+    viaPointer = true;
+    t0 = performance.now();
+    applyAdj(step);
+    b.classList.add("holding");
+    holdT = setTimeout(tick, HOLD_DELAY);
+    if(b.setPointerCapture && e.pointerId != null){
+      try{ b.setPointerCapture(e.pointerId); }catch(err){}
+    }
+  }
+  function end(){
+    clearTimeout(holdT); clearTimeout(repT);
+    holdT = repT = null;
+    b.classList.remove("holding");
+    /* pointerup 直後の click を1回だけ無視する。
+       クリックが発火しなかった場合に備えて少し後で解除する */
+    clearTimeout(resetT);
+    resetT = setTimeout(function(){ viaPointer = false; }, 500);
+  }
+
+  b.addEventListener("pointerdown", begin);
+  b.addEventListener("pointerup", end);
+  b.addEventListener("pointercancel", end);
+  b.addEventListener("lostpointercapture", end);
+  /* キーボード操作（Enter / Space）用のフォールバック */
+  b.addEventListener("click", function(){
+    if(viaPointer){ viaPointer = false; clearTimeout(resetT); return; }
+    applyAdj(step);
+  });
+});
+$("applyEdit").addEventListener("click", function(){
+  var m = Math.max(0, Math.min(180, Number($("inMin").value)||0));
+  var s = Math.max(0, Math.min(59, Number($("inSec").value)||0));
+  setTotal((m*60+s)*1000);
+  toast("時間を設定しました");
+});
+
+$("preSel").addEventListener("change", function(){ S.preSec = Number(this.value); syncUI(); });
+$("autoSel").addEventListener("change", function(){ S.autoStop = Number(this.value); });
+$("wakeChk").addEventListener("change", function(){ S.wake = this.checked; this.checked ? requestWake() : releaseWake(); });
+$("vibChk").addEventListener("change", function(){
+  S.vib = this.checked;
+  if(this.checked && !navigator.vibrate) toast("この端末はバイブ非対応です");
+});
+$("ambChk").addEventListener("change", function(){ S.ambient = this.checked; syncUI(); });
+$("testBtn").addEventListener("click", function(){
+  toast(levelOf(S.level).name + " でテスト");
+  fire();
+});
+
+$("fsBtn").addEventListener("click", function(){
+  var el = document.documentElement;
+  if(!document.fullscreenElement){
+    (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+  }
+});
+
+/* 発光中は画面のどこをタップしても停止 */
+appRoot.addEventListener("click", function(){ if(alerting) stopAlert(); }, true);
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape"){
+    if(alerting) stopAlert();
+    else if($("drawer").classList.contains("open")) setSheet(false);
+  } else if(e.key === " "){
+    e.preventDefault();
+    if(alerting || closing) stopAlert();
+    else running ? pause() : start();
+  }
+});
+
+/* 強度3・4は初回のみ確認 */
+var riskAck = false, pendingLv = 0;
+function requestLevel(n){
+  if(n >= 3 && !riskAck){ pendingLv = n; modal.classList.add("on"); return; }
+  S.level = n; syncUI();
+}
+$("modalOk").addEventListener("click", function(){
+  riskAck = true; modal.classList.remove("on"); S.level = pendingLv; syncUI();
+});
+$("modalNg").addEventListener("click", function(){ modal.classList.remove("on"); });
+
+window.addEventListener("resize", function(){ resizeCanvas(); });
+window.addEventListener("orientationchange", function(){ setTimeout(resizeCanvas, 250); });
+
+setTotal(300000);
+setSheet(false);
+syncUI();
+updateCenter();
+
+})();
+</script>
+</body>
+</html>
