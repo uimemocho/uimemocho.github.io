@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#08080b">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>LIGHT TIMER v3.2</title>
+<title>LIGHT TIMER v3.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@100;400;700;800&display=swap" rel="stylesheet">
@@ -125,6 +125,22 @@ body{
   background:rgba(255,255,255,.92);border-color:#fff;color:#07070b;
 }
 .app.alerting #settingsBtn{opacity:0;pointer-events:none}
+
+/* 横向きは縦に積むと文字盤とバーが重なるので、左右に分けて置く。
+   --ctrl-w は右カラムの幅。トーストの中心を文字盤側へ寄せるのにも使う */
+:root{--ctrl-w:0px}
+@media (orientation:landscape){
+  :root{--ctrl-w:min(38vw,272px)}
+  .app{flex-direction:row;align-items:stretch}
+  .stage{min-width:0;padding:10px 4px 10px 10px}
+  .dial{width:min(80vmin,440px)}
+  .controls{
+    flex:0 0 auto;width:var(--ctrl-w);max-width:none;margin:0;
+    justify-content:center;
+    padding:12px calc(16px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) 4px;
+  }
+  .bar{min-height:54px;padding:14px 16px;letter-spacing:4px}
+}
 
 /* ===== 設定シート ===== */
 .sheet-backdrop{
@@ -297,11 +313,15 @@ body{
 .btn-danger{color:var(--accent2);border-color:#3a1c26}
 .btn-ghost{color:var(--text-dim)}
 .toast{
-  position:fixed;left:50%;bottom:calc(164px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  position:fixed;left:calc(50% - var(--ctrl-w)/2);
+  bottom:calc(164px + env(safe-area-inset-bottom));transform:translateX(-50%);
   z-index:95;background:var(--accent);color:#04140c;font-size:10px;font-weight:700;
   padding:9px 18px;border-radius:16px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
 }
 .toast.show{opacity:1}
+@media (orientation:landscape){
+  .toast{bottom:calc(14px + env(safe-area-inset-bottom))}
+}
 @media (prefers-reduced-motion:reduce){.ring-fg{transition:none}}
 </style>
 </head>
