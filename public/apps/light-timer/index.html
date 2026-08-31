@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#08080b">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>LIGHT TIMER v3.1</title>
+<title>LIGHT TIMER v3.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@100;400;700;800&display=swap" rel="stylesheet">
@@ -81,6 +81,18 @@ body{
 }
 .time .d{display:inline-block;width:.68em;text-align:center}
 .time .d.c{width:.30em}
+
+/* ステップ名・くりかえし数。文字盤の上下へ添える */
+.dial-note{
+  position:absolute;left:0;right:0;top:50%;
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:4.6cqw;font-weight:700;letter-spacing:.16em;color:var(--text-dim);
+  padding:0 8%;
+}
+.dial-note.top{transform:translateY(calc(-50% - 16cqw))}
+.dial-note.bot{transform:translateY(calc(-50% + 16cqw))}
+.app.alerting .dial-note{color:var(--text)}
+[hidden]{display:none!important}
 
 /* ===== バーボタン（開始／設定を段で並べる） ===== */
 .controls{
@@ -159,15 +171,6 @@ body{
 .sec-title i{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 5px var(--accent);flex:0 0 auto}
 .sec-title.c2 i{background:var(--accent2);box-shadow:0 0 5px var(--accent2)}
 .sec-title.c3 i{background:var(--accent3);box-shadow:0 0 5px var(--accent3)}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-.chip{
-  flex:1 1 auto;min-width:58px;min-height:38px;padding:8px;
-  background:var(--surface2);border:1px solid var(--border);border-radius:19px;
-  color:var(--text-dim);font-family:inherit;font-size:10px;cursor:pointer;transition:.15s;
-}
-.chip:hover,.chip:focus-visible{border-color:var(--border-hi);color:var(--text);outline:none}
-.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,232,120,.08)}
-.chip.holding{border-color:var(--accent);color:var(--accent);background:rgba(0,232,120,.14);transform:scale(.95)}
 .row{display:flex;gap:6px;align-items:center}
 .row+.row{margin-top:6px}
 .btn{
@@ -176,13 +179,90 @@ body{
   color:var(--text);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:.15s;
 }
 .btn:hover,.btn:focus-visible{border-color:var(--border-hi);outline:none}
-.num-input{
-  width:64px;padding:9px 4px;text-align:center;
-  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  color:var(--accent);font-family:inherit;font-size:15px;font-weight:700;
+
+/* ===== 単発／セットの切り替え ===== */
+.seg{
+  display:flex;gap:4px;padding:3px;margin-bottom:10px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:11px;
 }
-.num-input:focus{outline:none;border-color:var(--accent)}
-.unit{font-size:10px;color:var(--text-dim)}
+.seg-btn{
+  flex:1;min-height:34px;padding:8px;background:transparent;border:0;border-radius:8px;
+  color:var(--text-dim);font-family:inherit;font-size:10px;font-weight:700;letter-spacing:2px;
+  cursor:pointer;transition:.15s;
+}
+.seg-btn[aria-pressed="true"]{
+  background:rgba(0,232,120,.12);color:var(--accent);
+  box-shadow:inset 0 0 0 1px rgba(0,232,120,.5);
+}
+.seg-btn:focus-visible{outline:2px solid var(--text);outline-offset:-2px}
+
+/* ===== ドラム式ピッカー =====
+   中央の帯に来た値が選択値。iOSのピッカーと同じく、
+   スクロールスナップで1件ずつ吸着させている */
+.drum{position:relative;height:176px}
+.drum.locked{opacity:.3;pointer-events:none}
+.drum-cols{display:flex;height:100%}
+.drum-col{position:relative;flex:1;min-width:0;height:100%}
+.drum-band{
+  position:absolute;left:2px;right:2px;top:50%;height:36px;margin-top:-18px;
+  border-radius:9px;background:rgba(255,255,255,.045);
+  border-top:1px solid var(--border-hi);border-bottom:1px solid var(--border-hi);
+  pointer-events:none;
+}
+.drum-unit{
+  position:absolute;top:50%;left:calc(50% + 26px);transform:translateY(-50%);
+  font-size:10px;color:var(--text-dim);pointer-events:none;
+}
+.wheel{
+  height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-ms-overflow-style:none;text-align:center;
+  -webkit-mask-image:linear-gradient(180deg,transparent 2%,#000 30%,#000 70%,transparent 98%);
+  mask-image:linear-gradient(180deg,transparent 2%,#000 30%,#000 70%,transparent 98%);
+}
+.wheel::-webkit-scrollbar{display:none}
+.wheel:focus-visible{outline:2px solid var(--text);outline-offset:-2px;border-radius:9px}
+.wheel-item{
+  height:36px;line-height:36px;scroll-snap-align:center;
+  font-size:19px;font-weight:700;color:var(--text);
+  opacity:.22;transform:scale(.8);transition:opacity .1s linear,transform .1s linear;
+}
+.wheel-item.n1{opacity:.5;transform:scale(.9)}
+.wheel-item.n0{opacity:1;transform:scale(1);color:var(--accent)}
+.drum-hint{font-size:8px;color:var(--text-muted);text-align:center;margin:6px 0 10px}
+@media (prefers-reduced-motion:reduce){.wheel-item{transition:none}}
+
+/* ===== セットのステップ一覧 ===== */
+.steps{display:flex;flex-direction:column;gap:5px;margin:8px 0}
+.step{
+  display:flex;align-items:center;gap:5px;padding:6px 7px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:9px;
+}
+.step.editing{border-color:var(--accent)}
+.step.current{border-color:var(--border-hi);background:rgba(0,232,120,.06)}
+.step-no{flex:0 0 auto;width:14px;text-align:center;font-size:9px;color:var(--text-dim)}
+.step-name{
+  flex:1 1 auto;min-width:0;padding:6px 7px;
+  background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:7px;
+  color:var(--text);font-family:inherit;font-size:11px;
+}
+.step-name:focus{outline:none;border-color:var(--accent)}
+.step-time{
+  flex:0 0 auto;min-width:54px;padding:7px 6px;
+  background:transparent;border:1px solid var(--border);border-radius:7px;
+  color:var(--accent);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;
+}
+.step-time:hover,.step-time:focus-visible{border-color:var(--accent);outline:none}
+.step-del{
+  flex:0 0 auto;width:28px;height:28px;padding:0;
+  background:transparent;border:1px solid var(--border);border-radius:7px;
+  color:var(--text-dim);font-family:inherit;font-size:14px;line-height:1;cursor:pointer;
+}
+.step-del:hover,.step-del:focus-visible{border-color:var(--accent2);color:var(--accent2);outline:none}
+.steps-empty{
+  padding:16px 10px;text-align:center;font-size:9px;line-height:1.7;
+  color:var(--text-muted);border:1px dashed var(--border);border-radius:9px;
+}
 .lv-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .lv-card{
   padding:10px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
@@ -237,7 +317,9 @@ body{
       <circle class="ring-bg" cx="50" cy="50" r="46"></circle>
       <circle class="ring-fg" id="ringFg" cx="50" cy="50" r="46" stroke-dasharray="289.03" stroke-dashoffset="0"></circle>
     </svg>
+    <div class="dial-note top" id="noteTop" hidden></div>
     <div class="time" id="timeText" role="timer" aria-live="off">05:00</div>
+    <div class="dial-note bot" id="noteBot" hidden></div>
   </div>
   </div>
 
@@ -267,20 +349,58 @@ body{
 
     <div>
       <div class="sec-title"><i></i>時間</div>
-      <div class="chips" id="presets"></div>
-      <div class="row">
-        <button class="chip" data-adj="-60">−1分</button>
-        <button class="chip" data-adj="-10">−10秒</button>
-        <button class="chip" data-adj="10">+10秒</button>
-        <button class="chip" data-adj="60">+1分</button>
+
+      <div class="seg" role="group" aria-label="タイマーの種類">
+        <button class="seg-btn" type="button" data-mode="single" aria-pressed="true">単発</button>
+        <button class="seg-btn" type="button" data-mode="set" aria-pressed="false">セット</button>
       </div>
-      <div class="row" style="justify-content:center">
-        <input class="num-input" id="inMin" type="number" min="0" max="180" inputmode="numeric" value="5" aria-label="分">
-        <span class="unit">分</span>
-        <input class="num-input" id="inSec" type="number" min="0" max="59" inputmode="numeric" value="0" aria-label="秒">
-        <span class="unit">秒</span>
-        <button class="chip" id="applyEdit" style="flex:0 0 auto;min-width:60px">決定</button>
+
+      <div class="drum" id="drum">
+        <div class="drum-band" aria-hidden="true"></div>
+        <div class="drum-cols">
+          <div class="drum-col">
+            <div class="wheel" id="wheelMin" tabindex="0" role="slider"
+                 aria-label="分" aria-valuemin="0" aria-valuemax="180" aria-valuenow="5"></div>
+            <span class="drum-unit">分</span>
+          </div>
+          <div class="drum-col">
+            <div class="wheel" id="wheelSec" tabindex="0" role="slider"
+                 aria-label="秒" aria-valuemin="0" aria-valuemax="59" aria-valuenow="0"></div>
+            <span class="drum-unit">秒</span>
+          </div>
+        </div>
       </div>
+      <p class="drum-hint" id="drumHint">上下にスクロールして時間を選びます。</p>
+
+
+      <div id="setPanel" hidden>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="addStep">ステップを追加</button>
+          <button class="btn btn-ghost" id="cancelEdit" hidden>やめる</button>
+        </div>
+        <div class="steps" id="stepList"></div>
+        <div class="p-row">
+          <span class="p-label">くりかえし</span>
+          <select class="p-select" id="repeatSel">
+            <option value="1" selected>1回</option>
+            <option value="2">2回</option>
+            <option value="3">3回</option>
+            <option value="4">4回</option>
+            <option value="5">5回</option>
+            <option value="6">6回</option>
+            <option value="8">8回</option>
+            <option value="0">ずっと</option>
+          </select>
+        </div>
+        <div class="row">
+          <button class="btn btn-ghost" id="pomoBtn">ポモドーロ</button>
+          <button class="btn btn-ghost" id="clearSet">すべて消す</button>
+        </div>
+        <p class="note" style="margin-top:8px">
+          ステップが0になるたびに3秒だけ発光し、次のステップへ自動で進みます。最後のステップだけは「自動停止」の設定どおりに発光し続けます。
+        </p>
+      </div>
+
       <div class="row">
         <button class="btn btn-ghost" id="resetBtn">リセット</button>
       </div>
@@ -353,10 +473,10 @@ body{
 "use strict";
 
 /* ========== 定義 ========== */
-var PRESETS = [
-  {label:"1分", sec:60},{label:"3分", sec:180},{label:"5分", sec:300},
-  {label:"10分", sec:600},{label:"15分", sec:900},{label:"25分", sec:1500}
-];
+var MAX_SEC = 180*60 + 59;   /* ドラムで選べる上限 */
+var MAX_STEPS = 12;
+var STEP_ALERT_MS = 3000;    /* ステップ間の発光時間 */
+var STORE = "light-timer.v1";
 var LEVELS = [
   {id:1,name:"1 ソフト",   desc:"ゆっくり明滅。深夜・共有スペース向け",   hz:0.6, warn:false},
   {id:2,name:"2 ノーマル", desc:"はっきりした脈動。手元で気づく標準設定", hz:1.8, warn:false},
@@ -382,12 +502,20 @@ var alerting = false, closing = false, alertStartAt = 0;
 var lastSec = -1, tickSlot = 0, tickAt = 0;
 var wakeLock = null, rafId = null, vibTimer = null;
 
+/* セット（複数ステップの連続実行）。mode が "set" のときだけ使う */
+var mode = "single", singleSec = 300;
+var setSteps = [], setRepeat = 1;
+var stepIndex = 0, cycleIndex = 0, editIndex = -1;
+var interStep = false, pendingAdvance = false;
+
 /* ========== DOM ========== */
 var $ = function(id){ return document.getElementById(id); };
 var timeText=$("timeText"), ringFg=$("ringFg"), ambient=$("ambient"),
     startBtn=$("startBtn"), appRoot=$("appRoot"),
     flashLayer=$("flashLayer"), alertCanvas=$("alertCanvas"), toastEl=$("toast"), modal=$("modal");
 var dialEl = document.querySelector(".dial");
+var drumEl=$("drum"), wheelMin=$("wheelMin"), wheelSec=$("wheelSec"),
+    noteTop=$("noteTop"), noteBot=$("noteBot"), stepList=$("stepList");
 var ctx = alertCanvas.getContext("2d");
 var RING_LEN = 289.03;
 
@@ -449,13 +577,6 @@ function levelOf(n){
 }
 
 /* ========== 設定UI生成 ========== */
-var presetWrap = $("presets");
-PRESETS.forEach(function(p){
-  var b = document.createElement("button");
-  b.className = "chip"; b.textContent = p.label; b.dataset.sec = p.sec;
-  b.addEventListener("click", function(){ setTotal(p.sec*1000); });
-  presetWrap.appendChild(b);
-});
 var lvGrid = $("lvGrid");
 LEVELS.forEach(function(L){
   var b = document.createElement("button");
@@ -474,6 +595,250 @@ COLORS.forEach(function(C){
   b.addEventListener("click", function(){ S.color = C.id; syncUI(); });
   swWrap.appendChild(b);
 });
+
+/* ========== ドラム式ピッカー ==========
+   1件36pxの縦スクロール。上下に (高さ-36)/2 の余白を入れることで
+   scrollTop / 36 がそのまま「中央に来ている値」になる */
+var ITEM_H = 36;
+
+function buildWheel(el, count, pad2){
+  var html = "";
+  for(var i=0;i<count;i++){
+    html += '<div class="wheel-item">' + (pad2 && i < 10 ? "0"+i : i) + '</div>';
+  }
+  el.innerHTML = html;
+  el._items = el.querySelectorAll(".wheel-item");
+  el._range = {lo:0, hi:-1};
+  el._max = count - 1;
+  el._v = 0;
+}
+function padWheel(el){
+  var h = el.clientHeight || 176;
+  el.style.paddingTop = el.style.paddingBottom = Math.max(0,(h - ITEM_H)/2) + "px";
+}
+/* 中央付近の数件だけ濃さと大きさを変える。全件触ると重い */
+function paintWheel(el){
+  var c = el.scrollTop/ITEM_H, items = el._items, r = el._range;
+  var lo = Math.max(0, Math.floor(c)-4), hi = Math.min(items.length-1, Math.ceil(c)+4);
+  for(var i=r.lo;i<=r.hi;i++){ if(i<lo || i>hi) items[i].className = "wheel-item"; }
+  for(var j=lo;j<=hi;j++){
+    var d = Math.abs(j-c);
+    items[j].className = "wheel-item" + (d < 0.5 ? " n0" : d < 1.5 ? " n1" : "");
+  }
+  r.lo = lo; r.hi = hi;
+}
+function wheelValue(el){
+  return Math.max(0, Math.min(el._max, Math.round(el.scrollTop/ITEM_H)));
+}
+function setWheel(el, v, smooth){
+  v = Math.max(0, Math.min(el._max, v|0));
+  el._v = v;
+  el.setAttribute("aria-valuenow", v);
+  el._quiet = true;                 /* 自動スクロール中は確定処理を止める */
+  try{ el.scrollTo({top:v*ITEM_H, behavior: smooth ? "smooth" : "auto"}); }
+  catch(err){ el.scrollTop = v*ITEM_H; }
+  clearTimeout(el._quietT);
+  el._quietT = setTimeout(function(){ el._quiet = false; paintWheel(el); }, smooth ? 420 : 90);
+  paintWheel(el);
+}
+function wireWheel(el, onSettle){
+  var pending = false;
+  el.addEventListener("scroll", function(){
+    if(!pending){
+      pending = true;
+      requestAnimationFrame(function(){ pending = false; paintWheel(el); });
+    }
+    clearTimeout(el._settleT);
+    el._settleT = setTimeout(function(){
+      if(el._quiet) return;
+      el._v = wheelValue(el);
+      el.setAttribute("aria-valuenow", el._v);
+      onSettle();
+    }, 130);
+  }, {passive:true});
+  el.addEventListener("keydown", function(e){
+    var d = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
+    if(!d) return;
+    e.preventDefault();
+    setWheel(el, el._v + d, true);
+    onSettle();
+  });
+}
+function drumSec(){ return wheelMin._v*60 + wheelSec._v; }
+function setDrum(sec, smooth){
+  sec = Math.max(0, Math.min(MAX_SEC, Math.round(sec)));
+  setWheel(wheelMin, Math.floor(sec/60), smooth);
+  setWheel(wheelSec, sec%60, smooth);
+}
+function repadWheels(){
+  padWheel(wheelMin); padWheel(wheelSec);
+  setWheel(wheelMin, wheelMin._v, false);
+  setWheel(wheelSec, wheelSec._v, false);
+}
+function onDrumSettle(){
+  if(mode === "single"){
+    singleSec = drumSec();
+    setTotal(singleSec*1000, true);
+    saveState();
+  }
+  updateStepActions();
+}
+
+/* ========== セット ========== */
+function stepName(st, i){ return (st && st.name) ? st.name : ("ステップ" + (i+1)); }
+function loadStep(i){
+  if(!setSteps.length){ stepIndex = 0; totalMs = 0; remainMs = 0; return; }
+  stepIndex = Math.max(0, Math.min(setSteps.length-1, i));
+  totalMs = setSteps[stepIndex].sec*1000;
+  remainMs = totalMs;
+}
+function hasMoreCycles(){ return setRepeat === 0 || (cycleIndex + 1) < setRepeat; }
+/* 最後の1発かどうか。途中なら短い発光で次へ送る */
+function isLastOfRun(){
+  if(mode !== "set" || !setSteps.length) return true;
+  return stepIndex >= setSteps.length-1 && !hasMoreCycles();
+}
+function nextLabel(){
+  if(!setSteps.length) return "";
+  var i = (stepIndex + 1 < setSteps.length) ? stepIndex+1 : 0;
+  return stepName(setSteps[i], i) + " " + fmt(setSteps[i].sec*1000);
+}
+function advanceStep(){
+  if(mode !== "set" || !setSteps.length){ remainMs = totalMs; syncUI(); return; }
+  if(stepIndex + 1 < setSteps.length){
+    loadStep(stepIndex + 1);
+  } else {
+    cycleIndex++;
+    loadStep(0);
+  }
+  syncUI();
+  start();
+}
+function rewindSet(){ stepIndex = 0; cycleIndex = 0; loadStep(0); }
+/* 走っているものをすべて畳む。モード切り替えやリセットの下敷き */
+function stopAll(){
+  pendingAdvance = false;
+  if(alerting || closing) stopAlert();
+  running = false;
+  cancelAnimationFrame(rafId);
+  hideTick();
+  releaseWake();
+}
+
+function setNote(el, text){
+  if(el._t === text) return;
+  el._t = text;
+  el.textContent = text;
+  el.hidden = !text;
+}
+function renderSteps(){
+  stepList.innerHTML = "";
+  if(!setSteps.length){
+    var e = document.createElement("div");
+    e.className = "steps-empty";
+    e.textContent = "ドラムで時間を選び、「ステップを追加」を押してください。";
+    stepList.appendChild(e);
+  } else {
+    setSteps.forEach(function(st, i){
+      var row = document.createElement("div");
+      row.className = "step" + (i === editIndex ? " editing" : "") +
+                      (mode === "set" && i === stepIndex && (running || alerting) ? " current" : "");
+
+      var no = document.createElement("span");
+      no.className = "step-no"; no.textContent = (i+1);
+
+      var nm = document.createElement("input");
+      nm.className = "step-name"; nm.type = "text"; nm.maxLength = 10;
+      nm.value = st.name;
+      nm.setAttribute("aria-label", (i+1) + "番目のステップ名");
+      nm.addEventListener("input", function(){ st.name = nm.value; saveState(); syncUI(); });
+
+      var tm = document.createElement("button");
+      tm.className = "step-time"; tm.type = "button"; tm.textContent = fmt(st.sec*1000);
+      tm.setAttribute("aria-label", (i+1) + "番目のステップの時間を編集");
+      tm.addEventListener("click", function(){ editStep(i); });
+
+      var del = document.createElement("button");
+      del.className = "step-del"; del.type = "button"; del.textContent = "×";
+      del.setAttribute("aria-label", (i+1) + "番目のステップを削除");
+      del.addEventListener("click", function(){ removeStep(i); });
+
+      row.appendChild(no); row.appendChild(nm); row.appendChild(tm); row.appendChild(del);
+      stepList.appendChild(row);
+    });
+  }
+  updateStepActions();
+}
+function updateStepActions(){
+  var editing = editIndex >= 0 && editIndex < setSteps.length;
+  $("addStep").textContent = editing ? "このステップを更新" : "ステップを追加";
+  $("cancelEdit").hidden = !editing;
+}
+function editStep(i){
+  editIndex = (editIndex === i) ? -1 : i;
+  if(editIndex >= 0) setDrum(setSteps[editIndex].sec, true);
+  renderSteps();
+}
+function removeStep(i){
+  setSteps.splice(i, 1);
+  if(editIndex === i) editIndex = -1;
+  else if(editIndex > i) editIndex--;
+  if(stepIndex >= setSteps.length) stepIndex = 0;
+  if(!running && !alerting && !closing) loadStep(stepIndex);
+  saveState(); renderSteps(); syncUI();
+}
+function syncModeUI(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-mode]"), function(b){
+    b.setAttribute("aria-pressed", b.dataset.mode === mode ? "true" : "false");
+  });
+  $("setPanel").hidden = mode !== "set";
+  $("drumHint").textContent = mode === "set"
+    ? "選んだ時間をステップとして追加します。"
+    : "上下にスクロールして時間を選びます。";
+  $("resetBtn").textContent = mode === "set" ? "セットを最初から" : "リセット";
+}
+function setMode(m){
+  if(mode === m) return;
+  stopAll();
+  mode = m;
+  editIndex = -1;
+  if(m === "set"){ rewindSet(); }
+  else { totalMs = remainMs = singleSec*1000; setDrum(singleSec, true); }
+  saveState(); syncModeUI(); renderSteps(); syncUI();
+}
+
+/* ========== 保存 ========== */
+function saveState(){
+  try{
+    localStorage.setItem(STORE, JSON.stringify({
+      mode: mode, single: singleSec, repeat: setRepeat, steps: setSteps
+    }));
+  }catch(err){}
+}
+function loadState(){
+  var d;
+  try{
+    var raw = localStorage.getItem(STORE);
+    if(!raw) return;
+    d = JSON.parse(raw);
+  }catch(err){ return; }
+  if(!d || typeof d !== "object") return;
+
+  if(Array.isArray(d.steps)){
+    setSteps = d.steps
+      .filter(function(s){ return s && typeof s.sec === "number" && s.sec > 0 && s.sec <= MAX_SEC; })
+      .slice(0, MAX_STEPS)
+      .map(function(s, i){
+        return {
+          name: typeof s.name === "string" ? s.name.slice(0,10) : ("ステップ"+(i+1)),
+          sec: Math.round(s.sec)
+        };
+      });
+  }
+  if(typeof d.repeat === "number" && d.repeat >= 0 && d.repeat <= 8) setRepeat = d.repeat|0;
+  if(typeof d.single === "number" && d.single > 0) singleSec = Math.min(MAX_SEC, Math.round(d.single));
+  if(d.mode === "set" && setSteps.length) mode = "set";
+}
 
 /* ========== 表示同期 ========== */
 function phaseColor(){
@@ -512,10 +877,19 @@ function syncUI(){
   startBtn.setAttribute("aria-label", label);
   $("startLabel").textContent = label;
 
-  var chips = presetWrap.children;
-  for(var i=0;i<chips.length;i++){
-    chips[i].classList.toggle("active", !running && Number(chips[i].dataset.sec)*1000 === totalMs);
+  /* 単発の計測中はドラムを触らせない（Appleのタイマーと同じ振る舞い） */
+  drumEl.classList.toggle("locked", mode === "single" && (running || alerting || closing));
+
+  if(mode === "set" && setSteps.length){
+    var cur = setSteps[Math.min(stepIndex, setSteps.length-1)];
+    setNote(noteTop, stepName(cur, stepIndex) + "  " + (stepIndex+1) + "/" + setSteps.length);
+    if(interStep) setNote(noteBot, "つぎ " + nextLabel());
+    else if(setRepeat === 1) setNote(noteBot, "");
+    else setNote(noteBot, "くりかえし " + (cycleIndex+1) + (setRepeat === 0 ? "" : " / " + setRepeat));
+  } else {
+    setNote(noteTop, ""); setNote(noteBot, "");
   }
+
   var cards = lvGrid.children;
   for(var j=0;j<cards.length;j++){
     cards[j].classList.toggle("active", Number(cards[j].dataset.lv) === S.level);
@@ -527,16 +901,21 @@ function syncUI(){
 }
 
 /* ========== タイマー制御 ========== */
-function setTotal(ms){
-  ms = Math.max(1000, Math.min(ms, 24*3600*1000));
+function setTotal(ms, fromDrum){
+  ms = Math.max(0, Math.min(ms, MAX_SEC*1000));
   totalMs = ms; remainMs = ms;
   if(running) stop(false);
-  $("inMin").value = Math.floor(ms/60000);
-  $("inSec").value = Math.floor(ms/1000)%60;
+  if(!fromDrum) setDrum(Math.round(ms/1000), false);
   syncUI();
 }
 function start(){
-  if(remainMs <= 0) remainMs = totalMs;
+  if(mode === "set"){
+    if(!setSteps.length){ toast("ステップを追加してください"); setSheet(true); return; }
+    if(remainMs <= 0) loadStep(stepIndex);
+  } else {
+    if(totalMs <= 0){ toast("時間を設定してください"); setSheet(true); return; }
+    if(remainMs <= 0) remainMs = totalMs;
+  }
   endAt = performance.now() + remainMs;
   running = true;
   lastSec = -1;
@@ -577,7 +956,7 @@ function loop(){
     remainMs = 0; running = false;
     cancelAnimationFrame(rafId);
     syncUI();
-    fire();
+    fire(!isLastOfRun());
     return;
   }
   syncUI();
@@ -632,8 +1011,9 @@ function killAnims(el){
   }
 }
 
-function fire(){
+function fire(inter){
   alerting = true; closing = false;
+  interStep = !!inter;
   alertStartAt = performance.now();
   render._lastHue = null;
   setSheet(false);
@@ -647,7 +1027,11 @@ function fire(){
   startVib();
   drawLoop();
   syncUI();
-  if(S.autoStop > 0) fire._t = setTimeout(stopAlert, S.autoStop*1000);
+  if(interStep){
+    fire._t = setTimeout(function(){ pendingAdvance = true; stopAlert(); }, STEP_ALERT_MS);
+  } else if(S.autoStop > 0){
+    fire._t = setTimeout(stopAlert, S.autoStop*1000);
+  }
 }
 
 function stopAlert(){
@@ -673,9 +1057,22 @@ function finishClose(){
   flashLayer.style.opacity = "";
   appRoot.style.transform = "";
   ctx.clearRect(0,0,alertCanvas.width,alertCanvas.height);
+  interStep = false;
+
+  /* 途中のステップなら画面を消したその足で次を走らせる。
+     画面消灯ロックは start() が取り直すので、ここでは解放しない */
+  if(pendingAdvance){
+    pendingAdvance = false;
+    advanceStep();
+    renderSteps();
+    return;
+  }
+
   releaseWake();
-  remainMs = totalMs;
+  if(mode === "set") rewindSet();
+  else remainMs = totalMs;
   syncUI();
+  renderSteps();
 }
 
 function startVib(){
@@ -850,6 +1247,8 @@ function setSheet(open){
   $("drawer").classList.toggle("open", open);
   $("sheetBackdrop").classList.toggle("open", open);
   $("settingsBtn").setAttribute("aria-expanded", open ? "true" : "false");
+  /* 閉じている間のレイアウトでは高さが測れないことがあるので開くたびに合わせ直す */
+  if(open) repadWheels();
 }
 
 /* ========== イベント ========== */
@@ -862,74 +1261,59 @@ startBtn.addEventListener("click", function(){
 $("settingsBtn").addEventListener("click", function(){ setSheet(true); });
 $("sheetClose").addEventListener("click", function(){ setSheet(false); });
 $("sheetBackdrop").addEventListener("click", function(){ setSheet(false); });
-$("resetBtn").addEventListener("click", function(){ stop(true); toast("リセットしました"); });
-
-/* ±ボタン：単発タップと、長押しによる加速リピート */
-var HOLD_DELAY = 420;   /* 押し始めからリピート開始まで */
-var REP_START  = 300;   /* リピート初速 */
-var REP_MIN    = 55;    /* 最速 */
-var REP_DECAY  = 0.72;  /* 1秒あたりの間隔の減衰率 */
-
-function applyAdj(sec){
-  var d = sec*1000;
-  if(running){
-    endAt += d;
-    remainMs = Math.max(1000, endAt - performance.now());
-    endAt = performance.now() + remainMs;
-    totalMs = Math.max(totalMs, remainMs);
-    syncUI();
-  } else {
-    setTotal(totalMs + d);
-  }
-}
-
-Array.prototype.forEach.call(document.querySelectorAll("[data-adj]"), function(b){
-  var step = Number(b.dataset.adj);
-  var holdT = null, repT = null, resetT = null, viaPointer = false, t0 = 0;
-
-  function tick(){
-    applyAdj(step);
-    var held = (performance.now() - t0)/1000;
-    var iv = Math.max(REP_MIN, REP_START*Math.pow(REP_DECAY, held));
-    repT = setTimeout(tick, iv);
-  }
-  function begin(e){
-    if(e.button != null && e.button !== 0) return;
-    clearTimeout(resetT);
-    viaPointer = true;
-    t0 = performance.now();
-    applyAdj(step);
-    b.classList.add("holding");
-    holdT = setTimeout(tick, HOLD_DELAY);
-    if(b.setPointerCapture && e.pointerId != null){
-      try{ b.setPointerCapture(e.pointerId); }catch(err){}
-    }
-  }
-  function end(){
-    clearTimeout(holdT); clearTimeout(repT);
-    holdT = repT = null;
-    b.classList.remove("holding");
-    /* pointerup 直後の click を1回だけ無視する。
-       クリックが発火しなかった場合に備えて少し後で解除する */
-    clearTimeout(resetT);
-    resetT = setTimeout(function(){ viaPointer = false; }, 500);
-  }
-
-  b.addEventListener("pointerdown", begin);
-  b.addEventListener("pointerup", end);
-  b.addEventListener("pointercancel", end);
-  b.addEventListener("lostpointercapture", end);
-  /* キーボード操作（Enter / Space）用のフォールバック */
-  b.addEventListener("click", function(){
-    if(viaPointer){ viaPointer = false; clearTimeout(resetT); return; }
-    applyAdj(step);
-  });
+$("resetBtn").addEventListener("click", function(){
+  stopAll();
+  if(mode === "set") rewindSet();
+  else remainMs = totalMs;
+  renderSteps(); syncUI();
+  toast("リセットしました");
 });
-$("applyEdit").addEventListener("click", function(){
-  var m = Math.max(0, Math.min(180, Number($("inMin").value)||0));
-  var s = Math.max(0, Math.min(59, Number($("inSec").value)||0));
-  setTotal((m*60+s)*1000);
-  toast("時間を設定しました");
+
+/* ---- 単発／セットの切り替え ---- */
+Array.prototype.forEach.call(document.querySelectorAll("[data-mode]"), function(b){
+  b.addEventListener("click", function(){ setMode(b.dataset.mode); });
+});
+
+/* ---- セットの編集 ---- */
+$("addStep").addEventListener("click", function(){
+  var sec = drumSec();
+  if(sec <= 0){ toast("1秒以上に設定してください"); return; }
+  if(editIndex >= 0 && editIndex < setSteps.length){
+    setSteps[editIndex].sec = sec;
+    editIndex = -1;
+    toast("ステップを更新しました");
+  } else {
+    if(setSteps.length >= MAX_STEPS){ toast("ステップは" + MAX_STEPS + "個までです"); return; }
+    setSteps.push({name:"ステップ" + (setSteps.length+1), sec:sec});
+    toast("ステップを追加しました");
+  }
+  /* 走っている最中の編集で、いま進行中の残り時間を壊さない */
+  if(!running && !alerting && !closing) loadStep(stepIndex);
+  saveState(); renderSteps(); syncUI();
+});
+$("cancelEdit").addEventListener("click", function(){ editIndex = -1; renderSteps(); });
+$("repeatSel").addEventListener("change", function(){
+  setRepeat = Number(this.value);
+  if(cycleIndex + 1 > setRepeat && setRepeat !== 0) cycleIndex = 0;
+  saveState(); syncUI();
+});
+$("pomoBtn").addEventListener("click", function(){
+  stopAll();
+  setSteps = [{name:"集中", sec:1500},{name:"休憩", sec:300}];
+  setRepeat = 4; $("repeatSel").value = "4";
+  editIndex = -1;
+  mode = "set"; rewindSet();
+  setDrum(1500, true);
+  saveState(); syncModeUI(); renderSteps(); syncUI();
+  toast("25分→5分を4回で登録しました");
+});
+$("clearSet").addEventListener("click", function(){
+  if(!setSteps.length) return;
+  stopAll();
+  setSteps = []; editIndex = -1;
+  rewindSet();
+  saveState(); renderSteps(); syncUI();
+  toast("ステップを消しました");
 });
 
 $("preSel").addEventListener("change", function(){ S.preSec = Number(this.value); syncUI(); });
@@ -942,7 +1326,8 @@ $("vibChk").addEventListener("change", function(){
 $("ambChk").addEventListener("change", function(){ S.ambient = this.checked; syncUI(); });
 $("testBtn").addEventListener("click", function(){
   toast(levelOf(S.level).name + " でテスト");
-  fire();
+  stopAll();
+  fire(false);
 });
 
 $("fsBtn").addEventListener("click", function(){
@@ -979,10 +1364,32 @@ $("modalOk").addEventListener("click", function(){
 });
 $("modalNg").addEventListener("click", function(){ modal.classList.remove("on"); });
 
-window.addEventListener("resize", function(){ resizeCanvas(); });
-window.addEventListener("orientationchange", function(){ setTimeout(resizeCanvas, 250); });
+window.addEventListener("resize", function(){ resizeCanvas(); repadWheels(); });
+window.addEventListener("orientationchange", function(){
+  setTimeout(function(){ resizeCanvas(); repadWheels(); }, 250);
+});
 
-setTotal(300000);
+/* ========== 起動 ========== */
+buildWheel(wheelMin, 181, false);
+buildWheel(wheelSec, 60, true);
+loadState();
+padWheel(wheelMin); padWheel(wheelSec);
+
+if(mode === "set" && setSteps.length){
+  rewindSet();
+  setDrum(setSteps[0].sec, false);
+} else {
+  mode = "single";
+  totalMs = remainMs = singleSec*1000;
+  setDrum(singleSec, false);
+}
+$("repeatSel").value = String(setRepeat);
+/* 初期位置を決めてから購読する。自前のスクロールで確定処理を走らせないため */
+wireWheel(wheelMin, onDrumSettle);
+wireWheel(wheelSec, onDrumSettle);
+
+syncModeUI();
+renderSteps();
 setSheet(false);
 syncUI();
 updateCenter();
