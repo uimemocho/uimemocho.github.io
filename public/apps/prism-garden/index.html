@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102823">
+<meta name="description" content="結晶がきらめく夜の庭。特殊ピースの連鎖と、氷・蔦・石のギミックを楽しむ3マッチパズル。">
+<title>PRISM GARDEN — 夜の庭の3マッチパズル</title>
+<link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./style.css">
+<script type="module" src="./game.js"></script>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"></div>
+<header class="topbar"><a class="wordmark" href="./" aria-label="PRISM GARDEN">✧ <span>PRISM GARDEN</span></a><div class="top-actions"><button class="icon-btn" id="sound" aria-label="サウンドをオン" aria-pressed="false"></button><button class="icon-btn" id="help" aria-label="遊び方"></button><button class="icon-btn" id="pause" aria-label="一時停止"></button></div></header>
+<main class="game-layout">
+<aside class="journey"><p class="eyebrow">THE MOONLIT CONSERVATORY</p><h1>夜の庭に、<br>きらめきを。</h1><p class="intro">結晶をそろえて、ひとつずつ。<br>眠る庭の魔法を解き放とう。</p><button class="chapter-link" id="stages"><span class="chapter-mark">01</span><span><small>CHAPTER ONE</small><strong>月明かりの温室</strong></span><span class="chevron">›</span></button><div class="route" id="route" aria-label="ステージ進行"></div><div class="special-note"><span class="note-spark">✦</span><p><b>ひらめきが、連鎖に変わる。</b><br>特殊ピース同士を入れ替えると<br>より大きな魔法が生まれます。</p></div><p class="journey-foot">TAKE A BREATH. MAKE A MATCH.</p></aside>
+<section class="play-area" aria-label="パズルゲーム">
+<div class="level-heading"><div><p class="eyebrow" id="level-number">LEVEL 01</p><h2 id="level-name">はじまりの光</h2></div><button id="restart" class="quiet-button" aria-label="このステージをやり直す"></button></div>
+<div class="score-row"><span>SCORE <b id="score">0</b></span><div class="score-progress" aria-label="スコア達成度"><span id="score-fill"></span><i>✦</i><i>✦</i><i>✦</i></div><span id="best" class="best">BEST 0</span></div>
+<div class="game-hud"><div class="moves-panel"><span>のこり手数</span><strong id="moves">24</strong></div><div class="mission-panel"><span>目標</span><div id="goals"></div></div></div>
+<div class="board-shell" id="board-shell"><canvas id="board" width="800" height="800" role="application" tabindex="0" aria-label="8行8列のパズル盤面。矢印キーで移動、スペースで選択し、隣のマスでスペースを押すと入れ替えます。"></canvas><div id="board-message" aria-live="polite"></div><div class="board-corners" aria-hidden="true"></div></div>
+<div class="boosters"><button class="booster" id="hint"><span class="booster-icon" id="hint-icon"></span><span>ヒント</span><small>∞</small></button><button class="booster" id="hammer"><span class="booster-icon" id="hammer-icon"></span><span>ハンマー</span><small id="hammer-count">3</small></button><button class="booster" id="shuffle"><span class="booster-icon" id="shuffle-icon"></span><span>シャッフル</span><small id="shuffle-count">2</small></button></div>
+<p class="play-tip" id="tip">隣り合う結晶をスワイプして、同じ色を3つそろえよう</p>
+</section>
+<aside class="field-guide"><p class="eyebrow">A LITTLE MAGIC</p><h2>連鎖のレシピ</h2><div class="recipe"><div class="recipe-gem line-demo">↔</div><div><span class="match-count">4 MATCH</span><h3>光のライン</h3><p>一列まるごと、きらめきに。</p></div></div><div class="recipe"><div class="recipe-gem bomb-demo">✦</div><div><span class="match-count">T / L MATCH</span><h3>スターバースト</h3><p>まわりの結晶を一気に解放。</p></div></div><div class="recipe"><div class="recipe-gem prism-demo">✧</div><div><span class="match-count">5 MATCH</span><h3>虹のプリズム</h3><p>同じ色を、すべて集めて。</p></div></div><div class="guide-divider"></div><p class="eyebrow">IN THIS GARDEN</p><div id="gimmick-guide" class="gimmick-guide"></div><button class="text-button" id="all-rules">遊び方をみる <span>↗</span></button><div class="garden-sign"><span>✧</span><span>LET YOUR<br>COLORS BLOOM</span></div></aside>
+</main>
+<footer class="footer"><span>PRISM GARDEN</span><span>ひと息つける、ひとつの庭。</span><span id="level-total">12 LITTLE ADVENTURES</span></footer>
+<dialog id="modal" aria-labelledby="modal-title"><button class="modal-close icon-btn" id="modal-close" aria-label="閉じる">×</button><div id="modal-content"></div></dialog>
+<div class="sr-only" id="announcement" aria-live="polite"></div>
+</body></html>
