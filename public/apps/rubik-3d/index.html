@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#08080b">
+<title>RUBIK 3D — 3x3x3 世界記録モード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080b; --surface:#101016; --surface2:#16161e; --surface3:#1c1c26;
+  --border:#252530; --border-hi:#35354a;
+  --text:#d8d8e4; --text-dim:#5a5a70; --text-muted:#3a3a4a;
+  --accent:#00e878; --accent2:#ff2e5c; --accent3:#2e8cff; --warn:#ffa726;
+  --cyan:#22d3ee; --purple:#a855f7;
+  --accent-glow:rgba(0,232,120,.22); --accent2-glow:rgba(255,46,92,.22);
+  --pad:10px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'JetBrains Mono','Noto Sans JP',ui-monospace,monospace;
+  font-size:13px; -webkit-font-smoothing:antialiased;
+  user-select:none;
+}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;width:100%}
+
+/* ---------- header ---------- */
+.header{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border-bottom:1px solid var(--border);
+  background:var(--surface);flex:0 0 auto;
+}
+.brand{font-size:12px;font-weight:700;letter-spacing:3px;color:var(--accent);text-shadow:0 0 12px var(--accent-glow)}
+.brand b{color:var(--text);font-weight:400;letter-spacing:1px;font-size:10px;margin-left:6px}
+.status{margin-left:auto;font-size:9px;letter-spacing:1.4px;color:var(--text-dim);text-transform:uppercase}
+.status.on{color:var(--accent)}
+.status.rec{color:var(--accent2)}
+
+/* ---------- stage ---------- */
+.stage{position:relative;flex:1 1 auto;min-height:0;background:
+  radial-gradient(120% 90% at 50% 35%,#14141c 0%,#08080b 70%)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+
+.hud{position:absolute;left:12px;top:10px;pointer-events:none;line-height:1}
+.hud-timer{
+  font-size:clamp(30px,9vw,54px);font-weight:700;letter-spacing:-1px;
+  color:var(--text);font-variant-numeric:tabular-nums;
+  text-shadow:0 2px 24px #000;opacity:.95;
+}
+.hud-timer.live{color:var(--accent);text-shadow:0 0 26px var(--accent-glow)}
+.hud-timer.done{color:var(--warn);text-shadow:0 0 30px rgba(255,167,38,.3)}
+.hud-sub{margin-top:6px;display:flex;gap:10px;font-size:9px;letter-spacing:1.5px;color:var(--text-dim)}
+.hud-sub span b{color:var(--text);font-weight:500}
+
+.stage-tools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:6}
+.tool-btn{
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  appearance:none;border:1px solid var(--border);border-radius:3px;
+  background:rgba(22,22,30,.82);backdrop-filter:blur(6px);
+  color:var(--text-dim);font:inherit;font-size:17px;line-height:1;
+  cursor:pointer;transition:color .12s,border-color .12s,background .12s;
+}
+.tool-btn:active{color:var(--accent);border-color:var(--accent);background:var(--surface3)}
+.tool-btn.on{color:var(--accent);border-color:var(--accent)}
+.viewhint{
+  position:absolute;right:11px;top:96px;font-size:8px;letter-spacing:1px;
+  color:var(--text-muted);pointer-events:none;text-align:right;line-height:1.7
+}
+
+/* 全画面(UI非表示) */
+body.fs .header,body.fs .controls{display:none}
+body.fs .stage{height:100vh;height:100dvh;width:100%}
+body.fs .viewhint{top:96px}
+
+/* ---------- record card ---------- */
+.card{
+  position:absolute;left:10px;right:10px;bottom:10px;
+  background:rgba(16,16,22,.93);border:1px solid var(--border-hi);
+  border-radius:4px;padding:11px 12px;backdrop-filter:blur(8px);
+  transform:translateY(14px);opacity:0;pointer-events:none;
+  transition:opacity .28s ease,transform .28s ease;
+}
+.card.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.card-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.card-close{
+  margin-left:auto;width:26px;height:26px;margin:-4px -4px -4px 0;
+  display:flex;align-items:center;justify-content:center;
+  appearance:none;border:1px solid var(--border);border-radius:3px;
+  background:var(--surface2);color:var(--text-dim);
+  font:inherit;font-size:15px;line-height:1;cursor:pointer;
+  transition:color .12s,border-color .12s;
+}
+.card-close:active{color:var(--accent2);border-color:var(--accent2)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2-glow)}
+.card-title{font-size:9px;font-weight:600;letter-spacing:2.5px;color:var(--text-dim);text-transform:uppercase}
+.rec-main{display:flex;align-items:baseline;gap:8px}
+.rec-time{font-size:34px;font-weight:700;color:var(--accent2);letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.rec-unit{font-size:11px;color:var(--text-dim)}
+.rec-who{font-size:11px;color:var(--text);margin-top:2px}
+.rec-meta{font-size:9px;color:var(--text-dim);margin-top:3px;line-height:1.7}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:9px}
+.rec-cell{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:6px 7px}
+.rec-cell i{display:block;font-style:normal;font-size:8px;letter-spacing:1.2px;color:var(--text-dim);margin-bottom:3px}
+.rec-cell b{font-size:14px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.card-actions{display:flex;gap:6px;margin-top:9px}
+
+/* ---------- countdown ---------- */
+.count{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(70px,26vw,170px);font-weight:700;color:var(--accent);
+  text-shadow:0 0 60px var(--accent-glow);pointer-events:none;opacity:0
+}
+.count.show{opacity:1}
+.flash{position:absolute;inset:0;background:var(--accent);opacity:0;pointer-events:none;mix-blend-mode:screen}
+
+/* ---------- controls ---------- */
+.controls{
+  flex:0 0 auto;background:var(--surface);border-top:1px solid var(--border);
+  padding:var(--pad);display:flex;flex-direction:column;gap:8px;
+  max-height:50vh;max-height:52dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.btn{
+  appearance:none;border:1px solid var(--border);background:var(--surface2);
+  color:var(--text);font:inherit;font-size:10px;letter-spacing:1.2px;
+  padding:11px 8px;border-radius:3px;cursor:pointer;min-height:38px;
+  transition:border-color .12s,background .12s;
+}
+.btn:active{background:var(--surface3);border-color:var(--border-hi)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn-accent{background:var(--accent);color:#04140b;border-color:var(--accent);font-weight:700}
+.btn-danger{color:var(--accent2);border-color:#3a2029}
+.btn-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+
+.btn-wr{
+  position:relative;display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;padding:13px 10px;border-radius:3px;cursor:pointer;
+  border:1px solid var(--accent2);background:linear-gradient(180deg,#20101a,#160c12);
+  color:var(--accent2);font:inherit;font-size:11px;font-weight:700;letter-spacing:2.5px;
+  box-shadow:0 0 18px rgba(255,46,92,.10) inset;
+}
+.btn-wr small{font-size:9px;font-weight:400;letter-spacing:1px;color:var(--text-dim)}
+.btn-wr:active{background:#2a1420}
+.btn-wr:disabled{opacity:.4}
+
+.seq{
+  background:var(--surface2);border:1px solid var(--border);border-radius:3px;
+  padding:7px 8px;font-size:10px;line-height:1.8;color:var(--text-dim);
+  min-height:32px;word-break:break-word;
+}
+.seq b{color:var(--accent3);font-weight:500}
+.seq i{font-style:normal;color:var(--text-muted);letter-spacing:1.4px;font-size:8px;display:block;margin-bottom:2px}
+.seq em{font-style:normal;color:var(--accent);background:rgba(0,232,120,.12);border-radius:2px;padding:0 2px}
+
+.rowlabel{font-size:8px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.rowlabel::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.pad-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.pad-grid .btn{padding:9px 0;font-size:11px;letter-spacing:0;min-height:34px}
+.pad-grid .btn.p{color:var(--cyan)}
+
+.seg{display:flex;gap:0;border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.seg button{
+  flex:1;appearance:none;border:0;background:var(--surface2);color:var(--text-dim);
+  font:inherit;font-size:10px;padding:8px 0;cursor:pointer;border-right:1px solid var(--border);min-height:34px
+}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--surface3);color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
+
+.foot{font-size:8px;color:var(--text-muted);line-height:1.7;letter-spacing:.3px}
+.foot a{color:var(--text-dim)}
+
+/* ---------- boot ---------- */
+.boot{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;z-index:50}
+.boot.hide{display:none}
+.boot h1{font-size:13px;letter-spacing:5px;color:var(--accent);margin:0;font-weight:700}
+.boot p{font-size:9px;letter-spacing:1.6px;color:var(--text-dim);margin:0}
+.bar{width:min(260px,70vw);height:2px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);box-shadow:0 0 10px var(--accent-glow);transition:width .15s}
+
+/* ---------- landscape / wide ---------- */
+@media (min-width:760px) and (orientation:landscape){
+  .app{flex-direction:row;flex-wrap:wrap}
+  .header{width:100%}
+  .stage{flex:1 1 auto;height:calc(100vh - 39px);height:calc(100dvh - 39px)}
+  .controls{width:320px;max-height:calc(100vh - 39px);max-height:calc(100dvh - 39px);border-top:0;border-left:1px solid var(--border)}
+}
+@media (max-height:560px) and (orientation:landscape){
+  .app{flex-direction:row;flex-wrap:wrap}
+  .header{width:100%}
+  .stage{flex:1 1 auto;height:calc(100vh - 39px);height:calc(100dvh - 39px)}
+  .controls{width:min(300px,44vw);max-height:calc(100vh - 39px);max-height:calc(100dvh - 39px);border-top:0;border-left:1px solid var(--border)}
+  .hud-timer{font-size:30px}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="brand">RUBIK 3D<b>3×3×3</b></div>
+    <div class="status" id="status">準備完了</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+
+    <div class="hud">
+      <div class="hud-timer" id="timer">0.00</div>
+      <div class="hud-sub">
+        <span id="hudMoves">0 手</span>
+        <span id="hudTps"></span>
+      </div>
+    </div>
+
+    <div class="stage-tools">
+      <button class="tool-btn" id="btnViewReset" aria-label="視点をリセット" title="視点をリセット">⟲</button>
+      <button class="tool-btn" id="btnFull" aria-label="全画面表示" title="全画面(UIの表示切替)">⛶</button>
+    </div>
+    <div class="viewhint">ドラッグ:面を回す<br>背景ドラッグ:視点</div>
+    <div class="count" id="count"></div>
+    <div class="flash" id="flash"></div>
+
+    <div class="card" id="card">
+      <div class="card-head">
+        <span class="dot"></span><span class="card-title" id="cardTitle">公式世界記録</span>
+        <button class="card-close" id="cardClose" aria-label="閉じる" title="閉じる">×</button>
+      </div>
+      <div id="cardBody"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-wr" id="btnWR">世界記録モード<small>2.76秒で完成</small></button>
+
+    <div class="btn-row">
+      <button class="btn" id="btnScramble">シャッフル</button>
+      <button class="btn" id="btnSolve">ソルブ</button>
+      <button class="btn btn-danger" id="btnReset">リセット</button>
+    </div>
+
+    <div class="seq" id="seq"><i>手順</i>シャッフルするとスクランブル手順が出ます</div>
+
+    <div class="rowlabel">ムーブ</div>
+    <div class="pad-grid" id="pad"></div>
+
+    <div class="rowlabel">再生速度</div>
+    <div class="seg" id="speedSeg">
+      <button data-s="0.25">0.25×</button>
+      <button data-s="0.5">0.5×</button>
+      <button data-s="1" class="on">1×</button>
+      <button data-s="2">2×</button>
+    </div>
+
+    <div class="rowlabel">視点</div>
+    <div class="seg" id="viewSeg">
+      <button data-v="spin" id="btnSpin">自動回転</button>
+      <button data-v="zin">拡大</button>
+      <button data-v="zout">縮小</button>
+    </div>
+
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+
+<div class="boot" id="boot">
+  <h1>RUBIK 3D</h1>
+  <div class="bar"><i id="bootBar"></i></div>
+  <p id="bootMsg">ソルバー初期化中</p>
+</div>
+
+<script>
+/* ===========================================================
+   CUBE SOLVER — Kociemba two-phase (self-contained)
+   corners: URF0 UFL1 ULB2 UBR3 DFR4 DLF5 DBL6 DRB7
+   edges  : UR0 UF1 UL2 UB3 DR4 DF5 DL6 DB7 FR8 FL9 BL10 BR11
+   =========================================================== */
+(function (root) {
+  'use strict';
+
+  // ---------- base moves ----------
+  var MV = {
+    U: { cp:[3,0,1,2,4,5,6,7], co:[0,0,0,0,0,0,0,0],
+         ep:[3,0,1,2,4,5,6,7,8,9,10,11], eo:[0,0,0,0,0,0,0,0,0,0,0,0] },
+    R: { cp:[4,1,2,0,7,5,6,3], co:[2,0,0,1,1,0,0,2],
+         ep:[8,1,2,3,11,5,6,7,4,9,10,0], eo:[0,0,0,0,0,0,0,0,0,0,0,0] },
+    F: { cp:[1,5,2,3,0,4,6,7], co:[1,2,0,0,2,1,0,0],
+         ep:[0,9,2,3,4,8,6,7,1,5,10,11], eo:[0,1,0,0,0,1,0,0,1,1,0,0] },
+    D: { cp:[0,1,2,3,5,6,7,4], co:[0,0,0,0,0,0,0,0],
+         ep:[0,1,2,3,5,6,7,4,8,9,10,11], eo:[0,0,0,0,0,0,0,0,0,0,0,0] },
+    L: { cp:[0,2,6,3,4,1,5,7], co:[0,1,2,0,0,2,1,0],
+         ep:[0,1,10,3,4,5,9,7,8,2,6,11], eo:[0,0,0,0,0,0,0,0,0,0,0,0] },
+    B: { cp:[0,1,3,7,4,5,2,6], co:[0,0,1,2,0,0,2,1],
+         ep:[0,1,2,11,4,5,6,10,8,9,3,7], eo:[0,0,0,1,0,0,0,1,0,0,1,1] }
+  };
+  var FACES = ['U','R','F','D','L','B'];
+  var MOVE_NAMES = [];
+  for (var fi = 0; fi < 6; fi++) {
+    MOVE_NAMES.push(FACES[fi], FACES[fi] + '2', FACES[fi] + "'");
+  }
+
+  function identity() {
+    return { cp:[0,1,2,3,4,5,6,7], co:[0,0,0,0,0,0,0,0],
+             ep:[0,1,2,3,4,5,6,7,8,9,10,11], eo:[0,0,0,0,0,0,0,0,0,0,0,0] };
+  }
+  function clone(c) {
+    return { cp:c.cp.slice(), co:c.co.slice(), ep:c.ep.slice(), eo:c.eo.slice() };
+  }
+  // a := a * b  (apply a, then b)
+  function mult(a, b) {
+    var cp = new Array(8), co = new Array(8), ep = new Array(12), eo = new Array(12), i;
+    for (i = 0; i < 8; i++) { cp[i] = a.cp[b.cp[i]]; co[i] = (a.co[b.cp[i]] + b.co[i]) % 3; }
+    for (i = 0; i < 12; i++) { ep[i] = a.ep[b.ep[i]]; eo[i] = (a.eo[b.ep[i]] + b.eo[i]) % 2; }
+    return { cp:cp, co:co, ep:ep, eo:eo };
+  }
+  // 18 move cubes
+  var MOVE_CUBE = [];
+  (function () {
+    for (var f = 0; f < 6; f++) {
+      var base = MV[FACES[f]];
+      var c = identity();
+      for (var k = 0; k < 3; k++) { c = mult(c, base); MOVE_CUBE.push(clone(c)); }
+    }
+  })();
+
+  function applyMove(cube, m) { return mult(cube, MOVE_CUBE[m]); }
+  function applySeq(cube, seq) {
+    var c = cube;
+    for (var i = 0; i < seq.length; i++) c = applyMove(c, seq[i]);
+    return c;
+  }
+  function parseAlg(str) {
+    var out = [], toks = String(str).trim().split(/\s+/);
+    for (var i = 0; i < toks.length; i++) {
+      var t = toks[i]; if (!t) continue;
+      var f = FACES.indexOf(t[0]); if (f < 0) throw new Error('bad move ' + t);
+      var n = 1;
+      if (t[1] === '2') n = 2;
+      else if (t[1] === "'" || t[1] === '’') n = 3;
+      out.push(f * 3 + (n - 1));
+    }
+    return out;
+  }
+  function algToString(seq) {
+    var s = []; for (var i = 0; i < seq.length; i++) s.push(MOVE_NAMES[seq[i]]);
+    return s.join(' ');
+  }
+
+  // ---------- combinatorics ----------
+  var Cnk = [];
+  (function () {
+    for (var n = 0; n < 13; n++) { Cnk[n] = []; for (var k = 0; k < 13; k++) Cnk[n][k] = 0; }
+    for (n = 0; n < 13; n++) { Cnk[n][0] = 1; for (k = 1; k <= n; k++) Cnk[n][k] = Cnk[n-1][k-1] + Cnk[n-1][k]; }
+  })();
+  function C(n, k) { if (n < 0 || k < 0 || k > n) return 0; return Cnk[n][k]; }
+
+  function rotLeft(a, l, r) { var t = a[l]; for (var i = l; i < r; i++) a[i] = a[i+1]; a[r] = t; }
+  function rotRight(a, l, r) { var t = a[r]; for (var i = r; i > l; i--) a[i] = a[i-1]; a[l] = t; }
+
+  function permToIdx(a) {
+    var n = a.length, idx = 0, i, j, c;
+    for (i = 0; i < n; i++) { c = 0; for (j = i+1; j < n; j++) if (a[j] < a[i]) c++; idx = idx * (n - i) + c; }
+    return idx;
+  }
+  function idxToPerm(idx, n) {
+    var digits = new Array(n), i, j;
+    for (i = n - 1; i >= 0; i--) { digits[i] = idx % (n - i); idx = (idx - digits[i]) / (n - i); }
+    var avail = []; for (i = 0; i < n; i++) avail.push(i);
+    var out = new Array(n);
+    for (i = 0; i < n; i++) { out[i] = avail[digits[i]]; avail.splice(digits[i], 1); }
+    return out;
+  }
+
+  // ---------- coordinates ----------
+  function getTwist(c) { var r = 0; for (var i = 0; i < 7; i++) r = 3 * r + c.co[i]; return r; }
+  function setTwist(c, v) {
+    var s = 0; for (var i = 6; i >= 0; i--) { c.co[i] = v % 3; s += c.co[i]; v = (v - c.co[i]) / 3; }
+    c.co[7] = (3 - s % 3) % 3;
+  }
+  function getFlip(c) { var r = 0; for (var i = 0; i < 11; i++) r = 2 * r + c.eo[i]; return r; }
+  function setFlip(c, v) {
+    var s = 0; for (var i = 10; i >= 0; i--) { c.eo[i] = v % 2; s += c.eo[i]; v = (v - c.eo[i]) / 2; }
+    c.eo[11] = (2 - s % 2) % 2;
+  }
+  function getFRtoBR(c) {
+    var a = 0, x = 0, edge4 = [0,0,0,0], j, k, b;
+    for (j = 11; j >= 0; j--) {
+      if (c.ep[j] >= 8 && c.ep[j] <= 11) { a += C(11 - j, x + 1); edge4[3 - x] = c.ep[j]; x++; }
+    }
+    b = 0;
+    for (j = 3; j > 0; j--) {
+      k = 0;
+      while (edge4[j] !== j + 8) { rotLeft(edge4, 0, j); k++; }
+      b = (j + 1) * b + k;
+    }
+    return 24 * a + b;
+  }
+  function setFRtoBR(c, idx) {
+    var sliceEdge = [8,9,10,11], other = [0,1,2,3,4,5,6,7], j, k, x;
+    var b = idx % 24, a = (idx - b) / 24;
+    for (j = 0; j < 12; j++) c.ep[j] = -1;
+    for (j = 1; j < 4; j++) { k = b % (j + 1); b = (b - k) / (j + 1); while (k-- > 0) rotRight(sliceEdge, 0, j); }
+    x = 3;
+    for (j = 0; j < 12; j++) {
+      if (a - C(11 - j, x + 1) >= 0) { c.ep[j] = sliceEdge[3 - x]; a -= C(11 - j, x + 1); x--; }
+    }
+    x = 0;
+    for (j = 0; j < 12; j++) if (c.ep[j] === -1) c.ep[j] = other[x++];
+  }
+  function getCornPerm(c) { return permToIdx(c.cp); }
+  function setCornPerm(c, v) { c.cp = idxToPerm(v, 8); }
+  function getUDEdgePerm(c) { return permToIdx(c.ep.slice(0, 8)); }
+  function setUDEdgePerm(c, v) {
+    var p = idxToPerm(v, 8);
+    for (var i = 0; i < 8; i++) c.ep[i] = p[i];
+    for (i = 8; i < 12; i++) c.ep[i] = i;
+  }
+
+  // ---------- table sizes ----------
+  var N_TWIST = 2187, N_FLIP = 2048, N_SLICE1 = 495, N_FRtoBR = 11880;
+  var N_CP = 40320, N_UDE = 40320, N_SLICE2 = 24;
+  var P2MOVES = [0,1,2, 4, 7, 9,10,11, 13, 16]; // U,U2,U',R2,F2,D,D2,D',L2,B2
+  // indices: face*3+n  -> U:0,1,2  R:3,4,5  F:6,7,8  D:9,10,11  L:12,13,14  B:15,16,17
+  // phase2 allowed: U,U2,U',D,D2,D',R2,L2,F2,B2
+  P2MOVES = [0,1,2, 9,10,11, 4, 13, 7, 16];
+
+  var T = null; // tables
+
+  function buildTasks(onProgress) {
+    var tasks = [];
+    var tw, fl, fr, cp, ud, sl2;
+    tasks.push({ label: 'ツイスト表', fn: function () {
+      tw = new Uint16Array(N_TWIST * 18);
+      var c = identity();
+      for (var i = 0; i < N_TWIST; i++) {
+        setTwist(c, i);
+        for (var m = 0; m < 18; m++) tw[i * 18 + m] = getTwist(mult(c, MOVE_CUBE[m]));
+      }
+    }});
+    tasks.push({ label: 'フリップ表', fn: function () {
+      fl = new Uint16Array(N_FLIP * 18);
+      var c = identity();
+      for (var i = 0; i < N_FLIP; i++) {
+        setFlip(c, i);
+        for (var m = 0; m < 18; m++) fl[i * 18 + m] = getFlip(mult(c, MOVE_CUBE[m]));
+      }
+    }});
+    tasks.push({ label: 'スライス表', fn: function () {
+      fr = new Uint16Array(N_FRtoBR * 18);
+      var c = identity();
+      for (var i = 0; i < N_FRtoBR; i++) {
+        setFRtoBR(c, i);
+        for (var m = 0; m < 18; m++) fr[i * 18 + m] = getFRtoBR(mult(c, MOVE_CUBE[m]));
+      }
+    }});
+    tasks.push({ label: 'コーナー順列表', fn: function () {
+      cp = new Uint16Array(N_CP * 10);
+      var c = identity();
+      for (var i = 0; i < N_CP; i++) {
+        setCornPerm(c, i);
+        for (var k = 0; k < 10; k++) cp[i * 10 + k] = getCornPerm(mult(c, MOVE_CUBE[P2MOVES[k]]));
+      }
+    }});
+    tasks.push({ label: 'エッジ順列表', fn: function () {
+      ud = new Uint16Array(N_UDE * 10);
+      var c = identity();
+      for (var i = 0; i < N_UDE; i++) {
+        setUDEdgePerm(c, i);
+        for (var k = 0; k < 10; k++) ud[i * 10 + k] = getUDEdgePerm(mult(c, MOVE_CUBE[P2MOVES[k]]));
+      }
+    }});
+    tasks.push({ label: 'スライス順列表', fn: function () {
+      sl2 = new Uint8Array(N_SLICE2 * 10);
+      for (var i = 0; i < N_SLICE2; i++)
+        for (var k = 0; k < 10; k++) sl2[i * 10 + k] = fr[i * 18 + P2MOVES[k]];
+    }});
+
+    var pTwSl, pFlSl, pCpSl, pUdSl;
+    tasks.push({ label: '枝刈り表 1/4', fn: function () {
+      pTwSl = bfs(N_TWIST * N_SLICE1, 0, 18, function (idx, m) {
+        var t = (idx / N_SLICE1) | 0, s = idx % N_SLICE1;
+        return tw[t * 18 + m] * N_SLICE1 + ((fr[s * 24 * 18 + m] / 24) | 0);
+      });
+    }});
+    tasks.push({ label: '枝刈り表 2/4', fn: function () {
+      pFlSl = bfs(N_FLIP * N_SLICE1, 0, 18, function (idx, m) {
+        var f = (idx / N_SLICE1) | 0, s = idx % N_SLICE1;
+        return fl[f * 18 + m] * N_SLICE1 + ((fr[s * 24 * 18 + m] / 24) | 0);
+      });
+    }});
+    tasks.push({ label: '枝刈り表 3/4', fn: function () {
+      pCpSl = bfs(N_CP * N_SLICE2, 0, 10, function (idx, k) {
+        var p = (idx / N_SLICE2) | 0, s = idx % N_SLICE2;
+        return cp[p * 10 + k] * N_SLICE2 + sl2[s * 10 + k];
+      });
+    }});
+    tasks.push({ label: '枝刈り表 4/4', fn: function () {
+      pUdSl = bfs(N_UDE * N_SLICE2, 0, 10, function (idx, k) {
+        var p = (idx / N_SLICE2) | 0, s = idx % N_SLICE2;
+        return ud[p * 10 + k] * N_SLICE2 + sl2[s * 10 + k];
+      });
+      T = { tw: tw, fl: fl, fr: fr, cp: cp, ud: ud, sl2: sl2,
+            pTwSl: pTwSl, pFlSl: pFlSl, pCpSl: pCpSl, pUdSl: pUdSl };
+    }});
+    return tasks;
+  }
+
+  function bfs(size, start, nMoves, step) {
+    var d = new Uint8Array(size); d.fill(255);
+    d[start] = 0;
+    var frontier = new Int32Array(size), next = new Int32Array(size);
+    var fn = 1; frontier[0] = start;
+    var depth = 0, done = 1;
+    while (fn > 0 && done < size) {
+      var nn = 0;
+      for (var i = 0; i < fn; i++) {
+        var idx = frontier[i];
+        for (var m = 0; m < nMoves; m++) {
+          var j = step(idx, m);
+          if (d[j] === 255) { d[j] = depth + 1; next[nn++] = j; done++; }
+        }
+      }
+      var tmp = frontier; frontier = next; next = tmp; fn = nn; depth++;
+    }
+    return d;
+  }
+
+  function buildAll(onProgress) {
+    var tasks = buildTasks();
+    for (var i = 0; i < tasks.length; i++) { tasks[i].fn(); if (onProgress) onProgress(i + 1, tasks.length, tasks[i].label); }
+  }
+
+  // ---------- search ----------
+  var AXIS = [0,0,0, 1,1,1, 2,2,2, 0,0,0, 1,1,1, 2,2,2]; // U/D=0, R/L=1, F/B=2
+  var FACEOF = [0,0,0, 1,1,1, 2,2,2, 3,3,3, 4,4,4, 5,5,5];
+
+  function allowed(m, last, last2) {
+    if (last < 0) return true;
+    if (FACEOF[m] === FACEOF[last]) return false;
+    if (AXIS[m] === AXIS[last] && last2 >= 0 && FACEOF[m] === FACEOF[last2]) return false;
+    // canonical ordering for opposite faces: only allow U before D, R before L, F before B
+    if (AXIS[m] === AXIS[last] && FACEOF[m] > FACEOF[last]) return false;
+    return true;
+  }
+
+  function solve(cube, opts) {
+    opts = opts || {};
+    var maxTime = opts.maxTime || 400;
+    var target = opts.target || 21;
+    if (!T) throw new Error('tables not built');
+    var t0 = Date.now();
+
+    var best = null;
+    var start = {
+      tw: getTwist(cube), fl: getFlip(cube), fr: getFRtoBR(cube)
+    };
+    var seq = new Int32Array(32);
+    var stop = false;
+
+    function h1(twv, flv, slv) {
+      var a = T.pTwSl[twv * N_SLICE1 + slv], b = T.pFlSl[flv * N_SLICE1 + slv];
+      return a > b ? a : b;
+    }
+
+    function dfs1(twv, flv, frv, depth, remain, last, last2) {
+      if (stop) return;
+      var slv = (frv / 24) | 0;
+      if (remain === 0) {
+        if (twv === 0 && flv === 0 && slv === 0) {
+          var p1 = Array.prototype.slice.call(seq, 0, depth);
+          var c2 = applySeq(cube, p1);
+          var p2 = phase2Wrapper(c2, p1.length);
+          if (p2) {
+            var total = p1.concat(p2);
+            if (!best || total.length < best.length) best = total;
+            if (best.length <= target) stop = true;
+          }
+          if (Date.now() - t0 > maxTime) stop = true;
+        }
+        return;
+      }
+      if (h1(twv, flv, slv) > remain) return;
+      for (var m = 0; m < 18; m++) {
+        if (!allowed(m, last, last2)) continue;
+        seq[depth] = m;
+        dfs1(T.tw[twv * 18 + m], T.fl[flv * 18 + m], T.fr[frv * 18 + m], depth + 1, remain - 1, m, last);
+        if (stop) return;
+      }
+    }
+
+    function phase2Wrapper(c2, p1len) {
+      var cpi = getCornPerm(c2), udi = getUDEdgePerm(c2), sli = getFRtoBR(c2) % 24;
+      var limit = best ? Math.min(18, best.length - p1len - 1) : 18;
+      if (limit < 0) return null;
+      var p2 = new Int32Array(20);
+      function h2(cpv, udv, slv) {
+        var a = T.pCpSl[cpv * N_SLICE2 + slv], b = T.pUdSl[udv * N_SLICE2 + slv];
+        return a > b ? a : b;
+      }
+      function dfs2(cpv, udv, slv, depth, remain, last, last2) {
+        if (remain === 0) return (cpv === 0 && udv === 0 && slv === 0);
+        if (h2(cpv, udv, slv) > remain) return false;
+        for (var k = 0; k < 10; k++) {
+          var m = P2MOVES[k];
+          if (!allowed(m, last, last2)) continue;
+          p2[depth] = m;
+          if (dfs2(T.cp[cpv * 10 + k], T.ud[udv * 10 + k], T.sl2[slv * 10 + k], depth + 1, remain - 1, m, last)) return true;
+        }
+        return false;
+      }
+      for (var L = 0; L <= limit; L++) {
+        if (dfs2(cpi, udi, sli, 0, L, -1, -1)) return Array.prototype.slice.call(p2, 0, L);
+      }
+      return null;
+    }
+
+    for (var d = 0; d <= 13 && !stop; d++) {
+      dfs1(start.tw, start.fl, start.fr, 0, d, -1, -1);
+      if (best && Date.now() - t0 > maxTime) break;
+    }
+    return best;
+  }
+
+  function isSolved(c) {
+    for (var i = 0; i < 8; i++) if (c.cp[i] !== i || c.co[i] !== 0) return false;
+    for (i = 0; i < 12; i++) if (c.ep[i] !== i || c.eo[i] !== 0) return false;
+    return true;
+  }
+
+  function randomScramble(len, rnd) {
+    rnd = rnd || Math.random;
+    var out = [], last = -1, last2 = -1;
+    while (out.length < len) {
+      var m = (rnd() * 18) | 0;
+      if (!allowed(m, last, last2)) continue;
+      out.push(m); last2 = last; last = m;
+    }
+    return out;
+  }
+
+  root.CubeSolver = {
+    identity: identity, clone: clone, mult: mult, applyMove: applyMove, applySeq: applySeq,
+    parseAlg: parseAlg, algToString: algToString, MOVE_NAMES: MOVE_NAMES, MOVE_CUBE: MOVE_CUBE,
+    buildAll: buildAll, buildTasks: buildTasks, solve: solve, isSolved: isSolved,
+    randomScramble: randomScramble,
+    _coords: { getTwist:getTwist, setTwist:setTwist, getFlip:getFlip, setFlip:setFlip,
+               getFRtoBR:getFRtoBR, setFRtoBR:setFRtoBR, getCornPerm:getCornPerm,
+               getUDEdgePerm:getUDEdgePerm, permToIdx:permToIdx, idxToPerm:idxToPerm },
+    _tables: function () { return T; }
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ===========================================================
+   RUBIK 3D — renderer / interaction / modes
+   =========================================================== */
+(function () {
+  'use strict';
+  var S = window.CubeSolver;
+
+  /* ---------- 公式記録 (WCA, 2026-08-31時点) ---------- */
+  var WR = {
+    single: { time: 2.76, name: 'Teodor Zajder', country: 'POL',
+              comp: 'GLS Big Cubes Gdańsk 2026', date: '2026-02-07' },
+    average: { time: 3.51, name: 'Yiheng Wang', country: 'CHN',
+               comp: 'Hefei Cubing League 3x3 III 2026', date: '2026-06-17' }
+  };
+
+  /* ---------- colors ---------- */
+  var COL = { U:'#f4f6fa', D:'#ffd400', F:'#00b84c', B:'#0a58e0', R:'#e02020', L:'#ff7a00' };
+  var PLASTIC = [16, 16, 22];
+  var RGB = {};
+  Object.keys(COL).forEach(function (k) {
+    var h = COL[k];
+    RGB[k] = [parseInt(h.substr(1,2),16), parseInt(h.substr(3,2),16), parseInt(h.substr(5,2),16)];
+  });
+
+  var DIRV = { U:[0,1,0], D:[0,-1,0], F:[0,0,1], B:[0,0,-1], R:[1,0,0], L:[-1,0,0] };
+
+  /* ---------- slots ---------- */
+  var CORNER_SLOT = [
+    { p:[ 1, 1, 1], d:['U','R','F'] }, { p:[-1, 1, 1], d:['U','F','L'] },
+    { p:[-1, 1,-1], d:['U','L','B'] }, { p:[ 1, 1,-1], d:['U','B','R'] },
+    { p:[ 1,-1, 1], d:['D','F','R'] }, { p:[-1,-1, 1], d:['D','L','F'] },
+    { p:[-1,-1,-1], d:['D','B','L'] }, { p:[ 1,-1,-1], d:['D','R','B'] }
+  ];
+  var CORNER_COL = [
+    ['U','R','F'], ['U','F','L'], ['U','L','B'], ['U','B','R'],
+    ['D','F','R'], ['D','L','F'], ['D','B','L'], ['D','R','B']
+  ];
+  var EDGE_SLOT = [
+    { p:[ 1, 1, 0], d:['U','R'] }, { p:[ 0, 1, 1], d:['U','F'] },
+    { p:[-1, 1, 0], d:['U','L'] }, { p:[ 0, 1,-1], d:['U','B'] },
+    { p:[ 1,-1, 0], d:['D','R'] }, { p:[ 0,-1, 1], d:['D','F'] },
+    { p:[-1,-1, 0], d:['D','L'] }, { p:[ 0,-1,-1], d:['D','B'] },
+    { p:[ 1, 0, 1], d:['F','R'] }, { p:[-1, 0, 1], d:['F','L'] },
+    { p:[-1, 0,-1], d:['B','L'] }, { p:[ 1, 0,-1], d:['B','R'] }
+  ];
+  var EDGE_COL = [
+    ['U','R'], ['U','F'], ['U','L'], ['U','B'],
+    ['D','R'], ['D','F'], ['D','L'], ['D','B'],
+    ['F','R'], ['F','L'], ['B','L'], ['B','R']
+  ];
+  var CENTER = [
+    { p:[0,1,0], d:'U' }, { p:[0,-1,0], d:'D' }, { p:[0,0,1], d:'F' },
+    { p:[0,0,-1], d:'B' }, { p:[1,0,0], d:'R' }, { p:[-1,0,0], d:'L' }
+  ];
+
+  /* build per-cubie sticker map from cube state */
+  function buildCubies(st) {
+    var out = [], i, k;
+    for (i = 0; i < 8; i++) {
+      var slot = CORNER_SLOT[i], cub = st.cp[i], o = st.co[i], map = {};
+      for (k = 0; k < 3; k++) map[slot.d[(k + o) % 3]] = CORNER_COL[cub][k];
+      out.push({ p: slot.p, s: map });
+    }
+    for (i = 0; i < 12; i++) {
+      var es = EDGE_SLOT[i], ec = st.ep[i], eo = st.eo[i], m2 = {};
+      for (k = 0; k < 2; k++) m2[es.d[(k + eo) % 2]] = EDGE_COL[ec][k];
+      out.push({ p: es.p, s: m2 });
+    }
+    for (i = 0; i < 6; i++) { var c = CENTER[i], m3 = {}; m3[c.d] = c.d; out.push({ p: c.p, s: m3 }); }
+    return out;
+  }
+  window.__buildCubies = buildCubies;
+
+  /* ---------- math ---------- */
+  function rotAx(v, ax, a) {
+    var c = Math.cos(a), s = Math.sin(a), x = v[0], y = v[1], z = v[2];
+    if (ax === 0) return [x, y * c - z * s, y * s + z * c];
+    if (ax === 1) return [x * c + z * s, y, -x * s + z * c];
+    return [x * c - y * s, x * s + y * c, z];
+  }
+  function cross(a, b) {
+    return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  }
+
+  /* ---------- state ---------- */
+  var st = S.identity();
+  var cam = { yaw: -35 * Math.PI/180, pitch: 25 * Math.PI/180, zoom: 1 };
+  var CAMD = 11;
+  var anim = null;         // {ax, layer, to, t0, dur, move}
+  var queue = [], moveDur = 160, pending = null;
+  var autoSpin = false;
+  var mode = 'idle';
+  var timer = { t0: 0, run: false, cap: 0, val: 0, state: '' };
+  var moveCounter = 0;
+  var lastRun = null;
+  var speedMul = 1;
+  var busyLock = false;
+
+  var FACE_LIST = ['U','R','F','D','L','B'];
+  var AXIS_OF = { U:1, D:1, R:0, L:0, F:2, B:2 };
+  var LAYER_OF = { U:1, D:-1, R:1, L:-1, F:1, B:-1 };
+  var POS_FACE = { 0:'R', 1:'U', 2:'F' }, NEG_FACE = { 0:'L', 1:'D', 2:'B' };
+
+  function moveInfo(m) {
+    var f = FACE_LIST[Math.floor(m / 3)], n = (m % 3) + 1;
+    var ax = AXIS_OF[f], layer = LAYER_OF[f], sign = layer > 0 ? -1 : 1;
+    var ang = (n === 1) ? sign * 90 : (n === 2) ? sign * 180 : -sign * 90;
+    return { face: f, ax: ax, layer: layer, ang: ang * Math.PI / 180 };
+  }
+
+  /* stickers as they appear at the END of a move's animation (for tests) */
+  window.__animStickers = function (state, m) {
+    var mi = moveInfo(m), out = [], cubies = buildCubies(state);
+    for (var i = 0; i < cubies.length; i++) {
+      var cu = cubies[i], mv = (cu.p[mi.ax] === mi.layer);
+      var pp = mv ? rotAx(cu.p, mi.ax, mi.ang) : cu.p;
+      for (var k in cu.s) {
+        var d = DIRV[k], dd = mv ? rotAx(d, mi.ax, mi.ang) : d;
+        out.push([pp, dd, cu.s[k]].map(function (v) {
+          return Array.isArray(v) ? v.map(function (n) { return Math.round(n); }).join(',') : v;
+        }).join('|'));
+      }
+    }
+    return out.sort();
+  };
+
+  /* ---------- canvas ---------- */
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var W = 0, H = 0, DPR = 1, FOC = 400;
+  function resize() {
+    var r = cv.parentNode.getBoundingClientRect();
+    DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+    W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    FOC = Math.min(W, H) * 1.78;
+  }
+  window.addEventListener('resize', resize);
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(cv.parentNode);
+
+  function toCam(p) { return rotAx(rotAx(p, 1, cam.yaw), 0, cam.pitch); }
+  function project(pc) {
+    var z = CAMD - pc[2]; if (z < 1.2) z = 1.2;
+    var k = FOC * cam.zoom / z;
+    return [W / 2 + pc[0] * k, H / 2 - pc[1] * k];
+  }
+  function w2s(p) { return project(toCam(p)); }
+
+  /* ---------- render ---------- */
+  var pickList = [];
+  var HALF = 0.47, SPACING = 1.0, SK = 0.375, CH = 0.105;
+  var LIGHT = (function () { var l = [-0.34, 0.72, 1.0], n = Math.hypot(l[0],l[1],l[2]); return [l[0]/n,l[1]/n,l[2]/n]; })();
+
+  function shadeStr(rgb, sh) {
+    return 'rgb(' + Math.round(rgb[0]*sh) + ',' + Math.round(rgb[1]*sh) + ',' + Math.round(rgb[2]*sh) + ')';
+  }
+
+  function render(now) {
+    ctx.clearRect(0, 0, W, H);
+    var cubies = buildCubies(st);
+    var faces = [];
+    pickList = [];
+
+    var aAx = -1, aLayer = 0, aAng = 0;
+    if (anim) {
+      var p = Math.min(1, (now - anim.t0) / anim.dur);
+      var e = p < 0.5 ? 2*p*p : 1 - 2*(1-p)*(1-p);
+      aAx = anim.ax; aLayer = anim.layer; aAng = anim.to * e;
+    }
+
+    for (var ci = 0; ci < cubies.length; ci++) {
+      var cu = cubies[ci];
+      var moving = (aAx >= 0 && cu.p[aAx] === aLayer);
+      var basePos = [cu.p[0]*SPACING, cu.p[1]*SPACING, cu.p[2]*SPACING];
+      if (moving) basePos = rotAx(basePos, aAx, aAng);
+
+      for (var fi = 0; fi < 6; fi++) {
+        var fk = FACE_LIST[fi], d = DIRV[fk];
+        var nrm = moving ? rotAx(d, aAx, aAng) : d;
+        var fc = [basePos[0]+nrm[0]*HALF, basePos[1]+nrm[1]*HALF, basePos[2]+nrm[2]*HALF];
+        var fcc = toCam(fc), nc = toCam(nrm);
+        // backface cull (camera at +Z)
+        var vx = -fcc[0], vy = -fcc[1], vz = CAMD - fcc[2];
+        if (nc[0]*vx + nc[1]*vy + nc[2]*vz <= 0.02) continue;
+
+        var u, v;
+        if (Math.abs(d[0]) === 1) { u = [0,1,0]; v = [0,0,1]; }
+        else if (Math.abs(d[1]) === 1) { u = [1,0,0]; v = [0,0,1]; }
+        else { u = [1,0,0]; v = [0,1,0]; }
+        if (moving) { u = rotAx(u, aAx, aAng); v = rotAx(v, aAx, aAng); }
+
+        var sh = 0.60 + 0.40 * Math.max(0, nc[0]*LIGHT[0] + nc[1]*LIGHT[1] + nc[2]*LIGHT[2]);
+        var col = cu.s[fk];
+        faces.push({ z: fcc[2], fc: fc, u: u, v: v, sh: sh, col: col,
+                     pos: cu.p, dirKey: fk });
+      }
+    }
+    faces.sort(function (a, b) { return a.z - b.z; });
+
+    for (var i = 0; i < faces.length; i++) {
+      var f = faces[i];
+      // plastic body quad
+      var q = [];
+      var signs = [[-1,-1],[1,-1],[1,1],[-1,1]];
+      for (var s2 = 0; s2 < 4; s2++) {
+        var a = signs[s2][0]*HALF, b = signs[s2][1]*HALF;
+        q.push(w2s([f.fc[0]+f.u[0]*a+f.v[0]*b, f.fc[1]+f.u[1]*a+f.v[1]*b, f.fc[2]+f.u[2]*a+f.v[2]*b]));
+      }
+      ctx.beginPath(); ctx.moveTo(q[0][0], q[0][1]);
+      for (s2 = 1; s2 < 4; s2++) ctx.lineTo(q[s2][0], q[s2][1]);
+      ctx.closePath();
+      ctx.fillStyle = shadeStr(PLASTIC, 0.55 + f.sh * 0.5);
+      ctx.fill();
+
+      if (!f.col) continue;
+      var pts = [
+        [-SK+CH,-SK],[SK-CH,-SK],[SK,-SK+CH],[SK,SK-CH],
+        [SK-CH,SK],[-SK+CH,SK],[-SK,SK-CH],[-SK,-SK+CH]
+      ];
+      var poly = [];
+      for (var pi = 0; pi < pts.length; pi++) {
+        var aa = pts[pi][0], bb = pts[pi][1];
+        poly.push(w2s([f.fc[0]+f.u[0]*aa+f.v[0]*bb, f.fc[1]+f.u[1]*aa+f.v[1]*bb, f.fc[2]+f.u[2]*aa+f.v[2]*bb]));
+      }
+      ctx.beginPath(); ctx.moveTo(poly[0][0], poly[0][1]);
+      for (pi = 1; pi < poly.length; pi++) ctx.lineTo(poly[pi][0], poly[pi][1]);
+      ctx.closePath();
+      ctx.fillStyle = shadeStr(RGB[f.col], Math.min(1.18, f.sh));
+      ctx.fill();
+      pickList.push({ poly: poly, pos: f.pos, dir: DIRV[f.dirKey] });
+    }
+  }
+
+  /* ---------- animation loop ---------- */
+  function startMove(m, dur) {
+    var mi = moveInfo(m);
+    anim = { ax: mi.ax, layer: mi.layer, to: mi.ang, t0: performance.now(), dur: Math.max(16, dur), move: m };
+  }
+  function onMoveDone(m) {
+    st = S.applyMove(st, m);
+    moveCounter++;
+    updateHud();
+    if (mode === 'manual') {
+      if (!timer.run && !S.isSolved(st)) startTimer(0);
+      if (S.isSolved(st) && timer.run) { stopTimer(); onManualSolved(); }
+    }
+  }
+
+  function loop(now) {
+    if (anim && now - anim.t0 >= anim.dur) { var m = anim.move; anim = null; onMoveDone(m); }
+    if (!anim && queue.length) { startMove(queue.shift(), moveDur); }
+    if (!anim && !queue.length && pending) { var r = pending; pending = null; r(); }
+    if (autoSpin) cam.yaw += 0.0035;
+    if (timer.run) {
+      var e = (now - timer.t0) / 1000;
+      if (timer.cap && e > timer.cap) e = timer.cap;
+      timer.val = e; paintTimer();
+    }
+    render(now);
+    requestAnimationFrame(loop);
+  }
+
+  function playSeq(moves, dur) {
+    queue = moves.slice(); moveDur = dur;
+    return new Promise(function (res) { if (!queue.length) res(); else pending = res; });
+  }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function applyInstant(moves) { st = S.applySeq(st, moves); }
+
+  /* ---------- DOM ---------- */
+  var $ = function (id) { return document.getElementById(id); };
+  var elStatus = $('status'), elTimer = $('timer'), elMoves = $('hudMoves'), elTps = $('hudTps');
+  var elSeq = $('seq'), elCard = $('card'), elCardTitle = $('cardTitle'), elCardBody = $('cardBody');
+  var elCount = $('count'), elFlash = $('flash');
+
+  function status(t, cls) { elStatus.textContent = t; elStatus.className = 'status' + (cls ? ' ' + cls : ''); }
+  function paintTimer() { elTimer.textContent = timer.val.toFixed(2); }
+  function updateHud() { elMoves.textContent = moveCounter + ' 手'; }
+  function startTimer(cap) {
+    timer.t0 = performance.now(); timer.run = true; timer.cap = cap || 0; timer.val = 0;
+    elTimer.className = 'hud-timer live'; paintTimer();
+  }
+  function stopTimer() { timer.run = false; elTimer.className = 'hud-timer done'; }
+  function resetTimer() { timer.run = false; timer.val = 0; elTimer.className = 'hud-timer'; paintTimer(); }
+
+  function showSeq(label, moves, hl) {
+    elSeq.innerHTML = '<i>' + label + '</i>' + (hl ? '<em>' : '') + S.algToString(moves) + (hl ? '</em>' : '');
+  }
+  function showCount(t) {
+    elCount.textContent = t; elCount.className = t ? 'count show' : 'count';
+  }
+  function flashOnce(color) {
+    elFlash.style.background = color || 'var(--accent)';
+    elFlash.style.transition = 'none'; elFlash.style.opacity = '0.55';
+    requestAnimationFrame(function () {
+      elFlash.style.transition = 'opacity .5s ease'; elFlash.style.opacity = '0';
+    });
+  }
+  function hideCard() { elCard.className = 'card'; }
+  function showCard(title, html) { elCardTitle.textContent = title; elCardBody.innerHTML = html; elCard.className = 'card show'; }
+  function cardOpen() { return elCard.className.indexOf('show') >= 0; }
+  $('cardClose').onclick = function (e) { e.stopPropagation(); hideCard(); };
+
+  function recordHtml(extra) {
+    var w = WR.single;
+    return '<div class="rec-main"><span class="rec-time">' + w.time.toFixed(2) + '</span><span class="rec-unit">秒</span></div>' +
+      '<div class="rec-who">' + w.name + ' (' + w.country + ')</div>' +
+      '<div class="rec-meta">' + w.comp + ' / ' + w.date + '<br>' +
+      'アベレージ世界記録 ' + WR.average.time.toFixed(2) + '秒 — ' + WR.average.name + ' (' + WR.average.country + ')</div>' +
+      (extra || '');
+  }
+
+  /* ---------- modes ---------- */
+  function lock(v) {
+    busyLock = v;
+    ['btnWR','btnScramble','btnSolve','btnReset'].forEach(function (id) { $(id).disabled = v; });
+    document.querySelectorAll('#pad .btn').forEach(function (b) { b.disabled = v; });
+  }
+
+  function doReset() {
+    if (busyLock) return;
+    st = S.identity(); anim = null; queue = []; pending = null; autoSpin = false;
+    moveCounter = 0; mode = 'idle'; resetTimer(); updateHud(); hideCard();
+    elTps.textContent = ''; showSeq('手順', []); elSeq.innerHTML = '<i>手順</i>そろった状態です';
+    status('準備完了');
+  }
+
+  async function doScramble() {
+    if (busyLock) return;
+    lock(true); hideCard(); status('シャッフル中', 'on');
+    st = S.identity(); resetTimer(); moveCounter = 0; updateHud(); elTps.textContent = '';
+    var sc = S.randomScramble(25);
+    showSeq('スクランブル 25手', sc);
+    await playSeq(sc, 62 / speedMul);
+    moveCounter = 0; updateHud();
+    mode = 'manual'; lock(false);
+    status('計測待ち — 1手目でスタート');
+  }
+
+  async function doSolve() {
+    if (busyLock) return;
+    if (S.isSolved(st)) { status('すでに完成'); return; }
+    lock(true); mode = 'solving'; status('計算中', 'on');
+    await sleep(20);
+    var sol = S.solve(st, { maxTime: 400, target: 20 });
+    if (!sol) { status('解が見つかりません'); lock(false); return; }
+    showSeq('解法 ' + sol.length + '手 (2フェーズ法)', sol);
+    moveCounter = 0; updateHud();
+    startTimer(0); status('自動ソルブ中', 'on');
+    await playSeq(sol, 165 / speedMul);
+    stopTimer();
+    elTps.textContent = 'TPS ' + (sol.length / Math.max(timer.val, .001)).toFixed(1);
+    status('完成'); mode = 'idle'; lock(false);
+    flashOnce('var(--accent)');
+  }
+
+  async function doWorldRecord() {
+    if (busyLock) return;
+    lock(true); mode = 'wr'; hideCard(); autoSpin = false;
+    st = S.identity(); anim = null; queue = []; resetTimer(); moveCounter = 0; updateHud();
+    elTps.textContent = '';
+
+    showCard('公式世界記録 — 3×3×3 シングル', recordHtml(
+      '<div class="rec-meta" style="margin-top:7px">この記録タイムに合わせてキューブを実際に回します。</div>'));
+    status('記録モード', 'rec');
+    await sleep(1500);
+    hideCard();
+
+    var sc = S.randomScramble(25);
+    showSeq('スクランブル 25手', sc);
+    await playSeq(sc, 58);
+    await sleep(300);
+
+    status('解法を計算中', 'rec');
+    await sleep(20);
+    var sol = S.solve(st, { maxTime: 800, target: 20 });
+    if (!sol) { status('解が見つかりません'); mode = 'idle'; lock(false); return; }
+    showSeq('解法 ' + sol.length + '手 (2フェーズ法)', sol, true);
+    lastRun = { scramble: sc, solution: sol };
+
+    for (var i = 3; i >= 1; i--) { showCount(String(i)); await sleep(560); }
+    showCount('GO'); await sleep(200); showCount('');
+
+    var total = WR.single.time * 1000;
+    var per = total / sol.length;
+    moveCounter = 0; updateHud();
+    autoSpin = true;
+    startTimer(WR.single.time);
+    status('WORLD RECORD RUN', 'rec');
+    await playSeq(sol, per);
+    autoSpin = false;
+    timer.val = WR.single.time; stopTimer(); paintTimer();
+    flashOnce('var(--accent2)');
+
+    var tps = sol.length / WR.single.time;
+    showCard('記録タイムで完成', recordHtml(
+      '<div class="rec-grid">' +
+      '<div class="rec-cell"><i>手数</i><b>' + sol.length + '</b></div>' +
+      '<div class="rec-cell"><i>TPS</i><b>' + tps.toFixed(1) + '</b></div>' +
+      '<div class="rec-cell"><i>タイム</i><b>' + WR.single.time.toFixed(2) + '</b></div>' +
+      '</div>' +
+      '<div class="rec-meta" style="margin-top:8px">解法はアプリ内ソルバー(Kociemba 2フェーズ法)が生成。記録保持者本人の解法ではなく、記録タイムに合わせた等速再生です。</div>' +
+      '<div class="card-actions">' +
+      '<button class="btn" id="btnAgain" style="flex:1">もう一度</button>' +
+      '<button class="btn" id="btnSlow" style="flex:1">スロー再生</button>' +
+      '</div>'));
+    $('btnAgain').onclick = function () { hideCard(); doWorldRecord(); };
+    $('btnSlow').onclick = function () { hideCard(); doReplaySlow(); };
+    status('完成'); mode = 'idle'; lock(false);
+  }
+
+  async function doReplaySlow() {
+    if (!lastRun) return;
+    lock(true); mode = 'wr'; hideCard();
+    st = S.identity(); applyInstant(lastRun.scramble);
+    resetTimer(); moveCounter = 0; updateHud();
+    status('スロー再生 0.25×', 'rec');
+    await sleep(400);
+    var per = (WR.single.time * 1000 / lastRun.solution.length) * 4;
+    startTimer(0);
+    await playSeq(lastRun.solution, per);
+    stopTimer();
+    status('再生終了'); mode = 'idle'; lock(false);
+    showCard('公式世界記録 — 3×3×3 シングル', recordHtml(
+      '<div class="card-actions"><button class="btn" id="btnAgain2" style="flex:1">記録モードをもう一度</button></div>'));
+    $('btnAgain2').onclick = function () { hideCard(); doWorldRecord(); };
+  }
+
+  function onManualSolved() {
+    var t = timer.val;
+    elTps.textContent = 'TPS ' + (moveCounter / Math.max(t, .001)).toFixed(1);
+    flashOnce('var(--accent)');
+    status('完成');
+    var diff = t - WR.single.time;
+    showCard('あなたのタイム',
+      '<div class="rec-main"><span class="rec-time" style="color:var(--accent)">' + t.toFixed(2) + '</span><span class="rec-unit">秒 / ' + moveCounter + '手</span></div>' +
+      '<div class="rec-meta">世界記録 ' + WR.single.time.toFixed(2) + '秒 (' + WR.single.name + ') との差 ' +
+      (diff >= 0 ? '+' : '') + diff.toFixed(2) + '秒</div>');
+    mode = 'idle';
+  }
+
+  /* ---------- input ---------- */
+  function inPoly(x, y, poly) {
+    var c = false;
+    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+      if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c = !c;
+    }
+    return c;
+  }
+  function pick(x, y) {
+    for (var i = pickList.length - 1; i >= 0; i--) if (inPoly(x, y, pickList[i].poly)) return pickList[i];
+    return null;
+  }
+
+  var drag = null;
+  function localXY(e) {
+    var r = cv.getBoundingClientRect();
+    return [e.clientX - r.left, e.clientY - r.top];
+  }
+  cv.addEventListener('pointerdown', function (e) {
+    var p = localXY(e);
+    var hit = (busyLock || anim || queue.length) ? null : pick(p[0], p[1]);
+    drag = { x0: p[0], y0: p[1], hit: hit, mode: hit ? 'maybe' : 'orbit',
+             yaw0: cam.yaw, pitch0: cam.pitch };
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    autoSpin = false;
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var p = localXY(e), dx = p[0] - drag.x0, dy = p[1] - drag.y0;
+    if (drag.mode === 'orbit') {
+      cam.yaw = drag.yaw0 + dx * 0.008;
+      cam.pitch = Math.max(-1.35, Math.min(1.35, drag.pitch0 - dy * 0.008));
+    } else if (drag.mode === 'maybe') {
+      if (Math.hypot(dx, dy) < 14) return;
+      var mv = decideMove(drag.hit, dx, dy);
+      drag.mode = 'done';
+      if (mv === null) { drag.mode = 'orbit'; drag.x0 = p[0]; drag.y0 = p[1]; drag.yaw0 = cam.yaw; drag.pitch0 = cam.pitch; return; }
+      doUserMove(mv);
+    }
+  });
+  function endDrag(e) { if (drag) { try { cv.releasePointerCapture(e.pointerId); } catch (x) {} } drag = null; }
+  cv.addEventListener('pointerup', endDrag);
+  cv.addEventListener('pointercancel', endDrag);
+
+  function decideMove(hit, dx, dy) {
+    var n = hit.dir, pos = hit.pos;
+    var origin = [pos[0]*SPACING + n[0]*HALF, pos[1]*SPACING + n[1]*HALF, pos[2]*SPACING + n[2]*HALF];
+    var base = w2s(origin);
+    var tans = [];
+    for (var k = 0; k < 3; k++) {
+      if (n[k] !== 0) continue;
+      var t = [0,0,0]; t[k] = 1; tans.push(t);
+      var t2 = [0,0,0]; t2[k] = -1; tans.push(t2);
+    }
+    var best = null;
+    for (var i = 0; i < tans.length; i++) {
+      var t3 = tans[i];
+      var q = w2s([origin[0]+t3[0]*0.35, origin[1]+t3[1]*0.35, origin[2]+t3[2]*0.35]);
+      var sx = q[0]-base[0], sy = q[1]-base[1], len = Math.hypot(sx, sy);
+      if (len < 0.001) continue;
+      var d = (sx*dx + sy*dy) / len;
+      if (!best || d > best.d) best = { d: d, t: t3 };
+    }
+    if (!best || best.d <= 0) return null;
+    var a = cross(n, best.t);
+    var ax = -1, sg = 0;
+    for (k = 0; k < 3; k++) if (Math.abs(a[k]) > 0.5) { ax = k; sg = a[k] > 0 ? 1 : -1; }
+    if (ax < 0) return null;
+    var layer = pos[ax];
+    if (layer === 0) return null;
+    var face = layer > 0 ? POS_FACE[ax] : NEG_FACE[ax];
+    var cw = layer > 0 ? (sg < 0) : (sg > 0);
+    var n2 = cw ? 1 : 3;
+    return FACE_LIST.indexOf(face) * 3 + (n2 - 1);
+  }
+
+  function doUserMove(m) {
+    if (busyLock || anim || queue.length) return;
+    if (mode !== 'manual' && mode !== 'idle') return;
+    if (mode === 'manual' && !timer.run) { moveCounter = 0; startTimer(0); status('計測中', 'on'); }
+    queue = [m]; moveDur = 130;
+  }
+
+  /* ---------- move pad ---------- */
+  (function () {
+    var pad = $('pad');
+    var order = ['U',"U'",'R',"R'",'F',"F'",'D',"D'",'L',"L'",'B',"B'"];
+    order.forEach(function (lbl) {
+      var b = document.createElement('button');
+      b.className = 'btn' + (lbl.length > 1 ? ' p' : '');
+      b.textContent = lbl;
+      b.onclick = function () { doUserMove(S.parseAlg(lbl)[0]); };
+      pad.appendChild(b);
+    });
+  })();
+
+  /* ---------- segments ---------- */
+  document.querySelectorAll('#speedSeg button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('#speedSeg button').forEach(function (x) { x.className = ''; });
+      b.className = 'on'; speedMul = parseFloat(b.dataset.s);
+    };
+  });
+  document.querySelectorAll('#viewSeg button').forEach(function (b) {
+    b.onclick = function () {
+      var v = b.dataset.v;
+      if (v === 'spin') { autoSpin = !autoSpin; b.className = autoSpin ? 'on' : ''; }
+      else if (v === 'zin') cam.zoom = Math.min(1.9, cam.zoom * 1.15);
+      else if (v === 'zout') cam.zoom = Math.max(0.55, cam.zoom / 1.15);
+    };
+  });
+
+  function resetView() {
+    cam.yaw = -35 * Math.PI / 180; cam.pitch = 25 * Math.PI / 180; cam.zoom = 1;
+    autoSpin = false; $('btnSpin').className = '';
+  }
+  $('btnViewReset').onclick = resetView;
+
+  function setFull(on) {
+    document.body.classList.toggle('fs', on);
+    $('btnFull').className = 'tool-btn' + (on ? ' on' : '');
+    $('btnFull').textContent = on ? '⤡' : '⛶';
+    setTimeout(resize, 30);
+  }
+  $('btnFull').onclick = function () { setFull(!document.body.classList.contains('fs')); };
+
+  $('btnWR').onclick = doWorldRecord;
+  $('btnScramble').onclick = doScramble;
+  $('btnSolve').onclick = doSolve;
+  $('btnReset').onclick = doReset;
+
+  $('foot').innerHTML =
+    '記録の出典: WCA 公式記録 (worldcubeassociation.org/results/records) — 2026-08-31 時点。' +
+    'シングル 2.76秒 / Teodor Zajder、アベレージ 3.51秒 / Yiheng Wang。<br>' +
+    '解法生成: Kociemba 2フェーズ法(アプリ内実装)。外部通信なし。';
+
+  window.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Escape') { if (cardOpen()) hideCard(); else setFull(false); return; }
+    var ch = e.key.toUpperCase();
+    if (FACE_LIST.indexOf(ch) < 0) return;
+    e.preventDefault();
+    doUserMove(FACE_LIST.indexOf(ch) * 3 + (e.shiftKey ? 2 : 0));
+  });
+
+  /* ---------- boot ---------- */
+  resize();
+  var tasks = S.buildTasks();
+  var ti = 0, bar = $('bootBar'), bmsg = $('bootMsg');
+  function bootStep() {
+    if (ti >= tasks.length) {
+      $('boot').className = 'boot hide';
+      status('準備完了'); updateHud(); paintTimer();
+      elSeq.innerHTML = '<i>手順</i>シャッフルするとスクランブル手順が出ます';
+      requestAnimationFrame(loop);
+      return;
+    }
+    var t = tasks[ti];
+    bmsg.textContent = t.label + ' を構築中';
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        t.fn(); ti++;
+        bar.style.width = (ti / tasks.length * 100) + '%';
+        bootStep();
+      }, 0);
+    });
+  }
+  bootStep();
+})();
+
+</script>
+</body>
+</html>

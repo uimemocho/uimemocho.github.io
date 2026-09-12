@@ -178,5 +178,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-09-05T05:16:16Z",
     "updatedAt": "2026-09-05T05:16:16Z"
+  },
+  {
+    "slug": "rubik-3d",
+    "title": "RUBIK 3D — 3x3x3 世界記録モード",
+    "kind": "game",
+    "description": "3Dキューブを直感的に回し、シャッフル・自動ソルブ・世界記録タイムの再生に挑戦できるルービックキューブゲーム。",
+    "url": "/apps/rubik-3d/",
+    "thumbnail": null,
+    "sourceFolder": "260912_ルービックキューブ",
+    "sourceEntry": "rubik3d_v1.2.html",
+    "publishedAt": "2026-09-12T12:26:32Z",
+    "updatedAt": "2026-09-12T12:26:32Z"
   }
 ]
