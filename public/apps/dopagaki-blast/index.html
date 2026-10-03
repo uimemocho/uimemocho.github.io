@@ -36,9 +36,9 @@
 }
 html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
 body{background:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.5px);background-size:6px 6px;color:var(--ink);font-family:var(--f-jp)}
-#wrap{height:100%;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) 12px env(safe-area-inset-bottom,0px);box-sizing:border-box}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) 12px env(safe-area-inset-bottom,0px);box-sizing:border-box}
 canvas{display:block;image-rendering:pixelated;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;outline:none}
-canvas:focus-visible{outline:2px solid var(--yellow);outline-offset:4px}
+canvas:focus,canvas:focus-visible{outline:none}
 </style>
 </head>
 <body>
@@ -69,7 +69,9 @@ const AREAS=[
 function layout(){BY=H-BOT_H-4-CELL*N;FEVY=BY-8;BOSS_BOT=FEVY-2;SUPY=BY+CELL*N+3;}
 function fit(){
   const dpr=window.devicePixelRatio||1;
-  const aw=Math.max(100,wrap.clientWidth-24), ah=Math.max(150,wrap.clientHeight-12);
+  const cs=getComputedStyle(wrap),vv=window.visualViewport;
+  const vw=Math.min(wrap.clientWidth,vv?vv.width:Infinity),vh=Math.min(wrap.clientHeight,vv?vv.height:Infinity,window.innerHeight||Infinity);
+  const aw=Math.max(100,vw-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)), ah=Math.max(150,vh-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-8);
   let s=Math.floor(Math.min(aw*dpr/W, ah*dpr/MINH)); s=Math.max(RS,s-(s%RS));
   let h=Math.floor(ah*dpr/s); h=Math.max(MINH,Math.min(MAXH,h));
   H=h; cv.width=W*RS; cv.height=H*RS;
@@ -1402,7 +1404,7 @@ function cellAt(p){const c=Math.floor((p.x-BX)/CELL),r=Math.floor((p.y-BY)/CELL)
 function hitBtn(p){for(let i=btns.length-1;i>=0;i--){const b=btns[i];if(p.x>=b.x-3&&p.x<=b.x+b.w+3&&p.y>=b.y-3&&p.y<=b.y+b.h+3){b.fn();return true;}}return false;}
 function onTitleTap(){sfx.select();if(!save.op)go(()=>startStory(OP,()=>{save.op=true;writeSave();enterMap();}));else go(enterMap);}
 cv.addEventListener('pointerdown',e=>{
-  e.preventDefault();audioInit();cv.focus({preventScroll:true});
+  e.preventDefault();audioInit();
   if(trans)return;
   const p=toL(e);
   if(hitBtn(p))return;
@@ -1446,7 +1448,7 @@ window.addEventListener('keydown',e=>{
     else if((state==='result'||state==='detail')&&btns.length)btns[btns.length-1].fn();}
 });
 document.addEventListener('visibilitychange',()=>{if(!AC)return;if(document.hidden)AC.suspend();else AC.resume();});
-window.addEventListener('resize',fit);
+window.addEventListener('resize',fit);window.addEventListener('orientationchange',()=>setTimeout(fit,200));if(window.visualViewport)window.visualViewport.addEventListener('resize',fit);
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 
 /* ================= BOOT ================= */
