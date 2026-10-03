@@ -36,13 +36,14 @@
 }
 html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
 body{background:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.5px);background-size:6px 6px;color:var(--ink);font-family:var(--f-jp)}
-#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) 12px env(safe-area-inset-bottom,0px);box-sizing:border-box}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:max(env(safe-area-inset-top,0px),var(--gt,0px)) 12px max(env(safe-area-inset-bottom,0px),var(--gb,0px));box-sizing:border-box}
+#sp{position:fixed;top:0;left:0;width:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 canvas{display:block;image-rendering:pixelated;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;outline:none}
 canvas:focus,canvas:focus-visible{outline:none}
 </style>
 </head>
 <body>
-<div id="wrap"><canvas id="c" tabindex="0" aria-label="ドパガキ・ブラスト。タイクツ星人の星をめぐる3マッチパズルバトル"></canvas></div>
+<div id="sp"></div><div id="wrap"><canvas id="c" tabindex="0" aria-label="ドパガキ・ブラスト。タイクツ星人の星をめぐる3マッチパズルバトル"></canvas></div>
 <script>
 (()=>{
 'use strict';
@@ -67,7 +68,17 @@ const AREAS=[
 ];
 
 function layout(){BY=H-BOT_H-4-CELL*N;FEVY=BY-8;BOSS_BOT=FEVY-2;SUPY=BY+CELL*N+3;}
+/* Some in-app viewers draw their status bar over the page but report a 0 safe-area inset.
+   On touch devices with no reported inset, reserve the status-bar / home-indicator height ourselves. */
+function guard(){
+  const sp=document.getElementById('sp'),c=getComputedStyle(sp);
+  const st=parseFloat(c.paddingTop)||0,sb=parseFloat(c.paddingBottom)||0;
+  const touch=matchMedia('(pointer: coarse)').matches, tall=window.innerHeight>window.innerWidth*1.4;
+  wrap.style.setProperty('--gt',(touch&&tall&&st<1)?'62px':'0px');
+  wrap.style.setProperty('--gb',(touch&&tall&&sb<1)?'26px':'0px');
+}
 function fit(){
+  guard();
   const dpr=window.devicePixelRatio||1;
   const cs=getComputedStyle(wrap),vv=window.visualViewport;
   const vw=Math.min(wrap.clientWidth,vv?vv.width:Infinity),vh=Math.min(wrap.clientHeight,vv?vv.height:Infinity,window.innerHeight||Infinity);
