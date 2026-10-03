@@ -190,5 +190,17 @@
     "sourceEntry": "rubik3d_v1.2.html",
     "publishedAt": "2026-09-12T12:26:32Z",
     "updatedAt": "2026-09-12T12:26:32Z"
+  },
+  {
+    "slug": "dopagaki-blast",
+    "title": "ドパガキ・ブラスト",
+    "kind": "game",
+    "description": "連鎖・脳汁タイム・必殺「超ドパ砲」で演出もスピードもインフレする、ドット絵3マッチパズルバトル。",
+    "url": "/apps/dopagaki-blast/",
+    "thumbnail": "/project-thumbnails/dopagaki-blast.webp",
+    "sourceFolder": "261003_ドパガキ・ブラスト",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-03T07:55:00Z",
+    "updatedAt": "2026-10-03T07:55:00Z"
   }
 ]
