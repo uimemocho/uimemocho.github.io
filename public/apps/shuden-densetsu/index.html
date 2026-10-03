@@ -90,15 +90,16 @@ function line(x0,y0,x1,y1,i,w=1){const dx=x1-x0,dy=y1-y0,n=Math.max(Math.abs(dx)
 function hash(x,y){let h=(Math.imul(x|0,374761393)+Math.imul(y|0,668265263))|0;h=Math.imul(h^(h>>>13),1274126177);return (h^(h>>>16))>>>0;}
 const FONT='"DotGothic16", monospace';
 function txt(s,x,y,ci,o={}){ctx.save();ctx.setTransform(1,0,0,1,0,0);const sz=o.size||16;
-  ctx.font=sz+'px '+FONT;ctx.textBaseline='top';ctx.textAlign=o.align||'left';
-  const X=Math.round(x*2),Y=Math.round(y*2);
+  ctx.font=sz+'px '+FONT;ctx.textBaseline='alphabetic';ctx.textAlign=o.align||'left';
+  const X=Math.round(x*2),Y=Math.round(y*2)+Math.round(sz*.875);
   if(o.shadow!=null){ctx.fillStyle=C(o.shadow);ctx.fillText(s,X+(o.sd||4),Y+(o.sd||4));}
   if(o.outline!=null){ctx.fillStyle=C(o.outline);const w=o.ow||2;for(const[a,b]of[[-w,0],[w,0],[0,-w],[0,w],[-w,-w],[w,w],[-w,w],[w,-w]])ctx.fillText(s,X+a,Y+b);}
   ctx.fillStyle=C(ci);ctx.fillText(s,X,Y);ctx.restore();}
 function tw(s,sz=16){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.font=sz+'px '+FONT;const w=ctx.measureText(s).width;ctx.restore();return w/2;}
 function wrap(s,max=18){const out=[];for(const para of String(s).split('\n')){let ln='',w=0;for(const ch of para){const cw=/[\x20-\x7e]/.test(ch)?.5:1;if(w+cw>max){out.push(ln);ln='';w=0;}ln+=ch;w+=cw;}out.push(ln);}return out;}
 function win(x,y,w,h){R(x,y,w,h,3);R(x+1,y+1,w-2,h-2,0);R(x+2,y+2,w-4,h-4,3);R(x+3,y+3,w-6,h-6,0);}
-function cursor(x,y){R(x,y,1,7,3);R(x+1,y+1,1,5,3);R(x+2,y+2,1,3,3);R(x+3,y+3,1,1,3);}
+function cursor(x,y){y+=CURY;R(x,y,1,7,3);R(x+1,y+1,1,5,3);R(x+2,y+2,1,3,3);R(x+3,y+3,1,1,3);}
+let CURY=0;
 
 /* ---------- sprites ---------- */
 const SPR={};
@@ -1191,7 +1192,8 @@ function renderShop(){const s=SHOPS[SH.id],L=shopList();win(0,0,160,18);txt(s.na
     const d=s.kind==='item'?it.desc:(slotName[it.slot]+' ぼうぎょ+'+it.def+'\n'+it.desc.split('\n')[0]);wrap(d).slice(0,2).forEach((l,i)=>txt(l,8,118+i*11,3));}}
 
 /* ---------- drawing helpers ---------- */
-function shadow(x,y){x=Math.round(x);y=Math.round(y);R(x+3,y+15,10,1,3);for(let i=0;i<6;i+=2)R(x+5+i,y+16,1,1,3);}
+function shadow(x,y){x=Math.round(x);y=Math.round(y);ctx.save();ctx.globalAlpha=.32;ctx.fillStyle=C(3);
+  ctx.fillRect(x+4,y+14,8,1);ctx.fillRect(x+3,y+15,10,2);ctx.fillRect(x+4,y+17,8,1);ctx.restore();}
 function talkBubble(x,y){x=Math.round(x);y=Math.round(y)-11+((st>>4)&1);R(x+3,y,11,8,3);R(x+4,y+1,9,6,0);R(x+5,y+8,2,1,3);R(x+5,y+7,1,1,0);for(let k=0;k<3;k++)R(x+5+k*3,y+4,1,1,3);}
 function disc(cx,cy,r,c){for(let dy=-r;dy<=r;dy++){const w=Math.floor(Math.sqrt(r*r-dy*dy));R(cx-w,cy+dy,w*2+1,1,c);}}
 function ring(cx,cy,r,c){for(let i=0;i<24;i++){const a=i/24*Math.PI*2;R(cx+Math.cos(a)*r,cy+Math.sin(a)*r,1,1,c);}}
