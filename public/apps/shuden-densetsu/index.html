@@ -258,7 +258,9 @@ const KM={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',K
 addEventListener('keydown',e=>{const b=KM[e.code];if(!b)return;e.preventDefault();initAudio();if(!e.repeat&&latch[b]!==undefined)latch[b]=true;keys[b]=true;});
 addEventListener('keyup',e=>{const b=KM[e.code];if(b)keys[b]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
-function readInput(){for(const b of BTNS){const c=!!(keys[b]||touch[b]);pr[b]=c&&!hd[b];hd[b]=c;}for(const k in latch)if(latch[k]){pr[k]=true;latch[k]=false;}}
+const RPT={};
+function readInput(){sync();for(const b of BTNS){const c=!!(keys[b]||touch[b]);pr[b]=c&&!hd[b];hd[b]=c;
+    if(b==='up'||b==='down'||b==='left'||b==='right'){RPT[b]=c?(RPT[b]||0)+1:0;if(uiMode()&&RPT[b]>20&&(RPT[b]-20)%7===0)pr[b]=true;}}for(const k in latch)if(latch[k]){pr[k]=true;latch[k]=false;}}
 
 const BTN={A:{x:0,y:0,r:34},B:{x:0,y:0,r:34},M:{x:0,y:0,w:76,h:26}},HOME={x:0,y:0};
 const roles=new Map();let stick=null,spring=null;
@@ -268,7 +270,7 @@ ov.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();try{ov.setP
   const[x,y]=rel(e);
   for(const k of['A','B']){const b=BTN[k];if(Math.hypot(x-b.x,y-b.y)<b.r*1.35){roles.set(e.pointerId,k);latch[k]=true;sync();return;}}
   const m=BTN.M;if(Math.abs(x-m.x)<m.w/2+8&&Math.abs(y-m.y)<m.h/2+8){roles.set(e.pointerId,'M');latch.M=true;sync();return;}
-  if(!stickWanted()){roles.set(e.pointerId,'A');latch.A=true;sync();return;}
+  if(sceneIsBoot())return;
   if(!stick){stick={id:e.pointerId,bx:x,by:y,kx:x,ky:y};spring=null;roles.set(e.pointerId,'stick');sync();}
 });
 ov.addEventListener('pointermove',e=>{if(!stick||e.pointerId!==stick.id)return;const[x,y]=rel(e);
@@ -281,7 +283,8 @@ ov.addEventListener('pointerup',release);ov.addEventListener('pointercancel',rel
 function sync(){const v=[...roles.values()];touch.A=v.includes('A');touch.B=v.includes('B');touch.M=v.includes('M');
   touch.up=touch.down=touch.left=touch.right=false;
   if(stick){const dx=stick.kx-stick.bx,dy=stick.ky-stick.by,d=Math.hypot(dx,dy);
-    if(d>9){const ax=dx/d,ay=dy/d;touch.right=ax>.38;touch.left=ax<-.38;touch.down=ay>.38;touch.up=ay<-.38;}}
+    if(uiMode()){if(d>14){if(Math.abs(dx)>Math.abs(dy)){touch.right=dx>0;touch.left=dx<0;}else{touch.down=dy>0;touch.up=dy<0;}}}
+    else if(d>9){const ax=dx/d,ay=dy/d;touch.right=ax>.38;touch.left=ax<-.38;touch.down=ay>.38;touch.up=ay<-.38;}}
   bA.classList.toggle('on',touch.A);bB.classList.toggle('on',touch.B);bM.classList.toggle('on',touch.M);}
 
 let dpr=1;
@@ -311,8 +314,9 @@ function drawPuni(bx,by,kx,ky,alpha=1){const dx=kx-bx,dy=ky-by,d=Math.hypot(dx,d
   pcx.beginPath();pcx.arc(kx,ky,rk,0,Math.PI*2);pcx.fillStyle=`rgba(220,236,200,${.26*alpha})`;pcx.fill();pcx.stroke();
   pcx.beginPath();pcx.ellipse(kx-7,ky-8,7,4,-.5,0,Math.PI*2);pcx.fillStyle=`rgba(255,255,255,${.22*alpha})`;pcx.fill();}
 function drawPad(show){pcx.setTransform(dpr,0,0,dpr,0,0);pcx.clearRect(0,0,pc.width,pc.height);
+  if(stick){drawPuni(stick.bx,stick.by,stick.kx,stick.ky);return;}
   if(!show)return;
-  if(stick)drawPuni(stick.bx,stick.by,stick.kx,stick.ky);
+  if(false);
   else if(spring&&spring.t<14){spring.t++;const p=spring.t/14,e=Math.exp(-5*p)*Math.cos(p*10);drawPuni(spring.bx,spring.by,spring.bx+(spring.kx-spring.bx)*e,spring.by+(spring.ky-spring.by)*e,1-p*.6);}
   else{pcx.beginPath();pcx.arc(HOME.x,HOME.y,34,0,Math.PI*2);pcx.strokeStyle='rgba(220,236,200,.16)';pcx.lineWidth=2;pcx.stroke();
     pcx.beginPath();pcx.arc(HOME.x,HOME.y,14,0,Math.PI*2);pcx.fillStyle='rgba(220,236,200,.08)';pcx.fill();}}
@@ -693,7 +697,8 @@ const PB={ox:3,oy:9,w:10,h:6},EB={ox:2,oy:6,w:12,h:9};
 const box=(o,B)=>({x:o.x+B.ox,y:o.y+B.oy,w:B.w,h:B.h});
 const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 const SOLID=new Set('#=_bvkLgTdcmlnRxthGrKCOuqfpBYW1234567');
-function stickWanted(){return scene==='game'&&!MN.open&&!SH.open&&!D.active;}
+function uiMode(){return scene!=='game'||MN.open||SH.open||D.active;}
+function sceneIsBoot(){return scene==='boot';}
 
 /* ---------- stats ---------- */
 const maxHP=()=>30+(G.lv-1)*7, maxMP=()=>6+(G.lv-1)*2;
