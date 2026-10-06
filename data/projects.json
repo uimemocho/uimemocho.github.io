@@ -226,5 +226,17 @@
     "sourceEntry": "yoigoshi_no_yakata_v1.6.html",
     "publishedAt": "2026-10-06T00:25:00Z",
     "updatedAt": "2026-10-06T15:30:00Z"
+  },
+  {
+    "slug": "shokupan-dash",
+    "title": "食パン遅刻ダッシュ",
+    "kind": "game",
+    "description": "食パンくわえて曲がり角を全力ダッシュ。飛び出す運命の出会いをかわして、8:30までに校門を突破するピクセルアート・ランゲーム。",
+    "url": "/apps/shokupan-dash/",
+    "thumbnail": "/project-thumbnails/shokupan-dash.webp",
+    "sourceFolder": "261007_食パン遅刻ダッシュ",
+    "sourceEntry": "shokupan_dash_v1.0.html",
+    "publishedAt": "2026-10-06T22:20:00Z",
+    "updatedAt": "2026-10-06T22:20:00Z"
   }
 ]
