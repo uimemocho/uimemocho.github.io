@@ -207,13 +207,13 @@
     "slug": "shuden-densetsu",
     "title": "終電伝説 〜声のない街〜",
     "kind": "game",
-    "description": "現代日本の閉塞感をテーマにした、ゲームボーイ風アクションRPG。ビニール傘一本で、霧に沈んだ街の「声」をとりもどせ。",
+    "description": "現代日本の閉塞感をテーマにした、ゲームボーイ風アクションRPG。ビニール傘一本で、霧に沈んだ街の「声」をとりもどせ。日本語・English・简体中文・繁體中文・한국어・Français 対応。",
     "url": "/apps/shuden-densetsu/",
     "thumbnail": "/project-thumbnails/shuden-densetsu.webp",
     "sourceFolder": "261003_終電伝説",
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-03T10:50:00Z",
-    "updatedAt": "2026-10-03T11:20:00Z"
+    "updatedAt": "2026-10-06T23:30:00Z"
   },
   {
     "slug": "yoigoshi-no-yakata",
