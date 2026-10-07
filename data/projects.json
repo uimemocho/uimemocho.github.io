@@ -250,5 +250,17 @@
     "sourceEntry": "noti-breaker.html",
     "publishedAt": "2026-10-07T14:18:17Z",
     "updatedAt": "2026-10-07T14:18:17Z"
+  },
+  {
+    "slug": "haniwa-brazil",
+    "title": "ハニワ、ブラジルまで",
+    "kind": "game",
+    "description": "安全ヘルメットのハニワが地球をまっさかさまに貫いてブラジルへ。抜けるたびに時代が進み、仲間が増えて加速するピクセル掘削ゲーム。7言語対応。",
+    "url": "/apps/haniwa-brazil/",
+    "thumbnail": "/project-thumbnails/haniwa-brazil.webp",
+    "sourceFolder": "261008_ハニワ、ブラジルまで",
+    "sourceEntry": "haniwa_brazil.html",
+    "publishedAt": "2026-10-07T23:37:34Z",
+    "updatedAt": "2026-10-07T23:37:34Z"
   }
 ]
