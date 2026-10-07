@@ -238,5 +238,17 @@
     "sourceEntry": "shokupan_dash_v1.0.html",
     "publishedAt": "2026-10-06T22:20:00Z",
     "updatedAt": "2026-10-06T22:20:00Z"
+  },
+  {
+    "slug": "noti-breaker",
+    "title": "ノティブレイカー",
+    "kind": "game",
+    "description": "1件残ってるとムズムズする赤バッジを、バットで叩いて既読にする縦画面ピクセルアクション。",
+    "url": "/apps/noti-breaker/",
+    "thumbnail": "/project-thumbnails/noti-breaker.webp",
+    "sourceFolder": "261007_ノティブレイカー",
+    "sourceEntry": "noti-breaker.html",
+    "publishedAt": "2026-10-07T14:18:17Z",
+    "updatedAt": "2026-10-07T14:18:17Z"
   }
 ]
