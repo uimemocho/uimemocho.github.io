@@ -1164,12 +1164,20 @@ function drawPx(el,text,o){
   const lines=String(text).split('\n'),ol=o.outline??1,sh=o.shadow??1,gap=o.gap??3,size=CA.h;
   PXM.font=PF;
   const ws=lines.map(l=>Math.ceil(PXM.measureText(l).width));
-  const tw=Math.max(1,...ws),pad=ol,cw=tw+pad*2,lh=size+gap,ch=lines.length*lh-gap+pad*2+sh;
+  const tw=Math.max(1,...ws),pad=ol,lh=size+gap,ch=lines.length*lh-gap+pad*2+sh;let cw=tw+pad*2;
   const c=document.createElement('canvas');c.width=cw;c.height=ch;
   const g=c.getContext('2d',{willReadFrequently:true});g.font=PF;g.fillStyle='#fff';g.textBaseline='alphabetic';
   lines.forEach((l,i)=>{const x=o.align==='left'?pad:o.align==='right'?cw-pad-ws[i]:Math.round((cw-ws[i])/2);g.fillText(l,x+PXOX,pad+i*lh+CA.asc);});
-  const src=g.getImageData(0,0,cw,ch).data,m=new Uint8Array(cw*ch);
+  const src=g.getImageData(0,0,cw,ch).data;let m=new Uint8Array(cw*ch);
   for(let i=0;i<cw*ch;i++)m[i]=src[i*4+3]>=128?1:0;
+  if(!o.align||o.align==='center'){
+    // optical centering: center each line on its visible ink (wide punctuation like 、。！ carries blank space), then trim to the ink
+    const bands=lines.map((l,i)=>{let a=1e9,b=-1;const y0=pad+i*lh,y1=Math.min(ch,y0+lh);for(let y=y0;y<y1;y++)for(let x=0;x<cw;x++)if(m[y*cw+x]){if(x<a)a=x;if(x>b)b=x;}return b<0?null:[a,b,y0,y1];});
+    const inkW=Math.max(1,...bands.map(b=>b?b[1]-b[0]+1:0)),nw=inkW+pad*2,m2=new Uint8Array(nw*ch);
+    bands.forEach(bd=>{if(!bd)return;const[a,b,y0,y1]=bd,off=pad+Math.floor((inkW-(b-a+1))/2)-a;
+      for(let y=y0;y<y1;y++)for(let x=a;x<=b;x++)if(m[y*cw+x])m2[y*nw+x+off]=1;});
+    m=m2;cw=nw;c.width=cw;g.font=PF;
+  }
   const out=g.createImageData(cw,ch),d=out.data;
   const at=(x,y)=>x>=0&&y>=0&&x<cw&&y<ch&&m[y*cw+x];
   const put=(i,c)=>{d[i*4]=c[0];d[i*4+1]=c[1];d[i*4+2]=c[2];d[i*4+3]=255;};
