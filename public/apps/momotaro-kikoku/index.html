@@ -1224,7 +1224,7 @@ function battleDraw(){const b=B;drawBattleBG(b.g.bg,b.t,b.pulse);
   if(b.menu&&b.menu.m===m&&(b.t>>3)%2){cx.fillStyle='#ffe08a';cx.fillRect(x+6,y-6,5,1);cx.fillRect(x+7,y-5,3,1);cx.fillRect(x+8,y-4,1,1);}});
  if(b.fl.guard>0){cx.fillStyle='rgba(255,220,120,.07)';cx.fillRect(180,62,76,98);}
  b.fx.forEach(drawFx);drawSparks();
- // damage numbers: FF-style hop (up, small bounce), outlined, blink out
+ // damage numbers: classic hop (up, small bounce), outlined, blink out
  b.pops.forEach(p=>{const t=p.t,by=t<8?-[0,5,9,11,9,5,0,0][t]:t<12?-[0,3,3,0][t-8]:0;if(t>44&&(t>>1)%2)return;
   if(/^\d+$/.test(p.s)){const dc=digitCanvas(p.s,p.c==='#fff'?'#f4e8c8':p.c);cx.drawImage(dc,Math.round(p.x-dc.width/2),Math.round(p.y+by-dc.height/2));}
   else olText(p.s,Math.round(p.x),Math.round(p.y+by),p.c,'#140810',8);});
