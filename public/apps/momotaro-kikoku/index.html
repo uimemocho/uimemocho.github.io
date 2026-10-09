@@ -1058,14 +1058,16 @@ function drawCho(){if(!CHO)return;cx.font='8px '+FONT;const w=Math.min(248,Math.
  CHO.opts.forEach((o,i)=>{const cy=y+12+i*15;tx(o,x+20,cy,'#fff','left',8,w-24);if(i===CHO.i)hand(x+5,cy);});}
 // ---------- field ----------
 const idOff=id=>{let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)%120;};
+// Dragon Quest style: everyone on the field marks time continuously, moving or not.
+const dqStep=off=>[1,2][(((FR+off)/15)|0)%2];
 function fieldDraw(){const[cxp,cyp]=camera();R(0,0,W,H,'#000');
  if(!M.paint)M.paint=paintMap(M);cx.drawImage(M.paint.base,-cxp,-cyp);waterFx(cxp,cyp);
  const list=[...M.actors.filter(a=>!a.hide),PL].sort((a,b)=>a.py-b.py);
  list.forEach(a=>{const isP=a===PL,x=Math.round(a.px-cxp),y=Math.round(a.py-cyp)-8;
-  if(isP)spr('momo',x,y,a.dir,a.fr,{horn:G.flags.horn,idle:a.mv?null:FR});
+  if(isP)spr('momo',x,y,a.dir,dqStep(0),{horn:G.flags.horn});
   else if(a.k==='boar'){const c=monCanvas({id:'nushi',d:EN.nushi},0);cx.drawImage(c,x+8-Math.round(c.width*.5),y+24-c.height,);}
   else if(a.k==='maga'){const c=monCanvas({id:'magatsu',d:EN.magatsu},0);cx.globalAlpha=.85+Math.sin(FR/15)*.1;cx.drawImage(c,x+8-c.width/2,y+30-c.height);cx.globalAlpha=1;}
-  else{spr(a.k,x,y,a.dir,a.fr,{idle:a.mv||a.cage?null:FR+idOff(a.id)});if(a.cage){cx.fillStyle='#2a2a30';for(let i=0;i<6;i++)cx.fillRect(x-1+i*3.4|0,y+2,1,21);cx.fillStyle='#4a4a54';cx.fillRect(x-2,y+1,20,2);cx.fillRect(x-2,y+22,20,2);}}});
+  else{spr(a.k,x,y,a.dir,dqStep(idOff(a.id)),{});if(a.cage){cx.fillStyle='#2a2a30';for(let i=0;i<6;i++)cx.fillRect(x-1+i*3.4|0,y+2,1,21);cx.fillStyle='#4a4a54';cx.fillRect(x-2,y+1,20,2);cx.fillRect(x-2,y+22,20,2);}}});
  cx.drawImage(M.paint.over,-cxp,-cyp);
  if(M.def.tint)R(0,0,W,H,M.def.tint);
  if(M.def.night&&M.def.night(G.flags)){R(0,0,W,H,'rgba(6,8,36,.55)');R(0,0,W,H,`rgba(255,70,20,${.07+Math.sin(FR/5)*.03})`);}
