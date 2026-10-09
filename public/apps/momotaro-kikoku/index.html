@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0c0809">
-<meta name="description" content="鬼を斬れと教えられた少年が、自らの血の真実と向き合う。昔話『桃太郎』を下敷きにした全5章のダークファンタジー短編ピクセルRPG。FF風サイドビュー戦闘、セーブ対応、9言語対応。">
+<meta name="description" content="鬼を斬れと教えられた少年が、自らの血の真実と向き合う。昔話『桃太郎』を下敷きにした全5章のダークファンタジー短編ピクセルRPG。ドット絵のサイドビュー戦闘、セーブ対応、9言語対応。">
 <link rel="canonical" href="https://uimemocho.github.io/apps/momotaro-kikoku/">
 <link rel="alternate" hreflang="ja" href="https://uimemocho.github.io/apps/momotaro-kikoku/?lang=ja">
 <link rel="alternate" hreflang="en" href="https://uimemocho.github.io/apps/momotaro-kikoku/?lang=en">
@@ -20,14 +20,14 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="uimemocho">
 <meta property="og:title" content="桃太郎 ― 鬼哭島 ―">
-<meta property="og:description" content="鬼を斬れと教えられた少年が、自らの血の真実と向き合う。昔話『桃太郎』を下敷きにした全5章のダークファンタジー短編ピクセルRPG。FF風サイドビュー戦闘、セーブ対応、9言語対応。">
+<meta property="og:description" content="鬼を斬れと教えられた少年が、自らの血の真実と向き合う。昔話『桃太郎』を下敷きにした全5章のダークファンタジー短編ピクセルRPG。ドット絵のサイドビュー戦闘、セーブ対応、9言語対応。">
 <meta property="og:url" content="https://uimemocho.github.io/apps/momotaro-kikoku/">
 <meta property="og:image" content="https://uimemocho.github.io/apps/momotaro-kikoku/ogp.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="桃太郎 ― 鬼哭島 ―">
-<meta name="twitter:description" content="鬼を斬れと教えられた少年が、自らの血の真実と向き合う。昔話『桃太郎』を下敷きにした全5章のダークファンタジー短編ピクセルRPG。FF風サイドビュー戦闘、セーブ対応、9言語対応。">
+<meta name="twitter:description" content="鬼を斬れと教えられた少年が、自らの血の真実と向き合う。昔話『桃太郎』を下敷きにした全5章のダークファンタジー短編ピクセルRPG。ドット絵のサイドビュー戦闘、セーブ対応、9言語対応。">
 <meta name="twitter:image" content="https://uimemocho.github.io/apps/momotaro-kikoku/ogp.png">
 <title>桃太郎 鬼哭島</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -272,7 +272,7 @@ const E=(x,y,z,rx,ry,rz,m)=>({t:'e',v:[x,y,z,rx,ry,rz],m});
 const Cp=(a,b,r0,r1,m)=>({t:'c',v:[a,b,r0,r1==null?r0:r1],m});
 function silhouette(src,col){const c=mkCanvas(src.width,src.height),g=c.getContext('2d');g.drawImage(src,0,0);g.globalCompositeOperation='source-in';g.fillStyle=col;g.fillRect(0,0,c.width,c.height);return c;}
 const SPC={};function cached(k,f){return SPC[k]||(SPC[k]=f());}
-// ================= CHARACTER SPRITES (16x24, hand-shaded, SFC FF-style) =================
+// ================= CHARACTER SPRITES (16x24, hand-shaded, SFC-style) =================
 // Letters (flat colours, light from top-left):
 //  H h j hair light/mid/dark · K k skin/shadow · E eye · W white (eye glint, fangs) · B b band · R red mark
 //  C c q cloth light/mid/dark · T t collar trim · A a sash · D d x legs light/mid/dark · F f footwear
