@@ -957,7 +957,7 @@ const alive=m=>G.hp[m.id]>0;
 const aliveE=()=>B.en.filter(e=>!e.dead&&!e.dying);
 function battle(gid){return new Promise(res=>startBattle(gid,res));}
 function mkEnemy(id,x,y){const d=EN[id];return{id,d,n:d.n,hp:d.hp,mhp:d.hp,atb:rnd(0,45),x,y,flash:0,dying:0,dead:0,st:{},ph:1,trig:{},ox:0};}
-function startBattle(gid,res){const g=GROUPS[gid];const pos=g.en.length===1?ENPOS[1]:ENPOS[g.en.length];
+function startBattle(gid,res){SPK.length=0;const g=GROUPS[gid];const pos=g.en.length===1?ENPOS[1]:ENPOS[g.en.length];
  B={gid,g,en:g.en.map((id,i)=>mkEnemy(id,pos[i][0],pos[i][1])),pt:G.party.map((id,i)=>({id,i,atb:rnd(30,70),st:{},ox:0,pose:0,hurt:0,mark:0})),
   res,t:0,intro:28,act:null,queue:[],ready:[],menu:null,lines:[...(g.start||[])],pops:[],fx:[],fl:{},end:null,banner:null,after:null,pulse:0};
  B.pt.forEach(m=>{if(!alive(m))m.atb=0;});mode='battle';sfx('enc');bgm(g.bgm||'battle');}
@@ -973,13 +973,13 @@ function battleItems(){return['dango','shizuku'].filter(k=>(G.items[k]||0)>0);}
 function pop(t,s,c='#fff'){const[x,y]=t.d?ecen(t):pcen(t);B.pops.push({x:x+rnd(-4,4),y,s:String(s),c,t:0});}
 function fxAt(k,t,d=22){const[x,y]=t.d?ecen(t):pcen(t);B.fx.push({k,x,y,t:0,d});}
 // --- damage ---
-function hurtE(e,d){if(!e||e.dead||e.dying)return;e.hp-=d;e.flash=8;pop(e,d);
+function hurtE(e,d){if(!e||e.dead||e.dying)return;e.hp-=d;e.flash=8;pop(e,d);B.hs=Math.max(B.hs||0,3);
  if(e.id==='tokoyami'&&!B.fl.tentoDone)e.hp=Math.max(1,e.hp);
  if(e.id==='magatsu'&&!e.trig.a&&e.hp<=0){e.hp=0;bossCheck(e);return;}
  if(e.hp<=0){e.hp=0;e.dying=36;sfx('dead');}else bossCheck(e);}
 function dmgE(e,atk,mult){if(!e)return;hurtE(e,Math.max(1,Math.round((atk*2-e.d.def)*rnd(.88,1.12)*mult)));}
 function calcP(e,m,mult){return Math.max(1,Math.round((e.d.atk*2-stat(m.id,'def'))*rnd(.88,1.12)*mult*(B.fl.guard>0?.5:1)));}
-function hurtP(m,d){if(!alive(m))return;G.hp[m.id]=Math.max(0,G.hp[m.id]-d);pop(m,d);m.hurt=10;
+function hurtP(m,d){if(!alive(m))return;G.hp[m.id]=Math.max(0,G.hp[m.id]-d);pop(m,d);m.hurt=10;B.hs=Math.max(B.hs||0,2);
  if(G.hp[m.id]<=0){sfx('dead');m.st={};m.atb=0;B.ready=B.ready.filter(x=>x!==m);if(B.menu&&B.menu.m===m)B.menu=null;}else sfx('hit');}
 function healP(m,n){if(!alive(m))return;const mx=stat(m.id,'hp');G.hp[m.id]=Math.min(mx,G.hp[m.id]+n);pop(m,n,'#7dffa8');fxAt('heal',m,30);}
 function tgtE(e){return(e&&!e.dead&&!e.dying)?e:pick(aliveE())||null;}
@@ -1069,6 +1069,7 @@ function battleUpdate(){const b=B;b.t++;
  if(b.intro>0){b.intro--;return;}
  if(b.lines.length){if(P.a){sfx('cur');const nl=wrap(L(b.lines[0][1]),228).length;b.lp=(b.lp||0)+1;if(b.lp*2<nl)return;b.lp=0;b.lines.shift();if(!b.lines.length&&b.after){const f=b.after;b.after=null;f();}}return;}
  if(b.end){endUpdate();return;}
+ if(b.hs>0){b.hs--;return;}
  if(b.act){stepAct(b.act);return;}
  if(b.en.some(e=>e.dying>0))return;
  if(!b.en.some(e=>!e.dead)){winBattle();return;}
@@ -1094,17 +1095,55 @@ function endUpdate(){const e=B.end;e.t++;
  if(P.a){sfx('ok');if(e.i===0){healAll();startBattle(B.gid,B.res);}else{B=null;resetScenes();toTitle();}}}
 function resetScenes(){SCN=0;WAITS.length=0;DLG=null;CHO=null;MENU=null;}
 // --- draw ---
-function drawFx(f){const p=f.t/f.d,x=f.x,y=f.y;cx.save();
+// ---------- pixel FX: integer pixels only, stepped at 30fps, limited palettes, sparks with gravity ----------
+const PXc=(x,y,c)=>{cx.fillStyle=c;cx.fillRect(Math.round(x),Math.round(y),1,1);};
+const PXb=(x,y,w,h,c)=>{cx.fillStyle=c;cx.fillRect(Math.round(x),Math.round(y),w,h);};
+function PXline(x0,y0,x1,y1,c,w=1){x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy;cx.fillStyle=c;
+ for(let n=0;n<400;n++){cx.fillRect(x0-(w>>1),y0-(w>>1),w,w);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx;}if(e2<=dx){e+=dx;y0+=sy;}}}
+function PXring(x,y,r,c,step=1){const n=Math.max(8,Math.round(r*6));for(let i=0;i<n;i+=step){const a=i/n*Math.PI*2;PXc(x+Math.cos(a)*r,y+Math.sin(a)*r,c);}}
+function PXstar(x,y,r,c){PXb(x-r,y,r*2+1,1,c);PXb(x,y-r,1,r*2+1,c);if(r>2){PXb(x-1,y-1,3,3,c);}}
+const SPK=[];
+function sparks(x,y,cols,n,spd=2.2,grav=.12){for(let i=0;i<n;i++){const a=rnd(0,Math.PI*2),v=rnd(.6,1)*spd;SPK.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-.6,g:grav,c:pick(cols),t:0,life:ri(10,20)});}}
+function drawSparks(){for(let i=SPK.length-1;i>=0;i--){const p=SPK[i];if(FR%1===0){p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.vx*=.96;p.t++;}if(p.t>p.life){SPK.splice(i,1);continue;}
+ const big=p.t<p.life*.4;PXc(p.x,p.y,p.c);if(big){PXc(p.x+1,p.y,p.c);PXc(p.x,p.y+1,p.c);}}}
+const FXP={white:['#ffffff','#fff6c8','#c8f0ff'],fire:['#ffffff','#ffe060','#ff8030','#e02030'],blood:['#ff3040','#b0102a','#ffffff'],green:['#ffffff','#b0ffb8','#40e070'],
+ holy:['#ffffff','#fff8c0','#ffe080'],dark:['#e0a0ff','#9040d0','#40104a'],gold:['#ffffff','#ffe890','#e0a830'],pink:['#ffffff','#ffd0dc','#ff8aa8']};
+function drawFx(f){const st=f.t>>1,x=Math.round(f.x),y=Math.round(f.y),T=f.t;
  switch(f.k){
-  case 'slash':cx.strokeStyle=`rgba(255,255,255,${1-p})`;cx.lineWidth=2;cx.beginPath();cx.moveTo(x-16+p*4,y-16);cx.lineTo(x-16+32*Math.min(1,p*2.2),y-16+32*Math.min(1,p*2.2));cx.stroke();break;
-  case 'red':cx.lineWidth=4;cx.strokeStyle=`rgba(180,0,30,${1-p})`;cx.beginPath();cx.moveTo(x-26,y-22);cx.lineTo(x-26+52*Math.min(1,p*2),y-22+44*Math.min(1,p*2));cx.stroke();cx.strokeStyle=`rgba(20,0,0,${1-p})`;cx.lineWidth=2;cx.beginPath();cx.moveTo(x+22,y-24);cx.lineTo(x+22-44*Math.min(1,p*2),y-24+48*Math.min(1,p*2));cx.stroke();for(let i=0;i<8;i++)R(x+Math.cos(i)*p*30,y+Math.sin(i*1.7)*p*24,2,2,'#ff3040');break;
-  case 'hit':case 'claw':{const c=f.k==='claw'?'255,80,80':'255,240,200';cx.strokeStyle=`rgba(${c},${1-p})`;cx.lineWidth=1.5;cx.beginPath();for(let i=0;i<(f.k==='claw'?3:8);i++){if(f.k==='claw'){cx.moveTo(x-8+i*6,y-10);cx.lineTo(x-14+i*6+p*6,y+10);}else{const a=i*.785;cx.moveTo(x+Math.cos(a)*4,y+Math.sin(a)*4);cx.lineTo(x+Math.cos(a)*(6+p*18),y+Math.sin(a)*(6+p*18));}}cx.stroke();break;}
-  case 'heal':for(let i=0;i<6;i++)R(x-10+i*4,y+10-p*30-(i%2)*6,2,2,`rgba(140,255,170,${1-p})`);break;
-  case 'holy':R(x-6+p*2,y-60,12-p*4,90,`rgba(255,255,240,${.8-p*.8})`);break;
-  case 'dark':cx.fillStyle=`rgba(120,30,140,${.6-p*.6})`;cx.beginPath();cx.arc(x,y,6+p*16,0,7);cx.fill();break;
-  case 'shield':cx.strokeStyle=`rgba(255,220,120,${1-p})`;cx.lineWidth=2;cx.beginPath();cx.ellipse(x,y,20+p*40,30+p*50,0,0,7);cx.stroke();break;
-  case 'peach':cx.fillStyle=`rgba(255,${180+p*60},${200+p*40},${1-p})`;cx.beginPath();cx.ellipse(x-40+p*30,y,140*Math.min(1,p*3),18,-.35,0,7);cx.fill();for(let i=0;i<30;i++)R((i*47+p*200)%W,(i*29+p*160)%160,3,2,`rgba(255,190,205,${1-p})`);break;
- }cx.restore();}
+  case 'slash':{ // a thick crescent swept top-right → bottom-left in 4 steps, then a white flash star
+   const L=[[24,-26],[14,-10],[0,2],[-13,16],[-24,26]];const k=Math.min(4,st);
+   for(let i=Math.max(0,k-2);i<k;i++){const[a,b2]=L[i],[c2,d2]=L[i+1];PXline(x+a+3,y+b2,x+c2+3,y+d2,'#3a78c8',2);PXline(x+a,y+b2,x+c2,y+d2,i===k-1?'#ffffff':'#9ad8ff',i===k-1?4:3);}
+   if(T===6)sparks(x,y,FXP.white,10);if(st>=3&&st<7)PXstar(x,y,(7-st)*2,'#ffffff');break;}
+  case 'red':{ // Oni Slayer: two crimson cuts in an X, black core, blood shards
+   const k=Math.min(4,st);const pts=(s0,s1)=>[x+s0[0]+(s1[0]-s0[0])*k/4,y+s0[1]+(s1[1]-s0[1])*k/4];
+   const[a1x,a1y]=pts([-20,-18],[20,18]);PXline(x-20,y-18,a1x,a1y,'#ff2040',4);PXline(x-20,y-18,a1x,a1y,'#1a0008',1);
+   if(st>=2){const k2=Math.min(4,st-2);PXline(x+20,y-18,x+20-40*k2/4,y-18+36*k2/4,'#ff2040',4);PXline(x+20,y-18,x+20-40*k2/4,y-18+36*k2/4,'#ffffff',1);}
+   if(T===8){sparks(x,y,FXP.blood,18,2.8);shake(6);}if(st>=6&&st<10){PXring(x,y,(st-5)*5,'#ff3050');}break;}
+  case 'hit':{ // heavy impact: white burst star → expanding ring → debris
+   if(st<2){PXb(x-4,y-4,9,9,'#ffffff');PXstar(x,y,10,'#ffffff');}else if(st<7){PXring(x,y,(st-1)*4,st%2?'#ffffff':'#ffe060');PXstar(x,y,9-st,'#fff6c8');}
+   if(T===2)sparks(x,y,FXP.fire,16,3);break;}
+  case 'claw':{ // three red raking lines drawn in sequence
+   for(let i=0;i<3;i++){const k=Math.min(4,st-i);if(k<=0)continue;const ox=x-12+i*10;PXline(ox+8,y-18,ox+8-14*k/4,y-18+34*k/4,'#7a0018',4);PXline(ox+8,y-18,ox+8-14*k/4,y-18+34*k/4,k<4?'#ffffff':'#ff4050',2);}
+   if(T===8)sparks(x,y,FXP.blood,8,2);break;}
+  case 'heal':{ // green plus-sparkles rising + a pixel ring
+   for(let i=0;i<6;i++){const sx=x-12+i*5,sy=y+12-((T*1.4+i*9)%30);const c=(st+i)%3===0?'#ffffff':'#7dffa0';PXb(sx,sy-1,1,3,c);PXb(sx-1,sy,3,1,c);}
+   if(st<6)PXring(x,y+6,4+st*3,'#b0ffb8',2);break;}
+  case 'holy':{ // pillar of light drawn as pixel columns + falling diamonds
+   const h=Math.min(110,st*22),w=st<4?20-st*2:st<9?12:Math.max(2,30-st*2);PXb(x-(w>>1)-2,y+24-h,w+4,h,'#ffe080');PXb(x-(w>>1),y+24-h,w,h,'#fff8c8');PXb(x-(w>>2),y+24-h,Math.max(1,w>>1),h,'#ffffff');
+   for(let i=0;i<5;i++){const dy=((T*2+i*17)%50)-40,dx=x-12+i*6;PXc(dx,dy+y,'#ffffff');PXc(dx-1,dy+y+1,'#ffe080');PXc(dx+1,dy+y+1,'#ffe080');PXc(dx,dy+y+2,'#ffffff');}
+   if(T===10)sparks(x,y,FXP.holy,12,2.4,.05);break;}
+  case 'dark':{ // purple motes converge, then burst
+   if(st<5){for(let i=0;i<10;i++){const a=i/10*Math.PI*2+st*.35,r=26-st*5;PXb(x+Math.cos(a)*r-1,y+Math.sin(a)*r-1,3,3,i%2?'#c070ff':'#6a1a90');}PXb(x-2,y-2,5,5,'#40104a');}
+   else if(st<10){PXring(x,y,(st-4)*5,'#c070ff');PXring(x,y,(st-4)*5-2,'#6a1a90');PXb(x-2,y-2,5,5,'#e0a0ff');}
+   if(T===10)sparks(x,y,FXP.dark,10,2.2);break;}
+  case 'shield':{ // golden diamond barrier pulses outward around the party
+   const r=8+st*4;if(st<12){const c1=st%2?'#ffffff':'#ffe890',c2='#e0a830',h2=r*1.4;PXline(x-r,y,x,y-h2,c1,2);PXline(x,y-h2,x+r,y,c1,2);PXline(x+r,y,x,y+h2,c2,2);PXline(x,y+h2,x-r,y,c2,2);}
+   if(T===4)sparks(x,y,FXP.gold,14,2.4,.04);break;}
+  case 'peach':{ // Heaven Peach Flash: screen-wide pink crescent, white core, petal storm
+   const k=Math.min(8,st);for(let i=0;i<k;i++){const x0=-10+i*36,y0=40+i*10;PXline(x0,y0,x0+36,y0+10,'#ff8aa8',7);PXline(x0,y0,x0+36,y0+10,'#ffd0dc',4);PXline(x0,y0,x0+36,y0+10,'#ffffff',2);}
+   if(T===14){sparks(150,80,FXP.pink,40,4,.04);sparks(80,70,FXP.white,20,3.4,.06);}
+   for(let i=0;i<24;i++){const px=(i*47+T*3)%260-2,py=(i*29+T*2)%160;PXb(px,py,2,1,i%3?'#ffb8c8':'#ffffff');}break;}
+ }}
 
 // ================= UI (pixel-aligned, 8px DotGothic rows) =================
 function tx(s,x,y,c='#fff',al='left',sz=8,mw,raw){if(!raw)s=L(s);cx.font=sz+'px '+FONT;cx.textAlign=al;cx.textBaseline='middle';x=Math.round(x);y=Math.round(y);cx.fillStyle='rgba(6,4,20,.85)';if(mw)cx.fillText(s,x+1,y+1,mw);else cx.fillText(s,x+1,y+1);cx.fillStyle=c;if(mw)cx.fillText(s,x,y,mw);else cx.fillText(s,x,y);}
@@ -1174,8 +1213,9 @@ function battleDraw(){const b=B;drawBattleBG(b.g.bg,b.t,b.pulse);
   spr(m.id,x+(m.hurt>0?(m.hurt%2?1:-1):0),y,2,fr,{horn:m.id==='momo'&&G.flags.horn,mark:m.mark>0,pose,idle:b.t+m.i*37});
   if(b.menu&&b.menu.m===m&&(b.t>>3)%2){cx.fillStyle='#ffe08a';cx.fillRect(x+6,y-6,5,1);cx.fillRect(x+7,y-5,3,1);cx.fillRect(x+8,y-4,1,1);}});
  if(b.fl.guard>0){cx.fillStyle='rgba(255,220,120,.07)';cx.fillRect(180,62,76,98);}
- b.fx.forEach(drawFx);
- b.pops.forEach(p=>{const by=p.t<12?-Math.round(Math.sin(p.t/12*Math.PI)*8):0;cx.globalAlpha=p.t>40?(54-p.t)/14:1;tx(p.s,p.x,p.y+by,p.c,'center',8);cx.globalAlpha=1;});
+ b.fx.forEach(drawFx);drawSparks();
+ // damage numbers: FF-style hop (up, small bounce), outlined, blink out
+ b.pops.forEach(p=>{const t=p.t,by=t<8?-[0,4,7,8,7,4,0,0][t]:t<12?-[0,2,2,0][t-8]:0;if(t>44&&(t>>1)%2)return;olText(p.s,Math.round(p.x),Math.round(p.y+by),p.c,'#140810',8);});
  const mmv=b.menu&&(b.menu.lv==='cmd'||b.menu.lv==='item'||b.menu.lv==='tgt');
  if(!mmv){win(0,162,94,78);const names={};aliveE().forEach(e=>names[e.n]=(names[e.n]||0)+1);Object.keys(names).slice(0,4).forEach((n,i)=>{const s=n.includes('・')?n.split('・').pop():n;tx(s,9,176+i*15,'#fff','left',8,names[n]>1?58:78);if(names[n]>1)tx('×'+names[n],88,176+i*15,'#fff','right');});}
  win(94,162,162,78);b.pt.forEach((m,i)=>{const cy=176+i*15,al=alive(m),mh=stat(m.id,'hp'),act=b.menu&&b.menu.m===m;
