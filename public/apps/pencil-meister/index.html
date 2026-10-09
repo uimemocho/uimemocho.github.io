@@ -1510,7 +1510,7 @@ function drawVideoFrame(x,sn,keys,t){
   V.vtgt.set(0,y,0);placeCam(V.vcam,V.vtgt,th,ph,d);
   V.key.position.set(110*Math.cos(th+1.1),130,110*Math.sin(th+1.1));
   // the flare drifts across the upper frame and swells as the camera reaches the tip
-  const fx=-.55+1.1*ease(t/VDUR),fy=.62-.12*Math.sin(t/VDUR*Math.PI),fi=.55+.45*ease((t-4.6)/1.4)-.35*ease((t-6.6)/1);
+  const fx=0,fy=.4,fi=.72+.04*Math.sin(t*.8);
   V.vfx.render(V.vr,V.vcam,t,fx,fy,fi);
   x.drawImage(V.vc,0,0);
   const vg=x.createRadialGradient(VW/2,VH/2,VH*.35,VW/2,VH/2,VH*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');x.fillStyle=vg;x.fillRect(0,0,VW,VH);
@@ -1655,7 +1655,7 @@ void main(){
 fl:`precision highp float;varying vec2 vUv;uniform vec2 uL,uRes;uniform float uI;
 void main(){
   vec2 asp=vec2(uRes.x/uRes.y,1.),p=vUv*2.-1.,q=(p-uL)*asp;float r=length(q);vec3 c=vec3(0.);
-  c+=vec3(1.,.87,.65)*(.018/(r+.018));
+  c+=vec3(1.,.87,.65)*(.011/(r+.03))+vec3(1.,.8,.6)*exp(-r*7.)*.12;
   c+=vec3(1.,.8,.56)*exp(-abs(q.y)*85.)*exp(-abs(q.x)*1.5)*.5;
   c+=vec3(.5,.85,1.)*exp(-abs(q.y)*240.)*exp(-abs(q.x)*.7)*.22;
   for(int i=0;i<4;i++){float fi=float(i);vec2 g=-uL*(.3+fi*.45);float gr=length((p-g)*asp),sz=.035+fi*.03;
@@ -1663,9 +1663,9 @@ void main(){
   c+=vec3(.7,.9,1.)*smoothstep(.018,0.,abs(r-.44))*.035;
   gl_FragColor=vec4(c*uI,1.);}`,
 pv:`attribute vec4 aS;uniform float uT,uPx;varying float vA,vH;
-void main(){vec3 p=position;float t=uT*aS.y;
-  p.x+=sin(t+aS.x*6.28)*3.;p.z+=cos(t*.8+aS.x*4.)*3.;
-  p.y=mod(position.y+uT*aS.y*3.+60.,90.)-60.;
+void main(){vec3 p=position;float t=uT*aS.y*1.7;
+  p.x+=sin(t+aS.x*6.28)*4.5+sin(t*.37+aS.x*11.)*2.;p.z+=cos(t*.8+aS.x*4.)*4.5;
+  p.y=mod(position.y+uT*aS.y*4.2+sin(t*.6+aS.x*9.)*1.5+60.,90.)-60.;
   vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
   gl_PointSize=aS.z*uPx*(260./max(1.,-mv.z));
   vA=(.35+.65*abs(sin(uT*(.6+aS.y)+aS.x*20.)))*smoothstep(-60.,-46.,p.y)*smoothstep(30.,16.,p.y)/(1.+aS.z*.12);vH=aS.w;}`,
@@ -1693,8 +1693,8 @@ function makeFX(scene,pxr){
       for(const m of [bgMat,flMat,ptMat]){m.uniforms.uT.value=t;m.uniforms.uRes.value.copy(sz);m.uniforms.uL.value.set(lx,ly)}
       flMat.uniforms.uI.value=flare;
       r.autoClear=false;r.clear();r.render(bgS,ortho);
-      points.visible=true;r.render(scene,cam);points.visible=false;
       if(flare>0)r.render(flS,ortho);
+      points.visible=true;r.render(scene,cam);points.visible=false;
       r.autoClear=true;
     }};
 }
@@ -1754,23 +1754,24 @@ async function homeInit(){
 }
 function homeSize(){if(!HOME.ready)return;const cv=$('homeC'),w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;HOME.r.setSize(w,h,false);HOME.cam.aspect=w/h;HOME.cam.updateProjectionMatrix()}
 function homeRender(t){
-  // one 7-second shot per pencil: slow orbit, a drift up the cone, light sweeping across the graphite
-  // the switch happens while the shot is fully faded out, so the camera reset is never seen
+  // one continuous slow orbit; pencils dissolve into each other every 7 s while the camera keeps moving
+  if(HOME.t0==null)HOME.t0=t;
+  const ts=(t-HOME.t0)/1000;
   let k=(t-HOME.shot)/SHOT;
   if(k>=1){HOME.shot+=SHOT*Math.floor(k);k-=Math.floor(k);HOME.idx=(HOME.idx+1)%DEMOS.length;homeMesh()}
   const land=innerWidth>innerHeight;
-  const th=.4+k*1.9+HOME.idx*.9,ph=1.3-.2*Math.sin(k*Math.PI),d=(land?84:132)-14*k;
+  const th=.4+ts*.36,ph=1.24,d=land?80:124;
   // pivot sits at the middle of the sharpened part, so the lean keeps the tip in frame
   HOME.pivot.rotation.z=land?-.42:-.24;
-  HOME.tgt.set(land?2:-2,land?-1:-11+4*k,0);
+  HOME.tgt.set(land?2:-2,land?-1:-9,0);
   placeCam(HOME.cam,HOME.tgt,th,ph,d);
-  HOME.key.position.set(120*Math.cos(th+1.4+k*1.2),110,120*Math.sin(th+1.4+k*1.2));
+  HOME.key.position.set(120*Math.cos(th+1.9),110,120*Math.sin(th+1.9));
   // the pencil (not the backdrop) dissolves between shots, so the light and dust keep flowing
   const o=Math.min(ease(k/.16),ease((1-k)/.16));
   const mt=HOME.mesh.material;mt.transparent=o<.999;mt.opacity=o;
   $('hDemo').style.opacity=o.toFixed(3);
-  const fl=land?[.38+.18*Math.sin(t/4100),.58+.08*Math.sin(t/3300)]:[.42+.2*Math.sin(t/4300),.72+.06*Math.sin(t/3100)];
-  HOME.fx.render(HOME.r,HOME.cam,t/1000,fl[0],fl[1],.85);
+  // a fixed backlight just behind the pencil: the pencil passes in front of it, the light itself never moves
+  HOME.fx.render(HOME.r,HOME.cam,ts,land?.3:.1,land?.42:.38,.7+.04*Math.sin(ts*.8));
 }
 const SHOT=7000;
 function homeLoop(t){
@@ -1835,6 +1836,5 @@ resize();sizeStrip();newPencil();renderBlades();colInit().then(homeStats);homeSt
 requestAnimationFrame(frame);
 })();
 </script>
-
 </body>
 </html>
