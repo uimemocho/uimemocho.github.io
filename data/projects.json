@@ -274,5 +274,17 @@
     "sourceEntry": "pencil-meister.html",
     "publishedAt": "2026-10-09T03:50:00Z",
     "updatedAt": "2026-10-09T03:50:00Z"
+  },
+  {
+    "slug": "momotaro-kikoku",
+    "title": "桃太郎 ― 鬼哭島 ―",
+    "kind": "game",
+    "description": "鬼を斬れと教えられた少年が、自らの血の真実と向き合う全5章のダークファンタジー短編。FF風サイドビュー戦闘のピクセルRPG。9言語対応。",
+    "url": "/apps/momotaro-kikoku/",
+    "thumbnail": "/project-thumbnails/momotaro-kikoku.webp",
+    "sourceFolder": "261010_桃太郎 鬼哭島",
+    "sourceEntry": "momotaro_kikoku.html",
+    "publishedAt": "2026-10-09T21:18:00Z",
+    "updatedAt": "2026-10-09T21:18:00Z"
   }
 ]
