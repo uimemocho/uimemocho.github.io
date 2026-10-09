@@ -262,5 +262,17 @@
     "sourceEntry": "haniwa_brazil.html",
     "publishedAt": "2026-10-07T23:37:34Z",
     "updatedAt": "2026-10-07T23:37:34Z"
+  },
+  {
+    "slug": "pencil-meister",
+    "title": "PENCIL MEISTER",
+    "kind": "game",
+    "description": "カッター1本でデッサン用の鉛筆を削る。刃を折る小気味よさ、仕上がり評価、3Dで眺めて動画でシェアまで。",
+    "url": "/apps/pencil-meister/",
+    "thumbnail": "/project-thumbnails/pencil-meister.webp",
+    "sourceFolder": "261009_PENCIL MEISTER",
+    "sourceEntry": "pencil-meister.html",
+    "publishedAt": "2026-10-09T03:50:00Z",
+    "updatedAt": "2026-10-09T03:50:00Z"
   }
 ]
