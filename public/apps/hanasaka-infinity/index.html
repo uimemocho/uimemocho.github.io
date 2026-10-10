@@ -1,0 +1,1233 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#140a1c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>花咲かじいさん INFINITY</title>
+<meta name="description" content="枯れ木一本から宇宙まで、桜で埋め尽くせ。タップ・長押し・フィーバーで数字が桁ごと爆発する、インフレ放置×ブラックユーモアのドット絵ゲーム。">
+<link rel="canonical" href="https://uimemocho.github.io/apps/hanasaka-infinity/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="uimemocho">
+<meta property="og:title" content="花咲かじいさん INFINITY">
+<meta property="og:description" content="枯れ木一本から宇宙まで、桜で埋め尽くせ。タップ・長押し・フィーバーで数字が桁ごと爆発する、インフレ放置×ブラックユーモアのドット絵ゲーム。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/hanasaka-infinity/">
+<meta property="og:image" content="https://uimemocho.github.io/apps/hanasaka-infinity/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="花咲かじいさん INFINITY">
+<meta name="twitter:description" content="枯れ木一本から宇宙まで、桜で埋め尽くせ。タップ・長押し・フィーバーで数字が桁ごと爆発する、インフレ放置×ブラックユーモアのドット絵ゲーム。">
+<meta name="twitter:image" content="https://uimemocho.github.io/apps/hanasaka-infinity/ogp.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Dela+Gothic+One&display=swap" rel="stylesheet">
+<style>
+/* Layout: one tall pixel stage (180 x H canvas, nearest-neighbour). World scene on top 60%, upgrade panel docked below; HUD/overlays in DOM scaled by --u */
+:root{
+  --ink:#140a1c; --panel:#1f1230; --panel2:#2a1840; --line:#46305e; --paper:#fff4ec;
+  --sakura:#ff8fb8; --sakura-d:#b33f6e; --gold:#ffd34d; --gold-d:#8a6a12; --matcha:#9ad98a; --sky:#7ad0ff; --mute:#b7a3bf; --bad:#ff6b7a;
+  --f-pix:"DotGothic16","Hiragino Kaku Gothic ProN","Noto Sans JP",monospace;
+  --f-big:"Dela Gothic One","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--f-pix);padding-inline:16px;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#wrap{height:100%;display:grid;place-items:center}
+#stage{position:relative;--u:2px;overflow:hidden;background:#0b0610;box-shadow:0 0 0 1px #2c1d3a}
+#cv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
+.ol{text-shadow:calc(var(--u)*.6) 0 0 var(--ink),calc(var(--u)*-.6) 0 0 var(--ink),0 calc(var(--u)*.6) 0 var(--ink),0 calc(var(--u)*-.6) 0 var(--ink),0 calc(var(--u)*1.1) 0 #0009}
+.px{image-rendering:pixelated}
+button{font-family:inherit;color:inherit}
+
+/* HUD */
+#hud{position:absolute;left:0;right:0;top:0;padding:calc(var(--u)*3) calc(var(--u)*4) 0;display:grid;gap:calc(var(--u)*1.3);pointer-events:none}
+.h1{display:flex;align-items:center;gap:calc(var(--u)*2)}
+.h1 img{width:calc(var(--u)*10);height:calc(var(--u)*10)}
+#pm{font-size:calc(var(--u)*15);line-height:1;font-variant-numeric:tabular-nums}
+#pu{font-family:var(--f-big);font-size:calc(var(--u)*10);line-height:1;color:var(--sakura);margin-left:calc(var(--u)*-1)}
+#lng{margin-left:auto}
+.hb{pointer-events:auto;background:#0006;border:calc(var(--u)*.6) solid #ffffff40;padding:calc(var(--u)*1.2) calc(var(--u)*2.4);font-size:calc(var(--u)*5);cursor:pointer}
+.h2{display:flex;justify-content:space-between;font-size:calc(var(--u)*5.2);color:var(--mute)}
+#pps{color:var(--paper)}
+#toku{color:var(--gold)}
+.h3{display:grid;grid-template-columns:1fr auto;align-items:end;gap:calc(var(--u)*1) calc(var(--u)*2)}
+#tname{font-size:calc(var(--u)*6.2)}
+#tname small{font-size:calc(var(--u)*4.6);color:var(--mute);margin-right:calc(var(--u)*1.5)}
+#tpct{font-size:calc(var(--u)*5);color:var(--sakura);font-variant-numeric:tabular-nums}
+.bar{grid-column:1/-1;height:calc(var(--u)*3.4);background:#000a;border:calc(var(--u)*.6) solid #ffffff3a;position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:repeating-linear-gradient(90deg,var(--sakura) 0 calc(var(--u)*3),#ffb8d2 calc(var(--u)*3) calc(var(--u)*4));transition:width .2s}
+.gg{display:flex;gap:calc(var(--u)*3);font-size:calc(var(--u)*4.4);color:var(--mute)}
+.gg>div{flex:1;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:calc(var(--u)*1.5)}
+.gg .bar{grid-column:auto;height:calc(var(--u)*2.4)}
+#ashb i{background:#d8d0cc}
+#fevb i{background:linear-gradient(90deg,#ff5f9e,#ffd34d,#7dffb0,#6ad0ff,#c58bff);}
+.fever #fevb i{animation:slide .5s linear infinite;background-size:200% 100%}
+@keyframes slide{to{background-position:200% 0}}
+
+/* speech */
+#say{position:absolute;max-width:54%;background:var(--paper);color:var(--ink);font-size:calc(var(--u)*5.6);line-height:1.35;padding:calc(var(--u)*2.2) calc(var(--u)*3.2);border:calc(var(--u)*.8) solid var(--ink);box-shadow:calc(var(--u)*1.2) calc(var(--u)*1.2) 0 #0007;opacity:0;transform:translateY(calc(var(--u)*2));transition:opacity .15s,transform .15s;pointer-events:none}
+#say::after{content:"";position:absolute;left:calc(var(--u)*-3.2);bottom:calc(var(--u)*2);width:calc(var(--u)*3);height:calc(var(--u)*3);background:var(--paper);border-left:calc(var(--u)*.8) solid var(--ink);border-bottom:calc(var(--u)*.8) solid var(--ink)}
+#say.on{opacity:1;transform:none}
+#say.mad{color:#c21b3a;font-size:calc(var(--u)*6.4)}
+
+/* popups / big text */
+#pops{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.pop{position:absolute;white-space:nowrap;font-size:calc(var(--u)*var(--fs,5.5));color:var(--pc,#fff);animation:pop .8s ease-out forwards}
+@keyframes pop{0%{transform:translate(-50%,-30%) scale(.5);opacity:0}15%{transform:translate(-50%,-70%) scale(1.15);opacity:1}100%{transform:translate(-50%,-200%) scale(1);opacity:0}}
+#big{position:absolute;left:0;right:0;top:20%;display:grid;justify-items:center;gap:calc(var(--u)*2);pointer-events:none;text-align:center}
+#big .bt{font-family:var(--f-big);font-size:calc(var(--u)*var(--bs,26));line-height:1.05;max-width:92%;text-wrap:balance;background:linear-gradient(90deg,#ff5f9e,#ffd34d,#7dffb0,#6ad0ff,#c58bff,#ff5f9e);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 calc(var(--u)*1.4) 0 #000) drop-shadow(0 0 calc(var(--u)*5) #ffffffaa);animation:big 2s cubic-bezier(.2,1.6,.4,1) forwards,slide .8s linear infinite}
+#big .bs{font-size:calc(var(--u)*6.4);animation:fade 2s ease forwards}
+#big.chap .bt{background:none;color:var(--paper);-webkit-text-fill-color:var(--paper);filter:drop-shadow(0 calc(var(--u)*1.2) 0 #000);animation:big 2.6s ease forwards}
+@keyframes big{0%{transform:scale(3) rotate(-8deg);opacity:0}12%{transform:scale(1) rotate(-3deg);opacity:1}82%{transform:scale(1.06) rotate(-3deg);opacity:1}100%{transform:scale(1.4) rotate(-3deg);opacity:0}}
+@keyframes fade{0%,10%{opacity:0}20%,80%{opacity:1}100%{opacity:0}}
+
+/* panel */
+#panel{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-rows:auto 1fr;background:var(--panel);border-top:calc(var(--u)*.8) solid #000}
+.phead{display:flex;align-items:center;gap:calc(var(--u)*2);padding:calc(var(--u)*2) calc(var(--u)*3);background:
+  radial-gradient(circle at 50% 100%,transparent calc(var(--u)*2.2),#ff8fb822 calc(var(--u)*2.2) calc(var(--u)*3),transparent calc(var(--u)*3) calc(var(--u)*4),#ff8fb822 calc(var(--u)*4) calc(var(--u)*4.8),transparent calc(var(--u)*4.8)) 0 0/calc(var(--u)*10) calc(var(--u)*5),var(--panel2);border-bottom:calc(var(--u)*.6) solid var(--line)}
+.ptitle{font-family:var(--f-big);font-size:calc(var(--u)*6.4);color:var(--sakura)}
+.amt{display:flex;margin-left:auto;border:calc(var(--u)*.6) solid var(--line)}
+.amt button{background:transparent;border:0;padding:calc(var(--u)*1.2) calc(var(--u)*2.6);font-size:calc(var(--u)*5);color:var(--mute);cursor:pointer}
+.amt button[aria-pressed="true"]{background:var(--sakura);color:var(--ink)}
+#rebirth{background:var(--ink);border:calc(var(--u)*.6) solid var(--gold);color:var(--gold);font-size:calc(var(--u)*5);padding:calc(var(--u)*1.2) calc(var(--u)*2.4);cursor:pointer}
+#ups{overflow-y:auto;overscroll-behavior:contain;display:grid;grid-auto-rows:minmax(calc(var(--u)*22),1fr)}
+.up{display:grid;grid-template-columns:calc(var(--u)*15) 1fr auto;align-items:center;gap:calc(var(--u)*3);padding:calc(var(--u)*2) calc(var(--u)*3);background:transparent;border:0;border-bottom:calc(var(--u)*.6) solid #ffffff12;text-align:left;cursor:pointer;min-height:calc(var(--u)*22)}
+.up:active:not(.no){background:#ffffff12}
+.up:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+.up img{width:calc(var(--u)*15);height:calc(var(--u)*15);background:#00000040}
+.ut{display:grid;gap:calc(var(--u)*.8);min-width:0}
+.un{font-size:calc(var(--u)*6.2);font-weight:400}
+.un i{font-style:normal;color:var(--gold);font-size:calc(var(--u)*5);margin-left:calc(var(--u)*1.5)}
+.ue{font-size:calc(var(--u)*4.6);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ue em{font-style:normal;color:var(--matcha)}
+.uc{display:grid;justify-items:end;gap:calc(var(--u)*.4);font-variant-numeric:tabular-nums}
+.uc b{font-weight:400;font-size:calc(var(--u)*6.4);color:var(--sakura)}
+.uc small{font-size:calc(var(--u)*4.2);color:var(--mute)}
+.up.no .uc b{color:#8a6f86}
+.up.lock{cursor:default}.up.lock img{opacity:.25}.up.lock .un{color:var(--mute)}
+.up.can .uc b{color:var(--gold)}
+.up.flash{animation:upf .35s ease}
+@keyframes upf{0%{background:#ffd34d55}100%{background:transparent}}
+
+/* overlays */
+.ov{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:calc(var(--u)*8)}
+#title{background:linear-gradient(#140a1c55,#140a1cdd 50%,#140a1cf5)}
+.box{display:grid;gap:calc(var(--u)*3.4);justify-items:center;width:100%}
+.tag{margin:0;font-size:calc(var(--u)*6);letter-spacing:.2em;color:var(--paper)}
+.logo{margin:0;font-family:var(--f-big);font-weight:400;font-size:calc(var(--u)*21);line-height:1.02;color:var(--sakura);text-wrap:balance}
+.logo span{display:block}.logo span+span{color:var(--paper)}
+.inf{margin:calc(var(--u)*-1) 0 0;font-family:var(--f-big);font-size:calc(var(--u)*13);letter-spacing:.06em;background:linear-gradient(90deg,#ff5f9e,#ffd34d,#7dffb0,#6ad0ff,#c58bff,#ff5f9e);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:slide 2.4s linear infinite}
+.how{margin:calc(var(--u)*2) 0;display:grid;grid-template-columns:auto 1fr;gap:calc(var(--u)*2) calc(var(--u)*4);font-size:calc(var(--u)*5.6);text-align:left}
+.how dt{color:var(--gold)}.how dd{margin:0}
+.btn{font-family:var(--f-big);font-size:calc(var(--u)*10);color:var(--ink);background:var(--sakura);border:0;padding:calc(var(--u)*3) calc(var(--u)*12);box-shadow:0 calc(var(--u)*1.6) 0 var(--sakura-d);cursor:pointer}
+.btn:active{transform:translateY(calc(var(--u)*1.4));box-shadow:0 calc(var(--u)*.2) 0 var(--sakura-d)}
+.btn.gold{background:var(--gold);box-shadow:0 calc(var(--u)*1.6) 0 var(--gold-d)}
+.btn.ghost{font-family:var(--f-pix);font-size:calc(var(--u)*6);background:transparent;color:var(--paper);box-shadow:none;border:calc(var(--u)*.8) solid #ffffff55;padding:calc(var(--u)*2) calc(var(--u)*8)}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.note{margin:0;font-size:calc(var(--u)*5);color:var(--mute);line-height:1.5}
+#modal{background:#140a1ccc}
+.card{background:var(--panel);border:calc(var(--u)*.8) solid var(--line);box-shadow:0 0 0 calc(var(--u)*1) #000;padding:calc(var(--u)*7) calc(var(--u)*6);display:grid;gap:calc(var(--u)*3.4);justify-items:center;width:100%;box-sizing:border-box}
+.card h2{margin:0;font-family:var(--f-big);font-weight:400;font-size:calc(var(--u)*10);color:var(--sakura)}
+.card p{margin:0;font-size:calc(var(--u)*5.8);line-height:1.5}
+.langs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:calc(var(--u)*2);width:100%}
+.langs button{font-family:var(--f-pix);font-size:calc(var(--u)*5.4);padding:calc(var(--u)*2.4) calc(var(--u)*1);background:var(--ink);border:calc(var(--u)*.6) solid var(--line);color:var(--paper);cursor:pointer}
+.langs button[aria-pressed="true"]{background:var(--sakura);color:var(--ink);border-color:var(--sakura)}
+.card .num{font-size:calc(var(--u)*13);color:var(--gold);font-variant-numeric:tabular-nums}
+#ending{background:#000;transition:background 3s}
+#ending.pink{background:radial-gradient(#ffb3cf,#ff8fb8 60%,#e0608f)}
+.eline{margin:0;font-size:calc(var(--u)*6.4);line-height:1.6;opacity:0;animation:fade2 1.4s ease forwards;color:var(--paper)}
+#ending.pink .eline{color:var(--ink)}
+.eline.g{font-family:var(--f-big);font-size:calc(var(--u)*7.4)}
+.ebtns{display:grid;gap:calc(var(--u)*3);justify-items:center;opacity:0;animation:fade2 1s ease forwards}
+@keyframes fade2{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.pop,#big .bt,.eline,.ebtns{animation-duration:.01s!important}}
+</style>
+<style>html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{-webkit-tap-highlight-color:transparent}</style>
+</head>
+<body>
+
+<div id="wrap">
+  <div id="stage">
+    <canvas id="cv" aria-label="ゲーム画面。タップで灰をまき、長押しで大放出"></canvas>
+
+    <div id="hud" class="ol">
+      <div class="h1"><img id="picon" class="px" alt=""><b id="pm">0</b><span id="pu"></span><button id="lng" class="hb" type="button" data-i="lang">言語</button><button id="snd" class="hb" type="button" aria-pressed="true">音 ON</button></div>
+      <div class="h2"><span><span data-i="per_sec">毎秒</span> <span id="pps">0</span></span><span id="toku"></span></div>
+      <div class="h3"><span id="tname"><small id="tch">第一章 村</small><span id="tnm">一本の枯れ木</span></span><span id="tpct">満開まで 0%</span><div class="bar"><i id="tbar"></i></div></div>
+      <div class="gg" id="gg"><div id="ashw" hidden><span data-i="ash">灰</span><div class="bar" id="ashb"><i id="ashf"></i></div></div><div id="fevw" hidden><span data-i="fever">フィーバー</span><div class="bar" id="fevb"><i id="fevf"></i></div></div></div>
+    </div>
+
+    <div id="say"></div>
+    <div id="pops" class="ol"></div>
+    <div id="big"></div>
+
+    <div id="panel">
+      <div class="phead">
+        <span class="ptitle" data-i="upgrades">強化</span>
+        <button id="rebirth" type="button" hidden data-i="rebirth">灰に還る</button>
+        <div class="amt" role="group" aria-label="購入数"><button type="button" data-a="1" aria-pressed="true">×1</button><button type="button" data-a="10" aria-pressed="false">×10</button><button type="button" data-a="max" aria-pressed="false">MAX</button></div>
+      </div>
+      <div id="ups"></div>
+    </div>
+
+    <div id="title" class="ov">
+      <div class="box ol">
+        <p class="tag" data-i="tag">一本咲かせたら、もう戻れない。</p>
+        <h1 class="logo"><span data-i="logo1">花咲か</span><span data-i="logo2">じいさん</span></h1>
+        <p class="inf">INFINITY</p>
+        <dl class="how">
+          <dt data-i="h_tap">タップ</dt><dd data-i="h_tap_d">灰をまいて花を咲かせる</dd>
+          <dt data-i="h_hold">長押し</dt><dd data-i="h_hold_d">灰の大放出で連続開花</dd>
+          <dt data-i="h_sw">なぞる</dt><dd data-i="h_sw_d">フィーバー中、なぞった所が一斉に開花</dd>
+        </dl>
+        <button id="start" class="btn" type="button">灰をまく</button>
+        <p class="note" id="tnote">進行はこの端末に自動保存されます</p>
+        <button id="tlng" class="btn ghost" type="button">言語 / Language</button>
+      </div>
+    </div>
+
+    <div id="modal" class="ov" hidden><div class="card" id="mcard"></div></div>
+    <div id="ending" class="ov" hidden><div class="box" id="ebox"></div></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+/* =========================================================
+   Base / canvas
+   ========================================================= */
+const W=180;
+const $=id=>document.getElementById(id);
+const stage=$('stage'),wrap=$('wrap'),cv=$('cv');
+const H=(()=>{const aw=wrap.clientWidth,ah=wrap.clientHeight;return aw>0&&ah>0?Math.max(320,Math.min(420,Math.round(W*ah/aw))):360;})();
+cv.width=W;cv.height=H;
+const g=cv.getContext('2d');
+const PT=Math.round(H*.6);           // panel top (canvas units)
+const SY0=52;                        // scene top under HUD
+const CX=108, CY=Math.round((SY0+PT)/2)+4;
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function R(x,y,w,h,c){g.fillStyle=c;g.fillRect(x,y,w,h);}
+function disc(cx,cy,r,col,ctx){const c=ctx||g;c.fillStyle=col;cx=Math.round(cx);cy=Math.round(cy);for(let dy=-r;dy<=r;dy++){const dx=Math.floor(Math.sqrt(r*r-dy*dy)+.35);c.fillRect(cx-dx,cy+dy,dx*2+1,1);}}
+function ell(cx,cy,rx,ry,col,ctx){const c=ctx||g;c.fillStyle=col;for(let dy=-ry;dy<=ry;dy++){const dx=Math.round(rx*Math.sqrt(Math.max(0,1-(dy*dy)/(ry*ry))));c.fillRect(Math.round(cx-dx),Math.round(cy+dy),dx*2+1,1);}}
+
+/* =========================================================
+   i18n — 9 languages
+   ========================================================= */
+const LANGS=[['ja','日本語'],['en','English'],['zh-Hans','简体中文'],['zh-Hant','繁體中文'],['ko','한국어'],['fr','Français'],['de','Deutsch'],['ru','Русский'],['it','Italiano']];
+const TX={
+ja:{tag:'一本咲かせたら、もう戻れない。',logo1:'花咲か',logo2:'じいさん',h_tap:'タップ',h_tap_d:'灰をまいて花を咲かせる',h_hold:'長押し',h_hold_d:'灰の大放出で連続開花',h_sw:'なぞる',h_sw_d:'フィーバー中、なぞった所が一斉に開花',
+ start:'灰をまく',cont:'つづきから',note_save:'進行はこの端末に自動保存されます',note_cont:'{0}・{1}　累計 {2} 枚',
+ per_sec:'毎秒',unit:'枚',full_in:'満開まで {0}%',uni_full:'宇宙、満開',ash:'灰',fever:'フィーバー',snd_on:'音 ON',snd_off:'音 OFF',lang:'言語',toku:'徳 {0}・×{1}',
+ pal0:'ソメイヨシノ',pal1:'夜桜',pal2:'八重桜',pal3:'虹桜',upgrades:'強化',rebirth:'灰に還る',
+ up_ash:'灰の品質',up_pochi:'ポチの加護',up_breed:'桜の繁殖力',up_dev:'灰まき装置',up_satori:'じいさんの悟り',
+ e_tap:'タップ <em>{0}</em> → {1}',e_chain:'連鎖倍率 <em>×{0}</em> → ×{1}',e_pochi0:'ポチが仲間に。吠えると一斉開花',e_breed:'自動 <em>{0}/秒</em> → {1}/秒',e_dev:'自動散布 <em>{0}回/秒</em> → {1}',e_all:'全生産 <em>×{0}</em> → ×{1}',x2:'あと{0}で×2',unlock:'あと {0} 枚で解放',
+ say_pochi:'ポチ！来てくれたか',say_dev:'文明の利器じゃ',say_sat1:'悟りが…開けてきたのう',say_sat3:'ワシは、桜の神になった',x2pop:'{0} 効果2倍！',
+ fever_big:'花咲かフィーバー！',fever_sub:'なぞって咲かせろ',fever_end:'フィーバー終了',wan:'ワン！',combo:'{0}コンボ',
+ end1:'宇宙は、満開になった。',end2:'咲いていない場所は、もうどこにもない。',end3:'見上げる者も、もうどこにもいない。',end4:'……世界を、美しくしたかっただけなのに。',end5:'「もう一回、最初から咲かせようかの」',
+ end_info:'灰に還ると、徳 +{0} を得て一本の枯れ木からやり直します。全生産 ×{1}。',end_back:'このまま眺める',end_say:'……きれいじゃのう',reb_sub:'徳 +{0}　全生産 ×{1}',reb_say:'もう一回、最初から咲かせようかの',
+ m_reb_d:'宇宙を燃やし、一本の枯れ木からやり直します。',m_reb_now:'全生産 ×{0}（いまは ×{1}）',m_toku:'徳 +{0}',cancel:'やめておく',
+ off_t:'おかえり',off_d:'留守のあいだも、ポチと装置が咲かせておったぞ。',off_min:'{0}分ぶん（放置中は効率50%）',receive:'受け取る',front:'桜前線',close:'閉じる',
+ ch1:'第一章 村',ch2:'第二章 日本',ch3:'第三章 地球',ch4:'第四章 宇宙',
+ tn:['一本の枯れ木','じいさんの庭','村','山','都市','日本列島','大陸','地球','月','太陽系','銀河','宇宙'],
+ td:['初めての満開','桜吹雪！','村、満開！！','花咲か大爆発！！','都市、満開！！','日本、満開！！','大陸、満開！！','地球、満開！！','月、満開！！','太陽系、満開！！','銀河、満開！！','宇宙、満開。'],
+ tl:[['枯れ木に花を咲かせましょう','ほっほっ、咲いた咲いた'],['綺麗に咲いたのう','庭がまるごと春じゃ'],['村じゅう咲かせてやろうかの','家も道も、桜で埋めてしまえ'],['もっと咲かせたいのう','山が、ワシを呼んでおる'],['ビルにも咲くんじゃな','信号機も咲かせちゃる'],['桜前線はワシが動かす','日本中、ワシの花見じゃ'],['海の向こうにも枯れ木があるのう','地図が全部、桃色になればよい'],['なぜまだ咲いておらん場所がある？','海も咲けばよいじゃろ'],['星も咲くじゃろ？','月見と花見を同時にやるんじゃ'],['太陽よ、お前も咲け','惑星の並びが、枝に見えてきた'],['咲かぬものなど存在せん！','天の川は、花びらの川じゃ'],['ワシが春そのものじゃ','果ての果てまで、満開にしてやる']],
+ dl:'まだ足りん！'},
+en:{tag:'One bloom, and there’s no going back.',logo1:'HANASAKA',logo2:'JIISAN',h_tap:'Tap',h_tap_d:'Scatter ash to make it bloom',h_hold:'Hold',h_hold_d:'Ash blast for nonstop blooming',h_sw:'Swipe',h_sw_d:'During fever, everything you touch blooms',
+ start:'Scatter ash',cont:'Continue',note_save:'Progress saves automatically on this device',note_cont:'{0} · {1} — {2} petals total',
+ per_sec:'Per sec',unit:'petals',full_in:'Full bloom {0}%',uni_full:'Universe in bloom',ash:'Ash',fever:'Fever',snd_on:'Sound ON',snd_off:'Sound OFF',lang:'Language',toku:'Virtue {0} · ×{1}',
+ pal0:'Somei-Yoshino',pal1:'Night Sakura',pal2:'Double Sakura',pal3:'Rainbow Sakura',upgrades:'Upgrades',rebirth:'Return to Ash',
+ up_ash:'Ash Quality',up_pochi:'Pochi’s Guard',up_breed:'Blossom Fertility',up_dev:'Ash Machine',up_satori:'Grandpa’s Wisdom',
+ e_tap:'Tap <em>{0}</em> → {1}',e_chain:'Chain bonus <em>×{0}</em> → ×{1}',e_pochi0:'Pochi joins you. His bark makes everything bloom',e_breed:'Auto <em>{0}/s</em> → {1}/s',e_dev:'Auto scatter <em>{0}/s</em> → {1}',e_all:'All output <em>×{0}</em> → ×{1}',x2:'{0} more for ×2',unlock:'Unlocks in {0} petals',
+ say_pochi:'Pochi! You came',say_dev:'Ah, the marvels of progress',say_sat1:'I think I’m starting to understand',say_sat3:'I have become the spirit of the blossoms',x2pop:'{0}: effect ×2!',
+ fever_big:'Blossom Fever!',fever_sub:'Swipe to bloom',fever_end:'Fever over',wan:'Woof!',combo:'{0} combo',
+ end1:'The universe is in full bloom.',end2:'There is nowhere left that has not bloomed.',end3:'And no one left to look up at it.',end4:'…All I wanted was to make the world beautiful.',end5:'“Shall I make it bloom again, from the start?”',
+ end_info:'Return to Ash to gain +{0} Virtue and start over from one dead tree. All output ×{1}.',end_back:'Keep watching',end_say:'…How beautiful',reb_sub:'Virtue +{0}　All output ×{1}',reb_say:'Shall I make it bloom again, from the start?',
+ m_reb_d:'Burn the universe and start over from a single dead tree.',m_reb_now:'All output ×{0} (now ×{1})',m_toku:'Virtue +{0}',cancel:'Not now',
+ off_t:'Welcome back',off_d:'While you were away, Pochi and the machines kept things blooming.',off_min:'{0} min (50% efficiency while away)',receive:'Collect',front:'Cherry blossom front',close:'Close',
+ ch1:'Chapter 1 · Village',ch2:'Chapter 2 · Japan',ch3:'Chapter 3 · Earth',ch4:'Chapter 4 · Universe',
+ tn:['A Dead Tree','Grandpa’s Garden','The Village','The Mountain','The City','Japanese Islands','The Continents','Earth','The Moon','Solar System','The Galaxy','The Universe'],
+ td:['First Bloom','Petal Storm!','Village in Full Bloom!!','Blossom Big Bang!!','City in Full Bloom!!','Japan in Full Bloom!!','Continents in Full Bloom!!','Earth in Full Bloom!!','Moon in Full Bloom!!','Solar System in Full Bloom!!','Galaxy in Full Bloom!!','The Universe, in Full Bloom.'],
+ tl:[['Let’s make these dead trees bloom','Ho ho, look at it bloom'],['My, how beautifully it bloomed','The whole garden is spring now'],['Shall I make the whole village bloom?','Bury the houses and roads in blossoms!'],['I want more blossoms…','The mountain is calling me'],['So they bloom on buildings too','I’ll make the traffic lights bloom'],['I decide where the blossom front goes','All of Japan is my flower party'],['There are dead trees across the sea too','Let the whole map turn pink'],['Why are there still places not blooming?','Let the oceans bloom too'],['Stars can bloom too, right?','Moon viewing and flower viewing at once'],['Sun, you bloom too','The planets look like branches now'],['Nothing exists that cannot bloom!','The Milky Way is a river of petals'],['I am spring itself','I’ll make the end of all ends bloom']],
+ dl:'Not enough!'},
+'zh-Hans':{tag:'开一朵花，就再也回不去了。',logo1:'开花',logo2:'爷爷',h_tap:'点击',h_tap_d:'撒灰让花开放',h_hold:'长按',h_hold_d:'大量撒灰，连续开花',h_sw:'划动',h_sw_d:'狂热时，划过的地方一齐开花',
+ start:'撒灰',cont:'继续',note_save:'进度会自动保存在此设备上',note_cont:'{0}・{1}　累计 {2} 片',
+ per_sec:'每秒',unit:'片',full_in:'满开 {0}%',uni_full:'宇宙，满开',ash:'灰',fever:'狂热',snd_on:'声音 开',snd_off:'声音 关',lang:'语言',toku:'德 {0}・×{1}',
+ pal0:'染井吉野',pal1:'夜樱',pal2:'八重樱',pal3:'彩虹樱',upgrades:'强化',rebirth:'归于灰烬',
+ up_ash:'灰的品质',up_pochi:'波奇的守护',up_breed:'樱花繁殖力',up_dev:'撒灰装置',up_satori:'爷爷的智慧',
+ e_tap:'点击 <em>{0}</em> → {1}',e_chain:'连锁倍率 <em>×{0}</em> → ×{1}',e_pochi0:'波奇加入！它一叫，花就一齐开放',e_breed:'自动 <em>{0}/秒</em> → {1}/秒',e_dev:'自动撒灰 <em>{0}次/秒</em> → {1}',e_all:'全产量 <em>×{0}</em> → ×{1}',x2:'再{0}级 ×2',unlock:'还差 {0} 片解锁',
+ say_pochi:'波奇！你来啦',say_dev:'文明的利器啊',say_sat1:'我好像明白了些什么',say_sat3:'我成了樱花之灵',x2pop:'{0} 效果翻倍！',
+ fever_big:'开花狂热！',fever_sub:'划动让花开放',fever_end:'狂热结束',wan:'汪！',combo:'{0}连击',
+ end1:'宇宙，满开了。',end2:'已经没有任何地方还未开花。',end3:'也已经没有任何人能抬头观看。',end4:'……我只是想让世界变美而已。',end5:'「再从头开一次花吧」',
+ end_info:'归于灰烬后，获得德 +{0}，从一棵枯树重新开始。全产量 ×{1}。',end_back:'就这样看着',end_say:'……真美啊',reb_sub:'德 +{0}　全产量 ×{1}',reb_say:'再从头开一次花吧',
+ m_reb_d:'烧尽宇宙，从一棵枯树重新开始。',m_reb_now:'全产量 ×{0}（当前 ×{1}）',m_toku:'德 +{0}',cancel:'算了',
+ off_t:'欢迎回来',off_d:'你不在的时候，波奇和装置一直在让花开放哦。',off_min:'{0}分钟（离线效率50%）',receive:'领取',front:'樱花前线',close:'关闭',
+ ch1:'第一章 村庄',ch2:'第二章 日本',ch3:'第三章 地球',ch4:'第四章 宇宙',
+ tn:['一棵枯树','爷爷的庭院','村庄','山','城市','日本列岛','大陆','地球','月亮','太阳系','银河','宇宙'],
+ td:['第一次满开','樱吹雪！','村庄满开！！','开花大爆炸！！','城市满开！！','日本满开！！','大陆满开！！','地球满开！！','月亮满开！！','太阳系满开！！','银河满开！！','宇宙，满开。'],
+ tl:[['让枯树开花吧','呵呵，开了开了'],['开得真漂亮啊','整个院子都是春天了'],['让整个村子都开花吧','把房子和道路都埋进樱花里'],['还想让更多花开放啊','山在呼唤我'],['原来大楼上也能开花','红绿灯也给我开'],['樱花前线由我来推动','整个日本都是我的赏花会'],['海的那边也有枯树啊','把整张地图都染成粉色'],['为什么还有没开花的地方？','让大海也开花吧'],['星星也能开花吧？','赏月和赏花一起来'],['太阳啊，你也开吧','行星的排列看起来像树枝了'],['没有不能开花的东西！','银河就是花瓣之河'],['我就是春天本身','要让尽头的尽头也满开']],
+ dl:'还不够！'},
+'zh-Hant':{tag:'開一朵花，就再也回不去了。',logo1:'開花',logo2:'爺爺',h_tap:'點擊',h_tap_d:'撒灰讓花開放',h_hold:'長按',h_hold_d:'大量撒灰，連續開花',h_sw:'劃動',h_sw_d:'狂熱時，劃過的地方一齊開花',
+ start:'撒灰',cont:'繼續',note_save:'進度會自動保存在此裝置上',note_cont:'{0}・{1}　累計 {2} 片',
+ per_sec:'每秒',unit:'片',full_in:'滿開 {0}%',uni_full:'宇宙，滿開',ash:'灰',fever:'狂熱',snd_on:'聲音 開',snd_off:'聲音 關',lang:'語言',toku:'德 {0}・×{1}',
+ pal0:'染井吉野',pal1:'夜櫻',pal2:'八重櫻',pal3:'彩虹櫻',upgrades:'強化',rebirth:'歸於灰燼',
+ up_ash:'灰的品質',up_pochi:'波奇的守護',up_breed:'櫻花繁殖力',up_dev:'撒灰裝置',up_satori:'爺爺的智慧',
+ e_tap:'點擊 <em>{0}</em> → {1}',e_chain:'連鎖倍率 <em>×{0}</em> → ×{1}',e_pochi0:'波奇加入！牠一叫，花就一齊開放',e_breed:'自動 <em>{0}/秒</em> → {1}/秒',e_dev:'自動撒灰 <em>{0}次/秒</em> → {1}',e_all:'全產量 <em>×{0}</em> → ×{1}',x2:'再{0}級 ×2',unlock:'還差 {0} 片解鎖',
+ say_pochi:'波奇！你來啦',say_dev:'文明的利器啊',say_sat1:'我好像明白了些什麼',say_sat3:'我成了櫻花之靈',x2pop:'{0} 效果翻倍！',
+ fever_big:'開花狂熱！',fever_sub:'劃動讓花開放',fever_end:'狂熱結束',wan:'汪！',combo:'{0}連擊',
+ end1:'宇宙，滿開了。',end2:'已經沒有任何地方還未開花。',end3:'也已經沒有任何人能抬頭觀看。',end4:'……我只是想讓世界變美而已。',end5:'「再從頭開一次花吧」',
+ end_info:'歸於灰燼後，獲得德 +{0}，從一棵枯樹重新開始。全產量 ×{1}。',end_back:'就這樣看著',end_say:'……真美啊',reb_sub:'德 +{0}　全產量 ×{1}',reb_say:'再從頭開一次花吧',
+ m_reb_d:'燒盡宇宙，從一棵枯樹重新開始。',m_reb_now:'全產量 ×{0}（目前 ×{1}）',m_toku:'德 +{0}',cancel:'算了',
+ off_t:'歡迎回來',off_d:'你不在的時候，波奇和裝置一直在讓花開放喔。',off_min:'{0}分鐘（離線效率50%）',receive:'領取',front:'櫻花前線',close:'關閉',
+ ch1:'第一章 村莊',ch2:'第二章 日本',ch3:'第三章 地球',ch4:'第四章 宇宙',
+ tn:['一棵枯樹','爺爺的庭院','村莊','山','城市','日本列島','大陸','地球','月亮','太陽系','銀河','宇宙'],
+ td:['第一次滿開','櫻吹雪！','村莊滿開！！','開花大爆炸！！','城市滿開！！','日本滿開！！','大陸滿開！！','地球滿開！！','月亮滿開！！','太陽系滿開！！','銀河滿開！！','宇宙，滿開。'],
+ tl:[['讓枯樹開花吧','呵呵，開了開了'],['開得真漂亮啊','整個院子都是春天了'],['讓整個村子都開花吧','把房子和道路都埋進櫻花裡'],['還想讓更多花開放啊','山在呼喚我'],['原來大樓上也能開花','紅綠燈也給我開'],['櫻花前線由我來推動','整個日本都是我的賞花會'],['海的那邊也有枯樹啊','把整張地圖都染成粉紅色'],['為什麼還有沒開花的地方？','讓大海也開花吧'],['星星也能開花吧？','賞月和賞花一起來'],['太陽啊，你也開吧','行星的排列看起來像樹枝了'],['沒有不能開花的東西！','銀河就是花瓣之河'],['我就是春天本身','要讓盡頭的盡頭也滿開']],
+ dl:'還不夠！'},
+ko:{tag:'한 송이 피우면, 다시는 돌아갈 수 없다.',logo1:'꽃피우는',logo2:'할아버지',h_tap:'탭',h_tap_d:'재를 뿌려 꽃을 피운다',h_hold:'길게 누르기',h_hold_d:'재 대방출로 연속 개화',h_sw:'문지르기',h_sw_d:'피버 중 문지른 곳이 한꺼번에 개화',
+ start:'재 뿌리기',cont:'이어하기',note_save:'진행 상황은 이 기기에 자동 저장됩니다',note_cont:'{0}・{1}　누적 {2}장',
+ per_sec:'초당',unit:'장',full_in:'만개까지 {0}%',uni_full:'우주, 만개',ash:'재',fever:'피버',snd_on:'소리 ON',snd_off:'소리 OFF',lang:'언어',toku:'덕 {0}・×{1}',
+ pal0:'소메이요시노',pal1:'밤벚꽃',pal2:'겹벚꽃',pal3:'무지개 벚꽃',upgrades:'강화',rebirth:'재로 돌아가기',
+ up_ash:'재의 품질',up_pochi:'포치의 가호',up_breed:'벚꽃 번식력',up_dev:'재 뿌리기 장치',up_satori:'할아버지의 지혜',
+ e_tap:'탭 <em>{0}</em> → {1}',e_chain:'연쇄 배율 <em>×{0}</em> → ×{1}',e_pochi0:'포치가 동료로! 짖으면 일제히 개화',e_breed:'자동 <em>{0}/초</em> → {1}/초',e_dev:'자동 살포 <em>{0}회/초</em> → {1}',e_all:'전체 생산 <em>×{0}</em> → ×{1}',x2:'{0}레벨 더 ×2',unlock:'{0}장 더 모으면 해금',
+ say_pochi:'포치! 와 주었구나',say_dev:'문명의 이기로구먼',say_sat1:'뭔가 알 것 같구먼',say_sat3:'나는 벚꽃의 정령이 되었다',x2pop:'{0} 효과 2배!',
+ fever_big:'꽃피우기 피버!',fever_sub:'문질러서 피워라',fever_end:'피버 종료',wan:'멍!',combo:'{0}콤보',
+ end1:'우주는 만개했다.',end2:'피지 않은 곳은 이제 어디에도 없다.',end3:'올려다볼 사람도 이제 어디에도 없다.',end4:'……세상을 아름답게 하고 싶었을 뿐인데.',end5:'「처음부터 다시 한번 피워 볼까」',
+ end_info:'재로 돌아가면 덕 +{0}을 얻고 마른 나무 한 그루부터 다시 시작합니다. 전체 생산 ×{1}.',end_back:'이대로 바라보기',end_say:'……아름답구먼',reb_sub:'덕 +{0}　전체 생산 ×{1}',reb_say:'처음부터 다시 한번 피워 볼까',
+ m_reb_d:'우주를 불태우고 마른 나무 한 그루부터 다시 시작합니다.',m_reb_now:'전체 생산 ×{0} (현재 ×{1})',m_toku:'덕 +{0}',cancel:'그만두기',
+ off_t:'어서 오게',off_d:'자네가 없는 동안에도 포치와 장치가 꽃을 피웠다네.',off_min:'{0}분 (방치 중 효율 50%)',receive:'받기',front:'벚꽃 전선',close:'닫기',
+ ch1:'제1장 마을',ch2:'제2장 일본',ch3:'제3장 지구',ch4:'제4장 우주',
+ tn:['마른 나무 한 그루','할아버지의 뜰','마을','산','도시','일본 열도','대륙','지구','달','태양계','은하','우주'],
+ td:['첫 만개','벚꽃 눈보라!','마을 만개!!','꽃피우기 대폭발!!','도시 만개!!','일본 만개!!','대륙 만개!!','지구 만개!!','달 만개!!','태양계 만개!!','은하 만개!!','우주, 만개.'],
+ tl:[['마른 나무에 꽃을 피워 보세','허허, 피었다 피었어'],['곱게 피었구먼','뜰 전체가 봄이로구나'],['온 마을에 꽃을 피워 볼까','집도 길도 벚꽃으로 묻어 버려라'],['더 피우고 싶구먼','산이 나를 부르고 있어'],['빌딩에도 피는구먼','신호등도 피워 주마'],['벚꽃 전선은 내가 움직인다','일본 전체가 내 꽃놀이다'],['바다 건너에도 마른 나무가 있구먼','지도 전부가 분홍색이 되면 좋겠어'],['어째서 아직 안 핀 곳이 있지?','바다도 피면 되지 않나'],['별도 피겠지?','달구경과 꽃구경을 한꺼번에'],['태양아, 너도 피어라','행성들이 나뭇가지로 보이기 시작했어'],['피지 않는 것 따윈 존재하지 않아!','은하수는 꽃잎의 강이다'],['내가 바로 봄 그 자체다','끝의 끝까지 만개시켜 주마']],
+ dl:'아직 부족해!'},
+fr:{tag:'Fais fleurir un arbre, et tu ne pourras plus t’arrêter.',logo1:'HANASAKA',logo2:'JIISAN',h_tap:'Toucher',h_tap_d:'Répands la cendre pour faire fleurir',h_hold:'Maintenir',h_hold_d:'Pluie de cendre, floraison continue',h_sw:'Glisser',h_sw_d:'Pendant la fièvre, tout ce que tu touches fleurit',
+ start:'Répandre la cendre',cont:'Continuer',note_save:'Ta progression est sauvegardée sur cet appareil',note_cont:'{0} · {1} — {2} pétales au total',
+ per_sec:'Par seconde',unit:'pétales',full_in:'Floraison {0} %',uni_full:'Univers en fleurs',ash:'Cendre',fever:'Fièvre',snd_on:'Son ON',snd_off:'Son OFF',lang:'Langue',toku:'Vertu {0} · ×{1}',
+ pal0:'Somei-Yoshino',pal1:'Sakura de nuit',pal2:'Sakura double',pal3:'Sakura arc-en-ciel',upgrades:'Améliorations',rebirth:'Retour à la cendre',
+ up_ash:'Qualité de la cendre',up_pochi:'Protection de Pochi',up_breed:'Fertilité des cerisiers',up_dev:'Machine à cendre',up_satori:'Sagesse du grand-père',
+ e_tap:'Toucher <em>{0}</em> → {1}',e_chain:'Multiplicateur <em>×{0}</em> → ×{1}',e_pochi0:'Pochi te rejoint. Ses aboiements font tout fleurir',e_breed:'Auto <em>{0}/s</em> → {1}/s',e_dev:'Épandage <em>{0}/s</em> → {1}',e_all:'Production <em>×{0}</em> → ×{1}',x2:'encore {0} pour ×2',unlock:'Débloqué dans {0} pétales',
+ say_pochi:'Pochi ! Te voilà',say_dev:'Ah, le progrès',say_sat1:'Je commence à comprendre',say_sat3:'Je suis devenu l’esprit des fleurs',x2pop:'{0} : effet ×2 !',
+ fever_big:'Fièvre florale !',fever_sub:'Glisse pour faire fleurir',fever_end:'Fin de la fièvre',wan:'Ouaf !',combo:'{0} combo',
+ end1:'L’univers est en pleine floraison.',end2:'Il ne reste aucun endroit sans fleurs.',end3:'Ni personne pour lever les yeux.',end4:'… Je voulais seulement rendre le monde beau.',end5:'« Et si on refaisait tout fleurir, depuis le début ? »',
+ end_info:'Retourner à la cendre donne +{0} Vertu et recommence depuis un seul arbre mort. Production ×{1}.',end_back:'Rester à contempler',end_say:'… Que c’est beau',reb_sub:'Vertu +{0}　Production ×{1}',reb_say:'Et si on refaisait tout fleurir, depuis le début ?',
+ m_reb_d:'Brûler l’univers et recommencer depuis un seul arbre mort.',m_reb_now:'Production ×{0} (actuellement ×{1})',m_toku:'Vertu +{0}',cancel:'Pas maintenant',
+ off_t:'Bon retour',off_d:'Pendant ton absence, Pochi et les machines ont continué à faire fleurir.',off_min:'{0} min (efficacité 50 % en ton absence)',receive:'Récupérer',front:'Front des cerisiers',close:'Fermer',
+ ch1:'Chapitre 1 · Village',ch2:'Chapitre 2 · Japon',ch3:'Chapitre 3 · Terre',ch4:'Chapitre 4 · Univers',
+ tn:['Un arbre mort','Le jardin de grand-père','Le village','La montagne','La ville','L’archipel japonais','Les continents','La Terre','La Lune','Le système solaire','La galaxie','L’univers'],
+ td:['Première floraison','Tempête de pétales !','Village en fleurs !!','Big bang floral !!','Ville en fleurs !!','Japon en fleurs !!','Continents en fleurs !!','Terre en fleurs !!','Lune en fleurs !!','Système solaire en fleurs !!','Galaxie en fleurs !!','L’univers, en fleurs.'],
+ tl:[['Faisons fleurir ces arbres morts','Ho ho, ça fleurit'],['Comme c’est joliment fleuri','Tout le jardin est au printemps'],['Et si je faisais fleurir tout le village ?','Enterrons maisons et chemins sous les fleurs'],['J’en veux encore plus','La montagne m’appelle'],['Même les immeubles fleurissent','Je ferai fleurir les feux rouges'],['C’est moi qui pousse le front des cerisiers','Tout le Japon est mon hanami'],['Il y a des arbres morts au-delà des mers','Que toute la carte devienne rose'],['Pourquoi reste-t-il des endroits sans fleurs ?','Que les océans fleurissent aussi'],['Les étoiles peuvent fleurir, non ?','Admirer la lune et les fleurs à la fois'],['Soleil, fleuris toi aussi','Les planètes ressemblent à des branches'],['Rien n’existe qui ne puisse fleurir !','La Voie lactée est une rivière de pétales'],['Je suis le printemps lui-même','Je ferai fleurir jusqu’au bout du bout']],
+ dl:'Pas assez !'},
+de:{tag:'Lass einen Baum blühen – und es gibt kein Zurück.',logo1:'HANASAKA',logo2:'JIISAN',h_tap:'Tippen',h_tap_d:'Asche streuen, Blüten wecken',h_hold:'Halten',h_hold_d:'Ascheregen für Dauerblüte',h_sw:'Wischen',h_sw_d:'Im Fieber blüht alles, was du berührst',
+ start:'Asche streuen',cont:'Weiter',note_save:'Der Fortschritt wird auf diesem Gerät gespeichert',note_cont:'{0} · {1} – gesamt {2} Blätter',
+ per_sec:'Pro Sekunde',unit:'Blätter',full_in:'Vollblüte {0} %',uni_full:'Universum in Vollblüte',ash:'Asche',fever:'Fieber',snd_on:'Ton AN',snd_off:'Ton AUS',lang:'Sprache',toku:'Tugend {0} · ×{1}',
+ pal0:'Somei-Yoshino',pal1:'Nachtkirsche',pal2:'Gefüllte Kirsche',pal3:'Regenbogenkirsche',upgrades:'Upgrades',rebirth:'Zu Asche werden',
+ up_ash:'Aschequalität',up_pochi:'Pochis Schutz',up_breed:'Blütenvermehrung',up_dev:'Aschestreuer',up_satori:'Großvaters Weisheit',
+ e_tap:'Tippen <em>{0}</em> → {1}',e_chain:'Kettenbonus <em>×{0}</em> → ×{1}',e_pochi0:'Pochi ist dabei. Sein Bellen lässt alles blühen',e_breed:'Auto <em>{0}/s</em> → {1}/s',e_dev:'Streuen <em>{0}/s</em> → {1}',e_all:'Produktion <em>×{0}</em> → ×{1}',x2:'noch {0} bis ×2',unlock:'Frei in {0} Blättern',
+ say_pochi:'Pochi! Da bist du ja',say_dev:'Ah, der Fortschritt',say_sat1:'Langsam verstehe ich',say_sat3:'Ich bin der Geist der Blüten geworden',x2pop:'{0}: Effekt ×2!',
+ fever_big:'Blütenfieber!',fever_sub:'Wischen zum Blühen',fever_end:'Fieber vorbei',wan:'Wuff!',combo:'{0} Combo',
+ end1:'Das Universum steht in voller Blüte.',end2:'Es gibt keinen Ort mehr, der nicht blüht.',end3:'Und niemanden mehr, der hinaufschaut.',end4:'… Ich wollte die Welt doch nur schön machen.',end5:'„Soll ich noch einmal von vorn blühen lassen?“',
+ end_info:'Zu Asche werden gibt +{0} Tugend und beginnt wieder mit einem toten Baum. Produktion ×{1}.',end_back:'Weiter zusehen',end_say:'… Wie schön',reb_sub:'Tugend +{0}　Produktion ×{1}',reb_say:'Soll ich noch einmal von vorn blühen lassen?',
+ m_reb_d:'Das Universum verbrennen und mit einem toten Baum neu beginnen.',m_reb_now:'Produktion ×{0} (jetzt ×{1})',m_toku:'Tugend +{0}',cancel:'Lieber nicht',
+ off_t:'Willkommen zurück',off_d:'Während du weg warst, haben Pochi und die Maschinen weiter blühen lassen.',off_min:'{0} Min. (50 % Effizienz in Abwesenheit)',receive:'Einsammeln',front:'Kirschblütenfront',close:'Schließen',
+ ch1:'Kapitel 1 · Dorf',ch2:'Kapitel 2 · Japan',ch3:'Kapitel 3 · Erde',ch4:'Kapitel 4 · Universum',
+ tn:['Ein toter Baum','Großvaters Garten','Das Dorf','Der Berg','Die Stadt','Japanische Inseln','Die Kontinente','Die Erde','Der Mond','Das Sonnensystem','Die Galaxie','Das Universum'],
+ td:['Erste Blüte','Blütensturm!','Dorf in Vollblüte!!','Blüten-Urknall!!','Stadt in Vollblüte!!','Japan in Vollblüte!!','Kontinente in Vollblüte!!','Erde in Vollblüte!!','Mond in Vollblüte!!','Sonnensystem in Vollblüte!!','Galaxie in Vollblüte!!','Das Universum, in Vollblüte.'],
+ tl:[['Lasst uns tote Bäume zum Blühen bringen','Ho ho, es blüht'],['Wie schön es blüht','Der ganze Garten ist Frühling'],['Soll ich das ganze Dorf blühen lassen?','Begrabt Häuser und Wege unter Blüten'],['Ich will noch mehr blühen lassen','Der Berg ruft nach mir'],['Sogar auf Hochhäusern blüht es','Auch die Ampeln sollen blühen'],['Die Kirschblütenfront bestimme ich','Ganz Japan ist mein Blütenfest'],['Auch übers Meer gibt es tote Bäume','Die ganze Landkarte soll rosa werden'],['Warum gibt es noch Orte ohne Blüten?','Sollen doch die Meere blühen'],['Sterne können auch blühen, oder?','Mondschau und Blütenschau zugleich'],['Sonne, blühe auch du','Die Planeten sehen aus wie Zweige'],['Nichts existiert, das nicht blühen kann!','Die Milchstraße ist ein Fluss aus Blättern'],['Ich bin der Frühling selbst','Ich lasse das Ende aller Enden blühen']],
+ dl:'Noch nicht genug!'},
+ru:{tag:'Распустишь один цветок — и пути назад не будет.',logo1:'HANASAKA',logo2:'JIISAN',h_tap:'Тап',h_tap_d:'Рассыпать пепел, чтобы зацвело',h_hold:'Удержание',h_hold_d:'Мощный выброс пепла, цветение без остановки',h_sw:'Свайп',h_sw_d:'Во время лихорадки цветёт всё, чего коснёшься',
+ start:'Рассыпать пепел',cont:'Продолжить',note_save:'Прогресс сохраняется на этом устройстве',note_cont:'{0} · {1} — всего {2} лепестков',
+ per_sec:'В секунду',unit:'лепестков',full_in:'Цветение {0}%',uni_full:'Вселенная в цвету',ash:'Пепел',fever:'Лихорадка',snd_on:'Звук ВКЛ',snd_off:'Звук ВЫКЛ',lang:'Язык',toku:'Добродетель {0} · ×{1}',
+ pal0:'Сомэй-Ёсино',pal1:'Ночная сакура',pal2:'Махровая сакура',pal3:'Радужная сакура',upgrades:'Улучшения',rebirth:'Вернуться в пепел',
+ up_ash:'Качество пепла',up_pochi:'Защита Поти',up_breed:'Плодовитость сакуры',up_dev:'Пеплометатель',up_satori:'Мудрость дедушки',
+ e_tap:'Тап <em>{0}</em> → {1}',e_chain:'Множитель цепи <em>×{0}</em> → ×{1}',e_pochi0:'Поти с тобой. От его лая всё расцветает',e_breed:'Авто <em>{0}/с</em> → {1}/с',e_dev:'Распыление <em>{0}/с</em> → {1}',e_all:'Производство <em>×{0}</em> → ×{1}',x2:'ещё {0} до ×2',unlock:'Откроется через {0} лепестков',
+ say_pochi:'Поти! Пришёл-таки',say_dev:'Вот она, цивилизация',say_sat1:'Кажется, я начинаю понимать',say_sat3:'Я стал духом цветов',x2pop:'{0}: эффект ×2!',
+ fever_big:'Цветочная лихорадка!',fever_sub:'Свайпай, чтобы цвело',fever_end:'Лихорадка закончилась',wan:'Гав!',combo:'Комбо {0}',
+ end1:'Вселенная в полном цвету.',end2:'Не осталось места, где бы не цвело.',end3:'И не осталось никого, кто поднял бы глаза.',end4:'… Я ведь просто хотел сделать мир красивым.',end5:'«Может, распустить всё заново, с самого начала?»',
+ end_info:'Вернувшись в пепел, получишь +{0} добродетели и начнёшь с одного сухого дерева. Производство ×{1}.',end_back:'Просто смотреть',end_say:'… Как красиво',reb_sub:'Добродетель +{0}　Производство ×{1}',reb_say:'Может, распустить всё заново, с самого начала?',
+ m_reb_d:'Сжечь вселенную и начать с одного сухого дерева.',m_reb_now:'Производство ×{0} (сейчас ×{1})',m_toku:'Добродетель +{0}',cancel:'Не сейчас',
+ off_t:'С возвращением',off_d:'Пока тебя не было, Поти и машины продолжали растить цветы.',off_min:'{0} мин (эффективность 50% без тебя)',receive:'Забрать',front:'Фронт цветения',close:'Закрыть',
+ ch1:'Глава 1 · Деревня',ch2:'Глава 2 · Япония',ch3:'Глава 3 · Земля',ch4:'Глава 4 · Вселенная',
+ tn:['Одно сухое дерево','Сад дедушки','Деревня','Гора','Город','Японские острова','Континенты','Земля','Луна','Солнечная система','Галактика','Вселенная'],
+ td:['Первое цветение','Метель лепестков!','Деревня в цвету!!','Цветочный Большой взрыв!!','Город в цвету!!','Япония в цвету!!','Континенты в цвету!!','Земля в цвету!!','Луна в цвету!!','Солнечная система в цвету!!','Галактика в цвету!!','Вселенная в цвету.'],
+ tl:[['Распустим цветы на сухих деревьях','Хо-хо, цветёт!'],['Как красиво расцвело','Весь сад — весна'],['А не распустить ли всю деревню?','Засыпать цветами дома и дороги!'],['Хочу ещё больше цветов','Гора зовёт меня'],['И на небоскрёбах цветёт','И светофоры зацветут'],['Фронт цветения двигаю я','Вся Япония — мой ханами'],['За морем тоже есть сухие деревья','Пусть вся карта станет розовой'],['Почему ещё есть места без цветов?','Пусть и океаны цветут'],['Звёзды ведь тоже могут цвести?','Любоваться луной и цветами разом'],['Солнце, цвети и ты','Планеты стали похожи на ветви'],['Нет ничего, что не может цвести!','Млечный Путь — река лепестков'],['Я и есть весна','Распущу цветы до самого края']],
+ dl:'Мало!'},
+it:{tag:'Fai fiorire un albero, e non potrai più fermarti.',logo1:'HANASAKA',logo2:'JIISAN',h_tap:'Tocca',h_tap_d:'Spargi la cenere e fai fiorire',h_hold:'Tieni premuto',h_hold_d:'Pioggia di cenere, fioritura continua',h_sw:'Scorri',h_sw_d:'Durante la febbre, fiorisce tutto ciò che tocchi',
+ start:'Spargi la cenere',cont:'Continua',note_save:'I progressi vengono salvati su questo dispositivo',note_cont:'{0} · {1} — totale {2} petali',
+ per_sec:'Al secondo',unit:'petali',full_in:'Fioritura {0}%',uni_full:'Universo in fiore',ash:'Cenere',fever:'Febbre',snd_on:'Audio ON',snd_off:'Audio OFF',lang:'Lingua',toku:'Virtù {0} · ×{1}',
+ pal0:'Somei-Yoshino',pal1:'Sakura notturno',pal2:'Sakura doppio',pal3:'Sakura arcobaleno',upgrades:'Potenziamenti',rebirth:'Tornare cenere',
+ up_ash:'Qualità della cenere',up_pochi:'Protezione di Pochi',up_breed:'Fertilità dei ciliegi',up_dev:'Spargicenere',up_satori:'Saggezza del nonno',
+ e_tap:'Tocco <em>{0}</em> → {1}',e_chain:'Moltiplicatore <em>×{0}</em> → ×{1}',e_pochi0:'Pochi si unisce. Quando abbaia, tutto fiorisce',e_breed:'Auto <em>{0}/s</em> → {1}/s',e_dev:'Spargimento <em>{0}/s</em> → {1}',e_all:'Produzione <em>×{0}</em> → ×{1}',x2:'ancora {0} per ×2',unlock:'Si sblocca tra {0} petali',
+ say_pochi:'Pochi! Sei arrivato',say_dev:'Ah, il progresso',say_sat1:'Comincio a capire',say_sat3:'Sono diventato lo spirito dei fiori',x2pop:'{0}: effetto ×2!',
+ fever_big:'Febbre dei fiori!',fever_sub:'Scorri per far fiorire',fever_end:'Fine della febbre',wan:'Bau!',combo:'{0} combo',
+ end1:'L’universo è in piena fioritura.',end2:'Non resta alcun luogo che non sia fiorito.',end3:'Né qualcuno che alzi lo sguardo.',end4:'… Volevo solo rendere il mondo bello.',end5:'«E se facessimo fiorire tutto di nuovo, dall’inizio?»',
+ end_info:'Tornando cenere ottieni +{0} Virtù e ricominci da un solo albero secco. Produzione ×{1}.',end_back:'Restare a guardare',end_say:'… Che bello',reb_sub:'Virtù +{0}　Produzione ×{1}',reb_say:'E se facessimo fiorire tutto di nuovo, dall’inizio?',
+ m_reb_d:'Bruciare l’universo e ricominciare da un solo albero secco.',m_reb_now:'Produzione ×{0} (ora ×{1})',m_toku:'Virtù +{0}',cancel:'Non ora',
+ off_t:'Bentornato',off_d:'Mentre eri via, Pochi e le macchine hanno continuato a far fiorire.',off_min:'{0} min (efficienza 50% in tua assenza)',receive:'Raccogli',front:'Fronte dei ciliegi',close:'Chiudi',
+ ch1:'Capitolo 1 · Villaggio',ch2:'Capitolo 2 · Giappone',ch3:'Capitolo 3 · Terra',ch4:'Capitolo 4 · Universo',
+ tn:['Un albero secco','Il giardino del nonno','Il villaggio','La montagna','La città','L’arcipelago giapponese','I continenti','La Terra','La Luna','Il sistema solare','La galassia','L’universo'],
+ td:['Prima fioritura','Tempesta di petali!','Villaggio in fiore!!','Big bang floreale!!','Città in fiore!!','Giappone in fiore!!','Continenti in fiore!!','Terra in fiore!!','Luna in fiore!!','Sistema solare in fiore!!','Galassia in fiore!!','L’universo, in fiore.'],
+ tl:[['Facciamo fiorire gli alberi secchi','Oh oh, fiorisce!'],['Che bella fioritura','Tutto il giardino è primavera'],['E se facessi fiorire tutto il villaggio?','Seppelliamo case e strade sotto i fiori'],['Ne voglio ancora di più','La montagna mi chiama'],['Fiorisce anche sui grattacieli','Farò fiorire anche i semafori'],['Il fronte dei ciliegi lo muovo io','Tutto il Giappone è il mio hanami'],['Ci sono alberi secchi anche oltre il mare','Che tutta la mappa diventi rosa'],['Perché ci sono ancora posti senza fiori?','Facciamo fiorire anche gli oceani'],['Anche le stelle possono fiorire, no?','Guardare la luna e i fiori insieme'],['Sole, fiorisci anche tu','I pianeti sembrano rami'],['Non esiste nulla che non possa fiorire!','La Via Lattea è un fiume di petali'],['Io sono la primavera stessa','Farò fiorire la fine di ogni fine']],
+ dl:'Non basta!'},
+};
+let LANG='ja';
+function tt(k,...a){const L=TX[LANG]||TX.en;let s=L[k]??TX.en[k]??TX.ja[k]??k;if(typeof s!=='string')return s;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v);});return s;}
+const CHI=[1,1,1,2,2,2,3,3,4,4,4,4];
+const tName=i=>tt('tn')[i],tDone=i=>tt('td')[i],tLines=i=>tt('tl')[i],tCh=i=>tt('ch'+CHI[i]);
+function detectLang(){const n=(navigator.language||'en').toLowerCase();if(n.startsWith('ja'))return'ja';if(n.startsWith('zh'))return/(tw|hk|mo|hant)/.test(n)?'zh-Hant':'zh-Hans';for(const[c]of LANGS)if(n.startsWith(c))return c;return'en';}
+const NUM={
+  ja:['','万','億','兆','京','垓','秭','穣','溝','澗','正','載','極','恒河沙','阿僧祇','那由他','不可思議','無量大数'],
+  'zh-Hans':['','万','亿','兆','京','垓','秭','穰','沟','涧','正','载','极','恒河沙','阿僧祇','那由他','不可思议','无量大数'],
+  'zh-Hant':['','萬','億','兆','京','垓','秭','穰','溝','澗','正','載','極','恆河沙','阿僧祇','那由他','不可思議','無量大數'],
+  ko:['','만','억','조','경','해','자','양','구','간','정','재','극','항하사','아승기','나유타','불가사의','무량대수'],
+};
+const WEST=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','Ud','Dd','Td','Qad','Qid','Sxd','Spd','Ocd','Nod','Vg','Uvg'];
+const vlen=s=>{let n=0;for(const ch of s)n+=/[　-鿿가-힯＀-￯]/.test(ch)?1:.56;return n;};
+
+/* =========================================================
+   Numbers — 日本式の桁
+   ========================================================= */
+function fmtP(n){
+  if(!isFinite(n))return['∞',''];
+  const U=NUM[LANG];
+  if(U){
+    if(n<1e4)return[n<100&&n%1>0.05?n.toFixed(1):Math.floor(n).toLocaleString('ja-JP'),''];
+    const lg=Math.log10(n),e=Math.floor(lg/4);
+    if(e>=U.length){const ex=Math.floor(lg);return[(n/Math.pow(10,ex)).toFixed(2)+'e'+ex,''];}
+    const m=n/Math.pow(10,e*4);
+    return[m>=1000?Math.floor(m).toString():m>=100?m.toFixed(1):m>=10?m.toFixed(2):m.toFixed(3),U[e]];
+  }
+  if(n<1e3)return[n<100&&n%1>0.05?n.toFixed(1):Math.floor(n).toString(),''];
+  const lg=Math.log10(n),e=Math.floor(lg/3);
+  if(e>=WEST.length){const ex=Math.floor(lg);return[(n/Math.pow(10,ex)).toFixed(2)+'e'+ex,''];}
+  const m=n/Math.pow(10,e*3);
+  return[m>=100?m.toFixed(1):m>=10?m.toFixed(2):m.toFixed(3),WEST[e]];
+}
+const fmt=n=>{const[a,b]=fmtP(n);return a+b;};
+
+/* =========================================================
+   World tiers
+   ========================================================= */
+const TIERS=[
+  {nm:'一本の枯れ木',ch:'第一章 村',  goal:1e2, ls:0,    done:'初めての満開',     lines:['枯れ木に花を咲かせましょう','ほっほっ、咲いた咲いた']},
+  {nm:'じいさんの庭',ch:'第一章 村',  goal:1e4, ls:0,    done:'桜吹雪！',         lines:['綺麗に咲いたのう','庭がまるごと春じゃ']},
+  {nm:'村',         ch:'第一章 村',  goal:1e6, ls:0,    done:'村、満開！！',      lines:['村じゅう咲かせてやろうかの','家も道も、桜で埋めてしまえ'],doneLine:'まだ足りん！'},
+  {nm:'山',         ch:'第二章 日本',goal:1e8, ls:.72,  done:'花咲か大爆発！！',  lines:['もっと咲かせたいのう','山が、ワシを呼んでおる']},
+  {nm:'都市',       ch:'第二章 日本',goal:1e10,ls:2.45, done:'都市、満開！！',    lines:['ビルにも咲くんじゃな','信号機も咲かせちゃる']},
+  {nm:'日本列島',   ch:'第二章 日本',goal:1e12,ls:4.45, done:'日本、満開！！',    lines:['桜前線はワシが動かす','日本中、ワシの花見じゃ']},
+  {nm:'大陸',       ch:'第三章 地球',goal:1e14,ls:6.45, done:'大陸、満開！！',    lines:['海の向こうにも枯れ木があるのう','地図が全部、桃色になればよい']},
+  {nm:'地球',       ch:'第三章 地球',goal:1e16,ls:8.3,  done:'地球、満開！！',    lines:['なぜまだ咲いておらん場所がある？','海も咲けばよいじゃろ']},
+  {nm:'月',         ch:'第四章 宇宙',goal:1e19,ls:10.26,done:'月、満開！！',      lines:['星も咲くじゃろ？','月見と花見を同時にやるんじゃ']},
+  {nm:'太陽系',     ch:'第四章 宇宙',goal:1e22,ls:13.23,done:'太陽系、満開！！',  lines:['太陽よ、お前も咲け','惑星の並びが、枝に見えてきた']},
+  {nm:'銀河',       ch:'第四章 宇宙',goal:1e25,ls:16.16,done:'銀河、満開！！',    lines:['咲かぬものなど存在せん！','天の川は、花びらの川じゃ']},
+  {nm:'宇宙',       ch:'第四章 宇宙',goal:1e28,ls:19.08,done:'宇宙、満開。',      lines:['ワシが春そのものじゃ','果ての果てまで、満開にしてやる']},
+];
+const GRP=t=>t<=2?0:t<=5?1:t<=7?2:3;
+
+/* =========================================================
+   Upgrades & economy
+   ========================================================= */
+const UP={
+  ash:   {nm:'灰の品質',     base:10,  gr:1.30,unlock:0},
+  pochi: {nm:'ポチの加護',   base:60,  gr:1.32,unlock:120},
+  breed: {nm:'桜の繁殖力',   base:20,  gr:1.31,unlock:25},
+  dev:   {nm:'灰まき装置',   base:150, gr:1.33,unlock:1200},
+  satori:{nm:'じいさんの悟り',base:3000,gr:25,  unlock:2e4},
+};
+const ORDER=['ash','pochi','breed','dev','satori'];
+const KEY='hanasaka_infinity_v1';
+let S={p:0,total:0,all:0,L:{ash:0,pochi:0,breed:0,dev:0,satori:0},tier:0,toku:0,loops:0,ended:false,sound:true,seen:{},lang:null,t:Date.now()};
+const mile=L=>Math.pow(2,Math.floor(L/25));
+const SC=()=>Math.pow(10,TIERS[S.tier].ls);
+const tokuM=()=>Math.pow(2,S.toku);
+const G=()=>Math.pow(3,S.L.satori)*SC()*tokuM();
+const TPf=(L=S.L.ash)=>(1+L)*mile(L)*G();
+const CMf=(L=S.L.pochi)=>1+.25*L*mile(L);
+const AUTOf=(L=S.L.dev)=>.3*L*mile(L);
+const BREEDf=(L=S.L.breed)=>.5*L*mile(L)*G();
+const barkInt=()=>Math.max(3,10-S.L.pochi*.05);
+const idlePPS=()=>AUTOf()*TPf()+BREEDf()+(S.L.pochi>0?TPf()*CMf()*8/barkInt():0);
+function cost(k,n){const u=UP[k],c0=u.base*SC()*Math.pow(u.gr,S.L[k]);return c0*(Math.pow(u.gr,n)-1)/(u.gr-1);}
+function maxN(k){const u=UP[k],c0=u.base*SC()*Math.pow(u.gr,S.L[k]);return Math.max(0,Math.floor(Math.log(S.p*(u.gr-1)/c0+1)/Math.log(u.gr)));}
+const unlocked=k=>S.L[k]>0||S.total>=UP[k].unlock||S.all>=UP[k].unlock*1e3;
+let amt='1';
+function amtN(k){if(amt==='max')return Math.max(1,maxN(k));return +amt;}
+function prog(){const t=TIERS[S.tier],lo=S.tier?Math.log10(TIERS[S.tier-1].goal):0,hi=Math.log10(t.goal);return clamp((Math.log10(Math.max(1,S.total))-lo)/(hi-lo),0,1);}
+function add(v){if(!(v>0)||!isFinite(v))return;S.p+=v;S.total+=v;S.all+=v;}
+
+/* =========================================================
+   Save / load
+   ========================================================= */
+function save(){S.t=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(!d||typeof d!=='object')return false;
+    for(const k of ['p','total','all','tier','toku','loops'])if(typeof d[k]==='number'&&isFinite(d[k]))S[k]=d[k];
+    if(d.L)for(const k of ORDER)if(typeof d.L[k]==='number')S.L[k]=Math.max(0,Math.floor(d.L[k]));
+    S.ended=!!d.ended;S.sound=d.sound!==false;S.lang=TX[d.lang]?d.lang:null;S.seen=d.seen||{};S.t=d.t||Date.now();S.tier=clamp(Math.floor(S.tier),0,11);
+    return true;}catch(e){return false;}
+}
+
+/* =========================================================
+   Audio — 和楽器 → 太鼓 → エレクトロ → サイケ和風テクノ
+   ========================================================= */
+const AU={ctx:null,mute:false,step:0,next:0,last:0,lastShot:0};
+function initAudio(){
+  if(AU.ctx){if(AU.ctx.state==='suspended')AU.ctx.resume();return;}
+  try{const C=window.AudioContext||window.webkitAudioContext;const c=new C();AU.ctx=c;
+    AU.master=c.createGain();AU.master.gain.value=S.sound?.55:0;
+    const comp=c.createDynamicsCompressor();AU.master.connect(comp);comp.connect(c.destination);
+    AU.bgm=c.createGain();AU.bgm.gain.value=.32;AU.bgm.connect(AU.master);
+    AU.sfx=c.createGain();AU.sfx.gain.value=.7;AU.sfx.connect(AU.master);
+    AU.dly=c.createDelay(1);AU.dly.delayTime.value=.36;AU.fb=c.createGain();AU.fb.gain.value=.42;
+    AU.dlp=c.createBiquadFilter();AU.dlp.type='lowpass';AU.dlp.frequency.value=2600;
+    AU.dly.connect(AU.dlp);AU.dlp.connect(AU.fb);AU.fb.connect(AU.dly);AU.dlp.connect(AU.bgm);
+    const nb=c.createBuffer(1,c.sampleRate,c.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.noise=nb;
+    AU.next=c.currentTime+.1;setInterval(sched,25);
+  }catch(e){AU.ctx=null;}
+}
+const SCL=[0,2,5,7,9];
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const sm=(i,b)=>b+SCL[((i%5)+5)%5]+12*Math.floor(i/5);
+function osc(f,t,dur,vol,type,dest,glide,f1){const c=AU.ctx,o=c.createOscillator(),gn=c.createGain();o.type=type||'triangle';
+  o.frequency.setValueAtTime(f*(1+(glide||0)),t);if(glide)o.frequency.exponentialRampToValueAtTime(f,t+.05);if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(vol,t+.006);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(gn);gn.connect(dest||AU.sfx);o.start(t);o.stop(t+dur+.05);return gn;}
+function nz(t,dur,vol,ft,fr,dest,q,att){const c=AU.ctx,s=c.createBufferSource(),f=c.createBiquadFilter(),gn=c.createGain();s.buffer=AU.noise;f.type=ft;f.frequency.value=fr;f.Q.value=q||1;
+  if(att){gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(vol,t+att);}else gn.gain.setValueAtTime(vol,t);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  s.connect(f);f.connect(gn);gn.connect(dest||AU.sfx);s.start(t,Math.random()*.4);s.stop(t+dur+.05);}
+const pluck=(f,t,dur,vol,dest)=>{osc(f,t,dur,vol,'triangle',dest,.02);osc(f*2,t,dur*.35,vol*.3,'sine',dest);};
+const kick=(t,v,d)=>osc(150,t,.16,v,'sine',d,0,40);
+const taiko=(t,v,d)=>{osc(110,t,.45,v,'sine',d,0,55);nz(t,.08,v*.3,'lowpass',500,d);};
+const MEL=[0,-1,2,-1,3,-1,2,1,0,-1,-1,-1,4,3,2,-1,5,-1,4,-1,3,2,1,-1,2,-1,0,-1,-1,-1,-1,-1];
+const ARP=[0,2,4,7,5,4,2,4,0,2,4,7,9,7,5,4];
+function sched(){const c=AU.ctx;if(!c)return;
+  while(AU.next<c.currentTime+.12){playStep(AU.step,AU.next);
+    const gp=GRP(S.tier),bpm=[84,100,140,128][gp]*(RT.feverT>0?1.2:1);AU.next+=60/bpm/4;AU.step=(AU.step+1)%64;}}
+function playStep(s,t){
+  if(AU.mute||RT.ending)return;const gp=GRP(S.tier),B=AU.bgm,s32=s%32,fv=RT.feverT>0;
+  const m=MEL[s32];
+  if(gp<=1){
+    if(m>=0)pluck(mtof(sm(m,62)),t,.6,.16,B);
+    if(s32%8===0)osc(mtof(s32<16?38:45),t,.7,.22,'sine',B);
+    if(gp===0&&s===16)osc(mtof(sm(7,74)),t,1.6,.05,'sine',B,.01);
+    if(gp===1){if(s32===0||s32===10||s32===16)taiko(t,.5,B);if(s32%8===4)nz(t,.05,.12,'bandpass',2400,B,4);if(s32%2===1)nz(t,.02,.03,'highpass',8000,B);}
+  }else if(gp===2){
+    if(s%4===0)kick(t,.55,B);if(s%4===2)nz(t,.03,.08,'highpass',9000,B);if(s%8===4)nz(t,.09,.14,'bandpass',1800,B,1.2);
+    osc(mtof(s%2?50:38),t,.1,.09,'sawtooth',B);
+    pluck(mtof(sm(ARP[s%16],74)),t,.14,.07,B);
+    if(m>=0&&s%2===0)pluck(mtof(sm(m,74)),t,.3,.08,B);
+  }else{
+    if(s%4===0)kick(t,.55,B);if(s%2===1)nz(t,.02,.04,'highpass',10000,B);if(s%8===4)nz(t,.07,.1,'bandpass',2200,B,1.5);
+    if(s%3===0){const f=mtof(sm(ARP[(s*5)%16]+(s%32<16?0:2),74));osc(f,t,.16,.06,'square',AU.dly);osc(f,t,.16,.05,'square',B);}
+    if(s%32===0)[0,2,4].forEach(i=>{osc(mtof(sm(i,50)),t,2.4,.03,'sawtooth',B);osc(mtof(sm(i,50))*1.007,t,2.4,.03,'sawtooth',B);});
+    if(s===0)[1,2.76,5.4].forEach((k,i)=>osc(110*k,t,3,.06/(i+1),'sine',B));
+    if(m>=0&&s%2===0)pluck(mtof(sm(m,62)),t,.5,.08,AU.dly);
+  }
+  if(fv&&s%2===0)osc(mtof(sm((s*3)%12,86)),t,.08,.04,'square',B);
+}
+const now=()=>AU.ctx?AU.ctx.currentTime:0;
+const SFX={
+  tap(c){if(!AU.ctx)return;const t=Math.max(now(),AU.last+.028);AU.last=t;if(t-now()>.25)return;const f=mtof(sm(c%15,69)),gp=GRP(S.tier);
+    pluck(f,t,.5,.17);if(gp>=2)osc(f*2,t,.12,.04,'square');if(gp>=3)osc(f*2.76,t,.4,.03,'sine');},
+  bark(){if(!AU.ctx)return;const t=now();[0,.16].forEach(o=>{osc(720,t+o,.11,.18,'square',AU.sfx,0,330);nz(t+o,.06,.08,'bandpass',1400,AU.sfx,3);});},
+  buy(){if(!AU.ctx)return;const t=now();[0,2,4].forEach((i,k)=>pluck(mtof(sm(i+5,74)),t+k*.04,.4,.12));},
+  no(){if(!AU.ctx)return;osc(180,now(),.12,.08,'square');},
+  shot(){if(!AU.ctx)return;const t=now();if(t-AU.lastShot<.12)return;AU.lastShot=t;nz(t,.12,.05,'lowpass',900);},
+  mankai(){if(!AU.ctx)return;const t=now();[0,2,4,5,7,9,10].forEach((i,k)=>{osc(mtof(sm(i,62)),t+k*.015,2.6,.08,'triangle');osc(mtof(sm(i,62))*1.006,t,1.8,.025,'sawtooth');});nz(t,2,.25,'highpass',5000,AU.sfx,.7,.05);taiko(t,.8);},
+  fever(){if(!AU.ctx)return;const t=now();osc(200,t,.8,.12,'sawtooth',AU.sfx,0,1600);for(let i=0;i<8;i++)pluck(mtof(sm(i,74)),t+.4+i*.04,.4,.1);},
+  silence(d){if(!AU.ctx)return;AU.mute=true;const t=now();AU.bgm.gain.cancelScheduledValues(t);AU.bgm.gain.setValueAtTime(AU.bgm.gain.value,t);AU.bgm.gain.linearRampToValueAtTime(0,t+.05);
+    setTimeout(()=>{AU.mute=false;if(!AU.ctx)return;const t2=now();AU.bgm.gain.cancelScheduledValues(t2);AU.bgm.gain.setValueAtTime(0,t2);AU.bgm.gain.linearRampToValueAtTime(.32,t2+.6);},d*1000);},
+  bell(){if(!AU.ctx)return;const t=now();[0,4,7,9].forEach((i,k)=>{osc(mtof(sm(i,74)),t+k*.25,2.2,.07,'sine');osc(mtof(sm(i,74))*2.76,t+k*.25,1,.02,'sine');});},
+};
+function setSound(on){S.sound=on;const b=$('snd');b.textContent=on?tt('snd_on'):tt('snd_off');b.setAttribute('aria-pressed',String(on));if(AU.master)AU.master.gain.value=on?.55:0;}
+
+/* =========================================================
+   Palettes / sakura drawing
+   ========================================================= */
+const PALS=[
+  {nm:'ソメイヨシノ',sh:'#e47aa2',mn:'#ffb3cf',hi:'#fff0f5'},
+  {nm:'夜桜',       sh:'#9a3f86',mn:'#ff86c4',hi:'#ffe2ff'},
+  {nm:'八重桜',     sh:'#b81f58',mn:'#ff5c94',hi:'#ffd0e0'},
+  {nm:'虹桜',rainbow:true},
+];
+let T=0;
+function pal(sh){const P=PALS[Math.min(S.loops,3)];if(!P.rainbow)return P;const h=((T*50+(sh||0))%360+360)%360;return{sh:`hsl(${(h+30)%360},85%,55%)`,mn:`hsl(${h},95%,73%)`,hi:`hsl(${h},100%,93%)`};}
+function puff(x,y,r,P){P=P||pal(x*2+y);x=Math.round(x);y=Math.round(y);
+  if(r<=1){R(x,y,2,2,P.mn);R(x,y,1,1,P.hi);return;}
+  disc(x,y+1,r,P.sh);disc(x,y,r,P.mn);R(x-Math.round(r*.4),y-r+1,1,1,P.hi);if(r>=3){R(x-Math.round(r*.4)+1,y-r+1,1,1,P.hi);R(x+Math.round(r*.3),y-Math.round(r*.2),1,1,P.hi);}}
+function flower(cx,cy,Rr,rot,P,ctx){
+  const c=ctx||g;P=P||pal();const pc=[],nc=[];
+  for(let k=0;k<5;k++){const a=rot+k*Math.PI*2/5-Math.PI/2;pc.push([Math.cos(a)*Rr*.5,Math.sin(a)*Rr*.5]);nc.push([Math.cos(a)*Rr*.95,Math.sin(a)*Rr*.95]);}
+  const pr2=Math.pow(Rr*.45,2),nr2=Math.pow(Rr*.14,2),cr2=Math.pow(Rr*.22,2);
+  for(let y=-Rr;y<=Rr;y++)for(let x=-Rr;x<=Rr;x++){
+    let inP=-1;for(let k=0;k<5;k++){const dx=x-pc[k][0],dy=y-pc[k][1];if(dx*dx+dy*dy<pr2){const ex=x-nc[k][0],ey=y-nc[k][1];if(ex*ex+ey*ey>nr2){inP=k;break;}}}
+    const d2=x*x+y*y;if(inP<0&&d2>cr2)continue;
+    let col=d2<cr2*1.6?P.sh:P.mn;if(inP>=0&&d2>Rr*Rr*.5&&(x+y)%5===0)col=P.hi;
+    c.fillStyle=col;c.fillRect(Math.round(cx+x),Math.round(cy+y),1,1);
+  }
+  c.fillStyle='#ffd34d';for(let k=0;k<5;k++){const a=rot+k*Math.PI*2/5;c.fillRect(Math.round(cx+Math.cos(a)*Rr*.18),Math.round(cy+Math.sin(a)*Rr*.18),1,1);}
+}
+
+/* =========================================================
+   Backgrounds
+   ========================================================= */
+function makeBG(o){
+  const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const id=x.createImageData(W,H),d=id.data,sk=o.sky.map(hex),gd=o.gnd?o.gnd.map(hex):null,hz=o.gnd?o.hz:H;
+  for(let y=0;y<H;y++){let a,b,f;if(!gd||y<hz){a=sk[0];b=sk[1];f=y/Math.max(1,hz);}else{a=gd[0];b=gd[1];f=(y-hz)/Math.max(1,PT-hz);}f=clamp(f,0,1);
+    for(let xx=0;xx<W;xx++){const th=(BAY[(y&3)*4+(xx&3)]+.5)/16,q=Math.min(7,Math.floor(f*7+th))/7,k=(y*W+xx)*4;
+      d[k]=a[0]+(b[0]-a[0])*q;d[k+1]=a[1]+(b[1]-a[1])*q;d[k+2]=a[2]+(b[2]-a[2])*q;d[k+3]=255;}}
+  x.putImageData(id,0,0);
+  const r=rng(o.seed||7),Rx=(X,Y,w,h,col)=>{x.fillStyle=col;x.fillRect(X,Y,w,h);};
+  if(o.stars)for(let i=0;i<o.stars;i++){const v=r();Rx((r()*W)|0,(r()*(o.starH||H))|0,1,1,v<.15?'#ffffff':v<.5?'#a9a6d8':'#5b5890');}
+  if(o.gnd)for(let i=0;i<360;i++){const y=hz+2+((r()*(PT-hz))|0);Rx((r()*W)|0,y,1,1,r()<.5?'#00000026':'#ffffff14');}
+  if(o.deco)o.deco(x,Rx,r);
+  return c;
+}
+
+/* =========================================================
+   Tree generator
+   ========================================================= */
+function genTree(r,x,y,len,ang,w,depth,segs,tips){
+  const x1=x+Math.cos(ang)*len,y1=y+Math.sin(ang)*len;segs.push([x,y,x1,y1,Math.max(1,Math.round(w))]);
+  if(depth<=0){tips.push([x1,y1]);return;}
+  const n=depth>3?2:(r()<.5?2:3);
+  for(let i=0;i<n;i++){const a=ang+(i-(n-1)/2)*lerp(.35,.7,r())+lerp(-.15,.15,r());genTree(r,x1,y1,len*lerp(.68,.82,r()),a,w*.68,depth-1,segs,tips);}
+  if(depth<=2)tips.push([x1,y1]);
+}
+function drawSegs(segs,dark,light){
+  for(const [x0,y0,x1,y1,w] of segs){const n=Math.ceil(Math.max(Math.abs(x1-x0),Math.abs(y1-y0)))||1;
+    for(let i=0;i<=n;i++){const t=i/n,x=Math.round(x0+(x1-x0)*t-w/2),y=Math.round(y0+(y1-y0)*t-w/2);g.fillStyle=dark;g.fillRect(x,y,w,w);if(w>=3){g.fillStyle=light;g.fillRect(x,y,1,w);}}}
+}
+function spotsDraw(sp,c){for(const s of sp){if(s.o>=c)break;if(s.kind&&s.kind!=='p')continue;puff(s.x,s.y,s.r);}}
+const sortO=a=>a.sort((p,q)=>p.o-q.o);
+
+/* =========================================================
+   Scenes
+   ========================================================= */
+function sTree(){
+  const r=rng(101),segs=[],tips=[],bx=CX,by=PT-14;
+  genTree(r,bx,by,Math.round((PT-SY0)*.19),-Math.PI/2,6,6,segs,tips);
+  const spots=sortO(tips.map(([x,y])=>({x,y,r:3+((r()*2)|0),o:r()*.98})));
+  const hz=PT-34;
+  const bg=makeBG({sky:['#2a2160','#f4a27a'],gnd:['#7a9a4a','#4c6a30'],hz,seed:3,deco:(x,Rx,rr)=>{
+    for(let k=0;k<12;k++){const w=Math.round(Math.sqrt(144-k*k));Rx(140-w,hz-14-k,w*2,1,'#ffd08a');Rx(140-w,hz-14+k,w*2,1,'#ffd08a');}
+    for(let xx=0;xx<W;xx++){const h=10+Math.round(Math.sin(xx*.045)*5+Math.sin(xx*.12+1)*2);Rx(xx,hz-h,1,h,'#4b3d6c');}
+    [[22,hz-6],[44,hz-5],[160,hz-6]].forEach(([hx,hy])=>{Rx(hx,hy,8,5,'#2c2340');for(let q=0;q<4;q++)Rx(hx-1+q,hy-1-q,10-q*2,1,'#6b4a3a');Rx(hx+3,hy+2,2,3,'#ffb35a');});
+  }});
+  return{bg,spots,draw(c){ell(bx,by+3,48,8,'#5a8436');ell(bx,by+1,40,5,'#73a046');drawSegs(segs,'#4e3828','#6e5240');spotsDraw(spots,c);}};
+}
+function sGarden(){
+  const r=rng(202),hz=PT-62,segs=[],tips=[],big=[],bigT=[];
+  genTree(r,CX+40,PT-22,Math.round((PT-SY0)*.1),-Math.PI/2,4,5,big,bigT);
+  [[CX-34,PT-34,8],[CX-6,PT-48,7],[CX+64,PT-46,7],[CX+12,PT-12,9]].forEach(([x,y,l])=>genTree(r,x,y,l,-Math.PI/2+lerp(-.1,.1,r()),3,4,segs,tips));
+  const spots=[];bigT.forEach(([x,y])=>spots.push({x,y,r:3,o:-1}));
+  tips.forEach(([x,y])=>spots.push({x,y,r:2+((r()*2)|0),o:r()*.85}));
+  for(let i=0;i<16;i++)spots.push({x:lerp(68,178,r()),y:hz+lerp(0,4,r()),r:2,o:.6+r()*.38});
+  for(let i=0;i<10;i++)spots.push({x:lerp(10,70,r()),y:hz+8+lerp(0,8,r()),r:2,o:.7+r()*.3});
+  sortO(spots);
+  const bg=makeBG({sky:['#2a2160','#f4a27a'],gnd:['#6f9446','#47652d'],hz,seed:4,deco:(x,Rx)=>{
+    for(let xx=0;xx<W;xx++){const h=8+Math.round(Math.sin(xx*.05+2)*4);Rx(xx,hz-h,1,h,'#4b3d6c');}
+    const hx=8,hy=hz-30;Rx(hx,hy+8,60,26,'#d9c7a8');for(let q=0;q<5;q++)Rx(hx+3+q*12,hy+12,9,16,'#efe5cf');for(let q=0;q<5;q++)for(let yy=0;yy<16;yy+=4)Rx(hx+3+q*12,hy+12+yy,9,1,'#bba98a');
+    for(let q=0;q<12;q++)Rx(hx-6+q,hy+8-q,72-q*2,1,q%3===0?'#2c2c3a':'#3c3c4e');Rx(hx-4,hy+34,68,4,'#8a5a38');Rx(hx-4,hy+38,68,2,'#5a3a28');
+    for(let xx=68;xx<W;xx+=3){Rx(xx,hz-8,2,10,'#b0a454');Rx(xx,hz-8,1,10,'#d0c46a');}Rx(68,hz-6,W-68,1,'#7a7030');Rx(68,hz-1,W-68,1,'#7a7030');
+    for(let dy=-6;dy<=6;dy++){const dx=Math.round(22*Math.sqrt(1-dy*dy/36));Rx(CX+10-dx,PT-30+dy,dx*2,1,dy<-3?'#7ab0e0':'#3a6aa8');}
+    [[CX-16,PT-26],[CX+36,PT-28],[CX+6,PT-36]].forEach(([sx,sy])=>{Rx(sx,sy,6,3,'#8a8a92');Rx(sx+1,sy,4,1,'#b0b0b8');});
+  }});
+  return{bg,spots,draw(c){drawSegs(big,'#4e3828','#6e5240');drawSegs(segs,'#4e3828','#6e5240');spotsDraw(spots,c);}};
+}
+function sVillage(){
+  const r=rng(303),hz=SY0+30,spots=[],items=[];
+  const path=[];for(let i=0;i<=40;i++){const t=i/40;path.push([lerp(30,118,t)+Math.sin(t*6)*14*(1-t),lerp(PT,hz+4,Math.pow(t,.8))]);}
+  const persp=y=>clamp((y-hz)/(PT-hz),0,1);
+  for(let i=0;i<10;i++)spots.push({x:CX-52+lerp(-6,6,r()),y:hz+38+lerp(-5,5,r()),r:3,o:-1});
+  for(let i=0;i<14;i++){let x,y,ok;let tries=0;do{x=lerp(8,172,r());y=lerp(hz+8,PT-14,r());ok=path.every(([px,py])=>Math.hypot(px-x,py-y)>10);tries++;}while(!ok&&tries<40);
+    const sz=Math.round(5+persp(y)*7);const s={x,y,sz,kind:'house',o:.5+r()*.3,r:0};spots.push(s);items.push(s);}
+  for(let i=0;i<22;i++){const x=lerp(6,174,r()),y=lerp(hz+6,PT-8,r());const p=persp(y);const s={x,y,kind:'tree',h:Math.round(3+p*6),r:Math.round(2+p*3),o:r()*.5};spots.push(s);items.push(s);}
+  for(let i=0;i<34;i++){const pp=path[(r()*path.length)|0];spots.push({x:pp[0]+lerp(-5,5,r()),y:pp[1]+lerp(-2,2,r()),r:Math.round(1+persp(pp[1])*3),o:.8+r()*.2});}
+  for(let i=0;i<20;i++)spots.push({x:lerp(120,176,r()),y:lerp(hz+18,PT-40,r()),r:2,o:.85+r()*.15});
+  sortO(spots);items.sort((a,b)=>a.y-b.y);
+  const bg=makeBG({sky:['#2c2766','#f0b08a'],gnd:['#86a656','#4f6d32'],hz,seed:5,deco:(x,Rx)=>{
+    for(let xx=0;xx<W;xx++){const h=12+Math.round(Math.sin(xx*.03)*8+Math.sin(xx*.11)*3);Rx(xx,hz-h,1,h,'#55467a');const h2=6+Math.round(Math.sin(xx*.06+3)*3);Rx(xx,hz-h2,1,h2,'#3f5a54');}
+    for(let yy=hz+18;yy<PT-40;yy+=7)for(let xx=120;xx<178;xx+=11){Rx(xx,yy,10,6,'#6aa0c8');Rx(xx,yy,10,1,'#9ac8e8');Rx(xx+10,yy,1,6,'#5a7a3a');}
+    path.forEach(([px,py],i)=>{const w=Math.max(1,Math.round(1+persp(py)*5));Rx(Math.round(px-w/2),Math.round(py),w,3,'#c8b088');});
+    for(let i=0;i<14;i++){const sx=CX-52+((i*7)%14)-7,sy=hz+34+((i*3)%8);Rx(sx,sy,2,4,'#4e3828');}
+    Rx(CX-60,hz+30,14,8,'#d9c7a8');for(let q=0;q<5;q++)Rx(CX-62+q,hz+30-q,18-q*2,1,'#3c3c4e');
+  }});
+  return{bg,spots,draw(c){
+    for(const s of items){
+      if(s.kind==='house'){const z=s.sz,x=Math.round(s.x),y=Math.round(s.y),on=s.o<c;
+        R(x-z,y-z,z*2,z,'#d9c7a8');R(x-z+2,y-z+2,Math.max(1,(z>>1)),z-3,'#efe5cf');R(x+1,y-Math.round(z*.6),2,Math.round(z*.6),'#5a3a28');
+        for(let q=0;q<=z;q++)R(x-z-1+q,y-z-1-q,z*2+2-q*2,1,on?(q%2?pal().mn:pal().sh):(q%2?'#7a5a3a':'#5e4430'));
+        if(on){puff(x-z+1,y-z*2+1,2);puff(x+z-1,y-z*1.6,2);}}
+      else{const x=Math.round(s.x),y=Math.round(s.y);R(x,y-s.h,1,s.h,'#4e3828');if(s.o<c)puff(x,y-s.h-s.r+1,s.r);else{R(x-1,y-s.h,1,1,'#6e5240');R(x+1,y-s.h+1,1,1,'#6e5240');}}
+    }
+    for(const s of spots){if(s.o>=c)break;if(!s.kind)puff(s.x,s.y,s.r);}
+  }};
+}
+function sMountain(){
+  const r=rng(404),spots=[];
+  const ridge=(amp,base,freq,ph)=>{const a=new Float32Array(W);for(let x=0;x<W;x++)a[x]=base-amp*(Math.sin(x*freq+ph)*.5+.5)-amp*.35*Math.sin(x*freq*2.7+ph*2);return a;};
+  const top=SY0+20;
+  const far=ridge(26,top+50,.04,1),mid=ridge(40,top+82,.035,2.2),fr=new Float32Array(W);
+  for(let x=0;x<W;x++){const d=Math.abs(x-CX-6)/90;fr[x]=lerp(top+6,PT-26,Math.pow(d,1.25))+Math.sin(x*.3)*1.5;}
+  for(let i=0;i<220;i++){const x=Math.round(lerp(2,178,r()));const lay=r()<.65?fr:mid;const yT=lay[x]+2,yB=lay===fr?PT-4:Math.min(fr[x]-1,PT-4);if(yB<=yT)continue;
+    const y=lerp(yT,yB,r());const climb=(y-top)/(PT-top);spots.push({x,y,r:lay===fr?3:2,o:clamp((1-climb)*.92+r()*.08,0,1)});}
+  for(let i=0;i<22;i++)spots.push({x:lerp(0,W,r()),y:PT-3+lerp(-2,2,r()),r:3,o:-1});
+  sortO(spots);
+  const bg=makeBG({sky:['#3a78c8','#d4ecf6'],seed:6,deco:(x,Rx)=>{
+    const lay=(arr,c1,c2,yEnd)=>{for(let xx=0;xx<W;xx++){const y0=Math.round(arr[xx]);const sl=xx>0?arr[xx]-arr[xx-1]:0;Rx(xx,y0,1,yEnd-y0,sl>0?c2:c1);}};
+    lay(far,'#8fa9c6','#7f97b6',PT);lay(mid,'#5f8c7a','#4f7a6a',PT);
+    for(let xx=0;xx<W;xx++){const y0=Math.round(fr[xx]);Rx(xx,y0,1,PT-y0,xx<CX+6?'#5c8a48':'#4a7438');if(y0<top+22)Rx(xx,y0,1,Math.max(1,top+22-y0)>>1,'#f2f6fa');}
+    for(let i=0;i<60;i++){const t=i/60,xx=Math.round(lerp(4,64,t)+Math.sin(t*9)*6),yy=Math.round(lerp(PT-2,mid[xx]+6,t));Rx(xx,yy,3,2,'#7ab8e8');}
+    [[40,top+8],[46,top+6],[140,top+2]].forEach(([bx,by])=>{Rx(bx,by,1,1,'#223');Rx(bx-1,by-1,1,1,'#223');Rx(bx+1,by-1,1,1,'#223');});
+  }});
+  return{bg,spots,draw(c){spotsDraw(spots,c);}};
+}
+function sCity(){
+  const r=rng(505),spots=[],blds=[];
+  let x=-4;while(x<W){const w=Math.round(lerp(12,24,r())),h=Math.round(lerp(40,(PT-SY0)*.7,r()));blds.push({x,w,h});x+=w+1;}
+  const tx=150,tTop=SY0+18;
+  blds.forEach((b,i)=>{const o0=i/blds.length*.6+r()*.15;const ny=Math.max(2,Math.round(b.w/7));
+    for(let k=0;k<ny;k++)spots.push({x:b.x+3+k*(b.w-6)/Math.max(1,ny-1),y:PT-b.h-1,r:3,o:o0+r()*.08});
+    for(let k=0;k<2;k++)spots.push({x:b.x+2+r()*(b.w-4),y:PT-b.h+2,kind:'vine',len:Math.round(lerp(8,b.h*.6,r())),o:o0+.12+r()*.2,r:0});});
+  for(let y=tTop+6;y<PT-6;y+=6)spots.push({x:tx+lerp(-1,1,r())*(y-tTop)*.12,y,r:2,o:.72+(PT-y)/(PT-tTop)*.24});
+  for(let i=0;i<14;i++)spots.push({x:lerp(0,W,r()),y:PT-2,r:3,o:r()*.4});
+  sortO(spots);
+  const bg=makeBG({sky:['#0a0820','#3a2862'],seed:8,stars:60,starH:SY0+40,deco:(x,Rx,rr)=>{
+    for(let k=0;k<9;k++){const w=Math.round(Math.sqrt(81-k*k));Rx(36-w,SY0+12-k,w*2,1,'#fff2c8');Rx(36-w,SY0+12+k,w*2,1,'#fff2c8');}
+    for(let xx=0;xx<W;xx++){const h=Math.round(30-Math.abs(xx-110)*.35);if(h>0){Rx(xx,PT-60-h,1,h,'#c46a96');if(rr()<.3)Rx(xx,PT-60-h,1,1,'#ffb3cf');}}
+    for(let q=0;q<26;q++){const bw=Math.round(lerp(8,16,rr())),bh=Math.round(lerp(30,90,rr())),bx=Math.round(rr()*W);Rx(bx,PT-bh-20,bw,bh+20,'#1a1836');}
+    blds.forEach(b=>{Rx(b.x,PT-b.h,b.w,b.h,'#262444');Rx(b.x,PT-b.h,1,b.h,'#34315a');
+      for(let wy=PT-b.h+4;wy<PT-3;wy+=5)for(let wx=b.x+2;wx<b.x+b.w-2;wx+=4)if(rr()<.55)Rx(wx,wy,2,2,rr()<.85?'#ffd86a':'#7ad0ff');});
+    for(let y=tTop;y<PT;y++){const hw=Math.round((y-tTop)*.13)+1;Rx(tx-hw,y,1,1,'#e04a3a');Rx(tx+hw,y,1,1,'#e04a3a');if((y-tTop)%5===0)Rx(tx-hw,y,hw*2+1,1,(y-tTop)%10===0?'#f2f2f2':'#e04a3a');}
+    Rx(tx,tTop-6,1,6,'#e0e0e0');Rx(tx,tTop-7,1,1,'#ff3b5c');
+    Rx(0,PT-3,W,3,'#3a3850');
+  }});
+  return{bg,spots,draw(c){const P=pal();for(const s of spots){if(s.o>=c)break;if(s.kind==='vine'){for(let k=0;k<s.len;k++)if((k*7+Math.round(s.x))%3)R(Math.round(s.x+Math.sin(k*.7)*1.2),Math.round(s.y+k),1,1,k%4?P.mn:P.hi);}else puff(s.x,s.y,s.r);}}};
+}
+const JP=[
+  [[82,6],[90,2],[98,8],[108,4],[112,10],[104,18],[98,26],[92,30],[86,26],[82,20],[78,16]],
+  [[84,34],[90,36],[92,44],[91,54],[88,62],[84,68],[78,72],[72,74],[68,80],[60,82],[52,86],[44,90],[36,92],[30,94],[26,92],[30,88],[38,84],[46,80],[54,76],[60,70],[66,64],[68,58],[72,62],[74,58],[78,50],[80,42]],
+  [[38,96],[48,94],[54,97],[50,102],[40,102],[36,99]],
+  [[18,96],[26,96],[28,104],[24,114],[18,116],[14,108],[14,100]],
+];
+const JPI=[[10,122,2],[6,127,2],[3,131,1]];
+function inPoly(px,py,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>py)!==(yj>py)&&px<(xj-xi)*(py-yi)/(yj-yi)+xi)c=!c;}return c;}
+function sJapan(){
+  const r=rng(606),k=Math.min((W-28)/116,(PT-SY0-16)/134),ox=Math.round((W-116*k)/2)+8,oy=SY0+8;
+  const mask=new Uint8Array(W*H),land=[];
+  for(let y=SY0;y<PT;y++)for(let x=0;x<W;x++){const bx=(x-ox)/k,by=(y-oy)/k;let ins=JP.some(p=>inPoly(bx,by,p))||JPI.some(([ix,iy,ir])=>Math.hypot(bx-ix,by-iy)<=ir);if(ins){mask[y*W+x]=1;land.push([x,y]);}}
+  const key=(x,y)=>(y-oy)/k-((x-ox)/k)*.6;
+  let kmin=1e9,kmax=-1e9;land.forEach(([x,y])=>{const v=key(x,y);kmin=Math.min(kmin,v);kmax=Math.max(kmax,v);});
+  const spots=[];
+  for(let i=0;i<220;i++){const[x,y]=land[(r()*land.length)|0];spots.push({x,y,r:2+((r()*2)|0),o:clamp(1-(key(x,y)-kmin)/(kmax-kmin),0,1)*.95+r()*.04});}
+  const tx=ox+86*k,ty=oy+66*k;for(let i=0;i<8;i++)spots.push({x:tx+lerp(-4,4,r()),y:ty+lerp(-3,3,r()),r:2,o:-1});
+  sortO(spots);
+  const pink=document.createElement('canvas');pink.width=W;pink.height=H;const pc=pink.getContext('2d');
+  const bg=makeBG({sky:['#0e2a62','#1d5aa0'],seed:9,deco:(x,Rx)=>{
+    for(let yy=SY0-4;yy<H;yy+=8)for(let xx=-8;xx<W+8;xx+=16){const ox2=((yy/8)%2)*8;for(const rr of [7,5,3]){for(let a=Math.PI;a<=Math.PI*2;a+=.18)Rx(Math.round(xx+ox2+Math.cos(a)*rr),Math.round(yy+Math.sin(a)*rr),1,1,rr===7?'#ffffff18':'#ffffff0c');}}
+    for(let y=0;y<H;y++)for(let xx=0;xx<W;xx++)if(mask[y*W+xx]){const edge=!mask[(y-1)*W+xx]||!mask[(y+1)*W+xx]||!mask[y*W+xx-1]||!mask[y*W+xx+1];Rx(xx,y,1,1,edge?'#d8e6a0':((xx+y)%5===0?'#4a8a46':'#5c9a52'));}
+  }});
+  for(let y=0;y<H;y++)for(let xx=0;xx<W;xx++)if(mask[y*W+xx]){pc.fillStyle=(xx*3+y)%4?PALS[0].mn:PALS[0].hi;pc.fillRect(xx,y,1,1);}
+  return{bg,spots,draw(c){
+    if(c>.9){g.globalAlpha=(c-.9)*10;g.drawImage(pink,0,0);g.globalAlpha=1;}
+    spotsDraw(spots,c);
+    if(c>0&&c<.99){const kc=kmax-(kmax-kmin)*(c/.95);g.fillStyle='#ff3b5c';let lx=0,ly=0;
+      for(let xx=ox-4;xx<ox+116*k+4;xx+=1){const by=kc+((xx-ox)/k)*.6,y=oy+by*k;if(y<SY0||y>PT-2)continue;if(((xx-ox)>>2)%2===0)g.fillRect(xx,Math.round(y),1,1);lx=xx;ly=y;}
+      if(ly)fText(tt('front'),clamp(lx-26,4,W-30),clamp(ly-8,SY0+2,PT-10));}
+  }};
+}
+function fText(t,x,y){labelEl.textContent=t;labelEl.style.left=(x/W*100)+'%';labelEl.style.top=(y/H*100)+'%';labelEl.hidden=false;labelShown=2;}
+let labelEl=null,labelShown=0;
+
+/* ---------- spheres ---------- */
+const MW=128,MH=64;
+function noiseMap(seed,oct){const r=rng(seed),out=new Float32Array(MW*MH);let amp=1,tot=0;
+  for(let o=0;o<oct;o++){const gw=4<<o,gh=2<<o,grid=new Float32Array(gw*(gh+1));for(let i=0;i<grid.length;i++)grid[i]=r();
+    for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const fx=x/MW*gw,fy=y/MH*gh,x0=fx|0,y0=fy|0,tx=fx-x0,ty=fy-y0,sx=tx*tx*(3-2*tx),sy=ty*ty*(3-2*ty);
+      const a=grid[y0*gw+x0%gw],b=grid[y0*gw+(x0+1)%gw],c=grid[Math.min(gh,y0+1)*gw+x0%gw],d=grid[Math.min(gh,y0+1)*gw+(x0+1)%gw];
+      out[y*MW+x]+=amp*((a*(1-sx)+b*sx)*(1-sy)+(c*(1-sx)+d*sx)*sy);}tot+=amp;amp*=.5;}
+  for(let i=0;i<out.length;i++)out[i]/=tot;return out;}
+let EARTH=null;
+function earthMaps(){if(EARTH)return EARTH;const n=noiseMap(77,5),r=rng(78),ord=new Float32Array(MW*MH),ord2=new Float32Array(MW*MH);
+  for(let i=0;i<ord.length;i++){ord[i]=r();ord2[i]=r();}
+  // smooth order fields so blooms spread in patches
+  const sm2=a=>{const b=new Float32Array(a.length);for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){let s=0,c=0;for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const yy=y+dy;if(yy<0||yy>=MH)continue;s+=a[yy*MW+((x+dx+MW)%MW)];c++;}b[y*MW+x]=s/c;}
+    let mn=1,mx=0;for(const v of b){mn=Math.min(mn,v);mx=Math.max(mx,v);}for(let i=0;i<b.length;i++)b[i]=(b[i]-mn)/(mx-mn);return b;};
+  return EARTH={n,ord:sm2(ord),ord2:sm2(ord2)};}
+function makeSphere(r){const c=document.createElement('canvas');c.width=c.height=2*r+1;const x=c.getContext('2d');return{c,x,id:x.createImageData(2*r+1,2*r+1),r};}
+function renderSphere(sp,rot,sample){
+  const{r,id}=sp,d=id.data,N=2*r+1;d.fill(0);
+  for(let py=-r;py<=r;py++)for(let px=-r;px<=r;px++){const d2=px*px+py*py;if(d2>r*r)continue;
+    const nx=px/r,ny=py/r,nzv=Math.sqrt(Math.max(0,1-nx*nx-ny*ny));
+    let lon=Math.atan2(nx,nzv)/(Math.PI*2)+rot;lon-=Math.floor(lon);const lat=Math.asin(clamp(ny,-1,1))/Math.PI+.5;
+    const mx=Math.min(MW-1,(lon*MW)|0),my=Math.min(MH-1,(lat*MH)|0);
+    const L=Math.max(0,-.5*nx-.45*ny+.74*nzv),th=(BAY[((py+r)&3)*4+((px+r)&3)]+.5)/16,lv=.32+.68*Math.min(4,Math.floor(L*4+th))/4;
+    const col=sample(mx,my,px,py),k=((py+r)*N+(px+r))*4;d[k]=col[0]*lv;d[k+1]=col[1]*lv;d[k+2]=col[2]*lv;d[k+3]=255;}
+  sp.x.putImageData(id,0,0);
+}
+const PK=[hex('#ffb3cf'),hex('#ff9fc2'),hex('#fff0f5')];
+const pkAt=(mx,my)=>{const h=(Math.imul(mx,73856093)^Math.imul(my,19349663))>>>0;return PK[h%7===0?2:(h>>>3)&1];};
+function sContinent(){
+  const E=earthMaps(),rr=Math.round(Math.min(118,(PT-SY0)*.66)),sp=makeSphere(rr),cx=CX-4,cy=Math.round(CY+rr*.55);
+  const bg=makeBG({sky:['#020108','#0b0f30'],seed:10,stars:160,starH:H});let fr=0;
+  const OC=hex('#1d4f9e'),OC2=hex('#245aaa'),LD=hex('#4a8a46'),LD2=hex('#8a7a4a'),ICE=hex('#e8f0f8');
+  return{bg,spots:[],draw(c){
+    if((fr++)%2===0)renderSphere(sp,T*.004,(mx,my)=>{const i=my*MW+mx,v=E.n[i],land=v>.55,ice=my<4||my>MH-5;
+      if(land||ice){if(E.ord[i]<c*1.02)return pkAt(mx,my);return ice?ICE:v>.66?LD2:LD;}return (mx+my)%3?OC:OC2;});
+    g.globalAlpha=.35;disc(cx,cy,rr+3,'#7ab8ff');g.globalAlpha=1;g.drawImage(sp.c,cx-rr,cy-rr);
+  }};
+}
+function sEarth(){
+  const E=earthMaps(),rr=Math.round(Math.min(58,(PT-SY0)*.33)),sp=makeSphere(rr),cx=CX,cy=CY+2,r=rng(707);
+  const rim=[];for(let i=0;i<46;i++){const a=i/46*Math.PI*2;rim.push({x:cx+Math.cos(a)*(rr+1),y:cy+Math.sin(a)*(rr+1),r:3+((r()*2)|0),o:.86+r()*.13});}
+  sortO(rim);
+  const bg=makeBG({sky:['#020108','#0d1236'],seed:11,stars:200});let fr=0;
+  const OC=hex('#1d4f9e'),OC2=hex('#245aaa'),SEA=[hex('#ffc6dc'),hex('#ffd8e6')];
+  return{bg,spots:rim,draw(c){
+    if((fr++)%2===0)renderSphere(sp,T*.01,(mx,my)=>{const i=my*MW+mx,land=E.n[i]>.55||my<4||my>MH-5;if(land)return pkAt(mx,my);if(E.ord2[i]<c/.86)return SEA[(mx+my)%2];return (mx+my)%3?OC:OC2;});
+    g.globalAlpha=.3;disc(cx,cy,rr+4,c>.86?'#ffb3cf':'#7ab8ff');g.globalAlpha=1;g.drawImage(sp.c,cx-rr,cy-rr);spotsDraw(rim,c);
+  }};
+}
+function sMoon(){
+  const rr=Math.round(Math.min(50,(PT-SY0)*.3)),sp=makeSphere(rr),cx=CX+6,cy=CY+10,r=rng(808);
+  const n=noiseMap(88,4),cr=new Float32Array(MW*MH),ord=noiseMap(89,3);
+  for(let k=0;k<60;k++){const x0=r()*MW,y0=r()*MH,rad=lerp(2,9,r());for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){let dx=Math.abs(x-x0);dx=Math.min(dx,MW-dx);const d=Math.hypot(dx,(y-y0)*2)/rad;if(d<1)cr[y*MW+x]-=.25*(1-d);else if(d<1.25)cr[y*MW+x]+=.15;}}
+  let mn=1,mx=0;for(const v of ord){mn=Math.min(mn,v);mx=Math.max(mx,v);}
+  const bg=makeBG({sky:['#000000','#0b0b22'],seed:12,stars:240});let fr=0;
+  const ex=34,ey=SY0+22,er=10;
+  return{bg,spots:[],draw(c){
+    if((fr++)%2===0)renderSphere(sp,T*.006,(mx2,my)=>{const i=my*MW+mx2;if((ord[i]-mn)/(mx-mn)<c)return pkAt(mx2,my);const v=clamp(.62+(n[i]-.5)*.5+cr[i],.2,1)*255;return[v,v,v*1.04];});
+    g.drawImage(sp.c,cx-rr,cy-rr);
+    disc(ex,ey,er,'#e47aa2');for(let k=0;k<10;k++){const a=k/10*Math.PI*2+T*.2;puff(ex+Math.cos(a)*er*.8,ey+Math.sin(a)*er*.8,3);}puff(ex,ey,5);
+  }};
+}
+function sSolar(){
+  const r=rng(909),sx=CX,sy=CY,sc=Math.min(1,(W-24)/170);
+  const pl=[[16,1,'#b8a89a',.08],[24,2,'#e8c88a',.16],[33,2,'#4a8adf',-1],[42,2,'#d0603a',.26],[58,5,'#d8b088',.55],[70,4,'#e0c890',.66],[80,3,'#9ad8e0',.76],[88,3,'#5a7ae0',.86]].map(([a,s,c,o])=>({a:a*sc,s,c,o,ph:r()*Math.PI*2}));
+  const belt=[];for(let i=0;i<70;i++)belt.push({a:lerp(48,52,r())*sc,ph:r()*Math.PI*2,o:.3+r()*.2});
+  const bg=makeBG({sky:['#020108','#120a2a'],seed:13,stars:220});
+  const pos=(a,ph)=>{const w=.6/Math.pow(a/16,1.5);return[sx+Math.cos(ph+T*w)*a,sy+Math.sin(ph+T*w)*a*.42];};
+  return{bg,spots:[],draw(c){
+    g.fillStyle='#ffffff22';for(const p of pl)for(let t=0;t<Math.PI*2;t+=.05)g.fillRect(Math.round(sx+Math.cos(t)*p.a),Math.round(sy+Math.sin(t)*p.a*.42),1,1);
+    const back=[],front=[];
+    for(const b of belt){const[x,y]=pos(b.a,b.ph);(y<sy?back:front).push(()=>R(Math.round(x),Math.round(y),1,1,b.o<c?pal().mn:'#8a8070'));}
+    for(const p of pl){const[x,y]=pos(p.a,p.ph);(y<sy?back:front).push(()=>{const on=p.o<c;
+      if(on){puff(x,y,p.s+1);}else{disc(x,y,p.s,p.c);R(Math.round(x-p.s*.5),Math.round(y-p.s*.5),1,1,'#ffffffaa');}
+      if(p.a>65*sc&&p.a<75*sc){g.fillStyle=on?pal().hi:'#c8b07a';for(let t=0;t<Math.PI*2;t+=.2)g.fillRect(Math.round(x+Math.cos(t)*(p.s+4)),Math.round(y+Math.sin(t)*(p.s+4)*.35),1,1);}
+      if(p.o<0){R(Math.round(x+4),Math.round(y-3),2,2,pal().hi);}});}
+    back.forEach(f=>f());
+    if(c>.95){flower(sx,sy,18,T*.3);}else{g.globalAlpha=.25;disc(sx,sy,16,'#ffb84a');g.globalAlpha=1;disc(sx,sy,11,'#ffcf4a');disc(sx-2,sy-2,6,'#fff0a0');}
+    front.forEach(f=>f());
+  }};
+}
+function sGalaxy(){
+  const r=rng(1010),stars=[],rad=Math.min(84,(PT-SY0)*.6);
+  for(let i=0;i<1500;i++){const arm=i%2,rr=Math.pow(r(),.62)*rad,th=arm*Math.PI+rr*.085+(r()-.5)*.7*(1-rr/rad*.5);stars.push({rr,th,o:clamp(rr/rad*.85+r()*.15,0,1),b:r()});}
+  const sun={rr:rad*.62,th:1.3,o:-1,b:1};stars.push(sun);
+  const bg=makeBG({sky:['#020108','#0e0628'],seed:14,stars:180});
+  return{bg,spots:[],draw(c){
+    const rot=T*.03;g.globalCompositeOperation='lighter';const gr=g.createRadialGradient(CX,CY,1,CX,CY,30);gr.addColorStop(0,c>.05?'rgba(255,170,210,.6)':'rgba(255,240,210,.6)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(CX-30,CY-30,60,60);g.globalCompositeOperation='source-over';
+    const P=pal();
+    for(const s of stars){const a=s.th+rot*(1.2-s.rr/rad*.6),x=Math.round(CX+Math.cos(a)*s.rr),y=Math.round(CY+Math.sin(a)*s.rr*.5);
+      if(s.o<c){g.fillStyle=s.b>.8?P.hi:P.mn;g.fillRect(x,y,s.b>.9?2:1,1);}else{g.fillStyle=s.b>.7?'#ffffff':s.b>.3?'#b8c4ff':'#6a74c0';g.fillRect(x,y,1,1);}
+      if(s===sun){R(x-1,y-1,3,3,P.mn);R(x,y,1,1,'#fff');}}
+  }};
+}
+function sUniverse(){
+  const r=rng(1111),segs=[],tips=[];genTree(r,CX,PT+6,Math.round((PT-SY0)*.2),-Math.PI/2,5,6,segs,tips);
+  const gal=[];tips.forEach(([x,y],i)=>{if(i%2)gal.push({x,y,s:1+((r()*3)|0),o:r()*.97,rot:r()*6,arms:2+((r()*2)|0)});});
+  sortO(gal);
+  const dust=[];segs.forEach(([x0,y0,x1,y1])=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0)/2);for(let i=0;i<n;i++){const t=i/n;dust.push([x0+(x1-x0)*t+lerp(-1,1,r()),y0+(y1-y0)*t+lerp(-1,1,r()),r()]);}});
+  const bg=makeBG({sky:['#05010c','#1a0a2e'],seed:15,stars:320,deco:(x,Rx,rr)=>{for(let i=0;i<14;i++){const nx=rr()*W,ny=rr()*H,nr=lerp(14,40,rr());const gg=x.createRadialGradient(nx,ny,1,nx,ny,nr);gg.addColorStop(0,pick(['rgba(140,60,200,.18)','rgba(60,90,220,.16)','rgba(220,80,160,.14)']));gg.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gg;x.fillRect(nx-nr,ny-nr,nr*2,nr*2);}}});
+  return{bg,spots:[],draw(c){
+    const P=pal();for(const[x,y,b] of dust){g.fillStyle=c>.5?(b>.6?P.sh:'#6a4a8a'):(b>.6?'#8a86c8':'#4a4680');g.fillRect(Math.round(x),Math.round(y),1,1);}
+    for(const q of gal){const on=q.o<c,a0=q.rot+T*.4;
+      if(on){puff(q.x,q.y,q.s+1);}else{R(Math.round(q.x),Math.round(q.y),1,1,'#fff');}
+      g.fillStyle=on?P.hi:'#9aa4ff';for(let k=0;k<q.arms;k++)for(let j=1;j<=q.s+2;j++){const a=a0+k*Math.PI*2/q.arms+j*.6;g.fillRect(Math.round(q.x+Math.cos(a)*j*1.2),Math.round(q.y+Math.sin(a)*j*.7),1,1);}}
+    if(c>.97)flower(CX,CY-10,Math.round(lerp(4,40,(c-.97)/.03)),T*.2);
+  }};
+}
+const BUILD=[sTree,sGarden,sVillage,sMountain,sCity,sJapan,sContinent,sEarth,sMoon,sSolar,sGalaxy,sUniverse];
+let scene=null;
+function buildScene(){scene=BUILD[S.tier]();RT.spotN=countSpots(prog());}
+const countSpots=c=>{let n=0;for(const s of scene.spots){if(s.o>=c)break;n++;}return n;};
+
+/* =========================================================
+   Sprites: grandpa / Pochi / device
+   ========================================================= */
+const JII=["     kkkkkk     ","    kssssssk    ","   kssssssssk   ","  kwsssssssswk  ","  kwsAAssBBswk  ","  kwsrssssrswk  ","  kwwMMMMMMwwk  ","   kwwwwwwwwk   ","  bbkwwwwwwkbb  "," bbbbkwwwwkbbbb ","sbbbbbkwwkbbbbbs","sbbbbbbkkbbbbbbs"," byyyyyyyyyyyyb "," bbbbbbbbbbbbbb "," bbbbbbbbbbbbbb ","  bbbbbbbbbbbb  ","   kk      kk   ","  kkk      kkk  "];
+const EXP=[{A:'kk',B:'kk',M:'wwkkww'},{A:'kk',B:'kk',M:'wkRRkw'},{A:'Wk',B:'kW',M:'kRRRRk'},{A:'GG',B:'GG',M:'kWRRWk'}];
+const JC={};
+function jiiRows(e){const k=e;if(JC[k])return JC[k];const x=EXP[e];return JC[k]=JII.map((r,i)=>i===4?r.replace('AA',x.A).replace('BB',x.B):i===6?r.replace('MMMMMM',x.M):r);}
+const POCHI=["  k     k    "," kwk   kwk   "," kwwkkkwwk   "," kwewwwewk  k"," kwwwnwwwk kwk","  kwwwwwk  kwk","  kwwwwwwwwwk ","  kwwwwwwwwk  ","  kwk kwk kk  ","  kk  kk      "];
+function jiiScale(){return[3,3,3,3,3,3,4,4,4,4,5,5][S.tier];}
+function jiiPos(){const s=jiiScale(),cx=8*s+3,y0=PT-2-18*s;return{s,cx,y0,x0:cx-8*s};}
+function drawJii(){
+  const{s,x0,y0}=jiiPos(),gp=GRP(S.tier),form=S.L.satori>=3?2:S.L.satori>=1?1:0;
+  const P={k:'#2a1a1c',s:'#f2c39b',w:'#f6f1ea',r:'#ec8f8f',b:'#3b3f78',y:'#d0a83c',W:'#ffffff',R:'#e02c3c',G:'#ffe14d'};
+  if(form===1){P.b='#e8e4dc';P.y='#8a6a3a';}if(form===2){P.b='#e8b84a';P.y='#c0302c';P.s='#ffe0b0';}
+  if(gp>=2)P.r='#ff6060';
+  const bob=Math.round(Math.sin(T*(2+gp*1.5)))*(gp>=3?2:1),yy=y0+bob;
+  if(form>=1){g.globalAlpha=.85;ell(x0+8*s,PT-3,9*s,Math.max(2,s),'#f4f0ff');ell(x0+5*s,PT-4,4*s,s,'#ffffff');g.globalAlpha=1;}
+  if(form===2||gp===3){const n=gp===3?22:12,len=gp===3?18*s:9*s,hx=x0+8*s,hy=yy+4*s;
+    for(let i=0;i<n;i++){const a=i/n*Math.PI*2+T*(gp===3?1:.4);g.fillStyle=gp===3?`hsl(${(i*360/n+T*140)%360},100%,68%)`:'#ffe9a0';g.globalAlpha=.5;for(let rr=7*s;rr<7*s+len;rr+=3)g.fillRect(Math.round(hx+Math.cos(a)*rr),Math.round(hy+Math.sin(a)*rr),2,2);}g.globalAlpha=1;}
+  if(form===2){g.fillStyle='#ffe14d';for(let a=0;a<Math.PI*2;a+=.15)g.fillRect(Math.round(x0+8*s+Math.cos(a)*5*s),Math.round(yy-2*s+Math.sin(a)*1.4*s),s>3?2:1,1);}
+  if(form>=1){R(x0-s,yy+6*s,s,12*s,'#6a4a2a');R(x0-2*s,yy+5*s,3*s,s,'#8a6a3a');}
+  const rows=jiiRows(gp);for(let r=0;r<rows.length;r++){const row=rows[r];for(let c=0;c<16;c++){const ch=row[c];if(!ch||ch===' ')continue;g.fillStyle=P[ch];g.fillRect(x0+c*s,yy+r*s,s,s);}}
+  const bx=x0+14*s,by=yy+9*s;R(bx,by+s,5*s,2*s,'#8a6a3a');R(bx+s,by+3*s,3*s,s,'#6a4e2a');R(bx+s,by,3*s,s,ashCol());
+  if(gp>=2&&RT.tapGlow>0){g.globalAlpha=RT.tapGlow;R(x0+5*s,yy+4*s,2*s,s,'#ff3b5c');R(x0+9*s,yy+4*s,2*s,s,'#ff3b5c');g.globalAlpha=1;}
+  return{eyeL:[x0+5.5*s,yy+4.5*s],eyeR:[x0+9.5*s,yy+4.5*s]};
+}
+function drawPochi(){
+  const L=S.L.pochi;if(L<=0)return;const js=jiiPos(),s=2,x0=js.cx+8*js.s+2,jump=RT.pochiJump>0?Math.round(Math.sin(RT.pochiJump/.35*Math.PI)*6):0,y0=PT-3-10*s-jump;
+  const P={k:'#2a1a1c',w:L>=50?'#ffe08a':'#f8f4ec',e:'#1a1010',n:'#1a1010'};
+  if(L>=10){g.globalAlpha=.25+.1*Math.sin(T*4);disc(x0+6*s,y0+5*s,9*s,L>=50?'#ffd34d':'#ffb3cf');g.globalAlpha=1;}
+  if(L>=50){g.fillStyle='#ffe14d';for(let a=0;a<Math.PI*2;a+=.25)g.fillRect(Math.round(x0+4*s+Math.cos(a)*4*s),Math.round(y0-2*s+Math.sin(a)*s),1,1);}
+  const wag=Math.sin(T*(10+Math.min(20,L*.2)))>0;
+  for(let r=0;r<POCHI.length;r++){const row=POCHI[r];for(let c=0;c<row.length;c++){let ch=row[c];if(ch===' ')continue;if(r>=3&&r<=5&&c>=10&&!wag)continue;g.fillStyle=P[ch]||'#f0f';g.fillRect(x0+c*s,y0+r*s,s,s);}}
+  if(!wag){g.fillStyle=P.w;g.fillRect(x0+11*s,y0+6*s,2*s,s);}
+  R(x0+2*s,y0+5*s,6*s,s,'#d0302c');
+  if(L>=100){g.fillStyle='#9ad8ff';g.globalAlpha=.7;for(let a=0;a<Math.PI*2;a+=.12)g.fillRect(Math.round(x0+5*s+Math.cos(a)*6*s),Math.round(y0+3*s+Math.sin(a)*5*s),1,1);g.globalAlpha=1;R(x0+2*s,y0+s,s,s,'#ffffff88');}
+}
+function devPos(){return{x:W-24,y:PT-3};}
+function drawDevice(){
+  const L=S.L.dev;if(L<=0)return;const{x,y}=devPos(),a=T*(6+Math.min(30,L*.5));
+  if(L<25){const big=L>=10,h=big?22:12,rr=big?9:5,cy=y-h-rr;R(x-1,y-h,2,h,'#6a6a7a');R(x-5,y-2,10,2,'#4a4a5a');
+    disc(x,cy,rr,'#3a4a6a');g.fillStyle='#cfe0ff';for(let k=0;k<3;k++){const b=a+k*2.094;for(let j=1;j<rr;j++)g.fillRect(Math.round(x+Math.cos(b)*j),Math.round(cy+Math.sin(b)*j*.9),1,1);}
+    g.fillStyle='#9ab0d0';for(let t=0;t<Math.PI*2;t+=.2)g.fillRect(Math.round(x+Math.cos(t)*rr),Math.round(cy+Math.sin(t)*rr),1,1);R(x,cy,1,1,'#fff');}
+  else{const huge=L>=50,len=huge?34:20,wd=huge?8:5,ang=-2.35;
+    disc(x+2,y-5,huge?7:5,'#4a3a2a');disc(x+2,y-5,huge?3:2,'#8a6a4a');
+    for(let j=0;j<len;j++){const px=x+Math.cos(ang)*j,py=y-8+Math.sin(ang)*j;g.fillStyle=huge?`hsl(${(j*12+T*200)%360},90%,60%)`:'#2c2c3c';g.fillRect(Math.round(px-wd/2),Math.round(py-wd/2),wd,wd);}
+    if(huge){for(let k=0;k<4;k++){const j=6+k*7;const px=x+Math.cos(ang)*j,py=y-8+Math.sin(ang)*j;g.fillStyle='#ffe14d';g.fillRect(Math.round(px-wd/2-1),Math.round(py),wd+2,1);}}}
+}
+function devMouth(){const L=S.L.dev,{x,y}=devPos();if(L<25){const big=L>=10;return[x,y-(big?22:12)-(big?9:5)];}const len=L>=50?34:20;return[x+Math.cos(-2.35)*len,y-8+Math.sin(-2.35)*len];}
+function ashCol(){const L=S.L.ash;return L>=25?`hsl(${(T*200)%360},95%,70%)`:L>=10?'#ffd34d':'#d8d0cc';}
+
+/* =========================================================
+   Runtime / particles
+   ========================================================= */
+const RT={combo:0,lastTap:-9,ash:100,fever:0,feverT:0,barkT:6,down:null,blasting:false,blastAcc:0,trans:null,flash:0,flashCol:'#fff',shake:0,spotN:0,pochiJump:0,tapGlow:0,devAcc:0,swipeAcc:0,ending:false,started:false,saveT:0,lastSwipe:null};
+let parts=[],bursts=[],shots=[],beams=[],trail=[];
+function addP(p){if(parts.length>900)parts.shift();parts.push(p);}
+function petals(x,y,n,spd,tier){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=rnd(10,45)*(spd||1);addP({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-14,life:0,max:rnd(1,2.4),h:Math.random()*360,w:Math.random()<.4?3:2,hh:Math.random()<.5?2:1,k:tier});}}
+function wind(){addP({x:-4,y:rnd(SY0,PT),vx:rnd(70,150),vy:rnd(-10,14),life:0,max:rnd(1.5,2.6),h:Math.random()*360,w:Math.random()<.4?3:2,hh:Math.random()<.5?2:1,wind:1});}
+function burst(x,y,big){bursts.push({x,y,t:0,max:.45,r:big?8:4+Math.min(4,RT.combo*.05)});petals(x,y,big?20:7+Math.min(10,RT.combo>>2),big?1.6:1);}
+
+/* =========================================================
+   Actions
+   ========================================================= */
+const ashOn=()=>S.total>=300||S.all>=3e5;
+const feverOn=()=>S.L.pochi>0;
+function tapAt(x,y,kind){
+  const tn=performance.now()/1000;
+  if(kind!=='swipe'){if(tn-RT.lastTap<.8)RT.combo++;else RT.combo=1;RT.lastTap=tn;}
+  const cm=CMf(),cmb=1+Math.min(RT.combo,100)*.01*cm;
+  let v=kind==='swipe'?TPf()*cm*2:TPf()*cmb*(kind==='blast'?.8:1);
+  if(RT.feverT>0&&kind!=='swipe')v*=3+cm;
+  add(v);
+  if(feverOn()&&RT.feverT<=0){RT.fever=Math.min(100,RT.fever+(kind==='tap'?1.6:kind==='blast'?.5:0));if(RT.fever>=100)startFever();}
+  burst(x,y,false);RT.shake=Math.min(2,RT.shake+.15);
+  if(kind==='tap'||(kind==='blast'&&RT.combo%3===0)||(kind==='swipe'&&Math.random()<.35))popup(x,y-6,'+'+fmt(v),{fs:Math.min(10,5.4+RT.combo*.04),col:RT.feverT>0?'#ffd34d':'#ffffff'});
+  if(RT.combo>=10&&RT.combo%10===0&&kind!=='swipe')popup(x,y-16,tt('combo',RT.combo),{fs:Math.min(12,7+RT.combo*.02),col:'#ffb3cf'});
+  SFX.tap(RT.combo);
+  if(GRP(S.tier)>=3&&kind!=='swipe'&&Math.random()<.6){const e=RT.eyes;if(e){beams.push({x0:e.eyeL[0],y0:e.eyeL[1],x1:x,y1:y,t:0});beams.push({x0:e.eyeR[0],y0:e.eyeR[1],x1:x+2,y1:y,t:0});}}
+  RT.tapGlow=1;
+  if(!S.seen.tap){S.seen.tap=1;}
+}
+function startFever(){RT.feverT=10;RT.fever=0;stage.classList.add('fever');showBig(tt('fever_big'),tt('fever_sub'));SFX.fever();RT.flash=.6;RT.flashCol='#ffe0f0';if(!S.seen.fever){S.seen.fever=1;}}
+function bark(){
+  const v=TPf()*CMf()*8*(RT.feverT>0?3:1);add(v);RT.pochiJump=.35;SFX.bark();
+  const js=jiiPos(),px=js.cx+8*js.s+14,py=PT-24;
+  popup(px,py-8,tt('wan')+' +'+fmt(v),{fs:6.4,col:'#ffe08a'});bursts.push({x:px,y:py,t:0,max:.6,r:14,ring:1});
+  for(let i=0;i<5;i++){const sp=scene.spots.length?scene.spots[(Math.random()*Math.min(scene.spots.length,Math.max(1,RT.spotN)))|0]:null;const x=sp?sp.x:rnd(30,W-10),y=sp?sp.y:rnd(SY0+20,PT-20);burst(x,y,false);}
+  if(feverOn()&&RT.feverT<=0){RT.fever=Math.min(100,RT.fever+6);if(RT.fever>=100)startFever();}
+}
+function buy(k){
+  if(!unlocked(k)){SFX.no();return;}
+  const n=amtN(k),c=cost(k,n);if(c>S.p){SFX.no();const el=$('up-'+k);el.classList.remove('flash');return;}
+  S.p-=c;S.L[k]+=n;SFX.buy();const el=$('up-'+k);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');
+  if(k==='pochi'&&S.L.pochi===n){say(tt('say_pochi'));RT.barkT=1.2;}
+  if(k==='dev'&&S.L.dev===n)say(tt('say_dev'));
+  if(k==='satori'){const f=S.L.satori;say(f>=3?tt('say_sat3'):f>=1?tt('say_sat1'):'');RT.flash=.5;RT.flashCol='#fff3c0';}
+  if(S.L[k]%25<n)popup(W/2,PT-30,tt('x2pop',tt('up_'+k)),{fs:7,col:'#ffd34d'});
+  uiDirty=true;
+}
+
+/* =========================================================
+   Tier transitions & ending
+   ========================================================= */
+const snap=document.createElement('canvas');snap.width=W;snap.height=H;const sg=snap.getContext('2d');
+function startMankai(){
+  RT.trans={t:0,ph:0};SFX.mankai();RT.flash=1;RT.flashCol='#ffffff';RT.shake=4;
+  showBig(tDone(S.tier),'');
+  for(let i=0;i<60;i++){const s=scene.spots.length?pick(scene.spots):{x:rnd(20,W-10),y:rnd(SY0+10,PT-10)};petals(s.x,s.y,4,2);}
+  if(S.tier===2)say(tt('dl'));
+}
+function stepTrans(dt){
+  const tr=RT.trans;tr.t+=dt;
+  if(tr.ph===0&&tr.t>1.5){
+    render(true);sg.clearRect(0,0,W,H);sg.drawImage(cv,0,0);
+    const oldCh=CHI[S.tier];S.tier++;buildScene();tr.ph=1;tr.t=0;
+    if(CHI[S.tier]!==oldCh)setTimeout(()=>showChapter(tCh(S.tier),tName(S.tier)),700);
+    save();uiDirty=true;
+  }else if(tr.ph===1&&tr.t>1.9){RT.trans=null;say(pick(tLines(S.tier)));}
+}
+function startEnding(){
+  S.ended=true;RT.ending=true;save();SFX.silence(9);RT.flash=1;RT.flashCol='#ffffff';
+  showBig(tDone(11),'');
+  setTimeout(()=>{const e=$('ending'),b=$('ebox');b.textContent='';e.hidden=false;e.classList.remove('pink');
+    const lines=[[tt('end1')],[tt('end2')],[tt('end3')],[tt('end4')],[tt('end5'),'g']];
+    lines.forEach(([t,c],i)=>{const p=document.createElement('p');p.className='eline'+(c?' '+c:'');p.textContent=t;p.style.animationDelay=(i*1.8)+'s';b.appendChild(p);});
+    const gain=tokuGain();const bx=document.createElement('div');bx.className='ebtns';bx.style.animationDelay=(lines.length*1.8)+'s';
+    const info=document.createElement('p');info.className='note';info.textContent=tt('end_info',gain,fmt(Math.pow(2,S.toku+gain)));
+    const b1=document.createElement('button');b1.className='btn gold';b1.type='button';b1.textContent=tt('rebirth');b1.onclick=()=>{e.hidden=true;rebirth();};
+    const b2=document.createElement('button');b2.className='btn ghost';b2.type='button';b2.textContent=tt('end_back');b2.onclick=()=>{e.hidden=true;RT.ending=false;say(tt('end_say'));};
+    bx.append(info,b1,b2);b.appendChild(bx);
+    setTimeout(()=>e.classList.add('pink'),3*1800);SFX.bell();
+  },2200);
+}
+const tokuGain=()=>Math.max(1,Math.floor(Math.log10(Math.max(1,S.total))-18));
+function rebirth(){
+  const gain=tokuGain();S.toku+=gain;S.loops++;S.p=0;S.total=0;S.tier=0;S.ended=false;for(const k of ORDER)S.L[k]=0;
+  RT.ending=false;RT.fever=0;RT.feverT=0;RT.combo=0;stage.classList.remove('fever');
+  render(true);sg.clearRect(0,0,W,H);sg.drawImage(cv,0,0);buildScene();RT.trans={t:0,ph:1,rev:1};
+  showBig(tt('rebirth'),tt('reb_sub',gain,fmt(tokuM())));say(tt('reb_say'));SFX.mankai();save();uiDirty=true;
+}
+
+/* =========================================================
+   DOM fx
+   ========================================================= */
+const sayEl=$('say');let sayTO=0;
+function say(t){if(!t)return;const js=jiiPos();sayEl.style.left=((js.x0+16*js.s+6)/W*100)+'%';sayEl.style.bottom=((H-js.y0+4)/H*100)+'%';
+  sayEl.textContent=t;sayEl.classList.toggle('mad',GRP(S.tier)>=2);sayEl.classList.remove('on');void sayEl.offsetWidth;sayEl.classList.add('on');clearTimeout(sayTO);sayTO=setTimeout(()=>sayEl.classList.remove('on'),3200);}
+const popsEl=$('pops');
+function popup(x,y,text,o){if(popsEl.childElementCount>32)popsEl.firstChild.remove();const s=document.createElement('span');s.className='pop';s.textContent=text;
+  s.style.left=(x/W*100)+'%';s.style.top=(y/H*100)+'%';s.style.setProperty('--fs',o.fs);s.style.setProperty('--pc',o.col);popsEl.appendChild(s);setTimeout(()=>s.remove(),820);}
+function showBig(t,sub){const b=$('big');b.className='';b.textContent='';const a=document.createElement('span');a.className='bt';a.textContent=t;a.style.setProperty('--bs',Math.max(11,Math.min(26,150/vlen(t))));b.appendChild(a);
+  if(sub){const s=document.createElement('span');s.className='bs ol';s.textContent=sub;b.appendChild(s);}setTimeout(()=>{if(a.parentNode===b)b.textContent='';},2100);}
+function showChapter(ch,nm){const b=$('big');b.className='chap';b.textContent='';const a=document.createElement('span');a.className='bt';a.textContent=ch;a.style.setProperty('--bs',Math.max(10,Math.min(20,150/vlen(ch))));const s=document.createElement('span');s.className='bs ol';s.textContent=nm;b.append(a,s);setTimeout(()=>{if(a.parentNode===b)b.textContent='';},2700);}
+function modal(html,btns){const c=$('mcard');c.innerHTML=html;const wrapB=document.createElement('div');wrapB.style.cssText='display:grid;gap:calc(var(--u)*3);justify-items:center';
+  btns.forEach(([t,cls,fn])=>{const b=document.createElement('button');b.type='button';b.className='btn '+(cls||'');b.textContent=t;b.onclick=()=>{$('modal').hidden=true;fn&&fn();};wrapB.appendChild(b);});c.appendChild(wrapB);$('modal').hidden=false;}
+
+/* =========================================================
+   Pixel icons
+   ========================================================= */
+function iconURL(map,pals,s){const w=Math.max(...map.map(r=>r.length)),c=document.createElement('canvas');c.width=12*s;c.height=12*s;const x=c.getContext('2d');const ox=Math.floor((12-w)/2)*s,oy=Math.floor((12-map.length)/2)*s;
+  map.forEach((r,j)=>{for(let i=0;i<r.length;i++){const ch=r[i];if(ch===' ')continue;x.fillStyle=pals[ch]||'#f0f';x.fillRect(ox+i*s,oy+j*s,s,s);}});return c.toDataURL();}
+const ICONS={
+  ash:iconURL(["    ww    ","   wggw   ","  wggggw  "," wggggggw ","bbbbbbbbbb","bBBBBBBBBb"," bBBBBBBb ","  bbbbbb  "],{w:'#ffffff',g:'#cfc8c4',b:'#5a3e1e',B:'#9a7440'},3),
+  pochi:iconURL([" k      k ","kwk    kwk","kwwkkkkwwk","kwwwwwwwwk","kwkwwwwkwk","kwwwnnwwwk"," kwwwwwwk ","  kkrrkk  "],{k:'#2a1a1c',w:'#f8f4ec',n:'#1a1010',r:'#d0302c'},3),
+  dev:iconURL(["   kkkkk   ","  kbbwbbk  "," kbwbwbwbk "," kbbwwwbbk "," kbwbwbwbk ","  kbbwbbk  ","   kkkkk   ","     k     ","     k     ","   kkkkk   "],{k:'#9ab0d0',b:'#3a4a6a',w:'#cfe0ff'},3),
+  satori:iconURL(JII.slice(0,8).map(r=>r.replace('AA','kk').replace('BB','kk').replace('MMMMMM','wwkkww')),{k:'#2a1a1c',s:'#f2c39b',w:'#f6f1ea',r:'#ec8f8f'},2),
+};
+ICONS.breed=(()=>{const c=document.createElement('canvas');c.width=c.height=13;flower(6,6,6,0,PALS[0],c.getContext('2d'));const b=document.createElement('canvas');b.width=b.height=39;const bx=b.getContext('2d');bx.imageSmoothingEnabled=false;bx.drawImage(c,0,0,39,39);return b.toDataURL();})();
+const PICON=(()=>{const c=document.createElement('canvas');c.width=c.height=11;flower(5,5,5,.3,PALS[0],c.getContext('2d'));const b=document.createElement('canvas');b.width=b.height=33;const bx=b.getContext('2d');bx.imageSmoothingEnabled=false;bx.drawImage(c,0,0,33,33);return b.toDataURL();})();
+$('picon').src=PICON;
+
+/* =========================================================
+   Upgrade panel UI
+   ========================================================= */
+const upsEl=$('ups'),UI={};let uiDirty=true;
+ORDER.forEach(k=>{const b=document.createElement('button');b.type='button';b.className='up';b.id='up-'+k;
+  b.innerHTML=`<img class="px" alt="" src="${ICONS[k]}"><span class="ut"><b class="un"></b><span class="ue"></span></span><span class="uc"><b></b><small></small></span>`;
+  b.addEventListener('click',()=>{initAudio();buy(k);});upsEl.appendChild(b);UI[k]={b,un:b.querySelector('.un'),ue:b.querySelector('.ue'),cb:b.querySelector('.uc b'),cs:b.querySelector('.uc small')};});
+document.querySelectorAll('.amt button').forEach(b=>b.addEventListener('click',()=>{amt=b.dataset.a;document.querySelectorAll('.amt button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));uiDirty=true;}));
+function effText(k,n){const L=S.L[k];
+  if(k==='ash')return tt('e_tap',fmt(TPf()),fmt(TPf(L+n)));
+  if(k==='pochi')return L?tt('e_chain',CMf().toFixed(2),CMf(L+n).toFixed(2)):tt('e_pochi0');
+  if(k==='breed')return tt('e_breed',fmt(BREEDf()),fmt(BREEDf(L+n)));
+  if(k==='dev')return tt('e_dev',AUTOf().toFixed(1),AUTOf(L+n).toFixed(1));
+  return tt('e_all',fmt(Math.pow(3,L)),fmt(Math.pow(3,L+n)));}
+let uiT=0;
+function renderUI(){
+  for(const k of ORDER){const u=UI[k],L=S.L[k];
+    if(!unlocked(k)){u.b.className='up lock';u.un.textContent='？？？';u.ue.textContent=tt('unlock',fmt(UP[k].unlock-S.total));u.cb.textContent='';u.cs.textContent='';continue;}
+    const n=amtN(k),c=cost(k,n),can=c<=S.p;
+    u.b.className='up'+(can?' can':' no');
+    u.un.innerHTML=tt('up_'+k)+`<i>Lv.${L}</i>`;
+    const m=25-(L%25);u.ue.innerHTML=effText(k,n)+(k!=='satori'&&m<=5?`　<em>${tt('x2',m)}</em>`:'');
+    u.cb.textContent=fmt(c);u.cs.textContent=amt==='max'?'×'+n:'×'+amt;
+  }
+  $('rebirth').hidden=!S.ended;
+}
+
+/* =========================================================
+   Input
+   ========================================================= */
+function toL(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};}
+const ptrs=new Map();
+cv.addEventListener('pointerdown',e=>{
+  e.preventDefault();initAudio();if(!RT.started||RT.ending)return;
+  const p=toL(e);if(p.y>PT)return;
+  try{cv.setPointerCapture(e.pointerId);}catch(_){}
+  ptrs.set(e.pointerId,{x:p.x,y:p.y,sx:p.x,sy:p.y,t:performance.now()/1000,moved:0});
+  if(!RT.down)RT.down=e.pointerId;
+  tapAt(p.x,clamp(p.y,SY0,PT-4),'tap');
+});
+cv.addEventListener('pointermove',e=>{
+  const q=ptrs.get(e.pointerId);if(!q)return;const p=toL(e);const d=Math.hypot(p.x-q.x,p.y-q.y);q.moved+=d;
+  if(RT.feverT>0&&d>0){RT.swipeAcc+=d;trail.push({x:p.x,y:p.y,t:0});const steps=Math.floor(RT.swipeAcc/6);RT.swipeAcc-=steps*6;
+    for(let i=1;i<=steps;i++){const f=i/steps;tapAt(lerp(q.x,p.x,f),clamp(lerp(q.y,p.y,f),SY0,PT-4),'swipe');}}
+  q.x=p.x;q.y=p.y;
+});
+const up=e=>{ptrs.delete(e.pointerId);if(RT.down===e.pointerId){RT.down=null;RT.blasting=false;}};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+$('snd').addEventListener('click',()=>{initAudio();setSound(!S.sound);save();});
+$('rebirth').addEventListener('click',()=>{modal(`<h2>${tt('rebirth')}</h2><p>${tt('m_reb_d')}</p><p class="num">${tt('m_toku',tokuGain())}</p><p>${tt('m_reb_now',fmt(Math.pow(2,S.toku+tokuGain())),fmt(tokuM()))}</p>`,[[tt('rebirth'),'gold',rebirth],[tt('cancel'),'ghost']]);});
+
+/* =========================================================
+   Update
+   ========================================================= */
+let showHint=0;
+function update(dt){
+  T+=dt;
+  if(RT.trans)stepTrans(dt);
+  if(RT.started){
+    const fv=RT.feverT>0?3:1;add((AUTOf()*TPf()+BREEDf())*dt*fv);
+    if(S.L.pochi>0){RT.barkT-=dt;if(RT.barkT<=0){RT.barkT=barkInt();bark();}}
+    if(RT.feverT>0){RT.feverT-=dt;if(RT.feverT<=0){RT.feverT=0;stage.classList.remove('fever');popup(W/2,CY,tt('fever_end'),{fs:7,col:'#fff'});}}
+    // long press
+    const q=RT.down!=null?ptrs.get(RT.down):null;
+    if(q&&!RT.blasting&&ashOn()&&performance.now()/1000-q.t>.28&&q.moved<6&&RT.ash>6){RT.blasting=true;if(!S.seen.hold)S.seen.hold=1;}
+    if(RT.blasting&&q){RT.blastAcc+=dt*14;while(RT.blastAcc>=1&&RT.ash>0){RT.blastAcc--;RT.ash-=2.5;tapAt(q.x+rnd(-8,8),clamp(q.y+rnd(-8,8),SY0,PT-4),'blast');}if(RT.ash<=0){RT.blasting=false;RT.ash=0;}}
+    else RT.ash=Math.min(100,RT.ash+12*dt);
+    if(performance.now()/1000-RT.lastTap>.8)RT.combo=0;
+    // device shots (visual)
+    if(S.L.dev>0){RT.devAcc+=dt*Math.min(6,AUTOf()+.3);while(RT.devAcc>=1){RT.devAcc--;const[mx,my]=devMouth();const sp=scene.spots.length&&RT.spotN?scene.spots[(Math.random()*RT.spotN)|0]:null;
+      shots.push({x0:mx,y0:my,x1:sp?sp.x:rnd(40,W-30),y1:sp?sp.y:rnd(SY0+20,PT-20),t:0,dur:rnd(.5,.8)});SFX.shot();}}
+    if(!RT.trans&&!RT.ending&&!S.ended&&S.total>=TIERS[S.tier].goal){if(S.tier<11)startMankai();else startEnding();}
+    RT.saveT+=dt;if(RT.saveT>5){RT.saveT=0;save();}
+  }
+  // spot pops
+  const c=prog();const n=countSpots(c);
+  if(n>RT.spotN){let k=0;for(let i=RT.spotN;i<n&&k<6;i++,k++){const s=scene.spots[i];if(s&&s.o>=0)petals(s.x,s.y,3,.6);}}
+  RT.spotN=n;
+  // ambient
+  const amb=dt*(1+Math.log10(1+S.L.breed)*3+(RT.feverT>0?40:0)+GRP(S.tier)*4);for(let i=0;i<Math.floor(amb)+(Math.random()<amb%1?1:0);i++){if(RT.feverT>0||Math.random()<.4)wind();else addP({x:rnd(0,W),y:SY0-4,vx:rnd(-6,6),vy:rnd(8,20),life:0,max:rnd(3,5),h:Math.random()*360,w:2,hh:1});}
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life+=dt;if(p.life>=p.max||p.y>PT+4){parts.splice(i,1);continue;}
+    if(p.wind){p.x+=p.vx*dt;p.y+=(p.vy+Math.sin(p.life*6+p.h)*12)*dt;}else{p.vx*=Math.pow(.3,dt);p.vy=p.vy*Math.pow(.3,dt)+18*dt;p.x+=(p.vx+Math.sin(p.life*5+p.h)*8)*dt;p.y+=p.vy*dt;}}
+  for(let i=bursts.length-1;i>=0;i--){bursts[i].t+=dt;if(bursts[i].t>bursts[i].max)bursts.splice(i,1);}
+  for(let i=shots.length-1;i>=0;i--){const s=shots[i];s.t+=dt/s.dur;if(s.t>=1){burst(s.x1,s.y1,false);shots.splice(i,1);}}
+  for(let i=beams.length-1;i>=0;i--){beams[i].t+=dt;if(beams[i].t>.16)beams.splice(i,1);}
+  for(let i=trail.length-1;i>=0;i--){trail[i].t+=dt;if(trail[i].t>.35)trail.splice(i,1);}
+  RT.flash=Math.max(0,RT.flash-dt*1.8);RT.shake*=Math.pow(.02,dt);RT.pochiJump=Math.max(0,RT.pochiJump-dt);RT.tapGlow=Math.max(0,RT.tapGlow-dt*4);
+  if(labelShown>0){labelShown-=dt;if(labelShown<=0)labelEl.hidden=true;}
+  if(S.tier!==5&&labelEl&&!labelEl.hidden)labelEl.hidden=true;
+}
+
+/* =========================================================
+   Render
+   ========================================================= */
+let SEIG=null;
+function seigaiha(){if(SEIG)return SEIG;const c=document.createElement('canvas');c.width=W;c.height=H+16;const x=c.getContext('2d');x.fillStyle='#fff';
+  for(let yy=0;yy<H+16;yy+=8)for(let xx=-8;xx<W+8;xx+=16){const o=((yy/8)%2)*8;for(const rr of [7,5,3])for(let a=Math.PI;a<=Math.PI*2;a+=.15)x.fillRect(Math.round(xx+o+Math.cos(a)*rr),Math.round(yy+Math.sin(a)*rr),1,1);}return SEIG=c;}
+function hsl2rgb(h){const f=n=>{const k=(n+h/30)%12;return Math.round(255*(.6-.4*Math.max(-1,Math.min(k-3,9-k,1))));};return f(0)+','+f(8)+','+f(4);}
+function render(noOverlay){
+  const sh=RM?0:RT.shake+(RT.feverT>0?.6:0),ox=Math.round((Math.random()*2-1)*sh),oy=Math.round((Math.random()*2-1)*sh);
+  g.setTransform(1,0,0,1,0,0);g.fillStyle='#0b0610';g.fillRect(0,0,W,H);
+  const c=prog(),tr=RT.trans;
+  if(tr&&tr.ph===1){const k=ease(clamp(tr.t/1.9,0,1));const s=tr.rev?lerp(.3,1,k):lerp(3.2,1,k);g.setTransform(s,0,0,s,CX-CX*s+ox,CY-CY*s+oy);}
+  else g.setTransform(1,0,0,1,ox,oy);
+  g.drawImage(scene.bg,0,0);scene.draw(c);
+  g.setTransform(1,0,0,1,ox,oy);
+  if(tr&&tr.ph===1&&!noOverlay){const k=ease(clamp(tr.t/1.9,0,1));const s=tr.rev?lerp(1,3.5,k):lerp(1,.28,k);g.globalAlpha=1-k;g.drawImage(snap,CX-CX*s,CY-CY*s,W*s,H*s);g.globalAlpha=1;}
+  if(noOverlay){g.setTransform(1,0,0,1,0,0);return;}
+  const gp=GRP(S.tier);
+  if(gp>=3||RT.feverT>0){const sp=seigaiha();g.globalAlpha=RT.feverT>0?.12:.05;g.globalCompositeOperation='lighter';
+    const off=(T*6)%16;g.drawImage(sp,0,-off);g.globalCompositeOperation='source-over';g.globalAlpha=1;}
+  // shots
+  for(const s of shots){const t=s.t,x=lerp(s.x0,s.x1,t),y=lerp(s.y0,s.y1,t)-Math.sin(Math.PI*t)*20;g.fillStyle=ashCol();g.fillRect(Math.round(x)-1,Math.round(y)-1,2,2);g.fillStyle='#ffffff88';g.fillRect(Math.round(lerp(s.x0,s.x1,t-.06)),Math.round(lerp(s.y0,s.y1,t-.06)-Math.sin(Math.PI*(t-.06))*20),1,1);}
+  // bursts
+  for(const b of bursts){const k=b.t/b.max;
+    if(b.ring){g.fillStyle=`rgba(255,224,138,${1-k})`;const rr=b.r*k*3;for(let a=0;a<Math.PI*2;a+=.08)g.fillRect(Math.round(b.x+Math.cos(a)*rr),Math.round(b.y+Math.sin(a)*rr*.7),2,1);continue;}
+    const r=Math.round(b.r*(k<.3?k/.3*1.2:1.2-(k-.3)*.4));g.globalAlpha=1-Math.max(0,k-.5)*2;if(r>0)puff(b.x,b.y,r);
+    g.fillStyle='#ffffff';const rr=b.r*1.6*k+2;for(let a=0;a<Math.PI*2;a+=.5)g.fillRect(Math.round(b.x+Math.cos(a)*rr),Math.round(b.y+Math.sin(a)*rr),1,1);g.globalAlpha=1;}
+  // trail
+  for(const p of trail){g.globalAlpha=1-p.t/.35;g.fillStyle=`hsl(${(T*400+p.x*3)%360},100%,72%)`;g.fillRect(Math.round(p.x)-1,Math.round(p.y)-1,3,3);}g.globalAlpha=1;
+  // beams
+  for(const b of beams){g.globalAlpha=1-b.t/.16;const n=Math.ceil(Math.hypot(b.x1-b.x0,b.y1-b.y0));g.fillStyle=`hsl(${(T*500)%360},100%,75%)`;for(let i=0;i<n;i+=1){const t=i/n;g.fillRect(Math.round(lerp(b.x0,b.x1,t)),Math.round(lerp(b.y0,b.y1,t)),2,2);}}g.globalAlpha=1;
+  // petals
+  for(const p of parts){g.globalAlpha=Math.min(1,(p.max-p.life)*3);const P=pal(p.h);g.fillStyle=p.k===3?`hsl(${(p.h+T*200)%360},100%,75%)`:(p.h<160?P.mn:P.hi);g.fillRect(Math.round(p.x),Math.round(p.y),p.w,p.hh);}g.globalAlpha=1;
+  // characters
+  drawDevice();RT.eyes=drawJii();drawPochi();
+  // blast ring
+  const q=RT.down!=null?ptrs.get(RT.down):null;
+  if(RT.blasting&&q){g.fillStyle='#ffffffaa';const rr=10+Math.sin(T*30)*2;for(let a=0;a<Math.PI*2*(RT.ash/100);a+=.1)g.fillRect(Math.round(q.x+Math.sin(a)*rr),Math.round(q.y-Math.cos(a)*rr),1,1);}
+  // first-tap hint: pixel hand
+  if(RT.started&&S.total<3&&!RT.trans){const hx=CX+16,hy=CY+8+Math.round(Math.sin(T*6)*2);R(hx,hy,3,7,'#fff');R(hx+3,hy+3,6,6,'#fff');R(hx+1,hy+1,1,5,'#f2c39b');R(hx+4,hy+4,4,4,'#f2c39b');}
+  // fever frame
+  if(RT.feverT>0){for(let i=0;i<W;i+=3){g.fillStyle=`hsl(${(i*4+T*400)%360},100%,65%)`;g.fillRect(i,SY0-2,3,2);g.fillRect(i,PT-2,3,2);}for(let j=SY0;j<PT;j+=3){g.fillStyle=`hsl(${(j*4+T*400)%360},100%,65%)`;g.fillRect(0,j,2,3);g.fillRect(W-2,j,2,3);}}
+  if(RT.flash>0){g.setTransform(1,0,0,1,0,0);g.globalAlpha=Math.min(1,RT.flash)*.7;g.fillStyle=RT.flashCol;g.fillRect(0,0,W,PT);g.globalAlpha=1;}
+  g.setTransform(1,0,0,1,0,0);
+}
+
+/* =========================================================
+   HUD
+   ========================================================= */
+const HC={};const setT=(id,v)=>{if(HC[id]!==v){HC[id]=v;$(id).textContent=v;}};
+function hud(dt){
+  const[a,b]=fmtP(S.p);setT('pm',a);setT('pu',b);setT('pps',fmt(idlePPS()*(RT.feverT>0?3:1))+' '+tt('unit'));
+  setT('toku',S.toku?tt('toku',S.toku,fmt(tokuM()))+(S.loops?' · '+tt('pal'+Math.min(S.loops,3)):''):'');
+  setT('tch',tCh(S.tier));setT('tnm',tName(S.tier));const c=prog();
+  setT('tpct',S.ended?tt('uni_full'):tt('full_in',Math.floor(c*100)));$('tbar').style.width=(c*100)+'%';
+  const ao=ashOn(),fo=feverOn();if($('ashw').hidden===ao)$('ashw').hidden=!ao;if($('fevw').hidden===fo)$('fevw').hidden=!fo;
+  $('ashf').style.width=RT.ash+'%';$('fevf').style.width=(RT.feverT>0?RT.feverT*10:RT.fever)+'%';
+  uiT-=dt;if(uiDirty||uiT<=0){uiT=.2;uiDirty=false;renderUI();}
+}
+
+/* =========================================================
+   Loop / boot
+   ========================================================= */
+let last=performance.now();
+let errN=0;
+function frame(t){requestAnimationFrame(frame);const dt=Math.min(.05,(t-last)/1000);last=t;
+  try{update(dt);}catch(e){if(errN++<5)console.error(e);}
+  try{render(false);}catch(e){if(errN++<5)console.error(e);g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';}
+  try{hud(dt);}catch(e){if(errN++<5)console.error(e);}}
+function fit(){const aw=wrap.clientWidth,ah=wrap.clientHeight;const w=Math.floor(Math.min(aw,ah*W/H)),h=Math.floor(w*H/W);stage.style.width=w+'px';stage.style.height=h+'px';stage.style.setProperty('--u',(w/180)+'px');}
+addEventListener('resize',fit);fit();
+$('panel').style.top=(PT/H*100)+'%';
+labelEl=document.createElement('span');labelEl.className='pop';labelEl.style.cssText='animation:none;transform:none;--fs:4.6;--pc:#ff3b5c';labelEl.hidden=true;popsEl.after(labelEl);labelEl.classList.add('ol');
+const had=load();LANG=S.lang||detectLang();setSound(S.sound);buildScene();
+applyLang();
+$('start').addEventListener('click',()=>{
+  initAudio();$('title').hidden=true;RT.started=true;
+  const away=had?Math.min(8*3600,(Date.now()-S.t)/1000):0,gain=idlePPS()*away*.5;
+  if(had&&away>30&&gain>0){modal(`<h2>${tt('off_t')}</h2><p>${tt('off_d')}</p><p class="num">+${fmt(gain)} ${tt('unit')}</p><p class="note">${tt('off_min',Math.floor(away/60))}</p>`,[[tt('receive'),'',()=>{add(gain);burst(CX,CY,true);SFX.buy();}]]);}
+  say(had?pick(tLines(S.tier)):tLines(0)[0]);
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+addEventListener('pagehide',save);
+function applyLang(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=tt(e.dataset.i);});
+  $('start').textContent=had?tt('cont'):tt('start');
+  $('tnote').textContent=had?tt('note_cont',tCh(S.tier),tName(S.tier),fmt(S.all)):tt('note_save');
+  setSound(S.sound);for(const k in HC)delete HC[k];uiDirty=true;
+}
+function openLang(){
+  modal(`<h2>${tt('lang')}</h2><div class="langs">${LANGS.map(([c,n])=>`<button type="button" data-lang="${c}" aria-pressed="${c===LANG}">${n}</button>`).join('')}</div>`,[[tt('close'),'ghost']]);
+  $('mcard').querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{LANG=b.dataset.lang;S.lang=LANG;save();applyLang();$('modal').hidden=true;openLang();}));
+}
+$('lng').addEventListener('click',()=>{initAudio();openLang();});
+$('tlng').addEventListener('click',openLang);
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

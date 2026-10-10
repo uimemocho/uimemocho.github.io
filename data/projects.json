@@ -298,5 +298,17 @@
     "sourceEntry": "dopagaki_brain_beat_v1.0.html",
     "publishedAt": "2026-10-10T00:57:09Z",
     "updatedAt": "2026-10-10T00:57:09Z"
+  },
+  {
+    "slug": "hanasaka-infinity",
+    "title": "花咲かじいさん INFINITY",
+    "kind": "game",
+    "description": "枯れ木一本から宇宙まで桜で埋め尽くす、インフレ放置×連鎖爆発のドット絵ゲーム。",
+    "url": "/apps/hanasaka-infinity/",
+    "thumbnail": "/project-thumbnails/hanasaka-infinity.webp",
+    "sourceFolder": "261010_花咲かじいさんINFINITY",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-10T07:16:01Z",
+    "updatedAt": "2026-10-10T07:16:01Z"
   }
 ]
