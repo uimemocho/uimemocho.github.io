@@ -310,5 +310,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-10T07:16:01Z",
     "updatedAt": "2026-10-10T11:53:08Z"
+  },
+  {
+    "slug": "yuusha-konai-mura",
+    "title": "勇者が来ない村",
+    "kind": "game",
+    "description": "5日後に魔物が来るのに、勇者が来ない。村人として木を切り、岩を割り、守りを築いて村を守り抜くピクセルRPG。オープニング・エンディングムービー、BGM、セーブ対応、9言語対応。",
+    "url": "/apps/yuusha-konai-mura/",
+    "thumbnail": "/project-thumbnails/yuusha-konai-mura.webp",
+    "sourceFolder": "261010_勇者が来ない村",
+    "sourceEntry": "yuusha_konai_mura.html",
+    "publishedAt": "2026-10-10T13:16:04Z",
+    "updatedAt": "2026-10-10T13:16:04Z"
   }
 ]
