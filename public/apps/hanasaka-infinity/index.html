@@ -451,8 +451,9 @@ const KEY='hanasaka_infinity_v1';
 let S={p:0,total:0,all:0,L:{ash:0,pochi:0,breed:0,dev:0,satori:0},tier:0,toku:0,loops:0,ended:false,sound:true,seen:{},lang:null,t:Date.now()};
 const mile=L=>Math.pow(2,Math.floor(L/25));
 const SC=()=>Math.pow(10,TIERS[S.tier].ls);
-const tokuM=()=>Math.pow(2,S.toku);
-const G=()=>Math.pow(3,S.L.satori)*SC()*tokuM();
+const tokuMf=k=>1+.5*k;               // linear, never overflows
+const tokuM=()=>tokuMf(S.toku);
+const G=()=>Math.min(1e290,Math.pow(3,S.L.satori)*SC()*tokuM());
 const TPf=(L=S.L.ash)=>(1+L)*mile(L)*G();
 const CMf=(L=S.L.pochi)=>1+.25*L*mile(L);
 const AUTOf=(L=S.L.dev)=>.3*L*mile(L);
@@ -465,7 +466,7 @@ const unlocked=k=>S.L[k]>0||S.total>=UP[k].unlock||S.all>=UP[k].unlock*1e3;
 let amt='1';
 function amtN(k){if(amt==='max')return Math.max(1,maxN(k));return +amt;}
 function prog(){const t=TIERS[S.tier],lo=S.tier?Math.log10(TIERS[S.tier-1].goal):0,hi=Math.log10(t.goal);return clamp((Math.log10(Math.max(1,S.total))-lo)/(hi-lo),0,1);}
-function add(v){if(!(v>0)||!isFinite(v))return;S.p+=v;S.total+=v;S.all+=v;}
+function add(v){if(!(v>0))return;v=Math.min(v,1e300);S.p=Math.min(1e305,S.p+v);S.total=Math.min(1e305,S.total+v);S.all=Math.min(1e305,S.all+v);}
 
 /* =========================================================
    Save / load
@@ -475,7 +476,7 @@ function load(){
   try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(!d||typeof d!=='object')return false;
     for(const k of ['p','total','all','tier','toku','loops'])if(typeof d[k]==='number'&&isFinite(d[k]))S[k]=d[k];
     if(d.L)for(const k of ORDER)if(typeof d.L[k]==='number')S.L[k]=Math.max(0,Math.floor(d.L[k]));
-    S.ended=!!d.ended;S.sound=d.sound!==false;S.lang=TX[d.lang]?d.lang:null;S.seen=d.seen||{};S.t=d.t||Date.now();S.tier=clamp(Math.floor(S.tier),0,11);
+    if(!isFinite(S.toku)||S.toku<0)S.toku=0;S.toku=Math.min(Math.floor(S.toku),5000);for(const k of ['p','total','all'])if(!isFinite(S[k])||S[k]<0)S[k]=0;S.ended=!!d.ended;S.sound=d.sound!==false;S.lang=TX[d.lang]?d.lang:null;S.seen=d.seen||{};S.t=d.t||Date.now();S.tier=clamp(Math.floor(S.tier),0,11);
     return true;}catch(e){return false;}
 }
 
@@ -993,14 +994,14 @@ function startEnding(){
     const lines=[[tt('end1')],[tt('end2')],[tt('end3')],[tt('end4')],[tt('end5'),'g']];
     lines.forEach(([t,c],i)=>{const p=document.createElement('p');p.className='eline'+(c?' '+c:'');p.textContent=t;p.style.animationDelay=(i*1.8)+'s';b.appendChild(p);});
     const gain=tokuGain();const bx=document.createElement('div');bx.className='ebtns';bx.style.animationDelay=(lines.length*1.8)+'s';
-    const info=document.createElement('p');info.className='note';info.textContent=tt('end_info',gain,fmt(Math.pow(2,S.toku+gain)));
+    const info=document.createElement('p');info.className='note';info.textContent=tt('end_info',gain,fmt(tokuMf(S.toku+gain)));
     const b1=document.createElement('button');b1.className='btn gold';b1.type='button';b1.textContent=tt('rebirth');b1.onclick=()=>{e.hidden=true;rebirth();};
     const b2=document.createElement('button');b2.className='btn ghost';b2.type='button';b2.textContent=tt('end_back');b2.onclick=()=>{e.hidden=true;RT.ending=false;say(tt('end_say'));};
     bx.append(info,b1,b2);b.appendChild(bx);
     setTimeout(()=>e.classList.add('pink'),3*1800);SFX.bell();
   },2200);
 }
-const tokuGain=()=>Math.max(1,Math.floor(Math.log10(Math.max(1,S.total))-18));
+const tokuGain=()=>clamp(Math.floor((Math.log10(Math.max(1,S.total))-27)*2),3,20);
 function rebirth(){
   const gain=tokuGain();S.toku+=gain;S.loops++;S.p=0;S.total=0;S.tier=0;S.ended=false;for(const k of ORDER)S.L[k]=0;
   RT.ending=false;RT.fever=0;RT.feverT=0;RT.combo=0;stage.classList.remove('fever');
@@ -1087,7 +1088,7 @@ cv.addEventListener('pointermove',e=>{
 const up=e=>{ptrs.delete(e.pointerId);if(RT.down===e.pointerId){RT.down=null;RT.blasting=false;}};
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 $('snd').addEventListener('click',()=>{initAudio();setSound(!S.sound);save();});
-$('rebirth').addEventListener('click',()=>{modal(`<h2>${tt('rebirth')}</h2><p>${tt('m_reb_d')}</p><p class="num">${tt('m_toku',tokuGain())}</p><p>${tt('m_reb_now',fmt(Math.pow(2,S.toku+tokuGain())),fmt(tokuM()))}</p>`,[[tt('rebirth'),'gold',rebirth],[tt('cancel'),'ghost']]);});
+$('rebirth').addEventListener('click',()=>{modal(`<h2>${tt('rebirth')}</h2><p>${tt('m_reb_d')}</p><p class="num">${tt('m_toku',tokuGain())}</p><p>${tt('m_reb_now',fmt(tokuMf(S.toku+tokuGain())),fmt(tokuM()))}</p>`,[[tt('rebirth'),'gold',rebirth],[tt('cancel'),'ghost']]);});
 
 /* =========================================================
    Update
