@@ -286,5 +286,17 @@
     "sourceEntry": "momotaro_kikoku.html",
     "publishedAt": "2026-10-09T21:18:00Z",
     "updatedAt": "2026-10-09T22:30:00Z"
+  },
+  {
+    "slug": "dopagaki-brain",
+    "title": "DOPAGAKI BRAIN BEAT",
+    "kind": "game",
+    "description": "曲に合わせて脳みそをタップ！プルンと揺れてドーパミンが噴き出す、ピクセルアートのリズムクリッカー。",
+    "url": "/apps/dopagaki-brain/",
+    "thumbnail": "/project-thumbnails/dopagaki-brain.webp",
+    "sourceFolder": "261010_ドパガキブレインビート",
+    "sourceEntry": "dopagaki_brain_beat_v1.0.html",
+    "publishedAt": "2026-10-10T00:57:09Z",
+    "updatedAt": "2026-10-10T00:57:09Z"
   }
 ]
