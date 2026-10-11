@@ -322,5 +322,17 @@
     "sourceEntry": "yuusha_konai_mura.html",
     "publishedAt": "2026-10-10T13:16:04Z",
     "updatedAt": "2026-10-10T13:16:04Z"
+  },
+  {
+    "slug": "ryugu-chrono",
+    "title": "竜宮クロノ",
+    "kind": "game",
+    "description": "浦島太郎、複利に目覚める。地上の時を利息に変え、竜宮の銀行ごと乗っ取りにいくピクセル3マッチパズルバトル。",
+    "url": "/apps/ryugu-chrono/",
+    "thumbnail": "/project-thumbnails/ryugu-chrono.webp",
+    "sourceFolder": "261011_竜宮クロノ",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-11T05:46:13Z",
+    "updatedAt": "2026-10-11T05:46:13Z"
   }
 ]
