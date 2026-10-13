@@ -346,5 +346,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-13T02:40:15Z",
     "updatedAt": "2026-10-13T04:28:23Z"
+  },
+  {
+    "slug": "synapse-2038",
+    "title": "SYNAPSE:2038",
+    "kind": "game",
+    "description": "2038年、人類は思考から解放された。ボールでニューロンを育て、AIに消された記憶と言葉を取り戻す縦画面ピクセルアクション。全5章・エンディング3種。",
+    "url": "/apps/synapse-2038/",
+    "thumbnail": "/project-thumbnails/synapse-2038.webp",
+    "sourceFolder": "261013_SYNAPSE2038",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-13T04:40:00Z",
+    "updatedAt": "2026-10-13T04:40:00Z"
   }
 ]
