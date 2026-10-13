@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#07040F">
+<meta name="description" content="竹取物語を下敷きにした、HD-2D風ドット絵のタワーディフェンス。光る竹から生まれた姫を、十五夜まで月の使いから守り抜く。シナリオシーン・BGM付き、9言語対応。">
+<link rel="canonical" href="https://uimemocho.github.io/apps/jugoya/">
+<link rel="alternate" hreflang="ja" href="https://uimemocho.github.io/apps/jugoya/?lang=ja">
+<link rel="alternate" hreflang="en" href="https://uimemocho.github.io/apps/jugoya/?lang=en">
+<link rel="alternate" hreflang="zh-Hans" href="https://uimemocho.github.io/apps/jugoya/?lang=zh-Hans">
+<link rel="alternate" hreflang="zh-Hant" href="https://uimemocho.github.io/apps/jugoya/?lang=zh-Hant">
+<link rel="alternate" hreflang="ko" href="https://uimemocho.github.io/apps/jugoya/?lang=ko">
+<link rel="alternate" hreflang="fr" href="https://uimemocho.github.io/apps/jugoya/?lang=fr">
+<link rel="alternate" hreflang="de" href="https://uimemocho.github.io/apps/jugoya/?lang=de">
+<link rel="alternate" hreflang="ru" href="https://uimemocho.github.io/apps/jugoya/?lang=ru">
+<link rel="alternate" hreflang="it" href="https://uimemocho.github.io/apps/jugoya/?lang=it">
+<link rel="alternate" hreflang="x-default" href="https://uimemocho.github.io/apps/jugoya/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="uimemocho">
+<meta property="og:title" content="十五夜">
+<meta property="og:description" content="竹取物語を下敷きにした、HD-2D風ドット絵のタワーディフェンス。光る竹から生まれた姫を、十五夜まで月の使いから守り抜く。シナリオシーン・BGM付き、9言語対応。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/jugoya/">
+<meta property="og:image" content="https://uimemocho.github.io/apps/jugoya/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="十五夜">
+<meta name="twitter:description" content="竹取物語を下敷きにした、HD-2D風ドット絵のタワーディフェンス。光る竹から生まれた姫を、十五夜まで月の使いから守り抜く。シナリオシーン・BGM付き、9言語対応。">
+<meta name="twitter:image" content="https://uimemocho.github.io/apps/jugoya/ogp.png">
+<style>html{height:100%;background:#07040F}body{margin:0}[hidden]{display:none!important}</style>
+<title>十五夜</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap">
+<style>
+/* Layout: one fixed 270x480 pixel screen scaled by --p (CSS px per art pixel); canvas world + pixel-window UI on top. Single night look by design. */
+:root{
+  --p:1.333px;
+  --ink:#0B0618; --win1:#2C2266; --win2:#17103C; --gold:#F2D27A; --gold2:#A8742C;
+  --txt:#FFF4DC; --sub:#B9AEE6; --hl:#FFE59A; --red:#FF6B6B; --grn:#7FE0A0; --yel:#FFD35A;
+  --f:'DotGothic16','Courier New',monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0}
+body{background:#07040F;color:var(--txt);overflow:hidden}
+#app{position:fixed;inset:0;box-sizing:border-box;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+#fit{position:relative;width:100%;height:100%}
+#screen{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:calc(var(--p)*270);height:calc(var(--p)*480);overflow:hidden;
+  font-family:var(--f);font-size:calc(var(--p)*12);line-height:1.5;color:var(--txt);background:#000;
+  -webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#cv{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+img.px{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+.a{position:absolute;left:calc(var(--p)*var(--x,0));top:calc(var(--p)*var(--y,0));width:calc(var(--p)*var(--w,10));box-sizing:border-box}
+.ah{height:calc(var(--p)*var(--h,10))}
+.t8{font-size:calc(var(--p)*8);line-height:1.5}
+.t16{font-size:calc(var(--p)*16);line-height:1.35}
+.t24{font-size:calc(var(--p)*24);line-height:1.2}
+.gold{color:var(--hl)} .sub{color:var(--sub)} .cen{text-align:center}
+p{margin:0}
+.notch{clip-path:polygon(var(--p) 0,calc(100% - var(--p)) 0,100% var(--p),100% calc(100% - var(--p)),calc(100% - var(--p)) 100%,var(--p) 100%,0 calc(100% - var(--p)),0 var(--p))}
+.pw{background:linear-gradient(180deg,var(--win1),var(--win2));
+  box-shadow:inset 0 0 0 var(--p) var(--ink),inset 0 0 0 calc(var(--p)*2) var(--gold),inset 0 0 0 calc(var(--p)*3) var(--gold2),inset 0 0 0 calc(var(--p)*4) var(--ink);
+  padding:calc(var(--p)*7);
+  clip-path:polygon(var(--p) 0,calc(100% - var(--p)) 0,100% var(--p),100% calc(100% - var(--p)),calc(100% - var(--p)) 100%,var(--p) 100%,0 calc(100% - var(--p)),0 var(--p))}
+.pw.thin{padding:calc(var(--p)*4)}
+.inset{background:#0F0A2A;box-shadow:inset 0 0 0 var(--p) #3C3170;padding:calc(var(--p)*5)}
+.pb{font:inherit;color:#2A1606;background:linear-gradient(180deg,#FFEDB4 0%,#F2C55A 100%);border:0;cursor:pointer;
+  box-shadow:inset 0 0 0 var(--p) var(--ink),inset 0 calc(var(--p)*-3) 0 #C08A2E,inset 0 calc(var(--p)*2) 0 #FFF8DC;
+  padding:calc(var(--p)*4) calc(var(--p)*8) calc(var(--p)*5);display:block;width:100%;text-align:center;
+  clip-path:polygon(var(--p) 0,calc(100% - var(--p)) 0,100% var(--p),100% calc(100% - var(--p)),calc(100% - var(--p)) 100%,var(--p) 100%,0 calc(100% - var(--p)),0 var(--p))}
+.pb:active{transform:translateY(var(--p));box-shadow:inset 0 0 0 var(--p) var(--ink),inset 0 calc(var(--p)*-1) 0 #C08A2E}
+.pb.sub{background:linear-gradient(180deg,#E2DAFF,#A396E6);color:#120A2E;box-shadow:inset 0 0 0 var(--p) var(--ink),inset 0 calc(var(--p)*-3) 0 #6B5FB8,inset 0 calc(var(--p)*2) 0 #F4F0FF}
+.pb:focus-visible{filter:brightness(1.18)}
+.pb:disabled{filter:grayscale(.85) brightness(.65);cursor:default}
+.stack{display:flex;flex-direction:column;gap:calc(var(--p)*5)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--p)*5)}
+@keyframes blink{50%{opacity:0}}
+@keyframes bob{50%{transform:translateY(calc(var(--p)*-2))}}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+.win{animation:pop .16s steps(3)}
+
+/* HUD */
+#hud .box{display:flex;align-items:center;gap:calc(var(--p)*3);height:calc(var(--p)*22);padding:0 calc(var(--p)*6)}
+.gauge{display:flex;gap:var(--p);flex:1}
+.seg{flex:1;height:calc(var(--p)*7);background:#2A1E4A;box-shadow:inset 0 0 0 var(--p) var(--ink)}
+.seg.g{background:var(--grn)} .seg.y{background:var(--yel)} .seg.r{background:var(--red)}
+#btnPause{padding:0;height:calc(var(--p)*22)}
+
+/* command bar */
+.uc{display:flex;align-items:center;gap:calc(var(--p)*4);height:calc(var(--p)*34);padding:calc(var(--p)*4) calc(var(--p)*6);cursor:pointer;border:0;font:inherit;color:var(--txt);text-align:left}
+.uc .nm{display:flex;flex-direction:column;line-height:1.3}
+.uc .cost{color:var(--hl)}
+.uc.poor .cost{color:var(--red)}
+.uc.sel{--gold:#FFF4B8;--gold2:#E8A93A;background:linear-gradient(180deg,#4A3A9A,#2A1F66)}
+.uc.sel::after{content:'';position:absolute;left:50%;top:calc(var(--p)*-1);transform:translate(-50%,-80%);width:calc(var(--p)*14);height:calc(var(--p)*10);background:var(--icDown) center/100% 100% no-repeat;image-rendering:pixelated;animation:bob .6s steps(2) infinite}
+.ucw{position:absolute}
+.ts{display:flex;align-items:center;justify-content:center;gap:calc(var(--p)*3);height:calc(var(--p)*28);padding:calc(var(--p)*4);border:0;font:inherit;color:var(--txt);cursor:pointer;position:relative}
+.ts .cd{position:absolute;left:calc(var(--p)*4);right:calc(var(--p)*4);bottom:calc(var(--p)*4);background:rgba(6,3,18,.78);display:flex;align-items:center;justify-content:center;color:var(--sub)}
+.ts.ready{--gold:#FFF4B8;animation:rdy .8s steps(2) infinite}
+@keyframes rdy{50%{filter:brightness(1.25)}}
+.ts.empty{opacity:.4;cursor:default}
+
+/* hint / toast / bubble */
+.hint{color:var(--hl);text-align:center;animation:bob .7s steps(2) infinite;pointer-events:none}
+.hint::after{content:'';display:block;width:calc(var(--p)*14);height:calc(var(--p)*10);margin:calc(var(--p)*3) auto 0;background:var(--icDown) center/100% 100% no-repeat;image-rendering:pixelated}
+.hint.up::after{content:none}.hint.up::before{content:'';display:block;width:calc(var(--p)*14);height:calc(var(--p)*10);margin:0 auto calc(var(--p)*3);background:var(--icUp) center/100% 100% no-repeat;image-rendering:pixelated}
+.toast{text-align:center;pointer-events:none}
+
+/* dialog */
+#dlg{pointer-events:none}
+#dlgName{color:var(--hl);padding:calc(var(--p)*3) calc(var(--p)*9);width:auto;white-space:nowrap}
+#dlgBox{height:calc(var(--p)*104)}
+#dlgBox.narr #dlgText{color:#E6DEFF}
+#dlgText{min-height:calc(var(--p)*70);white-space:pre-wrap;text-shadow:0 var(--p) 0 rgba(6,3,18,.75)}
+.adv{position:absolute;right:calc(var(--p)*10);bottom:calc(var(--p)*8);width:calc(var(--p)*14);height:calc(var(--p)*10);background:var(--icDown) center/100% 100% no-repeat;image-rendering:pixelated;animation:blink .8s steps(1) infinite}
+.ic{display:inline-block;vertical-align:middle;background:center/100% 100% no-repeat;image-rendering:pixelated}
+.ic.ff{width:calc(var(--p)*16);height:calc(var(--p)*14);background-image:var(--icFF);margin-left:calc(var(--p)*3)}
+.ic.pz{width:calc(var(--p)*14);height:calc(var(--p)*14);background-image:var(--icPause)}
+.ic.st{width:calc(var(--p)*9);height:calc(var(--p)*8);background-image:var(--icStar);margin-right:var(--p);vertical-align:-0.05em}
+#btnPause{display:grid;place-items:center}
+
+/* menu lists */
+.opt{display:grid;grid-template-columns:calc(var(--p)*30) 1fr;align-items:center;gap:calc(var(--p)*5);width:100%;font:inherit;color:var(--txt);text-align:left;background:transparent;border:0;padding:calc(var(--p)*3) calc(var(--p)*4) calc(var(--p)*3) calc(var(--p)*12);cursor:pointer;position:relative}
+.opt::before{content:'';position:absolute;left:calc(var(--p)*2);top:50%;transform:translateY(-50%);color:var(--hl)}
+.opt.sel{background:rgba(242,210,122,.14)}
+.opt.sel::before{content:'';width:calc(var(--p)*10);height:calc(var(--p)*14);background:var(--icRight) center/100% 100% no-repeat;image-rendering:pixelated;animation:blink .8s steps(1) infinite}
+.opt .ic{display:grid;place-items:center;height:calc(var(--p)*28);background:#0F0A2A;box-shadow:inset 0 0 0 var(--p) #3C3170}
+.tag{display:inline-block;padding:0 calc(var(--p)*3);margin-right:calc(var(--p)*3);color:var(--ink)}
+.tag.trial{background:var(--hl)} .tag.up{background:#9EE7F2} .tag.prep{background:var(--grn)}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--p)*6)}
+.item{font:inherit;color:var(--txt);border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:calc(var(--p)*3);padding:calc(var(--p)*8) calc(var(--p)*2) calc(var(--p)*6)}
+.item.real{--gold:#FFF4B8;background:linear-gradient(180deg,#6A5A1E,#3A2E10)}
+.item.wrong{--gold:#FF9A9A;background:linear-gradient(180deg,#5A1E36,#2E0E1E)}
+.pulse{animation:glow var(--pd,1.1s) steps(6) infinite}
+@keyframes glow{0%,100%{filter:brightness(.42) saturate(.5)}50%{filter:brightness(1.3) drop-shadow(0 0 calc(var(--p)*4) #FFD34A)}}
+.timer{display:flex;gap:var(--p)}
+.timer i{flex:1;height:calc(var(--p)*6);background:var(--hl);box-shadow:inset 0 0 0 var(--p) var(--ink)}
+.timer i.off{background:#2A1E4A}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--p)*5)}
+.hr{height:var(--p);background:#4A3D8A;margin:calc(var(--p)*5) 0}
+@media (prefers-reduced-motion:reduce){.hint,.uc.sel::after,.ts.ready{animation:none}.win{animation:none}}
+[hidden]{display:none!important}
+.pw.glass{background:linear-gradient(180deg,rgba(52,40,120,.58),rgba(20,14,54,.72));-webkit-backdrop-filter:blur(calc(var(--p)*1.2));backdrop-filter:blur(calc(var(--p)*1.2));
+  box-shadow:inset 0 0 0 var(--p) rgba(11,6,24,.8),inset 0 0 0 calc(var(--p)*2) rgba(242,210,122,.85),inset 0 0 0 calc(var(--p)*3) rgba(11,6,24,.5)}
+.opt.lang{grid-template-columns:1fr;padding-top:calc(var(--p)*5);padding-bottom:calc(var(--p)*5)}
+body.nl #hudPhase{font-size:calc(var(--p)*8)}
+body.nl .uc .nm{font-size:calc(var(--p)*8);white-space:normal;line-height:1.3}
+body.nl .uc .nm .t8{font-size:inherit}
+body.nl .uc .nm .sub{display:none}
+body.nl .ts{flex-direction:column;gap:var(--p);padding:calc(var(--p)*3)}
+body.nl .ts span{font-size:calc(var(--p)*7);line-height:1;white-space:nowrap;letter-spacing:-0.02em}
+body.nl .ts img{width:calc(var(--p)*11)!important;height:auto!important}
+body.nl #dlgText{font-size:calc(var(--p)*11)}
+#ltBox.bump{animation:hudbump .18s steps(3)}
+@keyframes hudbump{50%{transform:scale(1.14);filter:brightness(1.35)}}
+#screen{overflow:clip}
+.pb.a,.uc.a,.ts.a{width:calc(var(--p)*var(--w,10))}
+.ts.a,.uc.a{position:absolute}
+.t8{font-size:calc(var(--p)*8);line-height:1.5}
+.t16{font-size:calc(var(--p)*16);line-height:1.35}
+.t24{font-size:calc(var(--p)*24);line-height:1.2}
+#hud .box span{white-space:nowrap}
+.uc .nm{line-height:1.35;white-space:nowrap}
+</style>
+
+</head>
+<body>
+
+<div id="app"><div id="fit"><div id="screen">
+  <canvas id="cv" width="270" height="480" aria-label="十五夜"></canvas>
+
+  <div id="hud" hidden>
+    <div class="pw box a" style="--x:4;--y:4;--w:80"><img class="px" id="hudMoon" alt=""><span id="hudPhase">十一夜</span></div>
+    <div class="pw box a" style="--x:86;--y:4;--w:110"><span class="t8 sub" data-i18n>屋敷</span><div class="gauge" id="hpG"></div></div>
+    <div class="pw box a" id="ltBox" style="--x:198;--y:4;--w:46"><img class="px" id="hudStar" alt=""><span id="hudLight">0</span></div>
+    <button class="pb a" id="btnPause" style="--x:246;--y:4;--w:20" aria-label="一時停止"><i class="ic pz"></i></button>
+  </div>
+
+  <div id="cmd" hidden>
+    <div id="units"></div>
+    <div id="trs"></div>
+  </div>
+
+  <div id="hint" class="pw thin hint a" hidden></div>
+  <div id="ubub" class="pw thin a" style="--w:64" hidden><button class="pb t8" id="btnRetreat">撤収</button></div>
+  <div id="toast" class="pw thin toast a" style="--x:35;--y:32;--w:200" hidden></div>
+
+  <div id="dlg" hidden>
+    <div id="dlgName" class="pw thin glass a" style="--x:8;--y:342"></div>
+    <div id="dlgBox" class="pw glass a" style="--x:6;--y:362;--w:258"><p id="dlgText"></p><i class="adv"></i></div>
+  </div>
+  <button class="pb sub t8 a" id="btnSkip" style="--x:198;--y:6;--w:66" hidden><span data-i18n>スキップ</span><i class="ic ff"></i></button>
+
+  <div id="wTitle" class="a win" style="--x:60;--y:292;--w:150" hidden>
+    <div class="pw stack">
+      <button class="pb" id="btnStart" data-i18n>はじめる</button>
+      <div class="row2"><button class="pb sub t8" id="btnBgm">音楽 オン</button><button class="pb sub t8" id="btnSe">効果音 オン</button></div>
+      <button class="pb sub t8" id="btnLang"></button>
+      <p class="t8 sub cen" id="memTxt"></p>
+    </div>
+  </div>
+
+  <div id="wDay" class="a win" style="--x:6;--y:30;--w:258" hidden>
+    <div class="pw">
+      <p class="t8 gold" id="dayHead"></p>
+      <p id="dayStory" style="margin-top:calc(var(--p)*3)"></p>
+      <div class="hr"></div>
+      <div id="dayOpts"></div>
+      <div class="inset" style="margin-top:calc(var(--p)*5);min-height:calc(var(--p)*58)"><p class="t8 gold" id="dayDetT"></p><p id="dayDet"></p></div>
+      <button class="pb" id="btnDayOk" style="margin-top:calc(var(--p)*6)" data-i18n>これにする</button>
+    </div>
+  </div>
+
+  <div id="wMini" class="a win" style="--x:15;--y:56;--w:240" hidden>
+    <div class="pw stack cen">
+      <p class="t8 gold" id="miniSuitor"></p>
+      <p class="t16" id="miniTitle"></p>
+      <p class="t8 sub" data-i18n>偽物が混ざっている。月と同じ間合いで光るものが本物。</p>
+      <div style="display:grid;place-items:center"><img class="px pulse" id="miniMoon" alt="月"></div>
+      <div class="items" id="miniItems"></div>
+      <div class="timer" id="miniTimer"></div>
+      <p id="miniRes" style="min-height:1.5em"></p>
+      <button class="pb" id="miniNext" hidden data-i18n>夜を迎える</button>
+    </div>
+  </div>
+
+  <div id="wResult" class="a win" style="--x:22;--y:96;--w:226" hidden>
+    <div class="pw stack">
+      <p class="t8 gold cen" id="resHead"></p>
+      <p class="t16 cen" data-i18n>夜をしのいだ</p>
+      <div class="stats" id="resStats"></div>
+      <div class="inset"><p id="resLine"></p></div>
+      <p class="t8 sub" id="resHeal"></p>
+      <button class="pb" id="btnDawn" data-i18n>夜が明ける</button>
+    </div>
+  </div>
+
+  <div id="wChoice" class="a win" style="--x:30;--y:300;--w:210" hidden>
+    <div class="pw stack">
+      <p class="cen gold" data-i18n>不死の薬を、どうする？</p>
+      <button class="pb" id="btnDrink" data-i18n>薬を飲む</button>
+      <button class="pb sub" id="btnBurn" data-i18n>薬を燃やす</button>
+    </div>
+  </div>
+
+  <div id="wCard" class="a win" style="--x:22;--y:150;--w:226" hidden>
+    <div class="pw stack cen">
+      <p class="t8 gold" id="cardHead"></p>
+      <p class="t24" id="cardTitle"></p>
+      <p class="sub" id="cardText"></p>
+      <p class="t8" style="color:var(--grn)" id="cardMem"></p>
+      <button class="pb" id="btnCard">タイトルへ</button>
+    </div>
+  </div>
+
+  <div id="wLang" class="a win" style="--x:45;--y:110;--w:180" hidden>
+    <div class="pw"><div id="langList"></div></div>
+  </div>
+
+  <div id="wPause" class="a win" style="--x:45;--y:150;--w:180" hidden>
+    <div class="pw stack">
+      <p class="cen gold" data-i18n>ひと休み</p>
+      <button class="pb" id="btnResume" data-i18n>続ける</button>
+      <div class="row2"><button class="pb sub t8" id="btnBgm2">音楽 オン</button><button class="pb sub t8" id="btnSe2">効果音 オン</button></div>
+      <button class="pb sub" id="btnGiveUp" data-i18n>あきらめる</button>
+    </div>
+  </div>
+</div></div></div>
+<script>
+(()=>{
+
+'use strict';
+// ===== core =====
+const LW=270,LH=480;
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.random()*(b-a), ri=n=>Math.floor(Math.random()*n), pick=a=>a[ri(a.length)];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=ri(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+function seeded(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hex(c){const n=parseInt(c.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function mix(a,b,t){return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
+function rgb(a,al){return al==null?`rgb(${a[0]|0},${a[1]|0},${a[2]|0})`:`rgba(${a[0]|0},${a[1]|0},${a[2]|0},${al})`;}
+function mk(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingEnabled=false;return[c,x];}
+const BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+
+// ===== projection (HD-2D field) =====
+const HZ=150,NY=372,DZ=3.0,LN=78,CX=135,SK=2.2;
+const zs=z=>1/(1+DZ*z);
+const PY=z=>HZ+(NY-HZ)*zs(z);
+const PX=(lo,z)=>CX+lo*LN*zs(z);
+const ROWZ=[0.04,0.14,0.26,0.40];
+const FOG=hex('#7E6FB8');
+const KN=['一','二','三','四','五'];
+const PHASE=['十一夜','十二夜','十三夜','十四夜','十五夜'];
+const FRAC=[0.66,0.76,0.86,0.94,1];
+
+// ===== palette & sprites =====
+const PAL={k:'#1B0F2E',K:'#3A2550',w:'#FFF8EC',W:'#D8CCE0',s:'#F6D2B4',S:'#D9A383',h:'#2B1B3D',H:'#4A3466',e:'#2B1B3D',
+ r:'#E2404F',R:'#9C2340',p:'#F48FB6',P:'#C45B8A',g:'#F5C842',G:'#B8862B',b:'#64C98A',B:'#2E7D5B',n:'#9C6A43',N:'#5E3B2A',
+ l:'#C8D0F5',L:'#8389C9',c:'#7FE3F0',C:'#3A9BC2',m:'#5D74D6',M:'#36428F',o:'#F08A3C',y:'#FFF1A8',q:'#F7A1B0',v:'#7A6A4E',V:'#4E4232',a:'#A9A3B8',A:'#6A6480'};
+const SPR={
+kaguya:["......kkkk......",".....kHhhhk.....","....kHhhhhhk....","....khhhhhhk....","...khhsssshhk...","...khhessehhk...","...khhqssqhhk...","...khhSssShhk...","..khhhkSSkhhhk..","..khhrrwwrrhhk..",".khhrrrggrrrhhk.",".khrrpprrpprrhk.",".khRrpppppprRhk.","khhRrpwppwprRhhk","khhRrppggpprRhhk",".khRRrpppprRRhk.",".khrRRrrrrRRrhk.",".kSrRRrggrRRrSk.",".khrrRRrrRRrrhk.","..krrrRRRRrrrk..","..kRrrrrrrrrRk..",".kRRrrpppprRRk..",".kkRRRRRRRRRRkk.","..kkkkkkkkkkkk.."],
+kaguyaB:["......kkkk......",".....kHhhhk.....","....kHhhhhhk....","....khhhhhhk....","...khhhhhhhhk...","...khhHhhhhhk...","...khhhhhhHhk...","...khhhhhhhhk...","..kkhhhhhhhhkk..","..krrhhhhhhrrk..",".krrrhhhhhhrrrk.",".krppphhhhppprk.",".kRrpphhhhpprRk.","kSRrpphhhhpprRSk",".kRrpphHhhpprRk.",".kRRrphhhhprRRk.",".krRRrhhhhrRRrk.",".krRRrrhhrrRRrk.",".krrRRrrrrRRrrk.","..krrrRRRRrrrk..","..kRrrrrrrrrRk..",".kRRrrpppprRRk..",".kkRRRRRRRRRRkk.","..kkkkkkkkkkkk.."],
+okina:["................","......kkkk......",".....kwwwwk.....","....kwWwwWwk..y.","....kwssssWk..y.","....kseSSesk..b.","....kssqqssk..b.","....kwwSSwwk..b.","...kwwwwwwwwk.B.","...kWwwwwwwWk.b.","..knnWwwwwWnnkb.",".knnnnWwwWnnnSb.",".knNnnnnnnnnNkb.",".kNnnnggnnnnNkB.",".kNnnnnnnnnnNkb.","..kNnnnnnnnNk.b.","..kNNnnnnnNNk.b.","..knNNNNNNNnk.B.","..knnnnnnnnnk.b.","..kNnnnnnnnNk.b.","...kNNkkNNNk..b.","...kSSk.kSSk....","..kkkkk.kkkkk...","................"],
+ouna:["................","......kkk.......",".....kWWWk......","....kkWWWkk.....","...kWWWWWWWk....","...kWssssssWk...","...kWseSSesWk...","...kWsqssqsk....","....kSssssSk....","....kkSSSSkk....","...kvvwwwwvvk...","..kvvvvwwvvvvk..","..kvVvvvvvvVvk..","..kvVvvggvvVvk..",".kSvVvvvvvvVvSk.","..kvVvvvvvvVvk..","..kvVVvvvvVVvk..","..kvvVVVVVVvvk..","..kvvvvvvvvvvk..","..kVvvvvvvvvVk..","...kVVVVVVVVk...","...kSSk..kSSk...","..kkkkk..kkkkk..","................"],
+chujo:["......kk........",".....khhk.......",".....khhhk......","....khhhhk......","....kkkkkkk.....","...kssssssk.....","...kseSSesk.....","...ksqsssqk.....","....kSssSk......","...kMkSSkMk.....","..kMMMggMMMk....",".kMmmmrrmmmMk...",".kMmMmmmmMmMk...",".kSmMgggggMmSk..",".kMmMmmmmmMmMk..","..kMMmrrmmMMkn..","..kMmmmmmmmMkn..","..kMmMMMMMmMk.n.","..kmmmmmmmmmk...","..kMmmk.kmmMk...","...kMMk.kMMk....","...kNNk.kNNk....","..kkkkk.kkkkk...","................"],
+archer:["....g.....g.....",".....g...g......","....kRRRRRk.....","...kRrrrrrRk....","...kRRRRRRRk....","...kssssssk.....","...kseSSesk...n.","...ksqsssqk..n..","....kSssSk..n...","...krkSSkrk.n...","..krrrggrrrkn...",".krRrrrrrrRrSw..",".krRrRRRRrRrkn..",".kSrRgggggRrk.n.",".krRrrrrrrRrk..n","..krRrRRrRrk...n","..krrrrrrrrk..n.","..kRrRRRRRrRk.n.","..kNnnnnnnnNkn..","..kNnnk.knnNk...","...kNNk.kNNk....","...kkkk.kkkk....","..kkkkk.kkkkk...","................"],
+guard:["............w...","...........kwk..","....kMMMMMk.n...","...kMmmmmmMkn...","...kMMMMMMMkn...","...kssssssk.n...","...kseSSesk.n...","...ksqsssqk.n...","....kSssSk..n...","...kMkSSkMk.n...","..kMMMggMMMkn...",".kMmmmmmmmmMSk..",".kMmMMMMMMmMkn..",".kSmMgggggMmkn..",".kMmMmmmmmMmkn..","..kMmMMMMmMk.n..","..kMmmmmmmmMkn..","..kMmMMMMMmMkn..","..kNnnnnnnnNkn..","..kNnnk.knnNkn..","...kNNk.kNNk.n..","...kkkk.kkkk.n..","..kkkkk.kkkkk...","................"],
+tennyo:[".......kk.......","......khhk......",".....kHhhhk.....","....khhhhhhk....","....khsssshk....","....khessehk....","....khqssqhk....",".....kSssSk.....","..p..kkSSkk..p..","...p.kwwppwk.p..","....pwwwppwwwp..","...kwwWwppwWwwk.","...kwWwwwwwwWwk.","..kSwWwyyyywWwSk","...kwWwwwwwwWwk.","...kpwWwwwwWwpk.","..p.kpwwwwwwpk.p",".p..kppwwwwppk..","....kPppppppPk..",".....kPppppPk...","......kwwwwk....",".....w.wwww.w...","....w..w..w..w..","................"],
+tenhei:["......LLLL....y.",".....LllllL...l.","....LlllllL..ll.","....kwwwwwwk..l.","....kwWwwWwk..l.","....kwkwwkwk..l.","....kwwwwwwk..l.",".....kWWWWk...l.","...kLkkkkkkLk.l.","..kLllllllllLkl.",".kLlLlggglLlLkS.",".kLlLllllllLlk..",".kSlLLLLLLLLlSk.",".kLlLlggglLlLk..","..kLlllllllLk...","..kLLlllllLLk...","..kmMmmmmmmMmk..","..kmmMmmmmMmmk..","..kmmmmmmmmmmk..","..kMmmk..kmmMk..","...kLLk..kLLk...","...kllk..kllk...","..kkkkk..kkkkk..","................"],
+cart:["...kkkkkkkkkkkkkkkkkk...","..kGggggggggggggggggGk..",".kgyyyyyyyyyyyyyyyyyygk.",".kgkkkkkkkkkkkkkkkkkkgk.",".kglLlllLlllLlllLllllgk.",".kglpppppppppppppppplgk.",".kglppwwppppppppwwpplgk.",".kglpppppppppppppppplgk.",".kgkkkkkkkkkkkkkkkkkkgk.",".kGggggggggggggggggggGk.","..kkkkkkkkkkkkkkkkkkkk..","...kwwk..........kwwk...","..kwgwgk........kwgwgk..","..kwwwwk........kwwwwk..","...kwwk..........kwwk...",".wwww.wwwwww.wwwwwww.ww.","wwWwwwwWwwwwwwWwwwwwWwww",".wwwWwwwwwWwwwwwWwwwwww."],
+king:["...g..g..g..g...","...gg.gg.gg.gg..","...kgggggggggk..","...kgyyyyyyygk..","....kgggggggk...","....khhhhhhhk...","....khsssssshk..","....khessesk....","....khsqqssk....",".....kSssssSk...","..y..kkSSSSkk..y","..ykwwwwggwwwwky",".ykwwWwwggwwWwwky",".kwwWwwwggwwwWwwk","kSwWwwwyyyywwWwSk",".kwWwwwwggwwwwWk.",".kwWwwwggwwwwwWk.","..kwWwwwggwwwWk..","..kwwWwwggwwWwk..","..kyywwwggwwwyyk.","..kgggyyyyyygggk.","...kGgggggggGk...","....kwwwwwwk.....","...w.wwwwww.w....","..w..w....w..w..."],
+toro:["...kkkk...","..kaaaak..",".kaaaaaak.","kkkkkkkkkk",".kayyyyak.",".kaygyyak.",".kayyyyak.",".kaaaaaak.","kkkkkkkkkk","...kaak...","...kAak...","...kaak...","..kaaaak..",".kAaaaaAk.","kkkkkkkkkk"],
+pot:["...kkkk...","..kGggGk..","...kggk...","..kgyygk..",".kgyyyygk.",".kgyggygk.","kGgggggggk",".kGgggggk.","..kGGGGk..","...kkkk..."],
+star:["....k....","...kyk...","kkkkykkkk","kyyyyyyyk",".kyyyyyk.","..kygyk..",".kyk.kyk.",".kk...kk."],
+i_hachi:["............",".kkkkkkkkkk.",".kyggggggyk.",".kggggggggk.","..kgGggGgk..","...kggggk...","....kkkk....","...kggggk...","..kGGGGGGk..","...kkkkkk..."],
+i_eda:[".....y......","...p.n..c...","....nnn.....","..y..n..p...","...n.n.n....","....nnn.....","......n.....",".....kkk....","....kgggk...","....kkkkk..."],
+i_kawa:["...kkkkkk...","..krrrrrrk..",".krrgrrgrrk.",".krrrrrrrrk.","..krrorrrk..","..krRrrRrk..","..krrrgrrk..","..kkkkkkkk.."],
+i_tama:["....kkkk....","...kcwwck...","..kcwcccck..","..kcccccCk..","..kcccccCk..","...kcCCCk...","....kkkk...."],
+i_kai:["....kkkk....","...kwwwwk...","..kwpwpwwk..","..kwwpwpwk..","..kwwwpwwk..","...kwwwwk...","....kkkk...."],
+ic_down:["ggggg",".ggg.","..g.."],
+ic_up:["..g..",".ggg.","ggggg"],
+ic_right:["g..","gg.","ggg","gg.","g.."],
+ic_ff:["k..k..","kk.kk.","kkkkkk","kk.kk.","k..k.."],
+ic_pause:["kk.kk","kk.kk","kk.kk","kk.kk","kk.kk"],
+i_take:["....y.....","...kbk....","...kbk....","...kBk....","...kbk....","...kyk....","...kbk....","...kBk....","...kbk...."]
+};
+const OL_INK='#0B0618';
+
+const SPC={};
+function sprite(name,o={}){
+ const key=name+'|'+(o.sw?JSON.stringify(o.sw):'')+'|'+(o.m||'n')+'|'+(o.ol||'')+'|'+(o.col||'')+'|'+(o.rim||'');
+ if(SPC[key])return SPC[key];
+ const rows=SPR[name];const w=Math.max(...rows.map(r=>r.length)),h=rows.length;
+ const grid=[];
+ for(let j=0;j<h;j++){grid[j]=[];for(let i=0;i<w;i++){let ch=rows[j][i]||'.';if(o.sw&&o.sw[ch])ch=o.sw[ch];grid[j][i]=PAL[ch]||null;}}
+ const [c,x]=mk(w+2,h+2);
+ if(o.ol){x.fillStyle=o.m==='s'?o.col:o.ol;
+  for(let j=-1;j<=h;j++)for(let i=-1;i<=w;i++){if(grid[j]&&grid[j][i])continue;
+   if((grid[j]&&(grid[j][i-1]||grid[j][i+1]))||(grid[j-1]&&grid[j-1][i])||(grid[j+1]&&grid[j+1][i]))x.fillRect(i+1,j+1,1,1);}}
+ for(let j=0;j<h;j++)for(let i=0;i<w;i++){const col=grid[j][i];if(col){x.fillStyle=o.m==='w'?'#FFFFFF':o.m==='s'?o.col:col;x.fillRect(i+1,j+1,1,1);}}
+ if(o.rim&&!o.m){x.fillStyle=o.rim;for(let j=0;j<h;j++)for(let i=0;i<w;i++){if(!grid[j][i])continue;const top=!(grid[j-1]&&grid[j-1][i]),lef=!grid[j][i-1],rig=!grid[j][i+1];
+  if(top){x.globalAlpha=.75;x.fillRect(i+1,j+1,1,1);}else if(lef||rig){x.globalAlpha=lef?.42:.22;x.fillRect(i+1,j+1,1,1);}}x.globalAlpha=1;}
+ let bp=0;for(let j=h-1;j>=0;j--){if(grid[j].some(v=>v))break;bp++;}c.pad=bp+1;
+ return SPC[key]=c;
+}
+const URLC={};
+function sURL(name,ol=OL_INK){const k=name+ol;return URLC[k]||(URLC[k]=sprite(name,{ol}).toDataURL());}
+function sImg(name,scale=1,ol=OL_INK){const c=sprite(name,{ol});return `<img class="px" alt="" src="${sURL(name,ol)}" style="width:calc(var(--p)*${c.width*scale});height:calc(var(--p)*${c.height*scale})">`;}
+function moonURL(frac,r=6){
+ const n=r*2+3;const [c,x]=mk(n,n);const cx=r+1.5,cy=r+1.5;const sx=cx-2*r*frac-.5;
+ for(let j=0;j<n;j++)for(let i=0;i<n;i++){const dx=i+.5-cx,dy=j+.5-cy;const d=Math.hypot(dx,dy);
+  if(d<=r){const sh=Math.hypot(i+.5-sx,dy)<r;x.fillStyle=sh?'#2A2458':(dx+dy>r*.5?'#F5C842':'#FFF1A8');x.fillRect(i,j,1,1);}
+  else if(d<=r+1.2){x.fillStyle=OL_INK;x.fillRect(i,j,1,1);}}
+ return c.toDataURL();
+}
+const I18N={"en":{"かぐや姫 防衛記":"Kaguya-hime: Moonlight Defense","はじめる":"Start","音楽 {0}":"Music {0}","効果音 {0}":"Sound {0}","オン":"On","オフ":"Off","月の記憶 {0}（はじめの光 +{1}）":"Moon Memory {0} (starting light +{1})","負けても「月の記憶」が残る":"Even if you lose, your Moon Memory remains","スキップ":"Skip","屋敷":"House","撤収":"Withdraw","宝":"Item","{0}（未入手）":"{0} (not found)","これにする":"Choose this","偽物が混ざっている。月と同じ間合いで光るものが本物。":"Some are fakes. The real one glows in time with the moon.","夜を迎える":"Face the night","夜をしのいだ":"You held the night","夜が明ける":"Dawn breaks","不死の薬を、どうする？":"What will you do with the elixir?","薬を飲む":"Drink it","薬を燃やす":"Burn it","タイトルへ":"To title","ひと休み":"Take a break","続ける":"Continue","あきらめる":"Give up","もう一度":"Try again","第{0}夜":"Night {0}","第{0}日 昼　今宵は{1}":"Day {0}, daytime. Tonight: {1}","十一夜":"11th Moon","十二夜":"12th Moon","十三夜":"13th Moon","十四夜":"14th Moon","十五夜":"Full Moon","翁":"Grandpa","光の星を生む":"Makes light stars","弓兵":"Archer","遠くを射る":"Shoots far","槍兵":"Spearman","前で止める":"Holds the line","仏の御石の鉢":"Shining Stone Bowl","石作皇子":"Prince Ishitsukuri","結界":"Ward","6秒のあいだ屋敷が傷つかない":"The house takes no damage for 6 seconds","蓬莱の玉の枝":"Jeweled Branch of Horai","車持皇子":"Prince Kuramochi","玉実":"Fruit","光を8得る":"Gain 8 light","火鼠の皮衣":"Fire-Rat Robe","阿倍御主人":"Abe no Miushi","火炎":"Blaze","すべての敵に40の炎":"40 fire damage to every enemy","龍の首の珠":"Dragon's Jewel","大伴御行":"Otomo no Miyuki","雷鳴":"Thunder","すべての敵を4秒止める":"Freezes every enemy for 4 seconds","燕の子安貝":"Swallow's Shell","石上麻呂足":"Isonokami no Marotari","癒し":"Mend","屋敷を30なおす":"Repairs the house by 30","中将の兵が庭に陣を張った。今夜から、月の使いが来る。":"The General's soldiers have camped in the garden. From tonight, the moon's envoys will come.","一夜目はしのいだ。兵たちは昼まで眠っている。":"We made it through the first night. The soldiers are sleeping until noon.","翁の手に包帯が増えた。媼は握り飯を数えている。":"Grandpa's hands have more bandages. Grandma is counting rice balls.","月はもう、ほとんど丸い。兵が空を見たがらない。":"The moon is nearly round now. The soldiers don't want to look at the sky.","今宵は十五夜。天人の王が、みずから迎えに来る。":"Tonight is the full moon. The Moon King himself is coming to take her.","中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」":"General: \"These moon folk swing their swords with such lovely faces.\"","翁「星を拾うのは得意じゃ。腰はもう知らん」":"Grandpa: \"I'm good at picking up stars. My back is another story.\"","媼「握り飯、あと三十。足りるかねえ」":"Grandma: \"Thirty rice balls left. Will that be enough, I wonder.\"","中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」":"General: \"The men say their arms go heavy when they look at the moon. I told them not to look.\"","天人の王":"Moon King","降臨":"descends","そこにはもう兵がいる":"A soldier is already there","光が足りない（あと{0}）":"Not enough light ({0} more)","光 +{0}":"Light +{0}","連撃 光+1":"Combo: light +1","屋敷 +{0}":"House +{0}","羽衣の魅了":"Robe's Charm","結界！":"Ward!","光の星をタップ！":"Tap the light star!","のこり {0}":"Left {0}","連撃":"Combo","難題":"Trial","{0}の難題":"{0}'s Trial","「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。":"Tell the real \"{0}\" from the fakes. If it's real, you learn the night skill \"{1}\": {2}.","鍛錬":"Train","備え":"Prepare","弓兵を鍛える":"Train the archers","弓兵の攻撃が35%上がる。いま Lv{0}。":"Archer attack +35%. Now Lv{0}.","槍兵を鍛える":"Train the spearmen","槍兵の体力と攻撃が35%上がる。いま Lv{0}。":"Spearman health and attack +35%. Now Lv{0}.","翁と竹を取る":"Cut bamboo with Grandpa","翁が光の星を生む間隔が短くなる。いま Lv{0}。":"Grandpa makes light stars faster. Now Lv{0}.","屋敷を修繕する":"Repair the house","屋敷の最大体力が20増え、体力が40もどる。":"House max health +20, and restores 40.","光る竹を探す":"Search for glowing bamboo","毎夜はじめの光が3増える。いま +{0}。":"+3 starting light each night. Now +{0}.","本物":"Real","偽物":"Fake","本物だ。夜の技「{0}」を覚えた":"It's real. You learned the night skill \"{0}\"","偽物をつかまされた。":"You were handed a fake.","時間切れ。":"Time's up.","慰めに光 +{0}":"Consolation: light +{0}","兵を選び、光るマスに置こう。ドラッグでも置ける":"Pick a soldier and place it on a glowing tile. You can drag, too","退けた使い":"Envoys repelled","最大連撃":"Best combo","夜明けに屋敷を手当てした（+{0}）":"At dawn you patched up the house (+{0})","{0} {1}にて":"At {0}, {1}","姫は月へ帰った":"The princess returned to the moon","月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}":"Moon Memory +{0} (total {1}). Next time, starting light +{2}","結末 その一":"Ending One","結末 その二":"Ending Two","終わらない十五夜":"The Endless Full Moon","限りある日々":"Our Numbered Days","月の記憶 +{0}（合計 {1}）":"Moon Memory +{0} (total {1})","ここまで遊んでくれて、ありがとう。":"Thank you for playing to the end.","迎えの光は、今夜も満ちる。":"The light that comes for her will rise again tonight.","媼":"Grandma","かぐや":"Kaguya","中将":"General","いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。":"Long ago, there lived an old man who cut bamboo, wove it into baskets, and sold them to get by.","あいたた……腰が。今日はこのへんで切り上げるか。":"Ow, ow... my back. I'll call it a day.","……なんじゃ。あの竹、根元が光っとる。":"...What's this? That bamboo is glowing at the root.","蛍……ではないな。どれ。":"Fireflies...? No. Let's see.","節の中に、手のひらに乗るほどの女の子が座っていた。":"Inside the stalk sat a little girl, small enough to fit in his palm.","翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。":"He took her home, and he and his wife raised her together. Within three months she was as tall as any grown woman.","この子ったら、また着物の丈が足りなくなって。":"Look at you. Your kimono's too short again.","ごめんなさい。勝手に伸びちゃうの。":"Sorry. I just keep growing.","謝ることはない。よう食うて、よう伸びる。結構なことじゃ。":"Nothing to be sorry for. Eat well, grow well. That's a fine thing.","あんたは米の心配をしなさいな。":"You worry about the rice, old man.","その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。":"That autumn, the princess began going out to the veranda each night, only to stare at the moon.","冷えるぞ。何ぞ、あったか。":"It's cold out. Did something happen?","お爺さん。わたし、この国の者じゃないの。月の都から来たの。":"Grandpa. I'm not from this country. I came from the city on the moon.","次の十五夜に、迎えが来る。断れるものじゃないの。":"On the next full moon, they'll come for me. It's not something I can refuse.","断れないって、あんた……。":"Can't refuse? But, dear...","来るなら来ればええ。戸を閉めて、わしが前に座っとる。":"Let them come. I'll shut the door and sit right in front of it.","相手は人じゃないのよ。":"They're not people, you know.","わしだって、竹から娘が出てくるとは思っとらんかった。":"Well, I never expected a daughter to come out of a bamboo stalk either.","翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。":"Grandpa pleaded with the Emperor. The Emperor sent his General with soldiers to the house.","中将である。帝の仰せにより、十五夜まで姫をお守りいたす。":"I am the General. By the Emperor's command, I will guard the princess until the full moon.","弓と槍を並べておけば、天人とて通れまい。":"Line up the bows and spears, and not even moon folk will get through.","ありがたい。ただ、光る星が落ちとったら拾うてくだされ。":"Thank you. Only, if you see light stars on the ground, do pick them up.","わしが光る竹から集めますでな。兵を雇う足しになる。":"I gather them from glowing bamboo. They'll help pay for soldiers.","……光る、星？":"...Light... stars?","見ればわかる。":"You'll know when you see one.","三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。":"Before dawn on the third day. While the soldiers slept, Grandpa and the princess sat on the veranda.","お爺さん、その手。どうしたの。":"Grandpa, your hands. What happened?","竹の切り口でやった。毎晩、光る竹を探して割っとるからな。":"Bamboo edges. I split glowing bamboo every night, looking for them.","そんなにたくさん、光る竹なんてないでしょう。":"There can't be that much glowing bamboo.","探せばある。おまえが入っとったくらいじゃ。":"There is if you look. You were in one, after all.","月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。":"The moon people aren't bad people. It's just that nobody there ever cries.","わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。":"I started crying after I came here. Maybe that's what's wrong.","難しいことはわからん。それより朝飯、何がええ。":"I don't understand the hard stuff. What do you want for breakfast?","……お粥。梅のやつ。":"...Rice porridge. With a plum.","よし。":"Right.","十五夜。月が昇ると、あたりは昼のように明るくなった。":"The full moon. When it rose, the night grew as bright as day.","……どうしたことだ。弓を引く腕に、力が入らん。":"...What is this? My arms won't draw the bow.","翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。":"Old man. We only left the princess in the lower world for a time, to make up for a wrong she did.","期限は満ちた。こちらへ渡してもらおう。":"Her time is up. Hand her over.","罪とは、何をしたんで。":"And what wrong did she do?","おまえたちに話して、わかることではない。":"It is nothing you would understand.","なら、わしらにも渡す理由はありませんな。":"Then we've got no reason to hand her over, either.","お爺さん……。":"Grandpa...","ええい、動け！ 弓を取れ、射よ！":"Move, curse it! Take up your bows! Shoot!","天の羽衣を着せかけられると、姫はもう泣かなかった。":"Once the feather robe of heaven was laid over her, the princess cried no more.","お爺さん。……あれ。わたし、何を言おうとしたんだっけ。":"Grandpa. ...Huh. What was I about to say?","飛ぶ車は音もなく、月のほうへ小さくなっていった。":"The flying carriage, without a sound, grew smaller toward the moon.","天人たちは光をたたむようにして、雲の上へ引き上げていった。":"The moon folk folded up their light and withdrew above the clouds.","……退いた。退いたぞ。":"...They've pulled back. They've pulled back!","ふう。腰が抜けるかと思うたわい。":"Whew. I thought my back would give out.","これ……あの人が置いていったの。不死の薬。":"This... he left it behind. The elixir of immortality.","飲めば年を取らない。病にもならない。ずっと、このまま。":"Drink it and you never grow old. Never fall ill. Always just like this.","わしもか。":"Me too?","お爺さんも、お婆さんも。わたしも。":"You, and Grandma. And me.","それからというもの、月は一度も欠けなかった。":"From then on, the moon never waned again.","今夜も満月だねえ。":"Another full moon tonight.","昨日も、その前もね。":"Same as yesterday. And the day before.","……ええ月じゃ。":"...It's a fine moon.","三人は同じ夜を、何度でも迎えた。":"The three of them welcomed the same night, over and over.","薬は、天にいちばん近い山の頂で焚かれた。":"The elixir was burned on the peak of the mountain closest to the sky.","帝も、それがよいと仰せでした。":"The Emperor said it was for the best, as well.","煙、月まで届くかな。":"Will the smoke reach the moon, I wonder.","届かんでもええ。腹が減った。帰って粥にしよう。":"Doesn't have to. I'm hungry. Let's go home and make porridge.","梅のやつね。":"With a plum.","その山はのちに「ふじ」と呼ばれるようになった、という。":"They say that mountain later came to be called \"Fuji.\""},"zh-Hans":{"かぐや姫 防衛記":"辉夜姬 守月记","はじめる":"开始","音楽 {0}":"音乐 {0}","効果音 {0}":"音效 {0}","オン":"开","オフ":"关","月の記憶 {0}（はじめの光 +{1}）":"月之记忆 {0}（初始光 +{1}）","負けても「月の記憶」が残る":"即使失败，“月之记忆”也会留下","スキップ":"跳过","屋敷":"宅邸","撤収":"撤回","宝":"宝物","{0}（未入手）":"{0}（未获得）","これにする":"就选这个","偽物が混ざっている。月と同じ間合いで光るものが本物。":"其中混有假货。与月亮同节奏闪光的才是真品。","夜を迎える":"迎接夜晚","夜をしのいだ":"撑过了这一夜","夜が明ける":"天亮了","不死の薬を、どうする？":"不死之药，要怎么处置？","薬を飲む":"喝下药","薬を燃やす":"烧掉药","タイトルへ":"返回标题","ひと休み":"稍作休息","続ける":"继续","あきらめる":"放弃","もう一度":"再来一次","第{0}夜":"第{0}夜","第{0}日 昼　今宵は{1}":"第{0}日 白天　今夜是{1}","十一夜":"十一夜","十二夜":"十二夜","十三夜":"十三夜","十四夜":"十四夜","十五夜":"十五夜","翁":"老翁","光の星を生む":"生成光之星","弓兵":"弓兵","遠くを射る":"远程射击","槍兵":"枪兵","前で止める":"在前方拦截","仏の御石の鉢":"光之石钵","石作皇子":"石作皇子","結界":"结界","6秒のあいだ屋敷が傷つかない":"6秒内宅邸不受伤害","蓬莱の玉の枝":"蓬莱玉枝","車持皇子":"车持皇子","玉実":"玉果","光を8得る":"获得8点光","火鼠の皮衣":"火鼠裘","阿倍御主人":"阿倍御主人","火炎":"火焰","すべての敵に40の炎":"对所有敌人造成40点火焰伤害","龍の首の珠":"龙首之珠","大伴御行":"大伴御行","雷鳴":"雷鸣","すべての敵を4秒止める":"使所有敌人停止4秒","燕の子安貝":"燕之子安贝","石上麻呂足":"石上麻吕足","癒し":"治愈","屋敷を30なおす":"修复宅邸30点","中将の兵が庭に陣を張った。今夜から、月の使いが来る。":"中将的士兵在庭院扎下了营。从今夜起，月亮的使者就要来了。","一夜目はしのいだ。兵たちは昼まで眠っている。":"第一夜撑过去了。士兵们要睡到中午。","翁の手に包帯が増えた。媼は握り飯を数えている。":"老翁手上的绷带又多了。老妪在数饭团。","月はもう、ほとんど丸い。兵が空を見たがらない。":"月亮已经快圆了。士兵们都不愿意抬头看天。","今宵は十五夜。天人の王が、みずから迎えに来る。":"今夜是十五夜。天人之王要亲自来迎接她。","中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」":"中将：“天人这东西，竟是顶着那么好看的脸砍过来的。”","翁「星を拾うのは得意じゃ。腰はもう知らん」":"老翁：“捡星星我在行。腰就顾不上了。”","媼「握り飯、あと三十。足りるかねえ」":"老妪：“饭团还剩三十个。够不够呢。”","中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」":"中将：“士兵说看了月亮手臂就发沉。我叫他们别看。”","天人の王":"天人之王","降臨":"降临","そこにはもう兵がいる":"那里已经有士兵了","光が足りない（あと{0}）":"光不够（还差{0}）","光 +{0}":"光 +{0}","連撃 光+1":"连击 光+1","屋敷 +{0}":"宅邸 +{0}","羽衣の魅了":"羽衣的魅惑","結界！":"结界！","光の星をタップ！":"点击光之星！","のこり {0}":"剩余 {0}","連撃":"连击","難題":"难题","{0}の難題":"{0}的难题","「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。":"辨别“{0}”的真假。若是真品，就能使用夜间技能“{1}”：{2}。","鍛錬":"锻炼","備え":"准备","弓兵を鍛える":"锻炼弓兵","弓兵の攻撃が35%上がる。いま Lv{0}。":"弓兵攻击提升35%。当前 Lv{0}。","槍兵を鍛える":"锻炼枪兵","槍兵の体力と攻撃が35%上がる。いま Lv{0}。":"枪兵体力和攻击提升35%。当前 Lv{0}。","翁と竹を取る":"和老翁去砍竹","翁が光の星を生む間隔が短くなる。いま Lv{0}。":"老翁生成光之星的间隔缩短。当前 Lv{0}。","屋敷を修繕する":"修缮宅邸","屋敷の最大体力が20増え、体力が40もどる。":"宅邸最大体力+20，恢复40体力。","光る竹を探す":"寻找发光的竹子","毎夜はじめの光が3増える。いま +{0}。":"每夜初始光+3。当前 +{0}。","本物":"真品","偽物":"假货","本物だ。夜の技「{0}」を覚えた":"是真品。学会了夜间技能“{0}”","偽物をつかまされた。":"被塞了假货。","時間切れ。":"时间到。","慰めに光 +{0}":"安慰奖 光 +{0}","兵を選び、光るマスに置こう。ドラッグでも置ける":"选择士兵，放到发光的格子上。也可以拖动放置","退けた使い":"击退的使者","最大連撃":"最高连击","夜明けに屋敷を手当てした（+{0}）":"天亮时修补了宅邸（+{0}）","{0} {1}にて":"于{0} {1}","姫は月へ帰った":"公主回到了月亮上","月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}":"月之记忆 +{0}（共 {1}）。下次初始光 +{2}","結末 その一":"结局 之一","結末 その二":"结局 之二","終わらない十五夜":"永不结束的十五夜","限りある日々":"有限的日子","月の記憶 +{0}（合計 {1}）":"月之记忆 +{0}（共 {1}）","ここまで遊んでくれて、ありがとう。":"谢谢你玩到最后。","迎えの光は、今夜も満ちる。":"迎接她的光，今夜也会满盈。","媼":"老妪","かぐや":"辉夜","中将":"中将","いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。":"很久以前，有一位老翁，以砍竹编篮编筐、拿去卖为生。","あいたた……腰が。今日はこのへんで切り上げるか。":"哎哟哟……我的腰。今天就到这儿吧。","……なんじゃ。あの竹、根元が光っとる。":"……怎么回事。那根竹子，根部在发光。","蛍……ではないな。どれ。":"萤火虫……不像。我看看。","節の中に、手のひらに乗るほどの女の子が座っていた。":"竹节之中，坐着一个只有手掌大小的女孩。","翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。":"老翁把女孩带回家，和老妪一起抚养。不到三个月，她就长得和大人一般高了。","この子ったら、また着物の丈が足りなくなって。":"这孩子，衣服又短了一截。","ごめんなさい。勝手に伸びちゃうの。":"对不起。我自己就长高了。","謝ることはない。よう食うて、よう伸びる。結構なことじゃ。":"不用道歉。吃得多，长得快。是好事。","あんたは米の心配をしなさいな。":"你还是操心米够不够吧。","その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。":"那年秋天，公主一到夜里就坐到廊下，只是望着月亮。","冷えるぞ。何ぞ、あったか。":"天凉了。出什么事了？","お爺さん。わたし、この国の者じゃないの。月の都から来たの。":"爷爷。我不是这个国家的人。我是从月亮上的都城来的。","次の十五夜に、迎えが来る。断れるものじゃないの。":"下一个十五夜，会有人来接我。那是没法拒绝的。","断れないって、あんた……。":"没法拒绝，你这孩子……","来るなら来ればええ。戸を閉めて、わしが前に座っとる。":"要来就让他们来。我关上门，坐在门口守着。","相手は人じゃないのよ。":"对方可不是人哦。","わしだって、竹から娘が出てくるとは思っとらんかった。":"我也没想过会从竹子里出来个女儿啊。","翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。":"老翁向帝请愿。帝命中将带兵前往宅邸。","中将である。帝の仰せにより、十五夜まで姫をお守りいたす。":"我乃中将。奉帝之命，守护公主直到十五夜。","弓と槍を並べておけば、天人とて通れまい。":"只要摆好弓和枪，就算是天人也过不去。","ありがたい。ただ、光る星が落ちとったら拾うてくだされ。":"多谢。只是，若看到地上有发光的星星，请帮忙捡起来。","わしが光る竹から集めますでな。兵を雇う足しになる。":"那是我从发光的竹子里收集的。能贴补雇兵的开销。","……光る、星？":"……发光的，星星？","見ればわかる。":"看到就知道了。","三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。":"第三天黎明前。士兵们睡着的时候，老翁和公主坐在廊下。","お爺さん、その手。どうしたの。":"爷爷，你的手。怎么了？","竹の切り口でやった。毎晩、光る竹を探して割っとるからな。":"被竹子的切口划的。每晚都在找发光的竹子劈开嘛。","そんなにたくさん、光る竹なんてないでしょう。":"发光的竹子哪有那么多。","探せばある。おまえが入っとったくらいじゃ。":"找就有。你不就待在里面嘛。","月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。":"月亮上的人啊，不是坏人。只是那里谁都不会哭。","わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。":"我来了这里以后，就会哭了。大概，这就是不行的地方。","難しいことはわからん。それより朝飯、何がええ。":"难的事我不懂。倒是早饭，想吃什么？","……お粥。梅のやつ。":"……粥。放梅子的。","よし。":"好。","十五夜。月が昇ると、あたりは昼のように明るくなった。":"十五夜。月亮升起后，四周亮得如同白昼。","……どうしたことだ。弓を引く腕に、力が入らん。":"……怎么回事。拉弓的手臂使不上劲。","翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。":"老翁啊。公主只是为了弥补过错，暂时寄放在下界而已。","期限は満ちた。こちらへ渡してもらおう。":"期限已满。把她交出来吧。","罪とは、何をしたんで。":"过错，她做了什么？","おまえたちに話して、わかることではない。":"那不是说给你们听就能明白的事。","なら、わしらにも渡す理由はありませんな。":"那我们也没有交人的理由了。","お爺さん……。":"爷爷……","ええい、動け！ 弓を取れ、射よ！":"可恶，动起来！拿起弓，放箭！","天の羽衣を着せかけられると、姫はもう泣かなかった。":"天之羽衣披上身后，公主就不再哭了。","お爺さん。……あれ。わたし、何を言おうとしたんだっけ。":"爷爷。……咦。我刚才想说什么来着。","飛ぶ車は音もなく、月のほうへ小さくなっていった。":"飞车悄无声息，朝着月亮越变越小。","天人たちは光をたたむようにして、雲の上へ引き上げていった。":"天人们像收起光芒一般，撤回了云端。","……退いた。退いたぞ。":"……退了。他们退了！","ふう。腰が抜けるかと思うたわい。":"呼。我还以为腰要闪了。","これ……あの人が置いていったの。不死の薬。":"这个……是那个人留下的。不死之药。","飲めば年を取らない。病にもならない。ずっと、このまま。":"喝了就不会变老。也不会生病。永远，就这样。","わしもか。":"我也是？","お爺さんも、お婆さんも。わたしも。":"爷爷也是，奶奶也是。我也是。","それからというもの、月は一度も欠けなかった。":"从那以后，月亮再也没有缺过。","今夜も満月だねえ。":"今晚也是满月呢。","昨日も、その前もね。":"昨天也是，前天也是。","……ええ月じゃ。":"……好月亮啊。","三人は同じ夜を、何度でも迎えた。":"三人一次又一次，迎来同一个夜晚。","薬は、天にいちばん近い山の頂で焚かれた。":"药在离天最近的那座山顶上烧掉了。","帝も、それがよいと仰せでした。":"帝也说，这样最好。","煙、月まで届くかな。":"烟能飘到月亮上吗。","届かんでもええ。腹が減った。帰って粥にしよう。":"飘不到也没关系。肚子饿了。回家煮粥吧。","梅のやつね。":"放梅子的哦。","その山はのちに「ふじ」と呼ばれるようになった、という。":"据说，那座山后来被称为“富士”。"},"zh-Hant":{"かぐや姫 防衛記":"輝夜姬 守月記","はじめる":"開始","音楽 {0}":"音樂 {0}","効果音 {0}":"音效 {0}","オン":"開","オフ":"關","月の記憶 {0}（はじめの光 +{1}）":"月之記憶 {0}（初始光 +{1}）","負けても「月の記憶」が残る":"即使失敗，「月之記憶」也會留下","スキップ":"跳過","屋敷":"宅邸","撤収":"撤回","宝":"寶物","{0}（未入手）":"{0}（未取得）","これにする":"就選這個","偽物が混ざっている。月と同じ間合いで光るものが本物。":"其中混有假貨。與月亮同節奏閃光的才是真品。","夜を迎える":"迎接夜晚","夜をしのいだ":"撐過了這一夜","夜が明ける":"天亮了","不死の薬を、どうする？":"不死之藥，要怎麼處置？","薬を飲む":"喝下藥","薬を燃やす":"燒掉藥","タイトルへ":"回到標題","ひと休み":"稍作休息","続ける":"繼續","あきらめる":"放棄","もう一度":"再來一次","第{0}夜":"第{0}夜","第{0}日 昼　今宵は{1}":"第{0}日 白天　今夜是{1}","十一夜":"十一夜","十二夜":"十二夜","十三夜":"十三夜","十四夜":"十四夜","十五夜":"十五夜","翁":"老翁","光の星を生む":"生成光之星","弓兵":"弓兵","遠くを射る":"遠程射擊","槍兵":"槍兵","前で止める":"在前方攔截","仏の御石の鉢":"光之石缽","石作皇子":"石作皇子","結界":"結界","6秒のあいだ屋敷が傷つかない":"6秒內宅邸不受傷害","蓬莱の玉の枝":"蓬萊玉枝","車持皇子":"車持皇子","玉実":"玉果","光を8得る":"獲得8點光","火鼠の皮衣":"火鼠裘","阿倍御主人":"阿倍御主人","火炎":"火焰","すべての敵に40の炎":"對所有敵人造成40點火焰傷害","龍の首の珠":"龍首之珠","大伴御行":"大伴御行","雷鳴":"雷鳴","すべての敵を4秒止める":"使所有敵人停止4秒","燕の子安貝":"燕之子安貝","石上麻呂足":"石上麻呂足","癒し":"治癒","屋敷を30なおす":"修復宅邸30點","中将の兵が庭に陣を張った。今夜から、月の使いが来る。":"中將的士兵在庭院紮下了營。從今夜起，月亮的使者就要來了。","一夜目はしのいだ。兵たちは昼まで眠っている。":"第一夜撐過去了。士兵們要睡到中午。","翁の手に包帯が増えた。媼は握り飯を数えている。":"老翁手上的繃帶又多了。老嫗在數飯糰。","月はもう、ほとんど丸い。兵が空を見たがらない。":"月亮已經快圓了。士兵們都不願意抬頭看天。","今宵は十五夜。天人の王が、みずから迎えに来る。":"今夜是十五夜。天人之王要親自來迎接她。","中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」":"中將：「天人這東西，竟是頂著那麼好看的臉砍過來的。」","翁「星を拾うのは得意じゃ。腰はもう知らん」":"老翁：「撿星星我在行。腰就顧不上了。」","媼「握り飯、あと三十。足りるかねえ」":"老嫗：「飯糰還剩三十個。夠不夠呢。」","中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」":"中將：「士兵說看了月亮手臂就發沉。我叫他們別看。」","天人の王":"天人之王","降臨":"降臨","そこにはもう兵がいる":"那裡已經有士兵了","光が足りない（あと{0}）":"光不夠（還差{0}）","光 +{0}":"光 +{0}","連撃 光+1":"連擊 光+1","屋敷 +{0}":"宅邸 +{0}","羽衣の魅了":"羽衣的魅惑","結界！":"結界！","光の星をタップ！":"點擊光之星！","のこり {0}":"剩餘 {0}","連撃":"連擊","難題":"難題","{0}の難題":"{0}的難題","「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。":"辨別「{0}」的真假。若是真品，就能使用夜間技能「{1}」：{2}。","鍛錬":"鍛鍊","備え":"準備","弓兵を鍛える":"鍛鍊弓兵","弓兵の攻撃が35%上がる。いま Lv{0}。":"弓兵攻擊提升35%。目前 Lv{0}。","槍兵を鍛える":"鍛鍊槍兵","槍兵の体力と攻撃が35%上がる。いま Lv{0}。":"槍兵體力和攻擊提升35%。目前 Lv{0}。","翁と竹を取る":"和老翁去砍竹","翁が光の星を生む間隔が短くなる。いま Lv{0}。":"老翁生成光之星的間隔縮短。目前 Lv{0}。","屋敷を修繕する":"修繕宅邸","屋敷の最大体力が20増え、体力が40もどる。":"宅邸最大體力+20，恢復40體力。","光る竹を探す":"尋找發光的竹子","毎夜はじめの光が3増える。いま +{0}。":"每夜初始光+3。目前 +{0}。","本物":"真品","偽物":"假貨","本物だ。夜の技「{0}」を覚えた":"是真品。學會了夜間技能「{0}」","偽物をつかまされた。":"被塞了假貨。","時間切れ。":"時間到。","慰めに光 +{0}":"安慰獎 光 +{0}","兵を選び、光るマスに置こう。ドラッグでも置ける":"選擇士兵，放到發光的格子上。也可以拖曳放置","退けた使い":"擊退的使者","最大連撃":"最高連擊","夜明けに屋敷を手当てした（+{0}）":"天亮時修補了宅邸（+{0}）","{0} {1}にて":"於{0} {1}","姫は月へ帰った":"公主回到了月亮上","月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}":"月之記憶 +{0}（共 {1}）。下次初始光 +{2}","結末 その一":"結局 之一","結末 その二":"結局 之二","終わらない十五夜":"永不結束的十五夜","限りある日々":"有限的日子","月の記憶 +{0}（合計 {1}）":"月之記憶 +{0}（共 {1}）","ここまで遊んでくれて、ありがとう。":"謝謝你玩到最後。","迎えの光は、今夜も満ちる。":"迎接她的光，今夜也會滿盈。","媼":"老嫗","かぐや":"輝夜","中将":"中將","いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。":"很久以前，有一位老翁，以砍竹編籃編筐、拿去賣為生。","あいたた……腰が。今日はこのへんで切り上げるか。":"哎喲喲……我的腰。今天就到這兒吧。","……なんじゃ。あの竹、根元が光っとる。":"……怎麼回事。那根竹子，根部在發光。","蛍……ではないな。どれ。":"螢火蟲……不像。我看看。","節の中に、手のひらに乗るほどの女の子が座っていた。":"竹節之中，坐著一個只有手掌大小的女孩。","翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。":"老翁把女孩帶回家，和老嫗一起撫養。不到三個月，她就長得和大人一般高了。","この子ったら、また着物の丈が足りなくなって。":"這孩子，衣服又短了一截。","ごめんなさい。勝手に伸びちゃうの。":"對不起。我自己就長高了。","謝ることはない。よう食うて、よう伸びる。結構なことじゃ。":"不用道歉。吃得多，長得快。是好事。","あんたは米の心配をしなさいな。":"你還是操心米夠不夠吧。","その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。":"那年秋天，公主一到夜裡就坐到廊下，只是望著月亮。","冷えるぞ。何ぞ、あったか。":"天涼了。出什麼事了？","お爺さん。わたし、この国の者じゃないの。月の都から来たの。":"爺爺。我不是這個國家的人。我是從月亮上的都城來的。","次の十五夜に、迎えが来る。断れるものじゃないの。":"下一個十五夜，會有人來接我。那是沒辦法拒絕的。","断れないって、あんた……。":"沒辦法拒絕，妳這孩子……","来るなら来ればええ。戸を閉めて、わしが前に座っとる。":"要來就讓他們來。我關上門，坐在門口守著。","相手は人じゃないのよ。":"對方可不是人喔。","わしだって、竹から娘が出てくるとは思っとらんかった。":"我也沒想過會從竹子裡出來個女兒啊。","翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。":"老翁向帝請願。帝命中將帶兵前往宅邸。","中将である。帝の仰せにより、十五夜まで姫をお守りいたす。":"我乃中將。奉帝之命，守護公主直到十五夜。","弓と槍を並べておけば、天人とて通れまい。":"只要擺好弓和槍，就算是天人也過不去。","ありがたい。ただ、光る星が落ちとったら拾うてくだされ。":"多謝。只是，若看到地上有發光的星星，請幫忙撿起來。","わしが光る竹から集めますでな。兵を雇う足しになる。":"那是我從發光的竹子裡收集的。能貼補僱兵的開銷。","……光る、星？":"……發光的，星星？","見ればわかる。":"看到就知道了。","三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。":"第三天黎明前。士兵們睡著的時候，老翁和公主坐在廊下。","お爺さん、その手。どうしたの。":"爺爺，你的手。怎麼了？","竹の切り口でやった。毎晩、光る竹を探して割っとるからな。":"被竹子的切口劃的。每晚都在找發光的竹子劈開嘛。","そんなにたくさん、光る竹なんてないでしょう。":"發光的竹子哪有那麼多。","探せばある。おまえが入っとったくらいじゃ。":"找就有。妳不就待在裡面嘛。","月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。":"月亮上的人啊，不是壞人。只是那裡誰都不會哭。","わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。":"我來了這裡以後，就會哭了。大概，這就是不行的地方。","難しいことはわからん。それより朝飯、何がええ。":"難的事我不懂。倒是早飯，想吃什麼？","……お粥。梅のやつ。":"……粥。放梅子的。","よし。":"好。","十五夜。月が昇ると、あたりは昼のように明るくなった。":"十五夜。月亮升起後，四周亮得如同白晝。","……どうしたことだ。弓を引く腕に、力が入らん。":"……怎麼回事。拉弓的手臂使不上勁。","翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。":"老翁啊。公主只是為了彌補過錯，暫時寄放在下界而已。","期限は満ちた。こちらへ渡してもらおう。":"期限已滿。把她交出來吧。","罪とは、何をしたんで。":"過錯，她做了什麼？","おまえたちに話して、わかることではない。":"那不是說給你們聽就能明白的事。","なら、わしらにも渡す理由はありませんな。":"那我們也沒有交人的理由了。","お爺さん……。":"爺爺……","ええい、動け！ 弓を取れ、射よ！":"可惡，動起來！拿起弓，放箭！","天の羽衣を着せかけられると、姫はもう泣かなかった。":"天之羽衣披上身後，公主就不再哭了。","お爺さん。……あれ。わたし、何を言おうとしたんだっけ。":"爺爺。……咦。我剛才想說什麼來著。","飛ぶ車は音もなく、月のほうへ小さくなっていった。":"飛車悄無聲息，朝著月亮越變越小。","天人たちは光をたたむようにして、雲の上へ引き上げていった。":"天人們像收起光芒一般，撤回了雲端。","……退いた。退いたぞ。":"……退了。他們退了！","ふう。腰が抜けるかと思うたわい。":"呼。我還以為腰要閃了。","これ……あの人が置いていったの。不死の薬。":"這個……是那個人留下的。不死之藥。","飲めば年を取らない。病にもならない。ずっと、このまま。":"喝了就不會變老。也不會生病。永遠，就這樣。","わしもか。":"我也是？","お爺さんも、お婆さんも。わたしも。":"爺爺也是，奶奶也是。我也是。","それからというもの、月は一度も欠けなかった。":"從那以後，月亮再也沒有缺過。","今夜も満月だねえ。":"今晚也是滿月呢。","昨日も、その前もね。":"昨天也是，前天也是。","……ええ月じゃ。":"……好月亮啊。","三人は同じ夜を、何度でも迎えた。":"三人一次又一次，迎來同一個夜晚。","薬は、天にいちばん近い山の頂で焚かれた。":"藥在離天最近的那座山頂上燒掉了。","帝も、それがよいと仰せでした。":"帝也說，這樣最好。","煙、月まで届くかな。":"煙能飄到月亮上嗎。","届かんでもええ。腹が減った。帰って粥にしよう。":"飄不到也沒關係。肚子餓了。回家煮粥吧。","梅のやつね。":"放梅子的喔。","その山はのちに「ふじ」と呼ばれるようになった、という。":"據說，那座山後來被稱為「富士」。"},"ko":{"かぐや姫 防衛記":"가구야 공주 달빛 수호기","はじめる":"시작","音楽 {0}":"음악 {0}","効果音 {0}":"효과음 {0}","オン":"켜기","オフ":"끄기","月の記憶 {0}（はじめの光 +{1}）":"달의 기억 {0} (시작 빛 +{1})","負けても「月の記憶」が残る":"져도 '달의 기억'은 남는다","スキップ":"건너뛰기","屋敷":"저택","撤収":"철수","宝":"보물","{0}（未入手）":"{0} (미획득)","これにする":"이걸로 한다","偽物が混ざっている。月と同じ間合いで光るものが本物。":"가짜가 섞여 있다. 달과 같은 박자로 빛나는 것이 진짜.","夜を迎える":"밤을 맞는다","夜をしのいだ":"밤을 버텨냈다","夜が明ける":"날이 밝는다","不死の薬を、どうする？":"불사의 약을 어떻게 할까?","薬を飲む":"약을 마신다","薬を燃やす":"약을 태운다","タイトルへ":"타이틀로","ひと休み":"잠시 쉬기","続ける":"계속하기","あきらめる":"포기하기","もう一度":"다시 한 번","第{0}夜":"제{0}야","第{0}日 昼　今宵は{1}":"{0}일째 낮　오늘 밤은 {1}","十一夜":"11일 달","十二夜":"12일 달","十三夜":"13일 달","十四夜":"14일 달","十五夜":"보름달","翁":"할아버지","光の星を生む":"빛의 별을 만든다","弓兵":"궁병","遠くを射る":"멀리 쏜다","槍兵":"창병","前で止める":"앞에서 막는다","仏の御石の鉢":"빛나는 돌 그릇","石作皇子":"이시츠쿠리 황자","結界":"결계","6秒のあいだ屋敷が傷つかない":"6초 동안 저택이 피해를 받지 않는다","蓬莱の玉の枝":"봉래의 옥가지","車持皇子":"구라모치 황자","玉実":"옥열매","光を8得る":"빛을 8 얻는다","火鼠の皮衣":"불쥐 가죽옷","阿倍御主人":"아베노 미우시","火炎":"화염","すべての敵に40の炎":"모든 적에게 40의 불꽃","龍の首の珠":"용의 목 구슬","大伴御行":"오토모노 미유키","雷鳴":"뇌명","すべての敵を4秒止める":"모든 적을 4초 멈춘다","燕の子安貝":"제비의 조개","石上麻呂足":"이소노카미노 마로타리","癒し":"치유","屋敷を30なおす":"저택을 30 고친다","中将の兵が庭に陣を張った。今夜から、月の使いが来る。":"중장의 병사들이 뜰에 진을 쳤다. 오늘 밤부터 달의 사자가 온다.","一夜目はしのいだ。兵たちは昼まで眠っている。":"첫날 밤은 버텼다. 병사들은 낮까지 자고 있다.","翁の手に包帯が増えた。媼は握り飯を数えている。":"할아버지 손에 붕대가 늘었다. 할머니는 주먹밥을 세고 있다.","月はもう、ほとんど丸い。兵が空を見たがらない。":"달은 이제 거의 둥글다. 병사들은 하늘을 보려 하지 않는다.","今宵は十五夜。天人の王が、みずから迎えに来る。":"오늘 밤은 보름달. 천인의 왕이 몸소 데리러 온다.","中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」":"중장 \"천인이란 녀석들, 참 고운 얼굴로 칼을 휘두르는군.\"","翁「星を拾うのは得意じゃ。腰はもう知らん」":"할아버지 \"별 줍는 건 자신 있지. 허리는 이제 모르겠다.\"","媼「握り飯、あと三十。足りるかねえ」":"할머니 \"주먹밥이 서른 개 남았네. 모자라려나.\"","中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」":"중장 \"병사들이 달을 보면 팔이 무거워진다더군. 보지 말라고 일러뒀네.\"","天人の王":"천인의 왕","降臨":"강림","そこにはもう兵がいる":"거기엔 이미 병사가 있다","光が足りない（あと{0}）":"빛이 부족하다 ({0} 더 필요)","光 +{0}":"빛 +{0}","連撃 光+1":"연격 빛+1","屋敷 +{0}":"저택 +{0}","羽衣の魅了":"날개옷의 매혹","結界！":"결계!","光の星をタップ！":"빛의 별을 탭!","のこり {0}":"남은 적 {0}","連撃":"연격","難題":"난제","{0}の難題":"{0}의 난제","「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。":"'{0}'의 진위를 가린다. 진짜라면 밤의 기술 '{1}'을 쓸 수 있다: {2}.","鍛錬":"단련","備え":"대비","弓兵を鍛える":"궁병을 단련한다","弓兵の攻撃が35%上がる。いま Lv{0}。":"궁병 공격 35% 상승. 현재 Lv{0}.","槍兵を鍛える":"창병을 단련한다","槍兵の体力と攻撃が35%上がる。いま Lv{0}。":"창병 체력과 공격 35% 상승. 현재 Lv{0}.","翁と竹を取る":"할아버지와 대나무를 벤다","翁が光の星を生む間隔が短くなる。いま Lv{0}。":"할아버지가 빛의 별을 만드는 간격이 짧아진다. 현재 Lv{0}.","屋敷を修繕する":"저택을 수리한다","屋敷の最大体力が20増え、体力が40もどる。":"저택 최대 체력 +20, 체력 40 회복.","光る竹を探す":"빛나는 대나무를 찾는다","毎夜はじめの光が3増える。いま +{0}。":"매일 밤 시작 빛 +3. 현재 +{0}.","本物":"진짜","偽物":"가짜","本物だ。夜の技「{0}」を覚えた":"진짜다. 밤의 기술 '{0}'을 익혔다","偽物をつかまされた。":"가짜를 받고 말았다.","時間切れ。":"시간 종료.","慰めに光 +{0}":"위로의 빛 +{0}","兵を選び、光るマスに置こう。ドラッグでも置ける":"병사를 골라 빛나는 칸에 놓자. 끌어서 놓을 수도 있다","退けた使い":"물리친 사자","最大連撃":"최대 연격","夜明けに屋敷を手当てした（+{0}）":"새벽에 저택을 손봤다 (+{0})","{0} {1}にて":"{0} {1}에서","姫は月へ帰った":"공주는 달로 돌아갔다","月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}":"달의 기억 +{0} (합계 {1}). 다음엔 시작 빛 +{2}","結末 その一":"결말 하나","結末 その二":"결말 둘","終わらない十五夜":"끝나지 않는 보름밤","限りある日々":"끝이 있는 나날","月の記憶 +{0}（合計 {1}）":"달의 기억 +{0} (합계 {1})","ここまで遊んでくれて、ありがとう。":"끝까지 플레이해 줘서 고마워요.","迎えの光は、今夜も満ちる。":"그녀를 데리러 오는 빛은 오늘 밤도 차오른다.","媼":"할머니","かぐや":"가구야","中将":"중장","いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。":"옛날 옛적, 대나무를 베어 바구니와 소쿠리를 엮어 팔며 사는 할아버지가 있었다.","あいたた……腰が。今日はこのへんで切り上げるか。":"아이고고… 허리야. 오늘은 이쯤에서 접을까.","……なんじゃ。あの竹、根元が光っとる。":"…뭐지. 저 대나무, 밑동이 빛나고 있네.","蛍……ではないな。どれ。":"반딧불이… 는 아니군. 어디 보자.","節の中に、手のひらに乗るほどの女の子が座っていた。":"마디 속에, 손바닥에 올라갈 만한 여자아이가 앉아 있었다.","翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。":"할아버지는 아이를 데려가 할머니와 둘이서 길렀다. 석 달이 지나자 키는 어른과 다름없어졌다.","この子ったら、また着物の丈が足りなくなって。":"얘도 참, 또 옷 길이가 모자라네.","ごめんなさい。勝手に伸びちゃうの。":"미안해요. 저절로 자라 버려요.","謝ることはない。よう食うて、よう伸びる。結構なことじゃ。":"미안할 것 없다. 잘 먹고 잘 자란다. 좋은 일이지.","あんたは米の心配をしなさいな。":"영감은 쌀 걱정이나 하세요.","その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。":"그해 가을. 공주는 밤이 되면 툇마루에 나가 달만 바라보게 되었다.","冷えるぞ。何ぞ、あったか。":"쌀쌀하다. 무슨 일 있느냐.","お爺さん。わたし、この国の者じゃないの。月の都から来たの。":"할아버지. 저, 이 나라 사람이 아니에요. 달의 도성에서 왔어요.","次の十五夜に、迎えが来る。断れるものじゃないの。":"다음 보름에 데리러 와요. 거절할 수 있는 게 아니에요.","断れないって、あんた……。":"거절할 수 없다니, 얘야…","来るなら来ればええ。戸を閉めて、わしが前に座っとる。":"올 테면 오라지. 문 닫고 내가 그 앞에 앉아 있으마.","相手は人じゃないのよ。":"상대는 사람이 아니에요.","わしだって、竹から娘が出てくるとは思っとらんかった。":"나도 대나무에서 딸이 나올 줄은 몰랐다.","翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。":"할아버지는 임금께 청했다. 임금은 중장에게 명해 병사를 붙여 저택으로 보냈다.","中将である。帝の仰せにより、十五夜まで姫をお守りいたす。":"중장이오. 임금의 명에 따라 보름까지 공주를 지키겠소.","弓と槍を並べておけば、天人とて通れまい。":"활과 창을 늘어놓으면 천인이라도 지나가지 못할 것이오.","ありがたい。ただ、光る星が落ちとったら拾うてくだされ。":"고맙소. 다만 빛나는 별이 떨어져 있으면 주워 주시오.","わしが光る竹から集めますでな。兵を雇う足しになる。":"내가 빛나는 대나무에서 모아 오지요. 병사 부리는 데 보탬이 될 거요.","……光る、星？":"…빛나는, 별?","見ればわかる。":"보면 압니다.","三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。":"사흘째 새벽 전. 병사들이 자는 동안 할아버지와 공주는 툇마루에 있었다.","お爺さん、その手。どうしたの。":"할아버지, 그 손. 어떻게 된 거예요.","竹の切り口でやった。毎晩、光る竹を探して割っとるからな。":"대나무 단면에 베였지. 매일 밤 빛나는 대나무를 찾아 쪼개니까.","そんなにたくさん、光る竹なんてないでしょう。":"빛나는 대나무가 그렇게 많을 리 없잖아요.","探せばある。おまえが入っとったくらいじゃ。":"찾으면 있다. 너도 들어 있었으니까.","月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。":"달 사람들은요, 나쁜 사람들이 아니에요. 다만 거기선 아무도 울지 않아요.","わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。":"저, 여기 오고 나서 울게 됐어요. 아마 그게 안 되는 거겠죠.","難しいことはわからん。それより朝飯、何がええ。":"어려운 건 모르겠다. 그보다 아침은 뭘 먹고 싶으냐.","……お粥。梅のやつ。":"…죽이요. 매실 넣은 거.","よし。":"그래.","十五夜。月が昇ると、あたりは昼のように明るくなった。":"보름밤. 달이 뜨자 주위는 대낮처럼 밝아졌다.","……どうしたことだ。弓を引く腕に、力が入らん。":"…어찌 된 일이냐. 활을 당기는 팔에 힘이 들어가지 않는다.","翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。":"노인이여. 공주는 잘못을 갚기 위해 잠시 하계에 맡겨 두었을 뿐이다.","期限は満ちた。こちらへ渡してもらおう。":"기한이 찼다. 이쪽으로 넘겨라.","罪とは、何をしたんで。":"잘못이라니, 무얼 했는데요.","おまえたちに話して、わかることではない。":"너희에게 말한다고 알 일이 아니다.","なら、わしらにも渡す理由はありませんな。":"그럼 우리도 넘겨줄 이유가 없겠소.","お爺さん……。":"할아버지…","ええい、動け！ 弓を取れ、射よ！":"에잇, 움직여라! 활을 들어라, 쏴라!","天の羽衣を着せかけられると、姫はもう泣かなかった。":"하늘의 날개옷이 덮이자 공주는 더 이상 울지 않았다.","お爺さん。……あれ。わたし、何を言おうとしたんだっけ。":"할아버지. …어라. 제가 무슨 말을 하려고 했더라.","飛ぶ車は音もなく、月のほうへ小さくなっていった。":"날아가는 수레는 소리도 없이 달 쪽으로 작아져 갔다.","天人たちは光をたたむようにして、雲の上へ引き上げていった。":"천인들은 빛을 접듯이 구름 위로 물러갔다.","……退いた。退いたぞ。":"…물러갔다. 물러갔다!","ふう。腰が抜けるかと思うたわい。":"휴우. 허리가 빠지는 줄 알았네.","これ……あの人が置いていったの。不死の薬。":"이거… 그 사람이 두고 갔어요. 불사의 약.","飲めば年を取らない。病にもならない。ずっと、このまま。":"마시면 늙지 않아요. 병도 안 걸려요. 계속 이대로.","わしもか。":"나도냐.","お爺さんも、お婆さんも。わたしも。":"할아버지도, 할머니도. 저도요.","それからというもの、月は一度も欠けなかった。":"그 뒤로 달은 한 번도 이지러지지 않았다.","今夜も満月だねえ。":"오늘 밤도 보름달이구먼.","昨日も、その前もね。":"어제도, 그 전날도요.","……ええ月じゃ。":"…좋은 달이구나.","三人は同じ夜を、何度でも迎えた。":"셋은 같은 밤을 몇 번이고 맞이했다.","薬は、天にいちばん近い山の頂で焚かれた。":"약은 하늘에 가장 가까운 산꼭대기에서 태워졌다.","帝も、それがよいと仰せでした。":"임금께서도 그게 좋겠다고 하셨소.","煙、月まで届くかな。":"연기, 달까지 닿을까요.","届かんでもええ。腹が減った。帰って粥にしよう。":"안 닿아도 된다. 배고프다. 돌아가서 죽 쑤자.","梅のやつね。":"매실 넣은 거요.","その山はのちに「ふじ」と呼ばれるようになった、という。":"그 산은 훗날 '후지'라 불리게 되었다고 한다."},"fr":{"かぐや姫 防衛記":"Kaguya : la défense du clair de lune","はじめる":"Commencer","音楽 {0}":"Musique {0}","効果音 {0}":"Sons {0}","オン":"oui","オフ":"non","月の記憶 {0}（はじめの光 +{1}）":"Mémoire lunaire {0} (lumière de départ +{1})","負けても「月の記憶」が残る":"Même en cas de défaite, la mémoire lunaire reste","スキップ":"Passer","屋敷":"Maison","撤収":"Retirer","宝":"Trésor","{0}（未入手）":"{0} (non obtenu)","これにする":"Je choisis ça","偽物が混ざっている。月と同じ間合いで光るものが本物。":"Il y a des faux. Le vrai brille au rythme de la lune.","夜を迎える":"Affronter la nuit","夜をしのいだ":"Nuit tenue","夜が明ける":"L'aube se lève","不死の薬を、どうする？":"Que faire de l'élixir ?","薬を飲む":"Le boire","薬を燃やす":"Le brûler","タイトルへ":"Titre","ひと休み":"Pause","続ける":"Reprendre","あきらめる":"Abandonner","もう一度":"Réessayer","第{0}夜":"Nuit {0}","第{0}日 昼　今宵は{1}":"Jour {0}, journée. Ce soir : {1}","十一夜":"Lune du 11","十二夜":"Lune du 12","十三夜":"Lune du 13","十四夜":"Lune du 14","十五夜":"Pleine lune","翁":"Grand-père","光の星を生む":"Crée des étoiles","弓兵":"Archer","遠くを射る":"Tire de loin","槍兵":"Lancier","前で止める":"Bloque devant","仏の御石の鉢":"Bol de pierre lumineux","石作皇子":"Prince Ishitsukuri","結界":"Garde","6秒のあいだ屋敷が傷つかない":"La maison ne subit aucun dégât pendant 6 s","蓬莱の玉の枝":"Branche de Hôrai","車持皇子":"Prince Kuramochi","玉実":"Fruit","光を8得る":"Gagne 8 de lumière","火鼠の皮衣":"Robe du rat de feu","阿倍御主人":"Abe no Miushi","火炎":"Brasier","すべての敵に40の炎":"40 de feu à tous les ennemis","龍の首の珠":"Joyau du dragon","大伴御行":"Ôtomo no Miyuki","雷鳴":"Tonnerre","すべての敵を4秒止める":"Fige tous les ennemis 4 s","燕の子安貝":"Coquille d'hirondelle","石上麻呂足":"Isonokami no Marotari","癒し":"Soin","屋敷を30なおす":"Répare la maison de 30","中将の兵が庭に陣を張った。今夜から、月の使いが来る。":"Les soldats du général campent dans le jardin. Dès ce soir, les envoyés de la lune arrivent.","一夜目はしのいだ。兵たちは昼まで眠っている。":"La première nuit est passée. Les soldats dorment jusqu'à midi.","翁の手に包帯が増えた。媼は握り飯を数えている。":"Grand-père a plus de pansements aux mains. Grand-mère compte les boulettes de riz.","月はもう、ほとんど丸い。兵が空を見たがらない。":"La lune est presque ronde. Les soldats évitent de regarder le ciel.","今宵は十五夜。天人の王が、みずから迎えに来る。":"Ce soir, c'est la pleine lune. Le roi de la lune vient la chercher en personne.","中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」":"Général : « Ces gens de la lune vous frappent avec un si joli visage. »","翁「星を拾うのは得意じゃ。腰はもう知らん」":"Grand-père : « Ramasser des étoiles, je sais faire. Mon dos, c'est autre chose. »","媼「握り飯、あと三十。足りるかねえ」":"Grand-mère : « Encore trente boulettes. Est-ce que ça suffira ? »","中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」":"Général : « Les hommes disent que la lune alourdit leurs bras. Je leur ai dit de ne pas la regarder. »","天人の王":"Roi de la lune","降臨":"descend","そこにはもう兵がいる":"Il y a déjà un soldat ici","光が足りない（あと{0}）":"Pas assez de lumière (encore {0})","光 +{0}":"Lumière +{0}","連撃 光+1":"Combo : lumière +1","屋敷 +{0}":"Maison +{0}","羽衣の魅了":"Charme du voile","結界！":"Garde !","光の星をタップ！":"Touchez l'étoile !","のこり {0}":"Restants {0}","連撃":"Combo","難題":"Épreuve","{0}の難題":"Épreuve de {0}","「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。":"Distinguez le vrai « {0} » des faux. S'il est vrai, vous apprenez l'art de nuit « {1} » : {2}.","鍛錬":"Entraîner","備え":"Préparer","弓兵を鍛える":"Entraîner les archers","弓兵の攻撃が35%上がる。いま Lv{0}。":"Attaque des archers +35 %. Niveau {0}.","槍兵を鍛える":"Entraîner les lanciers","槍兵の体力と攻撃が35%上がる。いま Lv{0}。":"Vie et attaque des lanciers +35 %. Niveau {0}.","翁と竹を取る":"Couper du bambou","翁が光の星を生む間隔が短くなる。いま Lv{0}。":"Grand-père crée les étoiles plus vite. Niveau {0}.","屋敷を修繕する":"Réparer la maison","屋敷の最大体力が20増え、体力が40もどる。":"Vie max de la maison +20, et 40 restaurés.","光る竹を探す":"Chercher du bambou lumineux","毎夜はじめの光が3増える。いま +{0}。":"+3 lumière de départ chaque nuit. Actuel : +{0}.","本物":"Vrai","偽物":"Faux","本物だ。夜の技「{0}」を覚えた":"C'est le vrai. Vous apprenez l'art de nuit « {0} »","偽物をつかまされた。":"On vous a refilé un faux.","時間切れ。":"Temps écoulé.","慰めに光 +{0}":"Consolation : lumière +{0}","兵を選び、光るマスに置こう。ドラッグでも置ける":"Choisissez un soldat et placez-le sur une case lumineuse. Vous pouvez aussi le glisser","退けた使い":"Envoyés repoussés","最大連撃":"Meilleur combo","夜明けに屋敷を手当てした（+{0}）":"À l'aube, vous avez réparé la maison (+{0})","{0} {1}にて":"{0}, {1}","姫は月へ帰った":"La princesse est retournée sur la lune","月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}":"Mémoire lunaire +{0} (total {1}). La prochaine fois, lumière de départ +{2}","結末 その一":"Fin n° 1","結末 その二":"Fin n° 2","終わらない十五夜":"La pleine lune sans fin","限りある日々":"Des jours comptés","月の記憶 +{0}（合計 {1}）":"Mémoire lunaire +{0} (total {1})","ここまで遊んでくれて、ありがとう。":"Merci d'avoir joué jusqu'au bout.","迎えの光は、今夜も満ちる。":"La lumière qui vient la chercher montera encore ce soir.","媼":"Grand-mère","かぐや":"Kaguya","中将":"Général","いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。":"Il était une fois un vieil homme qui coupait le bambou, en tressait des paniers et vivait de leur vente.","あいたた……腰が。今日はこのへんで切り上げるか。":"Aïe, aïe... mon dos. J'arrête là pour aujourd'hui.","……なんじゃ。あの竹、根元が光っとる。":"... Qu'est-ce que c'est ? Ce bambou brille à sa base.","蛍……ではないな。どれ。":"Des lucioles... ? Non. Voyons voir.","節の中に、手のひらに乗るほどの女の子が座っていた。":"Dans la tige était assise une petite fille, pas plus grande que sa paume.","翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。":"Il la ramena chez lui et l'éleva avec sa femme. En trois mois, elle devint aussi grande qu'une adulte.","この子ったら、また着物の丈が足りなくなって。":"Regarde-toi, ton kimono est encore trop court.","ごめんなさい。勝手に伸びちゃうの。":"Pardon. Je grandis toute seule.","謝ることはない。よう食うて、よう伸びる。結構なことじゃ。":"Pas besoin de t'excuser. Bien manger, bien grandir. C'est une bonne chose.","あんたは米の心配をしなさいな。":"Toi, occupe-toi plutôt du riz.","その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。":"Cet automne-là, la princesse se mit à sortir chaque nuit sur la véranda, pour ne regarder que la lune.","冷えるぞ。何ぞ、あったか。":"Il fait frais. Il s'est passé quelque chose ?","お爺さん。わたし、この国の者じゃないの。月の都から来たの。":"Grand-père. Je ne suis pas de ce pays. Je viens de la cité de la lune.","次の十五夜に、迎えが来る。断れるものじゃないの。":"À la prochaine pleine lune, on viendra me chercher. Je ne peux pas refuser.","断れないって、あんた……。":"Pas refuser ? Mais ma petite...","来るなら来ればええ。戸を閉めて、わしが前に座っとる。":"Qu'ils viennent. Je fermerai la porte et je m'assiérai devant.","相手は人じゃないのよ。":"Ce ne sont pas des humains, tu sais.","わしだって、竹から娘が出てくるとは思っとらんかった。":"Moi non plus, je ne m'attendais pas à trouver une fille dans un bambou.","翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。":"Grand-père supplia l'Empereur. L'Empereur envoya son général et des soldats à la maison.","中将である。帝の仰せにより、十五夜まで姫をお守りいたす。":"Je suis le général. Sur ordre de l'Empereur, je garderai la princesse jusqu'à la pleine lune.","弓と槍を並べておけば、天人とて通れまい。":"Avec des arcs et des lances en ligne, même les gens de la lune ne passeront pas.","ありがたい。ただ、光る星が落ちとったら拾うてくだされ。":"Merci. Seulement, si vous voyez des étoiles lumineuses par terre, ramassez-les.","わしが光る竹から集めますでな。兵を雇う足しになる。":"Je les récolte dans les bambous lumineux. Ça aidera à payer les soldats.","……光る、星？":"... Des étoiles... lumineuses ?","見ればわかる。":"Vous verrez bien.","三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。":"Avant l'aube du troisième jour. Pendant que les soldats dormaient, Grand-père et la princesse étaient sur la véranda.","お爺さん、その手。どうしたの。":"Grand-père, tes mains. Qu'est-ce qui s'est passé ?","竹の切り口でやった。毎晩、光る竹を探して割っとるからな。":"Les bords du bambou. J'en fends tous les soirs pour trouver ceux qui brillent.","そんなにたくさん、光る竹なんてないでしょう。":"Il ne peut pas y avoir autant de bambous lumineux.","探せばある。おまえが入っとったくらいじゃ。":"Il y en a si on cherche. Toi, tu étais bien dans l'un d'eux.","月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。":"Les gens de la lune ne sont pas méchants. C'est juste que là-bas, personne ne pleure.","わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。":"Moi, j'ai commencé à pleurer en arrivant ici. C'est peut-être ça, le problème.","難しいことはわからん。それより朝飯、何がええ。":"Je ne comprends rien aux choses compliquées. Tu veux quoi pour le petit-déjeuner ?","……お粥。梅のやつ。":"... Du gruau de riz. Avec une prune.","よし。":"D'accord.","十五夜。月が昇ると、あたりは昼のように明るくなった。":"La pleine lune. Quand elle se leva, la nuit devint claire comme le jour.","……どうしたことだ。弓を引く腕に、力が入らん。":"... Que se passe-t-il ? Mes bras n'arrivent plus à tendre l'arc.","翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。":"Vieil homme. Nous n'avions confié la princesse au monde d'en bas que pour un temps, pour réparer une faute.","期限は満ちた。こちらへ渡してもらおう。":"Le temps est écoulé. Rends-la-nous.","罪とは、何をしたんで。":"Une faute ? Qu'a-t-elle fait ?","おまえたちに話して、わかることではない。":"Ce n'est pas une chose que vous pourriez comprendre.","なら、わしらにも渡す理由はありませんな。":"Alors nous n'avons aucune raison de vous la rendre non plus.","お爺さん……。":"Grand-père...","ええい、動け！ 弓を取れ、射よ！":"Bougez, bon sang ! Prenez vos arcs ! Tirez !","天の羽衣を着せかけられると、姫はもう泣かなかった。":"Une fois le voile céleste posé sur elle, la princesse ne pleura plus.","お爺さん。……あれ。わたし、何を言おうとしたんだっけ。":"Grand-père... Tiens. Qu'est-ce que je voulais dire, déjà ?","飛ぶ車は音もなく、月のほうへ小さくなっていった。":"Le char volant, sans un bruit, rapetissa vers la lune.","天人たちは光をたたむようにして、雲の上へ引き上げていった。":"Les gens de la lune replièrent leur lumière et se retirèrent au-dessus des nuages.","……退いた。退いたぞ。":"... Ils reculent. Ils reculent !","ふう。腰が抜けるかと思うたわい。":"Ouf. J'ai cru que mon dos allait lâcher.","これ……あの人が置いていったの。不死の薬。":"Ça... il l'a laissé. L'élixir d'immortalité.","飲めば年を取らない。病にもならない。ずっと、このまま。":"Si on le boit, on ne vieillit plus. On ne tombe plus malade. Toujours comme maintenant.","わしもか。":"Moi aussi ?","お爺さんも、お婆さんも。わたしも。":"Toi, et Grand-mère. Et moi.","それからというもの、月は一度も欠けなかった。":"Depuis ce jour, la lune ne décrut plus jamais.","今夜も満月だねえ。":"Encore la pleine lune ce soir.","昨日も、その前もね。":"Comme hier. Et avant-hier.","……ええ月じゃ。":"... Belle lune.","三人は同じ夜を、何度でも迎えた。":"Tous les trois accueillirent la même nuit, encore et encore.","薬は、天にいちばん近い山の頂で焚かれた。":"L'élixir fut brûlé au sommet de la montagne la plus proche du ciel.","帝も、それがよいと仰せでした。":"L'Empereur aussi a dit que c'était mieux ainsi.","煙、月まで届くかな。":"La fumée atteindra-t-elle la lune ?","届かんでもええ。腹が減った。帰って粥にしよう。":"Pas besoin. J'ai faim. Rentrons faire du gruau.","梅のやつね。":"Avec une prune.","その山はのちに「ふじ」と呼ばれるようになった、という。":"On dit que cette montagne fut plus tard appelée « Fuji »."},"de":{"かぐや姫 防衛記":"Kaguya: Mondlicht-Verteidigung","はじめる":"Start","音楽 {0}":"Musik {0}","効果音 {0}":"Effekte {0}","オン":"an","オフ":"aus","月の記憶 {0}（はじめの光 +{1}）":"Mondgedächtnis {0} (Startlicht +{1})","負けても「月の記憶」が残る":"Auch bei Niederlage bleibt das Mondgedächtnis","スキップ":"Überspringen","屋敷":"Haus","撤収":"Abziehen","宝":"Schatz","{0}（未入手）":"{0} (nicht gefunden)","これにする":"Das nehme ich","偽物が混ざっている。月と同じ間合いで光るものが本物。":"Es gibt Fälschungen. Das echte leuchtet im Takt des Mondes.","夜を迎える":"Der Nacht entgegen","夜をしのいだ":"Nacht überstanden","夜が明ける":"Der Morgen graut","不死の薬を、どうする？":"Was tun mit dem Elixier?","薬を飲む":"Trinken","薬を燃やす":"Verbrennen","タイトルへ":"Zum Titel","ひと休み":"Pause","続ける":"Weiter","あきらめる":"Aufgeben","もう一度":"Nochmal","第{0}夜":"Nacht {0}","第{0}日 昼　今宵は{1}":"Tag {0}, tagsüber. Heute Nacht: {1}","十一夜":"11. Mond","十二夜":"12. Mond","十三夜":"13. Mond","十四夜":"14. Mond","十五夜":"Vollmond","翁":"Großvater","光の星を生む":"Erzeugt Lichtsterne","弓兵":"Bogenschütze","遠くを射る":"Schießt weit","槍兵":"Speerträger","前で止める":"Hält die Linie","仏の御石の鉢":"Leuchtende Steinschale","石作皇子":"Prinz Ishitsukuri","結界":"Bann","6秒のあいだ屋敷が傷つかない":"Das Haus nimmt 6 s keinen Schaden","蓬莱の玉の枝":"Juwelenzweig von Hōrai","車持皇子":"Prinz Kuramochi","玉実":"Frucht","光を8得る":"8 Licht erhalten","火鼠の皮衣":"Feuerrattengewand","阿倍御主人":"Abe no Miushi","火炎":"Flamme","すべての敵に40の炎":"40 Feuerschaden an allen Gegnern","龍の首の珠":"Drachenjuwel","大伴御行":"Ōtomo no Miyuki","雷鳴":"Donner","すべての敵を4秒止める":"Lähmt alle Gegner 4 s","燕の子安貝":"Schwalbenmuschel","石上麻呂足":"Isonokami no Marotari","癒し":"Heilen","屋敷を30なおす":"Repariert das Haus um 30","中将の兵が庭に陣を張った。今夜から、月の使いが来る。":"Die Soldaten des Generals lagern im Garten. Ab heute Nacht kommen die Boten des Mondes.","一夜目はしのいだ。兵たちは昼まで眠っている。":"Die erste Nacht ist überstanden. Die Soldaten schlafen bis Mittag.","翁の手に包帯が増えた。媼は握り飯を数えている。":"Großvaters Hände tragen mehr Verbände. Großmutter zählt Reisbällchen.","月はもう、ほとんど丸い。兵が空を見たがらない。":"Der Mond ist fast rund. Die Soldaten wollen nicht zum Himmel sehen.","今宵は十五夜。天人の王が、みずから迎えに来る。":"Heute ist Vollmond. Der Mondkönig kommt sie selbst holen.","中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」":"General: „Diese Mondleute schlagen mit so hübschen Gesichtern zu.“","翁「星を拾うのは得意じゃ。腰はもう知らん」":"Großvater: „Sterne aufsammeln kann ich. Mein Rücken ist was anderes.“","媼「握り飯、あと三十。足りるかねえ」":"Großmutter: „Noch dreißig Reisbällchen. Ob das reicht?“","中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」":"General: „Die Männer sagen, beim Blick zum Mond werden die Arme schwer. Ich habe es verboten.“","天人の王":"Mondkönig","降臨":"erscheint","そこにはもう兵がいる":"Hier steht schon ein Soldat","光が足りない（あと{0}）":"Zu wenig Licht (noch {0})","光 +{0}":"Licht +{0}","連撃 光+1":"Kombo: Licht +1","屋敷 +{0}":"Haus +{0}","羽衣の魅了":"Bann des Schleiers","結界！":"Bann!","光の星をタップ！":"Tippe den Lichtstern!","のこり {0}":"Übrig {0}","連撃":"Kombo","難題":"Prüfung","{0}の難題":"Prüfung von {0}","「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。":"Erkenne das echte „{0}“. Ist es echt, lernst du die Nachttechnik „{1}“: {2}.","鍛錬":"Training","備え":"Vorsorge","弓兵を鍛える":"Bogenschützen trainieren","弓兵の攻撃が35%上がる。いま Lv{0}。":"Angriff der Bogenschützen +35 %. Jetzt Lv{0}.","槍兵を鍛える":"Speerträger trainieren","槍兵の体力と攻撃が35%上がる。いま Lv{0}。":"Leben und Angriff der Speerträger +35 %. Jetzt Lv{0}.","翁と竹を取る":"Mit Großvater Bambus schneiden","翁が光の星を生む間隔が短くなる。いま Lv{0}。":"Großvater erzeugt Lichtsterne schneller. Jetzt Lv{0}.","屋敷を修繕する":"Haus reparieren","屋敷の最大体力が20増え、体力が40もどる。":"Max. Leben des Hauses +20, 40 wiederhergestellt.","光る竹を探す":"Leuchtbambus suchen","毎夜はじめの光が3増える。いま +{0}。":"Jede Nacht +3 Startlicht. Jetzt +{0}.","本物":"Echt","偽物":"Falsch","本物だ。夜の技「{0}」を覚えた":"Es ist echt. Du lernst die Nachttechnik „{0}“","偽物をつかまされた。":"Man hat dir eine Fälschung angedreht.","時間切れ。":"Zeit abgelaufen.","慰めに光 +{0}":"Trost: Licht +{0}","兵を選び、光るマスに置こう。ドラッグでも置ける":"Wähle einen Soldaten und setze ihn auf ein leuchtendes Feld. Ziehen geht auch","退けた使い":"Boten abgewehrt","最大連撃":"Beste Kombo","夜明けに屋敷を手当てした（+{0}）":"Im Morgengrauen das Haus geflickt (+{0})","{0} {1}にて":"{0}, {1}","姫は月へ帰った":"Die Prinzessin kehrte zum Mond zurück","月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}":"Mondgedächtnis +{0} (gesamt {1}). Nächstes Mal Startlicht +{2}","結末 その一":"Ende eins","結末 その二":"Ende zwei","終わらない十五夜":"Der endlose Vollmond","限りある日々":"Gezählte Tage","月の記憶 +{0}（合計 {1}）":"Mondgedächtnis +{0} (gesamt {1})","ここまで遊んでくれて、ありがとう。":"Danke, dass du bis zum Ende gespielt hast.","迎えの光は、今夜も満ちる。":"Das Licht, das sie holen will, steigt auch heute Nacht.","媼":"Großmutter","かぐや":"Kaguya","中将":"General","いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。":"Es war einmal ein alter Mann, der Bambus schnitt, Körbe daraus flocht und davon lebte.","あいたた……腰が。今日はこのへんで切り上げるか。":"Au, au... mein Rücken. Für heute ist Schluss.","……なんじゃ。あの竹、根元が光っとる。":"...Was ist das? Der Bambus leuchtet am Fuß.","蛍……ではないな。どれ。":"Glühwürmchen...? Nein. Mal sehen.","節の中に、手のひらに乗るほどの女の子が座っていた。":"Im Halm saß ein kleines Mädchen, nicht größer als seine Handfläche.","翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。":"Er nahm sie mit heim und zog sie mit seiner Frau auf. In drei Monaten war sie so groß wie eine Erwachsene.","この子ったら、また着物の丈が足りなくなって。":"Schau dich an, dein Kimono ist schon wieder zu kurz.","ごめんなさい。勝手に伸びちゃうの。":"Entschuldigung. Ich wachse einfach.","謝ることはない。よう食うて、よう伸びる。結構なことじゃ。":"Kein Grund dafür. Gut essen, gut wachsen. Das ist schön.","あんたは米の心配をしなさいな。":"Du kümmerst dich lieber um den Reis.","その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。":"In jenem Herbst ging die Prinzessin jede Nacht auf die Veranda und sah nur noch den Mond an.","冷えるぞ。何ぞ、あったか。":"Es ist kalt. Ist etwas passiert?","お爺さん。わたし、この国の者じゃないの。月の都から来たの。":"Großvater. Ich bin nicht von hier. Ich komme aus der Stadt auf dem Mond.","次の十五夜に、迎えが来る。断れるものじゃないの。":"Beim nächsten Vollmond holen sie mich. Ablehnen kann ich das nicht.","断れないって、あんた……。":"Nicht ablehnen? Aber Kind...","来るなら来ればええ。戸を閉めて、わしが前に座っとる。":"Sollen sie kommen. Ich schließe die Tür und setze mich davor.","相手は人じゃないのよ。":"Das sind keine Menschen.","わしだって、竹から娘が出てくるとは思っとらんかった。":"Ich habe auch nicht erwartet, dass aus einem Bambus eine Tochter kommt.","翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。":"Großvater bat den Kaiser. Der Kaiser schickte seinen General mit Soldaten zum Haus.","中将である。帝の仰せにより、十五夜まで姫をお守りいたす。":"Ich bin der General. Auf Befehl des Kaisers bewache ich die Prinzessin bis zum Vollmond.","弓と槍を並べておけば、天人とて通れまい。":"Mit Bögen und Speeren in Reihe kommen nicht einmal Mondleute durch.","ありがたい。ただ、光る星が落ちとったら拾うてくだされ。":"Danke. Nur: Wenn Lichtsterne am Boden liegen, hebt sie bitte auf.","わしが光る竹から集めますでな。兵を雇う足しになる。":"Ich sammle sie aus leuchtendem Bambus. Das hilft, Soldaten zu bezahlen.","……光る、星？":"...Licht... sterne?","見ればわかる。":"Das sieht man dann.","三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。":"Vor dem Morgengrauen des dritten Tages. Während die Soldaten schliefen, saßen Großvater und die Prinzessin auf der Veranda.","お爺さん、その手。どうしたの。":"Großvater, deine Hände. Was ist passiert?","竹の切り口でやった。毎晩、光る竹を探して割っとるからな。":"Bambuskanten. Ich spalte jede Nacht Bambus, um die leuchtenden zu finden.","そんなにたくさん、光る竹なんてないでしょう。":"So viel leuchtenden Bambus kann es doch nicht geben.","探せばある。おまえが入っとったくらいじゃ。":"Wenn man sucht, schon. Du warst ja auch in einem.","月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。":"Die Mondleute sind nicht böse. Nur weint dort niemand.","わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。":"Ich habe hier angefangen zu weinen. Vielleicht ist genau das falsch.","難しいことはわからん。それより朝飯、何がええ。":"Schwieriges verstehe ich nicht. Was willst du zum Frühstück?","……お粥。梅のやつ。":"...Reisbrei. Mit Pflaume.","よし。":"Gut.","十五夜。月が昇ると、あたりは昼のように明るくなった。":"Vollmond. Als er aufging, wurde die Nacht hell wie der Tag.","……どうしたことだ。弓を引く腕に、力が入らん。":"...Was ist los? Meine Arme spannen den Bogen nicht mehr.","翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。":"Alter. Wir haben die Prinzessin nur für eine Weile der unteren Welt überlassen, um ein Unrecht wiedergutzumachen.","期限は満ちた。こちらへ渡してもらおう。":"Die Frist ist um. Gib sie heraus.","罪とは、何をしたんで。":"Ein Unrecht? Was hat sie getan?","おまえたちに話して、わかることではない。":"Das würdet ihr nicht verstehen.","なら、わしらにも渡す理由はありませんな。":"Dann haben wir auch keinen Grund, sie herzugeben.","お爺さん……。":"Großvater...","ええい、動け！ 弓を取れ、射よ！":"Bewegt euch, verflixt! Bögen hoch! Schießt!","天の羽衣を着せかけられると、姫はもう泣かなかった。":"Als ihr das Himmelsgewand umgelegt wurde, weinte die Prinzessin nicht mehr.","お爺さん。……あれ。わたし、何を言おうとしたんだっけ。":"Großvater. ...Hm. Was wollte ich gerade sagen?","飛ぶ車は音もなく、月のほうへ小さくなっていった。":"Der fliegende Wagen wurde lautlos kleiner, dem Mond entgegen.","天人たちは光をたたむようにして、雲の上へ引き上げていった。":"Die Mondleute falteten ihr Licht zusammen und zogen sich über die Wolken zurück.","……退いた。退いたぞ。":"...Sie ziehen ab. Sie ziehen ab!","ふう。腰が抜けるかと思うたわい。":"Puh. Ich dachte, mein Rücken gibt nach.","これ……あの人が置いていったの。不死の薬。":"Das hier... hat er dagelassen. Das Elixier der Unsterblichkeit.","飲めば年を取らない。病にもならない。ずっと、このまま。":"Wer es trinkt, altert nicht. Wird nicht krank. Bleibt für immer so.","わしもか。":"Ich auch?","お爺さんも、お婆さんも。わたしも。":"Du, und Großmutter. Und ich.","それからというもの、月は一度も欠けなかった。":"Von da an nahm der Mond nie wieder ab.","今夜も満月だねえ。":"Heute wieder Vollmond.","昨日も、その前もね。":"Wie gestern. Und vorgestern.","……ええ月じゃ。":"...Ein schöner Mond.","三人は同じ夜を、何度でも迎えた。":"Die drei begrüßten dieselbe Nacht, wieder und wieder.","薬は、天にいちばん近い山の頂で焚かれた。":"Das Elixier wurde auf dem Gipfel des Berges verbrannt, der dem Himmel am nächsten ist.","帝も、それがよいと仰せでした。":"Auch der Kaiser sagte, so sei es am besten.","煙、月まで届くかな。":"Ob der Rauch bis zum Mond reicht?","届かんでもええ。腹が減った。帰って粥にしよう。":"Muss er nicht. Ich hab Hunger. Gehen wir heim, Reisbrei kochen.","梅のやつね。":"Mit Pflaume.","その山はのちに「ふじ」と呼ばれるようになった、という。":"Man sagt, dieser Berg wurde später „Fuji“ genannt."},"ru":{"かぐや姫 防衛記":"Кагуя: защита лунного света","はじめる":"Начать","音楽 {0}":"Музыка: {0}","効果音 {0}":"Звуки: {0}","オン":"вкл","オフ":"выкл","月の記憶 {0}（はじめの光 +{1}）":"Лунная память {0} (стартовый свет +{1})","負けても「月の記憶」が残る":"Даже после поражения лунная память остаётся","スキップ":"Пропустить","屋敷":"Дом","撤収":"Отозвать","宝":"Клад","{0}（未入手）":"{0} (не найден)","これにする":"Выбрать","偽物が混ざっている。月と同じ間合いで光るものが本物。":"Среди них есть подделки. Настоящий светится в такт луне.","夜を迎える":"Встретить ночь","夜をしのいだ":"Ночь выстояли","夜が明ける":"Светает","不死の薬を、どうする？":"Что сделать с эликсиром?","薬を飲む":"Выпить","薬を燃やす":"Сжечь","タイトルへ":"В меню","ひと休み":"Перерыв","続ける":"Продолжить","あきらめる":"Сдаться","もう一度":"Ещё раз","第{0}夜":"Ночь {0}","第{0}日 昼　今宵は{1}":"День {0}. Сегодня ночью: {1}","十一夜":"11-я луна","十二夜":"12-я луна","十三夜":"13-я луна","十四夜":"14-я луна","十五夜":"Полнолуние","翁":"Дедушка","光の星を生む":"Создаёт звёзды","弓兵":"Лучник","遠くを射る":"Бьёт издалека","槍兵":"Копейщик","前で止める":"Держит строй","仏の御石の鉢":"Сияющая каменная чаша","石作皇子":"Принц Исицукури","結界":"Барьер","6秒のあいだ屋敷が傷つかない":"Дом не получает урона 6 с","蓬莱の玉の枝":"Ветвь с Хорая","車持皇子":"Принц Курамоти","玉実":"Плод","光を8得る":"Получить 8 света","火鼠の皮衣":"Плащ огненной крысы","阿倍御主人":"Абэ-но Миуси","火炎":"Пламя","すべての敵に40の炎":"40 урона огнём всем врагам","龍の首の珠":"Жемчуг дракона","大伴御行":"Отомо-но Миюки","雷鳴":"Гром","すべての敵を4秒止める":"Обездвиживает всех врагов на 4 с","燕の子安貝":"Ракушка ласточки","石上麻呂足":"Исоноками-но Маротари","癒し":"Лечение","屋敷を30なおす":"Чинит дом на 30","中将の兵が庭に陣を張った。今夜から、月の使いが来る。":"Солдаты генерала встали лагерем в саду. С этой ночи придут посланники луны.","一夜目はしのいだ。兵たちは昼まで眠っている。":"Первую ночь выстояли. Солдаты спят до полудня.","翁の手に包帯が増えた。媼は握り飯を数えている。":"На руках дедушки прибавилось бинтов. Бабушка считает рисовые шарики.","月はもう、ほとんど丸い。兵が空を見たがらない。":"Луна почти круглая. Солдаты не хотят смотреть на небо.","今宵は十五夜。天人の王が、みずから迎えに来る。":"Сегодня полнолуние. Лунный король сам придёт за ней.","中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」":"Генерал: «Эти лунные люди бьют мечом с такими красивыми лицами».","翁「星を拾うのは得意じゃ。腰はもう知らん」":"Дедушка: «Собирать звёзды я мастер. А вот спина — уже не знаю».","媼「握り飯、あと三十。足りるかねえ」":"Бабушка: «Осталось тридцать рисовых шариков. Хватит ли?»","中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」":"Генерал: «Солдаты говорят, от взгляда на луну руки тяжелеют. Я велел не смотреть».","天人の王":"Лунный король","降臨":"нисходит","そこにはもう兵がいる":"Здесь уже стоит солдат","光が足りない（あと{0}）":"Мало света (нужно ещё {0})","光 +{0}":"Свет +{0}","連撃 光+1":"Серия: свет +1","屋敷 +{0}":"Дом +{0}","羽衣の魅了":"Чары накидки","結界！":"Барьер!","光の星をタップ！":"Коснись звезды!","のこり {0}":"Осталось {0}","連撃":"Серия","難題":"Испытание","{0}の難題":"Испытание: {0}","「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。":"Отличи настоящий «{0}» от подделок. Если он настоящий, выучишь ночной приём «{1}»: {2}.","鍛錬":"Тренировка","備え":"Подготовка","弓兵を鍛える":"Тренировать лучников","弓兵の攻撃が35%上がる。いま Lv{0}。":"Атака лучников +35%. Сейчас ур. {0}.","槍兵を鍛える":"Тренировать копейщиков","槍兵の体力と攻撃が35%上がる。いま Lv{0}。":"Здоровье и атака копейщиков +35%. Сейчас ур. {0}.","翁と竹を取る":"Рубить бамбук с дедушкой","翁が光の星を生む間隔が短くなる。いま Lv{0}。":"Дедушка создаёт звёзды быстрее. Сейчас ур. {0}.","屋敷を修繕する":"Починить дом","屋敷の最大体力が20増え、体力が40もどる。":"Макс. здоровье дома +20, восстановлено 40.","光る竹を探す":"Искать светящийся бамбук","毎夜はじめの光が3増える。いま +{0}。":"+3 стартового света каждую ночь. Сейчас +{0}.","本物":"Настоящий","偽物":"Подделка","本物だ。夜の技「{0}」を覚えた":"Настоящий. Ты выучил ночной приём «{0}»","偽物をつかまされた。":"Тебе подсунули подделку.","時間切れ。":"Время вышло.","慰めに光 +{0}":"Утешение: свет +{0}","兵を選び、光るマスに置こう。ドラッグでも置ける":"Выбери солдата и поставь на светящуюся клетку. Можно и перетащить","退けた使い":"Отбито посланников","最大連撃":"Лучшая серия","夜明けに屋敷を手当てした（+{0}）":"На рассвете дом подлатали (+{0})","{0} {1}にて":"{0}, {1}","姫は月へ帰った":"Принцесса вернулась на луну","月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}":"Лунная память +{0} (всего {1}). В следующий раз стартовый свет +{2}","結末 その一":"Концовка 1","結末 その二":"Концовка 2","終わらない十五夜":"Бесконечное полнолуние","限りある日々":"Отмеренные дни","月の記憶 +{0}（合計 {1}）":"Лунная память +{0} (всего {1})","ここまで遊んでくれて、ありがとう。":"Спасибо, что играли до конца.","迎えの光は、今夜も満ちる。":"Свет, что приходит за ней, взойдёт и этой ночью.","媼":"Бабушка","かぐや":"Кагуя","中将":"Генерал","いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。":"Давным-давно жил старик, который рубил бамбук, плёл из него корзины и тем кормился.","あいたた……腰が。今日はこのへんで切り上げるか。":"Ой-ой... спина. На сегодня хватит.","……なんじゃ。あの竹、根元が光っとる。":"...Что это? У того бамбука светится основание.","蛍……ではないな。どれ。":"Светлячки...? Нет. Ну-ка.","節の中に、手のひらに乗るほどの女の子が座っていた。":"Внутри стебля сидела девочка размером с ладонь.","翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。":"Старик принёс её домой, и они с женой вырастили её. За три месяца она стала ростом со взрослую.","この子ったら、また着物の丈が足りなくなって。":"Ну надо же, кимоно опять коротко.","ごめんなさい。勝手に伸びちゃうの。":"Простите. Я сама расту.","謝ることはない。よう食うて、よう伸びる。結構なことじゃ。":"Не за что извиняться. Хорошо ешь — хорошо растёшь. Это славно.","あんたは米の心配をしなさいな。":"А ты бы лучше о рисе подумал.","その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。":"Той осенью принцесса стала каждую ночь выходить на веранду и смотреть только на луну.","冷えるぞ。何ぞ、あったか。":"Холодно. Что-то случилось?","お爺さん。わたし、この国の者じゃないの。月の都から来たの。":"Дедушка. Я не из этой страны. Я пришла из лунного города.","次の十五夜に、迎えが来る。断れるものじゃないの。":"В следующее полнолуние за мной придут. Отказаться нельзя.","断れないって、あんた……。":"Нельзя отказаться? Да что ты, деточка...","来るなら来ればええ。戸を閉めて、わしが前に座っとる。":"Пусть приходят. Закрою дверь и сяду перед ней.","相手は人じゃないのよ。":"Они ведь не люди.","わしだって、竹から娘が出てくるとは思っとらんかった。":"Я и не думал, что из бамбука выйдет дочка.","翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。":"Дедушка обратился к императору. Император послал генерала с солдатами к дому.","中将である。帝の仰せにより、十五夜まで姫をお守りいたす。":"Я генерал. По приказу императора я буду охранять принцессу до полнолуния.","弓と槍を並べておけば、天人とて通れまい。":"Поставим луки и копья в ряд — и даже лунные люди не пройдут.","ありがたい。ただ、光る星が落ちとったら拾うてくだされ。":"Спасибо. Только если увидите на земле светящиеся звёзды, подберите их.","わしが光る竹から集めますでな。兵を雇う足しになる。":"Я собираю их из светящегося бамбука. На жалованье солдатам пригодится.","……光る、星？":"...Светящиеся... звёзды?","見ればわかる。":"Увидите — поймёте.","三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。":"Перед рассветом третьего дня. Пока солдаты спали, дедушка и принцесса сидели на веранде.","お爺さん、その手。どうしたの。":"Дедушка, твои руки. Что случилось?","竹の切り口でやった。毎晩、光る竹を探して割っとるからな。":"Края бамбука. Каждую ночь колю бамбук, ищу светящийся.","そんなにたくさん、光る竹なんてないでしょう。":"Не может быть столько светящегося бамбука.","探せばある。おまえが入っとったくらいじゃ。":"Если искать, найдётся. Ты ведь в нём сидела.","月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。":"Лунные люди не злые. Просто там никто не плачет.","わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。":"А я, как пришла сюда, начала плакать. Наверное, в этом и беда.","難しいことはわからん。それより朝飯、何がええ。":"Сложного я не понимаю. Что хочешь на завтрак?","……お粥。梅のやつ。":"...Рисовую кашу. Со сливой.","よし。":"Ладно.","十五夜。月が昇ると、あたりは昼のように明るくなった。":"Полнолуние. Когда луна взошла, ночь стала светлой, как день.","……どうしたことだ。弓を引く腕に、力が入らん。":"...Что такое? Руки не могут натянуть лук.","翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。":"Старик. Мы лишь на время оставили принцессу в нижнем мире, чтобы она искупила проступок.","期限は満ちた。こちらへ渡してもらおう。":"Срок вышел. Отдай её нам.","罪とは、何をしたんで。":"Проступок? Что она сделала?","おまえたちに話して、わかることではない。":"Вам этого не понять.","なら、わしらにも渡す理由はありませんな。":"Тогда и у нас нет причин её отдавать.","お爺さん……。":"Дедушка...","ええい、動け！ 弓を取れ、射よ！":"Ну же, шевелитесь! Луки в руки! Стреляйте!","天の羽衣を着せかけられると、姫はもう泣かなかった。":"Когда на неё накинули небесную накидку, принцесса больше не плакала.","お爺さん。……あれ。わたし、何を言おうとしたんだっけ。":"Дедушка. ...Ой. Что я хотела сказать?","飛ぶ車は音もなく、月のほうへ小さくなっていった。":"Летающая колесница беззвучно уменьшалась, уходя к луне.","天人たちは光をたたむようにして、雲の上へ引き上げていった。":"Лунные люди словно свернули свой свет и ушли за облака.","……退いた。退いたぞ。":"...Отступили. Они отступили!","ふう。腰が抜けるかと思うたわい。":"Фух. Думал, спина не выдержит.","これ……あの人が置いていったの。不死の薬。":"Это... он оставил. Эликсир бессмертия.","飲めば年を取らない。病にもならない。ずっと、このまま。":"Выпьешь — и не стареешь. Не болеешь. Всегда как сейчас.","わしもか。":"И я тоже?","お爺さんも、お婆さんも。わたしも。":"Ты, и бабушка. И я.","それからというもの、月は一度も欠けなかった。":"С тех пор луна больше ни разу не убывала.","今夜も満月だねえ。":"Опять полнолуние.","昨日も、その前もね。":"Как вчера. И позавчера.","……ええ月じゃ。":"...Хорошая луна.","三人は同じ夜を、何度でも迎えた。":"Втроём они встречали одну и ту же ночь снова и снова.","薬は、天にいちばん近い山の頂で焚かれた。":"Эликсир сожгли на вершине горы, ближе всех к небу.","帝も、それがよいと仰せでした。":"Император тоже сказал, что так будет лучше.","煙、月まで届くかな。":"Дойдёт ли дым до луны?","届かんでもええ。腹が減った。帰って粥にしよう。":"Не обязательно. Я проголодался. Пойдём домой, сварим кашу.","梅のやつね。":"Со сливой.","その山はのちに「ふじ」と呼ばれるようになった、という。":"Говорят, эту гору потом стали называть «Фудзи»."},"it":{"かぐや姫 防衛記":"Kaguya: difesa al chiaro di luna","はじめる":"Inizia","音楽 {0}":"Musica {0}","効果音 {0}":"Suoni {0}","オン":"sì","オフ":"no","月の記憶 {0}（はじめの光 +{1}）":"Memoria lunare {0} (luce iniziale +{1})","負けても「月の記憶」が残る":"Anche se perdi, la memoria lunare resta","スキップ":"Salta","屋敷":"Casa","撤収":"Ritira","宝":"Tesoro","{0}（未入手）":"{0} (non trovato)","これにする":"Scelgo questo","偽物が混ざっている。月と同じ間合いで光るものが本物。":"Ci sono dei falsi. Quello vero brilla a ritmo con la luna.","夜を迎える":"Affronta la notte","夜をしのいだ":"Notte superata","夜が明ける":"Si fa giorno","不死の薬を、どうする？":"Che fare dell'elisir?","薬を飲む":"Berlo","薬を燃やす":"Bruciarlo","タイトルへ":"Al titolo","ひと休み":"Pausa","続ける":"Continua","あきらめる":"Arrenditi","もう一度":"Riprova","第{0}夜":"Notte {0}","第{0}日 昼　今宵は{1}":"Giorno {0}, di giorno. Stanotte: {1}","十一夜":"Luna dell'11","十二夜":"Luna del 12","十三夜":"Luna del 13","十四夜":"Luna del 14","十五夜":"Luna piena","翁":"Nonno","光の星を生む":"Crea stelle","弓兵":"Arciere","遠くを射る":"Tira lontano","槍兵":"Lanciere","前で止める":"Tiene la linea","仏の御石の鉢":"Ciotola di pietra lucente","石作皇子":"Principe Ishitsukuri","結界":"Barriera","6秒のあいだ屋敷が傷つかない":"La casa non subisce danni per 6 s","蓬莱の玉の枝":"Ramo di Hōrai","車持皇子":"Principe Kuramochi","玉実":"Frutto","光を8得る":"Ottieni 8 di luce","火鼠の皮衣":"Veste del ratto di fuoco","阿倍御主人":"Abe no Miushi","火炎":"Fiamma","すべての敵に40の炎":"40 danni da fuoco a tutti i nemici","龍の首の珠":"Gioiello del drago","大伴御行":"Ōtomo no Miyuki","雷鳴":"Tuono","すべての敵を4秒止める":"Blocca tutti i nemici per 4 s","燕の子安貝":"Conchiglia di rondine","石上麻呂足":"Isonokami no Marotari","癒し":"Cura","屋敷を30なおす":"Ripara la casa di 30","中将の兵が庭に陣を張った。今夜から、月の使いが来る。":"I soldati del generale si sono accampati nel giardino. Da stanotte arrivano i messaggeri della luna.","一夜目はしのいだ。兵たちは昼まで眠っている。":"La prima notte è passata. I soldati dormono fino a mezzogiorno.","翁の手に包帯が増えた。媼は握り飯を数えている。":"Il nonno ha più bende alle mani. La nonna conta le polpette di riso.","月はもう、ほとんど丸い。兵が空を見たがらない。":"La luna è quasi tonda. I soldati non vogliono guardare il cielo.","今宵は十五夜。天人の王が、みずから迎えに来る。":"Stanotte è luna piena. Il Re della luna viene a prenderla di persona.","中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」":"Generale: «Questa gente della luna ti colpisce con un viso così grazioso.»","翁「星を拾うのは得意じゃ。腰はもう知らん」":"Nonno: «Raccogliere stelle lo so fare. La schiena è un'altra storia.»","媼「握り飯、あと三十。足りるかねえ」":"Nonna: «Restano trenta polpette di riso. Basteranno?»","中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」":"Generale: «Gli uomini dicono che guardando la luna le braccia si appesantiscono. Ho detto di non guardarla.»","天人の王":"Re della luna","降臨":"scende","そこにはもう兵がいる":"Lì c'è già un soldato","光が足りない（あと{0}）":"Luce insufficiente (ne mancano {0})","光 +{0}":"Luce +{0}","連撃 光+1":"Combo: luce +1","屋敷 +{0}":"Casa +{0}","羽衣の魅了":"Incanto del velo","結界！":"Barriera!","光の星をタップ！":"Tocca la stella!","のこり {0}":"Restano {0}","連撃":"Combo","難題":"Prova","{0}の難題":"La prova di {0}","「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。":"Distingui il vero «{0}» dai falsi. Se è vero, impari la tecnica notturna «{1}»: {2}.","鍛錬":"Addestra","備え":"Prepara","弓兵を鍛える":"Addestra gli arcieri","弓兵の攻撃が35%上がる。いま Lv{0}。":"Attacco degli arcieri +35%. Ora Liv. {0}.","槍兵を鍛える":"Addestra i lancieri","槍兵の体力と攻撃が35%上がる。いま Lv{0}。":"Vita e attacco dei lancieri +35%. Ora Liv. {0}.","翁と竹を取る":"Taglia bambù col nonno","翁が光の星を生む間隔が短くなる。いま Lv{0}。":"Il nonno crea stelle più in fretta. Ora Liv. {0}.","屋敷を修繕する":"Ripara la casa","屋敷の最大体力が20増え、体力が40もどる。":"Vita massima della casa +20, e ne recupera 40.","光る竹を探す":"Cerca bambù lucente","毎夜はじめの光が3増える。いま +{0}。":"+3 luce iniziale ogni notte. Ora +{0}.","本物":"Vero","偽物":"Falso","本物だ。夜の技「{0}」を覚えた":"È vero. Hai imparato la tecnica notturna «{0}»","偽物をつかまされた。":"Ti hanno rifilato un falso.","時間切れ。":"Tempo scaduto.","慰めに光 +{0}":"Consolazione: luce +{0}","兵を選び、光るマスに置こう。ドラッグでも置ける":"Scegli un soldato e mettilo su una casella luminosa. Puoi anche trascinarlo","退けた使い":"Messaggeri respinti","最大連撃":"Combo migliore","夜明けに屋敷を手当てした（+{0}）":"All'alba hai riparato la casa (+{0})","{0} {1}にて":"{0}, {1}","姫は月へ帰った":"La principessa è tornata sulla luna","月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}":"Memoria lunare +{0} (totale {1}). La prossima volta luce iniziale +{2}","結末 その一":"Finale uno","結末 その二":"Finale due","終わらない十五夜":"La luna piena senza fine","限りある日々":"Giorni contati","月の記憶 +{0}（合計 {1}）":"Memoria lunare +{0} (totale {1})","ここまで遊んでくれて、ありがとう。":"Grazie per aver giocato fino alla fine.","迎えの光は、今夜も満ちる。":"La luce che viene a prenderla sorgerà anche stanotte.","媼":"Nonna","かぐや":"Kaguya","中将":"Generale","いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。":"C'era una volta un vecchio che tagliava il bambù, ne intrecciava ceste e viveva vendendole.","あいたた……腰が。今日はこのへんで切り上げるか。":"Ahi, ahi... la schiena. Per oggi basta.","……なんじゃ。あの竹、根元が光っとる。":"...Che cos'è? Quel bambù brilla alla base.","蛍……ではないな。どれ。":"Lucciole...? No. Vediamo.","節の中に、手のひらに乗るほどの女の子が座っていた。":"Dentro il fusto sedeva una bambina, piccola quanto il palmo di una mano.","翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。":"La portò a casa e la crebbe con la moglie. In tre mesi divenne alta quanto un'adulta.","この子ったら、また着物の丈が足りなくなって。":"Guarda qui, il kimono è di nuovo corto.","ごめんなさい。勝手に伸びちゃうの。":"Scusate. Cresco da sola.","謝ることはない。よう食うて、よう伸びる。結構なことじゃ。":"Niente scuse. Mangiar bene, crescer bene. È una bella cosa.","あんたは米の心配をしなさいな。":"Tu pensa piuttosto al riso.","その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。":"Quell'autunno, la principessa cominciò a uscire ogni notte sulla veranda a guardare solo la luna.","冷えるぞ。何ぞ、あったか。":"Fa freddo. È successo qualcosa?","お爺さん。わたし、この国の者じゃないの。月の都から来たの。":"Nonno. Io non sono di questo paese. Vengo dalla città della luna.","次の十五夜に、迎えが来る。断れるものじゃないの。":"Alla prossima luna piena verranno a prendermi. Non posso rifiutare.","断れないって、あんた……。":"Non puoi rifiutare? Ma tesoro...","来るなら来ればええ。戸を閉めて、わしが前に座っとる。":"Che vengano. Chiudo la porta e mi siedo davanti.","相手は人じゃないのよ。":"Non sono persone, sai.","わしだって、竹から娘が出てくるとは思っとらんかった。":"Neanch'io mi aspettavo che da un bambù uscisse una figlia.","翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。":"Il nonno supplicò l'Imperatore. L'Imperatore mandò il suo generale con i soldati alla casa.","中将である。帝の仰せにより、十五夜まで姫をお守りいたす。":"Sono il generale. Per ordine dell'Imperatore proteggerò la principessa fino alla luna piena.","弓と槍を並べておけば、天人とて通れまい。":"Con archi e lance in fila, nemmeno la gente della luna passerà.","ありがたい。ただ、光る星が落ちとったら拾うてくだされ。":"Grazie. Solo, se vedete stelle luminose a terra, raccoglietele.","わしが光る竹から集めますでな。兵を雇う足しになる。":"Le raccolgo dal bambù lucente. Aiuteranno a pagare i soldati.","……光る、星？":"...Stelle... luminose?","見ればわかる。":"Le riconoscerete.","三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。":"Prima dell'alba del terzo giorno. Mentre i soldati dormivano, il nonno e la principessa erano sulla veranda.","お爺さん、その手。どうしたの。":"Nonno, le tue mani. Cos'è successo?","竹の切り口でやった。毎晩、光る竹を探して割っとるからな。":"I bordi del bambù. Ogni notte ne spacco per trovare quello lucente.","そんなにたくさん、光る竹なんてないでしょう。":"Non può esserci così tanto bambù lucente.","探せばある。おまえが入っとったくらいじゃ。":"Se cerchi, c'è. Tu stavi dentro a uno, no?","月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。":"La gente della luna non è cattiva. È solo che lassù nessuno piange.","わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。":"Io ho cominciato a piangere da quando sono qui. Forse è questo che non va.","難しいことはわからん。それより朝飯、何がええ。":"Le cose difficili non le capisco. Cosa vuoi per colazione?","……お粥。梅のやつ。":"...Porridge di riso. Con la prugna.","よし。":"Va bene.","十五夜。月が昇ると、あたりは昼のように明るくなった。":"La luna piena. Quando sorse, la notte divenne chiara come il giorno.","……どうしたことだ。弓を引く腕に、力が入らん。":"...Che succede? Le braccia non riescono a tendere l'arco.","翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。":"Vecchio. Avevamo affidato la principessa al mondo di sotto solo per un po', perché rimediasse a un torto.","期限は満ちた。こちらへ渡してもらおう。":"Il tempo è scaduto. Consegnacela.","罪とは、何をしたんで。":"Un torto? Che cosa ha fatto?","おまえたちに話して、わかることではない。":"Non è cosa che possiate capire.","なら、わしらにも渡す理由はありませんな。":"Allora non abbiamo motivo di consegnarvela.","お爺さん……。":"Nonno...","ええい、動け！ 弓を取れ、射よ！":"Muovetevi, accidenti! Prendete gli archi! Tirate!","天の羽衣を着せかけられると、姫はもう泣かなかった。":"Quando le posero addosso la veste celeste, la principessa non pianse più.","お爺さん。……あれ。わたし、何を言おうとしたんだっけ。":"Nonno. ...Oh. Cosa stavo per dire?","飛ぶ車は音もなく、月のほうへ小さくなっていった。":"Il carro volante, senza un suono, rimpicciolì verso la luna.","天人たちは光をたたむようにして、雲の上へ引き上げていった。":"La gente della luna ripiegò la sua luce e si ritirò sopra le nuvole.","……退いた。退いたぞ。":"...Si ritirano. Si ritirano!","ふう。腰が抜けるかと思うたわい。":"Uff. Pensavo che la schiena cedesse.","これ……あの人が置いていったの。不死の薬。":"Questo... l'ha lasciato lui. L'elisir dell'immortalità.","飲めば年を取らない。病にもならない。ずっと、このまま。":"Se lo bevi non invecchi. Non ti ammali. Per sempre così.","わしもか。":"Anch'io?","お爺さんも、お婆さんも。わたしも。":"Tu, e la nonna. E io.","それからというもの、月は一度も欠けなかった。":"Da allora la luna non calò mai più.","今夜も満月だねえ。":"Anche stanotte luna piena.","昨日も、その前もね。":"Come ieri. E l'altro ieri.","……ええ月じゃ。":"...Bella luna.","三人は同じ夜を、何度でも迎えた。":"I tre accolsero la stessa notte, ancora e ancora.","薬は、天にいちばん近い山の頂で焚かれた。":"L'elisir fu bruciato sulla cima del monte più vicino al cielo.","帝も、それがよいと仰せでした。":"Anche l'Imperatore disse che era meglio così.","煙、月まで届くかな。":"Chissà se il fumo arriverà alla luna.","届かんでもええ。腹が減った。帰って粥にしよう。":"Non serve. Ho fame. Andiamo a casa a fare il porridge.","梅のやつね。":"Con la prugna.","その山はのちに「ふじ」と呼ばれるようになった、という。":"Si dice che quel monte fu poi chiamato «Fuji»."}};
+const LANGS=[['ja','日本語'],['en','English'],['zh-Hans','简体中文'],['zh-Hant','繁體中文'],['ko','한국어'],['fr','Français'],['de','Deutsch'],['ru','Русский'],['it','Italiano']];
+function detectLang(){
+ try{const q=new URLSearchParams(location.search).get('lang');if(q){const m=LANGS.find(([c])=>c.toLowerCase()===q.toLowerCase());if(m)return m[0];}}catch(e){}
+ const s=store.get('jugoya_lang',null);if(s&&LANGS.some(([c])=>c===s))return s;
+ const n=((navigator.languages&&navigator.languages[0])||navigator.language||'ja').toLowerCase();
+ if(n.startsWith('zh'))return /tw|hk|mo|hant/.test(n)?'zh-Hant':'zh-Hans';
+ for(const [c] of LANGS)if(n.startsWith(c.toLowerCase()))return c;return 'en';
+}
+let LANG=detectLang();
+function tr(s){if(LANG==='ja')return s;const d=I18N[LANG];return (d&&d[s]!=null)?d[s]:s;}
+function trf(s,...a){return tr(s).replace(/\{(\d)\}/g,(_,i)=>a[i]!=null?a[i]:'');}
+function numL(n){return LANG==='ja'?KN[n]:String(n+1);}
+function nightL(n){return trf('第{0}夜',numL(n));}
+function phaseL(n){return tr(PHASE[n]);}
+
+// ===== audio: wagaku chiptune engine =====
+const AU={ac:null,bgm:store.get('jugoya_bgm',true),se:store.get('jugoya_se',true),cur:null,want:null,track:null,step:0,next:0};
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+function audioInit(){
+ if(AU.ac){if(AU.ac.state==='suspended')AU.ac.resume();return;}
+ try{AU.ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){AU.ac=null;return;}
+ const ac=AU.ac;
+ AU.comp=ac.createDynamicsCompressor();AU.comp.threshold.value=-16;AU.comp.ratio.value=4;
+ AU.master=ac.createGain();AU.master.gain.value=.85;AU.master.connect(AU.comp);AU.comp.connect(ac.destination);
+ AU.music=ac.createGain();AU.music.gain.value=0;AU.music.connect(AU.master);
+ AU.sfx=ac.createGain();AU.sfx.gain.value=AU.se?.7:0;AU.sfx.connect(AU.master);
+ AU.musicIn=ac.createGain();AU.musicIn.connect(AU.music);
+ const dl=ac.createDelay(1);dl.delayTime.value=.33;const fb=ac.createGain();fb.gain.value=.3;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2000;
+ const wet=ac.createGain();wet.gain.value=.32;AU.musicIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(wet);wet.connect(AU.music);
+ const len=ac.sampleRate;const b=ac.createBuffer(1,len,ac.sampleRate);const d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;AU.noise=b;
+ setInterval(seqTick,25);
+ if(AU.want){const w=AU.want;AU.cur=null;playMusic(w);}
+}
+function eg(g,t,a,peak,end){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,peak),t+a);g.gain.exponentialRampToValueAtTime(.0001,end);}
+function noiseSrc(t,dur,type,freq,q,gain,out,dec){const ac=AU.ac;const n=ac.createBufferSource();n.buffer=AU.noise;const f=ac.createBiquadFilter();f.type=type;f.frequency.value=freq;if(q)f.Q.value=q;const g=ac.createGain();g.gain.setValueAtTime(Math.max(.0002,gain),t);g.gain.exponentialRampToValueAtTime(.0001,t+dec);n.connect(f);f.connect(g);g.connect(out);n.start(t,Math.random()*.5);n.stop(t+dur);}
+const INST={
+ koto(t,m,d,v,out){const ac=AU.ac,f=mtof(m);const o1=ac.createOscillator(),o2=ac.createOscillator(),fl=ac.createBiquadFilter(),g=ac.createGain(),g2=ac.createGain();
+  o1.type='triangle';o2.type='sawtooth';o1.frequency.value=f;o2.frequency.value=f*1.003;g2.gain.value=.3;
+  fl.type='lowpass';fl.frequency.setValueAtTime(3800,t);fl.frequency.exponentialRampToValueAtTime(650,t+.45);fl.Q.value=2;
+  o2.connect(g2);g2.connect(fl);o1.connect(fl);fl.connect(g);g.connect(out);const dec=Math.max(.6,d*1.5);eg(g,t,.004,.2*v,t+dec);
+  o1.start(t);o2.start(t);o1.stop(t+dec+.05);o2.stop(t+dec+.05);},
+ shaku(t,m,d,v,out){const ac=AU.ac,f=mtof(m);const o=ac.createOscillator(),g=ac.createGain(),lfo=ac.createOscillator(),lg=ac.createGain();
+  o.type='sine';o.frequency.setValueAtTime(f*.97,t);o.frequency.exponentialRampToValueAtTime(f,t+.09);
+  lfo.frequency.value=5.2;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(f*.012,t+Math.min(.5,d*.6)+.01);lfo.connect(lg);lg.connect(o.frequency);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.14*v,t+.07);g.gain.setValueAtTime(.14*v,t+Math.max(.08,d-.1));g.gain.exponentialRampToValueAtTime(.0001,t+d+.15);
+  o.connect(g);g.connect(out);o.start(t);lfo.start(t);o.stop(t+d+.2);lfo.stop(t+d+.2);
+  noiseSrc(t,d+.1,'bandpass',f*2,3,.025*v,out,Math.max(.1,d));},
+ chip(t,m,d,v,out){const ac=AU.ac;const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=mtof(m);eg(g,t,.004,.045*v,t+Math.max(.08,d));o.connect(g);g.connect(out);o.start(t);o.stop(t+d+.05);},
+ bass(t,m,d,v,out){const ac=AU.ac;const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=mtof(m);eg(g,t,.008,.3*v,t+Math.max(.12,d));o.connect(g);g.connect(out);o.start(t);o.stop(t+d+.05);},
+ taiko(t,m,d,v,out){const ac=AU.ac;const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(m||120,t);o.frequency.exponentialRampToValueAtTime(42,t+.3);
+  eg(g,t,.003,.7*v,t+.45);o.connect(g);g.connect(out);o.start(t);o.stop(t+.5);noiseSrc(t,.1,'lowpass',900,0,.28*v,out,.08);},
+ rim(t,m,d,v,out){const ac=AU.ac;const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(560,t);o.frequency.exponentialRampToValueAtTime(330,t+.08);eg(g,t,.003,.28*v,t+.16);o.connect(g);g.connect(out);o.start(t);o.stop(t+.2);},
+ shk(t,m,d,v,out){noiseSrc(t,.06,'highpass',6500,0,.08*v,out,.05);},
+ bell(t,m,d,v,out){const ac=AU.ac,f=mtof(m);[[1,.11],[2.76,.045],[5.4,.02]].forEach(([r,a])=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f*r;eg(g,t,.004,a*v,t+2.4/r+.3);o.connect(g);g.connect(out);o.start(t);o.stop(t+2.8);});},
+ pad(t,m,d,v,out){const ac=AU.ac,f=mtof(m);const g=ac.createGain(),fl=ac.createBiquadFilter();fl.type='lowpass';fl.frequency.value=1100;
+  [-7,7].forEach(c=>{const o=ac.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=c;o.connect(fl);o.start(t);o.stop(t+d+.8);});
+  fl.connect(g);g.connect(out);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.045*v,t+.5);g.gain.setValueAtTime(.045*v,t+Math.max(.55,d));g.gain.exponentialRampToValueAtTime(.0001,t+d+.75);}
+};
+const DRY={taiko:1,rim:1,shk:1};
+function seqTick(){
+ const ac=AU.ac;if(!ac||!AU.track)return;
+ const tr=AU.track,sd=60/tr.bpm/4;
+ if(AU.next<ac.currentTime-.2)AU.next=ac.currentTime+.05;
+ while(AU.next<ac.currentTime+.15){
+  const evs=tr.by[AU.step%tr.len];
+  if(evs)for(const e of evs){try{INST[e.i](AU.next,e.m,e.d*sd,e.v,DRY[e.i]?AU.music:AU.musicIn);}catch(err){}}
+  AU.step++;AU.next+=sd;
+ }
+}
+function playMusic(name){
+ AU.want=name;if(!AU.ac||AU.cur===name)return;AU.cur=name;
+ const ac=AU.ac,g=AU.music.gain,t=ac.currentTime;
+ g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(0,t+.35);
+ clearTimeout(AU.sw);
+ AU.sw=setTimeout(()=>{AU.track=name?TRACKS[name]:null;AU.step=0;AU.next=ac.currentTime+.05;const t2=ac.currentTime;g.cancelScheduledValues(t2);g.setValueAtTime(0,t2);g.linearRampToValueAtTime(AU.bgm&&name?.55:0,t2+.6);},380);
+}
+function setBgm(on){AU.bgm=on;store.set('jugoya_bgm',on);if(AU.ac){const t=AU.ac.currentTime;AU.music.gain.cancelScheduledValues(t);AU.music.gain.setValueAtTime(on&&AU.cur?.55:0,t);}}
+function setSe(on){AU.se=on;store.set('jugoya_se',on);if(AU.ac)AU.sfx.gain.value=on?.7:0;}
+
+// tracks
+const YO=[0,2,5,7,9],MI=[0,1,5,7,8];
+function sc(deg,base,scale){const n=scale.length;const o=Math.floor(deg/n);const i=((deg%n)+n)%n;return base+12*o+scale[i];}
+function T(bpm,len){return{bpm,len,ev:[]};}
+function add(t,s,i,m,d,v){t.ev.push({s,i,m,d,v});}
+function fin(t){t.by=[];for(const e of t.ev)(t.by[e.s]=t.by[e.s]||[]).push(e);return t;}
+function trTitle(){const t=T(72,64);[0,3,1,2].forEach((r,b)=>{const o=b*16;[0,2,4,5,7,5,4,2].forEach((dg,k)=>add(t,o+k*2,'koto',sc(r+dg,50,YO),2,k?.5:.85));add(t,o,'bass',sc(r,38,YO),14,.7);});
+ [[0,7,6],[6,6,2],[8,5,8],[16,4,6],[22,5,2],[24,7,8],[32,9,6],[38,8,2],[40,7,8],[48,5,4],[52,4,4],[56,2,8]].forEach(([s,dg,d])=>add(t,s,'shaku',sc(dg,62,YO),d,.9));
+ add(t,0,'bell',sc(5,74,YO),8,.5);add(t,32,'bell',sc(3,74,YO),8,.4);return fin(t);}
+function trStory(){const t=T(58,64);[0,-1,-2,-1].forEach((r,b)=>{const o=b*16;[0,2,4].forEach((dg,k)=>add(t,o+k,'koto',sc(r+dg,52,MI),12,.65));add(t,o+10,'koto',sc(r+5,52,MI),4,.35);add(t,o+12,'koto',sc(r+4,52,MI),4,.3);add(t,o,'pad',sc(r,40,MI),16,.8);add(t,o,'pad',sc(r+2,40,MI),16,.6);});
+ [[4,5,4],[8,4,4],[12,2,6],[20,3,6],[28,1,4],[36,5,4],[40,7,6],[48,6,4],[52,5,10]].forEach(([s,dg,d])=>add(t,s,'shaku',sc(dg,64,MI),d,.7));add(t,0,'bell',sc(5,76,MI),8,.3);return fin(t);}
+function trDay(){const t=T(104,32);
+ [[0,5,2],[2,7,2],[4,8,2],[6,7,2],[8,5,4],[12,4,2],[14,5,2],[16,7,2],[18,5,2],[20,4,2],[22,2,2],[24,4,6],[30,2,2]].forEach(([s,dg,d])=>add(t,s,'chip',sc(dg,62,YO),d,.75));
+ for(let s=2;s<32;s+=4){const r=s<16?0:3;add(t,s,'koto',sc(r+2,62,YO),2,.4);add(t,s,'koto',sc(r+4,62,YO),2,.3);}
+ for(let s=0;s<32;s+=4)add(t,s,'bass',sc(s<16?0:3,38,YO),3,.65);[0,8,16,24].forEach(s=>add(t,s,'taiko',110,1,.4));for(let s=2;s<32;s+=4)add(t,s,'shk',0,1,.55);return fin(t);}
+function trNight(){const t=T(132,64);
+ for(const h of [0,32]){[0,3,6,8,16,19,22,24,28].forEach((s,i)=>add(t,h+s,'taiko',i%2?95:120,1,i%2?.6:.85));[4,12,20,30].forEach(s=>add(t,h+s,'rim',0,1,.55));for(let s=0;s<32;s+=2)add(t,h+s,'shk',0,1,.32);
+  [0,0,1,0,2,0,1,0,0,0,1,0,3,2,1,0].forEach((dg,k)=>add(t,h+k*2,'bass',sc(dg,40,MI),2,.75));[0,16].forEach(s=>[0,2,4].forEach(dg=>add(t,h+s,'koto',sc(dg,52,MI),4,.45)));}
+ [[0,5,2],[2,6,2],[4,5,2],[6,3,2],[8,2,4],[12,0,2],[14,2,2],[16,3,2],[18,5,2],[20,6,2],[22,8,2],[24,7,4],[28,5,4],
+  [32,7,2],[34,8,2],[36,7,2],[38,5,2],[40,6,4],[44,5,2],[46,3,2],[48,2,2],[50,3,2],[52,5,2],[54,3,2],[56,2,4],[60,0,4]].forEach(([s,dg,d])=>add(t,s,'chip',sc(dg,52,MI),d,.7));return fin(t);}
+function trBoss(){const t=T(150,32);
+ [0,2,3,6,8,10,11,14,16,18,19,22,24,26,27,30].forEach((s,i)=>add(t,s,'taiko',i%3?95:125,1,i%3?.55:.9));[4,12,20,28].forEach(s=>add(t,s,'rim',0,1,.65));
+ const bp=[0,0,0,1,0,0,2,1];for(let s=0;s<32;s++)add(t,s,'bass',sc(bp[s%8]+(s>=16?-1:0),40,MI),1,.65);
+ [[0,7,1],[1,8,1],[2,7,2],[4,5,2],[6,6,2],[8,5,2],[10,3,2],[12,2,4],[16,7,1],[17,8,1],[18,10,2],[20,9,2],[22,8,2],[24,7,4],[28,5,2],[30,6,2]].forEach(([s,dg,d])=>add(t,s,'chip',sc(dg,52,MI),d,.75));
+ add(t,0,'pad',sc(0,52,MI),16,.9);add(t,0,'pad',sc(2,52,MI),16,.7);add(t,16,'pad',sc(-1,52,MI),16,.9);add(t,16,'pad',sc(1,52,MI),16,.7);return fin(t);}
+function trEnding(){const t=T(66,64);[0,2,3,1].forEach((r,b)=>{const o=b*16;[0,2,4,5,4,2,1,2].forEach((dg,k)=>add(t,o+k*2,'koto',sc(r+dg,50,YO),2,k?.42:.7));add(t,o,'bass',sc(r,38,YO),14,.55);add(t,o,'pad',sc(r+2,50,YO),16,.5);});
+ [[0,7,8],[8,9,4],[12,8,4],[16,7,8],[24,5,8],[32,4,6],[38,5,2],[40,7,8],[48,5,4],[52,4,4],[56,5,8]].forEach(([s,dg,d])=>add(t,s,'shaku',sc(dg,62,YO),d,.85));add(t,0,'bell',sc(5,74,YO),8,.4);add(t,32,'bell',sc(7,74,YO),8,.35);return fin(t);}
+function trOver(){const t=T(52,32);[7,5,4,2,1,0,-1,-3].forEach((dg,k)=>add(t,k*4,'koto',sc(dg,52,MI),4,.55));add(t,0,'bell',sc(0,64,MI),8,.4);add(t,0,'pad',sc(0,40,MI),32,.6);return fin(t);}
+const TRACKS={title:trTitle(),story:trStory(),day:trDay(),night:trNight(),boss:trBoss(),ending:trEnding(),over:trOver()};
+
+// sfx
+function tone(f,d=.08,type='square',v=.05,slide=0,delay=0){
+ if(!AU.ac||!AU.se)return;const ac=AU.ac,t=ac.currentTime+delay;const o=ac.createOscillator(),g=ac.createGain();
+ o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(40,f*slide),t+d);
+ eg(g,t,.003,v,t+d);o.connect(g);g.connect(AU.sfx);o.start(t);o.stop(t+d+.02);}
+const sfx={
+ tap:()=>tone(988,.035,'square',.03),
+ cursor:()=>tone(1320,.025,'square',.025),
+ ok:()=>{tone(784,.05,'square',.04);tone(1175,.08,'square',.035,0,.05);},
+ ng:()=>{tone(220,.08,'square',.04);tone(180,.1,'square',.035,0,.07);},
+ type:()=>tone(1500,.015,'square',.01),
+ place:()=>{tone(659,.05,'square',.045);tone(988,.09,'square',.04,0,.05);},
+ shoot:()=>tone(1400,.03,'triangle',.016,.6),
+ crit:()=>{tone(1800,.04,'square',.03);tone(2400,.05,'square',.02,0,.03);},
+ hit:()=>tone(200,.05,'square',.028,.5),
+ kill:c=>{const b=523*Math.pow(1.06,Math.min(c,12));tone(b,.05,'triangle',.045);tone(b*1.5,.08,'triangle',.035,0,.04);},
+ orb:()=>{tone(1568,.05,'sine',.05);tone(2093,.09,'sine',.04,0,.05);},
+ house:()=>tone(110,.18,'sawtooth',.05,.5),
+ skill:()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,.12,'triangle',.05,0,i*.04)),
+ win:()=>[523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,.16,'triangle',.05,0,i*.08)),
+ lose:()=>[440,370,311,262].forEach((f,i)=>tone(f,.28,'triangle',.05,0,i*.16)),
+ boss:()=>{tone(98,.7,'sawtooth',.05,1.5);tone(147,.7,'sawtooth',.04,1.5,.1);},
+ chime:()=>{if(AU.ac&&AU.se)INST.bell(AU.ac.currentTime,88,1,.9,AU.sfx);},
+ cut:()=>{if(AU.ac&&AU.se){noiseSrc(AU.ac.currentTime,.2,'highpass',2500,0,.25,AU.sfx,.18);INST.bell(AU.ac.currentTime+.08,93,1,.8,AU.sfx);}},
+ retreat:()=>tone(660,.08,'triangle',.04,.5),
+ pick:c=>{const f=1318*Math.pow(1.0595,Math.min(c,14));tone(f,.035,'square',.028);tone(f*2,.05,'sine',.02,0,.02);}
+};
+
+// ===== canvas & layout =====
+const cv=$('cv');let ctx=cv.getContext('2d');let S=4,P=1.333;
+function layout(){
+ const f=$('fit');const w=f.clientWidth||window.innerWidth,h=f.clientHeight||window.innerHeight;
+ P=Math.max(.5,Math.min(w/LW,h/LH));const dpr=window.devicePixelRatio||1;
+ S=Math.max(1,Math.round(P*dpr));
+ cv.width=LW*S;cv.height=LH*S;ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+ document.documentElement.style.setProperty('--p',P+'px');
+}
+// ===== layer helpers =====
+function layer(){return mk(LW,LH);}
+function blurL(src,f){const [c,x]=mk(Math.ceil(LW/f),Math.ceil(LH/f));x.imageSmoothingEnabled=true;x.drawImage(src,0,0,c.width,c.height);return c;}
+function drawL(c,a=1){if(a<=0)return;ctx.globalAlpha=a;ctx.drawImage(c,0,0,LW,LH);ctx.globalAlpha=1;}
+function drawBlur(c,a=1){ctx.imageSmoothingEnabled=true;drawL(c,a);ctx.imageSmoothingEnabled=false;}
+function gradRect(x,y0,y1,stops,K=18){
+ const cs=stops.map(s=>[s[0],hex(s[1])]);
+ const at=t=>{for(let i=1;i<cs.length;i++)if(t<=cs[i][0]){const a=cs[i-1],b=cs[i];return mix(a[1],b[1],(t-a[0])/((b[0]-a[0])||1));}return cs[cs.length-1][1];};
+ const H=y1-y0;const img=x.createImageData(LW,H);const d=img.data;
+ for(let y=0;y<H;y++){const t=y/Math.max(1,H-1),lv=t*K,l0=Math.floor(lv),fr=lv-l0;const c0=at(l0/K),c1=at(Math.min(K,l0+1)/K);
+  for(let i=0;i<LW;i++){const th=(BAY[((y+y0)&3)*4+(i&3)]+.5)/16;const c=fr>th?c1:c0;const k=(y*LW+i)*4;d[k]=c[0];d[k+1]=c[1];d[k+2]=c[2];d[k+3]=255;}}
+ x.putImageData(img,0,y0);
+}
+function drawMoon(x,cx,cy,r,frac,rabbit=true){
+ const sx=cx-2*r*frac-.5;
+ for(let j=-r-14;j<=r+14;j++)for(let i=-r-14;i<=r+14;i++){const d=Math.hypot(i,j);
+  if(d>r+2&&d<r+5&&((i+j)&1)===0){x.fillStyle='rgba(255,226,170,.55)';x.fillRect(cx+i,cy+j,1,1);}
+  else if(d>r+8&&d<r+9.2&&((i*3+j)%3===0)){x.fillStyle='rgba(220,190,255,.45)';x.fillRect(cx+i,cy+j,1,1);}
+  if(d>r)continue;
+  const sh=Math.hypot(cx+i-sx,j)<r;
+  let c;if(sh)c='#262052';else{const t=d/r;c=t<.5?'#FFF6CC':t<.82?'#FBE7A0':'#F2CF72';if(i+j>r*.7)c='#E9C064';}
+  x.fillStyle=c;x.fillRect(cx+i,cy+j,1,1);}
+ const R=seeded(r);for(let k=0;k<6;k++){const a=R()*6.28,dd=R()*r*.7,cr=1+R()*r*.12;const px=Math.round(cx+Math.cos(a)*dd),py=Math.round(cy+Math.sin(a)*dd);
+  for(let j=-cr;j<=cr;j++)for(let i=-cr;i<=cr;i++){if(i*i+j*j>cr*cr)continue;if(Math.hypot(px+i-sx,py+j-cy)<r)continue;if(Math.hypot(px+i-cx,py+j-cy)>r-1)continue;x.fillStyle='#E4C26C';x.fillRect(px+i,py+j,1,1);}}
+ if(rabbit){const rab=["..x.x...","..x.x...",".xxxx...","xxxxxx..",".xxxxxxx",".xxxxxx.","..x..x.."];const sc=Math.max(1,Math.round(r/14));
+  rab.forEach((row,j)=>{for(let i=0;i<row.length;i++)if(row[i]==='x'){const X=cx-2*sc+i*sc,Y=cy-3*sc+j*sc;if(Math.hypot(X-sx,Y-cy)>=r){x.fillStyle='#D7A94C';x.fillRect(X,Y,sc,sc);}}});}
+}
+function stalk(x,_u,bx,top,bot,w,lit,dark,node,step){x.fillStyle=dark;x.fillRect(bx,top,w,bot-top);x.fillStyle=lit;x.fillRect(bx,top,Math.max(1,Math.floor(w/3)),bot-top);
+ x.fillStyle=node;for(let y=bot-step;y>top;y-=step)x.fillRect(bx-1,y,w+2,1);}
+function leaves(x,cx,cy,n,cols,R,spread=14){for(let k=0;k<n;k++){const lx=cx+Math.round((R()-.5)*spread*2),ly=cy+Math.round((R()-.5)*spread);const dir=R()<.5?-1:1;x.fillStyle=cols[k%cols.length];
+ for(let i=0;i<6;i++)x.fillRect(lx+dir*i,ly+Math.floor(i/2),2,1);}}
+
+// ===== field (battle) layers =====
+const FIELD={};
+function fieldLayers(n){
+ if(FIELD[n])return FIELD[n];const L={};const R=seeded(30+n);
+ // sky
+ {const [c,x]=layer();x.fillStyle='#0B0A2A';x.fillRect(0,0,LW,LH);
+  gradRect.call(null,x,0,210,[[0,'#0A0928'],[.35,'#1C1750'],[.62,'#3B2A76'],[.82,'#74509C'],[1,'#B886B8']]);
+  for(let i=0;i<70;i++){x.fillStyle=R()<.25?'#FFF1C8':'#8F98D0';x.fillRect(Math.floor(R()*LW),Math.floor(R()*120),1,1);}
+  drawMoon(x,135,74,26,FRAC[n]);L.sky=c;}
+ // far (blurred): ranges, capital roofs, distant bamboo
+ {const [c,x]=layer();
+  const ridge=(base,amp,col,fq,ph)=>{x.fillStyle=col;for(let i=0;i<LW;i++){const h=Math.round(base-amp*(.5+.5*Math.sin(i*fq+ph))-amp*.4*Math.sin(i*fq*2.7+ph*2));x.fillRect(i,h,1,230-h);}};
+  ridge(150,22,'#3A2E6E',.022,1);ridge(160,12,'#2A2358',.05,3);
+  x.fillStyle='#1E1A44';for(let i=0;i<LW;i+=2){const h=8+Math.floor(R()*12);x.fillRect(i,170-h,2,h+60);}
+  x.fillStyle='#231C4A';[[24,150,40],[70,154,26]].forEach(([px,py,w])=>{x.fillRect(px,py,w,8);x.fillRect(px+4,py-5,w-8,5);x.fillRect(px+w/2-6,py-9,12,4);});
+  x.fillStyle='#FFC86A';for(let k=0;k<8;k++)x.fillRect(26+Math.floor(R()*66),155+Math.floor(R()*5),1,1);
+  x.fillStyle='#17143A';x.fillRect(0,172,LW,60);
+  L.far=blurL(c,3);}
+ // ground (perspective)
+ {const [c,x]=layer();const img=x.createImageData(LW,LH);const d=img.data;const yTop=Math.floor(PY(1.3));
+  const bricks=[hex('#6A6290'),hex('#5E5684'),hex('#736B9A')],mort=hex('#3A3358'),rim=hex('#A49AD0'),moss=[hex('#26334A'),hex('#2E3D55'),hex('#1F2A40')],flw=hex('#E7A1C8'),road=hex('#C4B6F0');
+  const H32=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0)/4294967296;};
+  for(let y=yTop;y<392;y++){const s=(y-HZ)/(NY-HZ);const z=(1/s-1)/DZ;
+   for(let i=0;i<LW;i++){const lo=(i-CX)/(LN*s);const lr=Math.round(lo);const dd=Math.abs(lo-lr);let col;
+    if(Math.abs(lr)<=1&&dd<.44){const u=(lo-lr+.44)/.88;const tz=z*14,row=Math.floor(tz);const tu=u*3+(row&1)*.5;
+     if(dd>.4)col=rim;else if(tz-row<.08||(tu-Math.floor(tu))<.05)col=mort;else col=bricks[Math.floor(H32(row,Math.floor(tu)+lr*9)*3)];
+     col=mix(col,road,.16*Math.exp(-lo*lo*3)*clamp(z*1.4,0,1));}
+    else{const hh=H32(i,y);col=moss[hh<.6?0:hh<.85?1:2];if(hh>.995)col=flw;}
+    col=mix(col,FOG,clamp((z-.04)/1.15,0,.85));
+    const k=(y*LW+i)*4;d[k]=col[0];d[k+1]=col[1];d[k+2]=col[2];d[k+3]=255;}}
+  x.putImageData(img,0,0);
+  // cell corner ticks
+  x.fillStyle='rgba(230,220,255,.55)';
+  for(let r=0;r<4;r++)for(let l=0;l<3;l++){const lo=l-1,z=ROWZ[r];for(const zz of [z-.045,z+.045])for(const sd of [-.38,.38]){const X=Math.round(PX(lo+sd,zz)),Y=Math.round(PY(zz));const dx=sd<0?1:-1;x.fillRect(X,Y,1,1);x.fillRect(X+dx,Y,1,1);x.fillRect(X+dx*2,Y,1,1);x.fillRect(X,Y+(zz<z?1:-1),1,1);}}
+  L.ground=c;}
+ // rail (veranda, near)
+ {const [c,x]=layer();x.fillStyle='#3A2418';x.fillRect(0,398,LW,82);x.fillStyle='#5A3A28';for(let y=400;y<480;y+=6)x.fillRect(0,y,LW,1);
+  x.fillStyle='#8E2A2E';x.fillRect(0,386,LW,5);x.fillStyle='#C8434A';x.fillRect(0,386,LW,2);x.fillStyle='#6A1E24';x.fillRect(0,391,LW,1);
+  x.fillStyle='#8E2A2E';x.fillRect(0,394,LW,3);
+  for(let px=6;px<LW;px+=44){x.fillStyle='#7A2026';x.fillRect(px,383,6,16);x.fillStyle='#C8434A';x.fillRect(px,383,2,16);x.fillStyle='#F5C842';x.fillRect(px-1,379,8,4);x.fillStyle='#FFF1A8';x.fillRect(px+1,378,3,2);x.fillStyle='#B8862B';x.fillRect(px-1,382,8,1);}
+  L.rail=c;}
+ // foreground leaves (blurred DOF)
+ {const [c,x]=layer();const cols=['#0E2A22','#143A2C','#1C4A36'];
+  x.fillStyle='#0C231C';x.fillRect(0,0,9,400);x.fillRect(262,0,8,400);x.fillStyle='#183E30';x.fillRect(3,0,2,400);x.fillRect(264,0,2,400);
+  leaves(x,14,22,26,cols,R,22);leaves(x,256,30,26,cols,R,22);leaves(x,10,330,18,cols,R,18);leaves(x,260,320,18,cols,R,18);
+  L.fg=blurL(c,4);}
+ // props (bamboo + lanterns) in world space
+ L.props=[];for(let z=-.04;z<1.25;z+=.05){for(const side of [-1,1]){const lo=side*(1.72+R()*.75);const f=clamp(z*.75,0,.82);
+   L.props.push({k:'bamboo',lo,z:z+R()*.03,h:.8+R()*.5,lit:rgb(mix(hex('#4E9A74'),FOG,f)),dark:rgb(mix(hex('#2A6450'),FOG,f)),node:rgb(mix(hex('#173E31'),FOG,f)),leaf:rgb(mix(hex('#2E7656'),FOG,f)),seed:R()*1000});}}
+ for(const z of [.06,.3,.62])for(const side of [-1,1])L.props.push({k:'toro',lo:side*1.42,z});
+ return FIELD[n]=L;
+}
+function drawProp(p,t){
+ const s=zs(p.z),x=PX(p.lo,p.z),y=PY(p.z);
+ if(p.k==='bamboo'){const w=Math.max(1,Math.round(7*s)),h=Math.round(190*s*p.h);const bx=Math.round(x-w/2);
+  ctx.fillStyle=p.dark;ctx.fillRect(bx,y-h,w,h);ctx.fillStyle=p.lit;ctx.fillRect(bx,y-h,Math.max(1,Math.round(w/3)),h);
+  ctx.fillStyle=p.node;const st=Math.max(4,Math.round(22*s));for(let yy=y-st;yy>y-h;yy-=st)ctx.fillRect(bx-1,yy,w+2,Math.max(1,Math.round(s*1.5)));
+  ctx.fillStyle=p.leaf;const sway=Math.sin(t*1.2+p.seed)*2*s;const R=seeded(p.seed|0);
+  for(let k=0;k<5;k++){const ly=y-h+Math.round(R()*h*.35);const dir=R()<.5?-1:1;const len=Math.round((8+R()*8)*s)+2;for(let i=0;i<len;i++)ctx.fillRect(Math.round(x+dir*i+sway*(i/len)),ly+Math.floor(i/3),Math.max(1,Math.round(2*s)),1);}}
+ else{const sc=SK*s*.95;drawSpr('toro',x,y,sc,{ol:OL_INK,fog:clamp((p.z-.1)*.7,0,.6)});
+  const fl=.75+.25*Math.sin(t*9+p.lo*3)+.1*Math.sin(t*23);const gy=y-10.5*sc;
+  glow(x,gy,30*s*fl,'255,200,110',.5*fl);}
+}
+function glow(x,y,r,rgbS,a){if(r<1)return;ctx.save();ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(${rgbS},${a})`);g.addColorStop(1,`rgba(${rgbS},0)`);ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);ctx.restore();}
+
+// ===== sprite drawing =====
+function drawSpr(name,cx,foot,scale,o={}){
+ const c=sprite(name,o);
+ const psx=Math.max(1,Math.round(scale*(o.sx||1)*S))/S,psy=Math.max(1,Math.round(scale*(o.sy||1)*S))/S;
+ const w=c.width*psx,h=c.height*psy;const x=Math.round((cx-w/2)*S)/S,y=Math.round((foot-h+(c.pad||0)*psy)*S)/S;
+ const paint=cc=>{if(o.flip){ctx.save();ctx.translate(x+w,y);ctx.scale(-1,1);ctx.drawImage(cc,0,0,w,h);ctx.restore();}else ctx.drawImage(cc,x,y,w,h);};
+ if(o.a!=null)ctx.globalAlpha=o.a;
+ paint(c);
+ if(o.fog>0){ctx.globalAlpha=(o.a!=null?o.a:1)*o.fog;paint(sprite(name,{sw:o.sw,ol:o.ol,m:'s',col:'#7E6FB8'}));}
+ if(o.tint){ctx.globalAlpha=(o.a!=null?o.a:1)*o.tint[1];paint(sprite(name,{sw:o.sw,ol:o.ol,m:'s',col:o.tint[0]}));}
+ ctx.globalAlpha=1;return{x,y,w,h};
+}
+function shadow(x,y,w,a=.45){const h=Math.max(1.5,w/6);ctx.fillStyle=`rgba(10,6,24,${a*.55})`;ctx.beginPath();ctx.ellipse(x,y-h*.35,w/2,h,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=`rgba(10,6,24,${a})`;ctx.beginPath();ctx.ellipse(x,y-h*.35,w*.34,h*.6,0,0,Math.PI*2);ctx.fill();}
+function ptxt(s,x,y,col,size=8,align='center',ol='#0B0618'){ctx.font=`${size}px DotGothic16, monospace`;ctx.textAlign=align;ctx.textBaseline='alphabetic';ctx.fillStyle=ol;
+ for(const [a,b] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[1,-1],[-1,1],[0,2]])ctx.fillText(s,x+a,y+b);ctx.fillStyle=col;ctx.fillText(s,x,y);}
+
+// ===== ambient =====
+const AMB={stars:[],ff:[],petals:[],clouds:[]};
+(function(){const R=seeded(9);for(let i=0;i<46;i++)AMB.stars.push({x:Math.floor(R()*LW),y:Math.floor(R()*130),p:R()*6,sp:1+R()*3,big:R()<.2,c:pick(['#FFFFFF','#FFF1A8','#BFE9FF','#FFC2E2'])});
+ for(let i=0;i<14;i++)AMB.ff.push({x:R()*LW,y:200+R()*180,p:R()*6,vx:rnd(-6,6),vy:rnd(-4,4)});
+ for(let i=0;i<10;i++)AMB.petals.push({x:R()*LW,y:R()*LH,vx:rnd(5,11),vy:rnd(8,14),p:R()*6});
+ for(let i=0;i<5;i++)AMB.clouds.push({x:R()*LW,y:20+R()*110,w:30+R()*50,sp:rnd(2,5),seed:R()*99|0});})();
+function updAmb(dt){for(const f of AMB.ff){f.p+=dt*2;f.x+=f.vx*dt+Math.sin(f.p)*.2;f.y+=f.vy*dt+Math.cos(f.p*1.3)*.2;if(f.x<0||f.x>LW)f.vx*=-1;if(f.y<190||f.y>390)f.vy*=-1;}
+ for(const p of AMB.petals){p.x+=p.vx*dt;p.y+=p.vy*dt;p.p+=dt*4;if(p.y>LH)p.y=-2,p.x=rnd(-20,LW);if(p.x>LW)p.x=-2;}
+ for(const c of AMB.clouds){c.x+=c.sp*dt;if(c.x-c.w>LW)c.x=-c.w;}}
+const CLOUDC={};
+function cloudC(seed,w){const k=seed+'_'+(w|0);if(CLOUDC[k])return CLOUDC[k];const h=Math.ceil(w/3.2);const [c,x]=mk(Math.ceil(w),h);const R=seeded(seed);
+ const blobs=[];for(let i=0;i<5;i++)blobs.push([w*(.15+.7*R()),h*(.45+.3*R()),h*(.3+.25*R())]);
+ for(let j=0;j<h;j++)for(let i=0;i<w;i++){let v=0;for(const [bx,by,br] of blobs)v=Math.max(v,1-Math.hypot((i-bx)/1.6,j-by)/br);if(v<=0)continue;
+  const th=(BAY[(j&3)*4+(i&3)]+.5)/16;x.fillStyle=v>.55?'#B7A6E8':v>.25+th*.2?'#8A78C8':'#5C4E9A';if(v>.12)x.fillRect(i,j,1,1);}
+ return CLOUDC[k]=c;}
+function drawSkyAmb(t,maxY=150,clouds=true){
+ for(const s of AMB.stars){if(s.y>maxY)continue;const v=Math.sin(t*s.sp+s.p);if(v<-.25)continue;ctx.fillStyle=s.c;ctx.fillRect(s.x,s.y,1,1);if(s.big&&v>.7){ctx.fillRect(s.x-1,s.y,3,1);ctx.fillRect(s.x,s.y-1,1,3);}}
+ if(clouds){ctx.globalAlpha=.75;for(const c of AMB.clouds)ctx.drawImage(cloudC(c.seed,c.w),Math.round(c.x-c.w),Math.round(c.y));ctx.globalAlpha=1;}
+}
+function drawFireflies(t,y0=190,y1=390){for(const f of AMB.ff){if(f.y<y0||f.y>y1)continue;const a=.5+.5*Math.sin(f.p*3);glow(f.x,f.y,6,'190,255,150',.35*a);ctx.fillStyle=`rgba(220,255,170,${.6+.4*a})`;ctx.fillRect(Math.round(f.x),Math.round(f.y),1,1);}}
+
+// ===== post =====
+let BLOOM=null,VIG=null;
+function post(str=.26){
+ if(!BLOOM){BLOOM=mk(Math.ceil(LW/5),Math.ceil(LH/5));BLOOM[1].imageSmoothingEnabled=true;}
+ const [bc,bx]=BLOOM;ctx.save();ctx.setTransform(1,0,0,1,0,0);bx.clearRect(0,0,bc.width,bc.height);bx.drawImage(cv,0,0,bc.width,bc.height);
+ ctx.globalCompositeOperation='screen';ctx.globalAlpha=str;ctx.imageSmoothingEnabled=true;ctx.drawImage(bc,0,0,cv.width,cv.height);ctx.restore();
+ ctx.setTransform(S,0,0,S,0,0);ctx.imageSmoothingEnabled=false;
+ if(!VIG){const [c,x]=layer();const g=x.createRadialGradient(135,230,120,135,240,330);g.addColorStop(0,'rgba(6,3,18,0)');g.addColorStop(1,'rgba(6,3,18,.62)');x.fillStyle=g;x.fillRect(0,0,LW,LH);VIG=c;}
+ ctx.imageSmoothingEnabled=true;ctx.drawImage(VIG,0,0,LW,LH);ctx.imageSmoothingEnabled=false;
+}
+
+// ===== scene stages =====
+const STG={};
+const STAGE_Y={grove:318,house:324,field:332,sky:300,fuji:326};
+function stageLayers(name,n){
+ const key=name+n;if(STG[key])return STG[key];const L={};const R=seeded(name.length*31+n);
+ if(name==='grove'){
+  {const [c,x]=layer();gradRect(x,0,300,[[0,'#2A1B52'],[.38,'#7A3576'],[.66,'#E0607A'],[.86,'#F7A65E'],[1,'#FFD88E']]);
+   for(let j=-20;j<=20;j++)for(let i=-20;i<=20;i++){if(i*i+j*j<=400){x.fillStyle=(i*i+j*j<200)?'#FFF2C8':'#FFD99A';x.fillRect(206+i,236+j,1,1);}}
+   x.fillStyle='#5A2E5E';x.fillRect(0,300,LW,180);L.sky=c;}
+  {const [c,x]=layer();x.fillStyle='#8A4A7E';for(let i=0;i<LW;i+=3){const h=90+Math.floor(R()*150);x.fillRect(i,300-h,1,h);leaves(x,i,300-h,3,['#7A3E72','#8A4A7E'],R,8);}
+   x.fillStyle='#5E2E62';for(let i=1;i<LW;i+=5){const h=70+Math.floor(R()*120);x.fillRect(i,302-h,2,h);leaves(x,i,302-h,3,['#5E2E62'],R,10);}x.fillStyle='#4E2758';x.fillRect(0,292,LW,14);L.far=blurL(c,4);}
+  {const [c,x]=layer();
+   for(let k=0;k<11;k++){const bx=Math.floor(k*26+R()*12)-4;if(bx>160&&bx<190)continue;const w=6+Math.floor(R()*4);stalk(x,0,bx,-10,312,w,'#7FAF6A','#4C7A50','#2E5038',22+Math.floor(R()*8));}
+   const lc=['#3E6A44','#4F8452','#2E5038'];for(let k=0;k<14;k++)leaves(x,Math.floor(R()*LW),20+Math.floor(R()*90),5,lc,R,12);
+   x.fillStyle='#4A3242';x.fillRect(0,306,LW,174);for(let y=306;y<340;y++)for(let i=0;i<LW;i++){const v=R();if(v<.12){x.fillStyle=v<.05?'#5E8A4E':'#3E5A3A';x.fillRect(i,y,1,1);}}
+   x.fillStyle='#6E4E52';x.fillRect(40,312,200,22);for(let i=0;i<120;i++){x.fillStyle=R()<.5?'#7E5E5E':'#5E3E46';x.fillRect(40+Math.floor(R()*200),312+Math.floor(R()*22),1,1);}
+   L.mid=c;}
+  {const [c,x]=layer();stalk(x,0,-2,0,480,16,'#2E4A32','#1A2E22','#0E1A14',30);stalk(x,0,252,0,480,18,'#2E4A32','#1A2E22','#0E1A14',28);leaves(x,20,40,14,['#14281C','#1E3A28'],R,20);leaves(x,248,60,14,['#14281C','#1E3A28'],R,20);L.fg=blurL(c,4);}
+ }
+ if(name==='house'){
+  {const [c,x]=layer();x.fillStyle='#2A1C1A';x.fillRect(0,0,LW,LH);
+   gradRect(x,30,250,[[0,'#0A0928'],[.5,'#251C5E'],[1,'#6E4E96']]);
+   for(let i=0;i<40;i++){x.fillStyle=R()<.3?'#FFF1C8':'#8F98D0';x.fillRect(70+Math.floor(R()*130),32+Math.floor(R()*130),1,1);}
+   drawMoon(x,150,104,20,FRAC[n]);
+   x.fillStyle='#14102E';for(let i=70;i<200;i+=2){const h=10+Math.floor(R()*30);x.fillRect(i,250-h,2,h);}
+   x.fillStyle='#1E1838';x.fillRect(70,232,130,18);
+   const sho=(x0,x1)=>{x.fillStyle='#D9C49A';x.fillRect(x0,30,x1-x0,220);x.fillStyle='#E9D6AE';for(let yy=34;yy<248;yy+=4)x.fillRect(x0,yy,x1-x0,1);x.fillStyle='#5A3E2E';for(let xx=x0;xx<=x1;xx+=14)x.fillRect(xx,30,2,220);for(let yy=30;yy<=250;yy+=22)x.fillRect(x0,yy,x1-x0,2);};
+   sho(0,70);sho(200,LW);
+   x.fillStyle='#3A2620';x.fillRect(0,0,LW,30);x.fillStyle='#4E3428';x.fillRect(0,22,LW,8);x.fillStyle='#2A1A16';x.fillRect(66,22,6,232);x.fillRect(198,22,6,232);
+   for(let y=250;y<LH;y++){const t=(y-250)/230;x.fillStyle=((Math.floor(Math.pow(t,.6)*22))&1)?'#6E4A36':'#5E3E2E';x.fillRect(0,y,LW,1);}
+   x.fillStyle='rgba(30,16,12,.5)';for(let k=-6;k<=6;k++){const x0=135+k*22;for(let y=250;y<LH;y+=1){const xx=Math.round(135+(x0-135)*(1+(y-250)/60));if(xx>=0&&xx<LW)x.fillRect(xx,y,1,1);}}
+   x.fillStyle='#2A1A16';x.fillRect(16,286,20,30);x.fillStyle='#FFE0A0';x.fillRect(19,290,14,20);x.fillStyle='#F5B860';for(let yy=292;yy<310;yy+=4)x.fillRect(19,yy,14,1);x.fillStyle='#2A1A16';x.fillRect(14,284,24,3);x.fillRect(18,316,3,10);x.fillRect(31,316,3,10);
+   L.sky=c;}
+ }
+ if(name==='sky'){
+  {const [c,x]=layer();gradRect(x,0,LH,[[0,'#0C1446'],[.45,'#3A3C9A'],[.8,'#A7A6E8'],[1,'#F7EBD0']]);
+   for(let i=0;i<60;i++){x.fillStyle=R()<.3?'#FFFFFF':'#C8D0F5';x.fillRect(Math.floor(R()*LW),Math.floor(R()*200),1,1);}
+   drawMoon(x,135,120,58,1);L.sky=c;}
+  {const [c,x]=layer();for(let k=0;k<9;k++){const cc=cloudC(k*7+3,60+R()*70);x.drawImage(cc,Math.floor(R()*LW)-30,260+Math.floor(R()*200));}L.far=blurL(c,3);}
+ }
+ if(name==='fuji'){
+  {const [c,x]=layer();gradRect(x,0,340,[[0,'#24275E'],[.42,'#6E4C8E'],[.74,'#EE8A8E'],[1,'#FFD6A0']]);
+   for(let i=0;i<20;i++){x.fillStyle='#E8E0FF';x.fillRect(Math.floor(R()*LW),Math.floor(R()*90),1,1);}
+   drawMoon(x,214,64,12,.35,false);x.fillStyle='#3A2A5A';x.fillRect(0,340,LW,140);L.sky=c;}
+  {const [c,x]=layer();
+   for(let y=150;y<330;y++){const half=Math.round(14+(y-150)*1.05);x.fillStyle=y<182?'#F4EEFF':'#5A4A86';x.fillRect(150-half,y,half*2,1);if(y<182){x.fillStyle='#C8BEE8';x.fillRect(150,y,half,1);}}
+   x.fillStyle='#4A3A76';for(let y=200;y<330;y++){const half=Math.round((y-200)*1.8);x.fillRect(40-half,y,half*2,1);}
+   L.far=blurL(c,3);}
+  {const [c,x]=layer();x.fillStyle='#2A1E46';for(let i=0;i<LW;i++){const h=Math.round(322+6*Math.sin(i*.04)+3*Math.sin(i*.13));x.fillRect(i,h,1,LH-h);}
+   x.fillStyle='#3A2A5A';for(let i=0;i<LW;i++){const h=Math.round(322+6*Math.sin(i*.04)+3*Math.sin(i*.13));x.fillRect(i,h,1,1);}
+   L.mid=c;}
+ }
+ return STG[key]=L;
+}
+// smoke particles for fuji
+const SMOKE=[];for(let i=0;i<26;i++)SMOKE.push({t:Math.random()*8});
+function drawFieldBase(n,t,opts={}){
+ const L=fieldLayers(n);
+ drawL(L.sky);drawSkyAmb(t,150,true);
+ glow(135,74,70,'255,226,170',n===4?.32:.2);
+ drawBlur(L.far);drawL(L.ground);
+ // moon gate beam at the far end
+ const gy=PY(1);const pulse=.55+.25*Math.sin(t*2.2)+(opts.beam||0);
+ ctx.save();ctx.globalCompositeOperation='lighter';const g=ctx.createLinearGradient(0,40,0,gy);g.addColorStop(0,'rgba(255,240,200,0)');g.addColorStop(1,`rgba(255,240,200,${.22*pulse})`);
+ ctx.fillStyle=g;const bw=10+(opts.beam||0)*30;ctx.fillRect(135-bw/2,40,bw,gy-40);ctx.restore();
+ glow(135,gy,26+(opts.beam||0)*30,'255,236,190',.4*pulse);
+}
+function drawStage(name,n,t,flags){
+ if(name==='field'){drawFieldBase(n,t,{beam:flags.beam?1:0});const L=fieldLayers(n);for(const p of L.props.slice().sort((a,b)=>b.z-a.z))drawProp(p,t);return;}
+ const L=stageLayers(name,n);
+ if(name==='grove'){drawL(L.sky);glow(206,236,60,'255,210,150',.35);drawBlur(L.far);drawL(L.mid);
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle='rgba(255,200,150,.05)';for(let k=0;k<3;k++){ctx.beginPath();ctx.moveTo(206-k*40,236);ctx.lineTo(80-k*60,330);ctx.lineTo(120-k*60,330);ctx.closePath();ctx.fill();}ctx.restore();
+  if(!flags.cut){const top=flags.glow?40:-10;stalk(ctx,0,172,top,314,8,flags.glow?'#FFF6C8':'#7FAF6A',flags.glow?'#F2D27A':'#4C7A50',flags.glow?'#C8A040':'#2E5038',24);}
+  else{stalk(ctx,0,172,282,314,8,'#FFF6C8','#F2D27A','#C8A040',24);ctx.fillStyle='#FFF6C8';ctx.fillRect(171,281,10,2);}
+  if(flags.glow){const a=.7+.3*Math.sin(t*4);glow(176,300,flags.cut?50:34,'255,240,170',.55*a);}
+  return;}
+ if(name==='house'){drawL(L.sky);drawSkyAmb(t,160,false);glow(150,104,50,'255,226,170',.25);
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle='rgba(170,160,255,.07)';ctx.beginPath();ctx.moveTo(72,250);ctx.lineTo(198,250);ctx.lineTo(250,480);ctx.lineTo(20,480);ctx.closePath();ctx.fill();ctx.restore();
+  const fl=.8+.2*Math.sin(t*7)+.06*Math.sin(t*19);glow(26,300,70*fl,'255,190,110',.42*fl);return;}
+ if(name==='sky'){drawL(L.sky);drawSkyAmb(t,200,false);glow(135,120,120,'255,236,200',.35);
+  ctx.save();ctx.globalCompositeOperation='lighter';const g=ctx.createLinearGradient(0,120,0,480);g.addColorStop(0,'rgba(255,245,220,.35)');g.addColorStop(1,'rgba(255,245,220,0)');ctx.fillStyle=g;ctx.fillRect(110,120,50,360);ctx.restore();
+  drawBlur(L.far);return;}
+ if(name==='fuji'){drawL(L.sky);glow(150,320,120,'255,190,140',.3);drawBlur(L.far);
+  for(const s of SMOKE){s.t+=1/60;if(s.t>8)s.t-=8;const k=s.t/8;const sx=150+Math.sin(s.t*.9)*6+k*k*60,sy=150-k*150;const r=3+k*16;ctx.fillStyle=`rgba(220,210,240,${.35*(1-k)})`;ctx.beginPath();ctx.arc(sx,sy,r,0,Math.PI*2);ctx.fill();}
+  drawL(L.mid);return;}
+}
+function drawStageFg(name,n){
+ if(name==='field'){drawL(fieldLayers(n).rail);drawBlur(fieldLayers(n).fg,.9);return;}
+ const L=stageLayers(name,n);if(L.fg)drawBlur(L.fg,.95);
+}
+
+// ===== logo =====
+let LOGO=null;
+function buildLogo(){
+ const [a,ax]=mk(150,52);ax.imageSmoothingEnabled=true;ax.font='40px DotGothic16, monospace';ax.textAlign='center';ax.textBaseline='middle';ax.fillStyle='#fff';ax.fillText('十五夜',75,27);
+ const d=ax.getImageData(0,0,150,52).data;const on=(i,j)=>i>=0&&j>=0&&i<150&&j<52&&d[(j*150+i)*4+3]>110;
+ const [c,x]=mk(150,56);
+ for(let j=0;j<52;j++)for(let i=0;i<150;i++){if(on(i,j)){x.fillStyle='#3A1630';x.fillRect(i,j+3,1,1);}}
+ for(let j=0;j<52;j++)for(let i=0;i<150;i++){if(!on(i,j)&&(on(i-1,j)||on(i+1,j)||on(i,j-1)||on(i,j+1)||on(i-1,j-1)||on(i+1,j+1))){x.fillStyle='#0B0618';x.fillRect(i,j,1,1);}}
+ const top=hex('#FFF7D0'),mid=hex('#F5C842'),bot=hex('#E2404F');
+ for(let j=0;j<52;j++)for(let i=0;i<150;i++){if(!on(i,j))continue;const t=j/52;let col=t<.5?mix(top,mid,t*2):mix(mid,bot,(t-.5)*2);const th=(BAY[(j&3)*4+(i&3)]+.5)/16;if(t>.45&&t<.55&&th<.5)col=mid;x.fillStyle=rgb(col);x.fillRect(i,j,1,1);
+  if(!on(i,j-1)){x.fillStyle='#FFFFFF';x.fillRect(i,j,1,1);}}
+ LOGO=c;
+}
+function drawTitle(t){
+ drawFieldBase(4,t,{});const L=fieldLayers(4);for(const p of L.props.slice().sort((a,b)=>b.z-a.z))drawProp(p,t);
+ drawFireflies(t);
+ drawSpr('kaguyaB',135,404,SK,{sy:1+.015*Math.sin(t*2)});
+ drawStageFg('field',4);
+ if(LOGO){const y=128+Math.round(Math.sin(t*1.4)*2);ctx.drawImage(LOGO,60,y);}
+ ptxt(tr('かぐや姫 防衛記'),135,196,'#E6DEFF',8);
+ for(const p of AMB.petals){ctx.fillStyle=Math.sin(p.p)>0?'#FFB8D8':'#FFE0EE';ctx.fillRect(Math.round(p.x),Math.round(p.y),Math.sin(p.p)>.3?2:1,1);}
+}
+
+// ===== game data =====
+const UNITS={
+ okina:{name:'翁',cost:3,hp:26,spr:'okina',info:'光の星を生む'},
+ archer:{name:'弓兵',cost:4,hp:32,spr:'archer',range:.62,dmg:7,rate:1.1,info:'遠くを射る'},
+ guard:{name:'槍兵',cost:5,hp:100,spr:'guard',dmg:11,rate:.8,info:'前で止める'}
+};
+const ENEMIES={
+ tennyo:{hp:22,spd:.066,dmg:5,spr:'tennyo',float:1},
+ tenhei:{hp:48,spd:.036,dmg:9,spr:'tenhei'},
+ cart:{hp:150,spd:.02,dmg:16,spr:'cart',float:1},
+ king:{hp:1100,spd:.012,dmg:40,spr:'king',float:1,big:1.5}
+};
+const TREASURES=[
+ {id:'hachi',name:'仏の御石の鉢',suitor:'石作皇子',skill:'結界',desc:'6秒のあいだ屋敷が傷つかない',cd:28,icon:'i_hachi'},
+ {id:'eda',name:'蓬莱の玉の枝',suitor:'車持皇子',skill:'玉実',desc:'光を8得る',cd:24,icon:'i_eda'},
+ {id:'kawa',name:'火鼠の皮衣',suitor:'阿倍御主人',skill:'火炎',desc:'すべての敵に40の炎',cd:20,icon:'i_kawa'},
+ {id:'tama',name:'龍の首の珠',suitor:'大伴御行',skill:'雷鳴',desc:'すべての敵を4秒止める',cd:26,icon:'i_tama'},
+ {id:'kai',name:'燕の子安貝',suitor:'石上麻呂足',skill:'癒し',desc:'屋敷を30なおす',cd:30,icon:'i_kai'}
+];
+const TBY=Object.fromEntries(TREASURES.map(t=>[t.id,t]));
+const DAY_TEXT=[
+ '中将の兵が庭に陣を張った。今夜から、月の使いが来る。',
+ '一夜目はしのいだ。兵たちは昼まで眠っている。',
+ '翁の手に包帯が増えた。媼は握り飯を数えている。',
+ '月はもう、ほとんど丸い。兵が空を見たがらない。',
+ '今宵は十五夜。天人の王が、みずから迎えに来る。'
+];
+const RES_LINE=[
+ '中将「天人というのは、ずいぶんきれいな顔で斬りかかってくるのだな」',
+ '翁「星を拾うのは得意じゃ。腰はもう知らん」',
+ '媼「握り飯、あと三十。足りるかねえ」',
+ '中将「兵が月を見ると、腕が重くなると言う。見るなと言ってある」'
+];
+let memory=store.get('jugoya_memory',0)|0;
+const memBonus=()=>Math.min(memory,10);
+let tut=store.get('jugoya_tut2',0)|0;
+
+// ===== battle state =====
+let G=null,N=null,sel='archer';
+function newRun(){G={night:0,houseMax:100,houseHP:100,lv:{okina:1,archer:1,guard:1},bonus:0,owned:[],kills:0,consol:0,maxCombo:0};}
+function startLight(){return 5+G.bonus+memBonus()+G.consol;}
+function buildQueue(n){
+ const q=[];const count=7+n*3;
+ for(let i=0;i<count;i++){const r=Math.random();let type;
+  if(n===0)type=r<.62?'tennyo':'tenhei';else if(r<.38)type='tennyo';else if(r<.8-n*.04)type='tenhei';else type='cart';
+  q.push({type,lane:ri(3),delay:Math.max(1.3,3.3-.38*n)*rnd(.7,1.3)});
+  if(n>=2&&i===Math.floor(count*.55))for(let k=0;k<2;k++)q.push({type:'tennyo',lane:ri(3),delay:.5});}
+ if(n===4)q.splice(Math.floor(count*.55),0,{type:'king',lane:1,delay:4});
+ return q;
+}
+function beginNight(){
+ N={light:startLight(),lt:0,units:[],enemies:[],projs:[],orbs:[],flyers:[],parts:[],texts:[],rings:[],bolts:[],queue:buildQueue(G.night),
+   spawnT:4,t:0,barrier:0,flash:0,flashC:'#fff',shake:0,amp:1,cds:{},kills:0,spawned:0,banner:2.6,bText:nightL(G.night),bSub:phaseL(G.night),boss:null,hurt:0,combo:0,comboT:0,hover:null,ghost:null};
+ G.consol=0;G.owned.forEach(id=>N.cds[id]=0);
+}
+const cellPos=(l,r)=>({x:PX(l-1,ROWZ[r]),y:PY(ROWZ[r])});
+function addText(x,y,s,c='#FFFFFF',life=.7,size=8,pop=false){N.texts.push({x,y,s,c,l:life,L:life,size,pop});}
+function burst(x,y,cols,n=6,sp=30,star=false){for(let i=0;i<n;i++){const a=Math.random()*6.283,v=rnd(sp*.3,sp);N.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-12,l:rnd(.35,.7),c:Array.isArray(cols)?pick(cols):cols,s:Math.random()<.35?2:1,star:star&&Math.random()<.5});}}
+function ring(x,y,c,r=14){N.rings.push({x,y,c,r1:r,l:.32,L:.32});}
+function escreen(e){const s=zs(e.z);const big=ENEMIES[e.type].big||1;return{x:PX(e.lo,e.z),y:PY(e.z),s,sc:SK*s*big};}
+function spawn(e){
+ const d=ENEMIES[e.type];const hs=e.type==='king'?1:1+.2*G.night;
+ const en={type:e.type,lane:e.lane,lo:(e.lane-1)+(e.type==='king'?0:rnd(-.12,.12)),z:1,hp:d.hp*hs,max:d.hp*hs,spd:d.spd*(e.type==='king'?1:rnd(.9,1.1)),dmg:d.dmg,atk:0,stun:0,hit:0,bob:Math.random()*6,summon:6,charm:7,drop:1};
+ N.enemies.push(en);N.spawned++;
+ if(e.type==='king'){N.boss=en;N.banner=2.8;N.bText=tr('天人の王');N.bSub=tr('降臨');N.flash=.5;N.flashC='#FFF3A3';N.shake=.5;N.amp=2;sfx.boss();playMusic('boss');}
+ return en;
+}
+function ustats(u){const L=G.lv[u.type],m=1+.35*(L-1),d=UNITS[u.type];
+ if(u.type==='archer')return{dmg:d.dmg*m,rate:d.rate,range:d.range};if(u.type==='guard')return{dmg:d.dmg*m,rate:d.rate};return{period:6/(1+.25*(L-1))};}
+function canPlace(l,r){return !N.units.some(u=>u.lane===l&&u.row===r);}
+function placeUnit(type,l,r){
+ const d=UNITS[type];const p=cellPos(l,r);
+ if(!canPlace(l,r)){toast(tr('そこにはもう兵がいる'));sfx.ng();return false;}
+ if(N.light<d.cost){toast(trf('光が足りない（あと{0}）',d.cost-N.light));sfx.ng();return false;}
+ N.light-=d.cost;const hm=type==='guard'?1+.35*(G.lv.guard-1):1;
+ N.units.push({type,lane:l,row:r,lo:l-1,z:ROWZ[r],hp:d.hp*hm,max:d.hp*hm,cd:type==='okina'?2.5:0,charm:0,hit:0,pop:.3,ph:Math.random()*6,atk:0});
+ burst(p.x,p.y-8,['#FFF1A8','#FFFFFF','#F48FB6'],12,30,true);ring(p.x,p.y-6,'#FFFFFF',18*zs(ROWZ[r])+6);sfx.place();
+ if(tut<1){tut=1;store.set('jugoya_tut2',tut);hideHint();}
+ return true;
+}
+function retreat(u){const back=Math.floor(UNITS[u.type].cost/2);N.light+=back;N.units.splice(N.units.indexOf(u),1);const p=cellPos(u.lane,u.row);addText(p.x,p.y-30,trf('光 +{0}',back),'#FFE59A',.8,8,true);burst(p.x,p.y-10,['#C8D0F5','#FFFFFF'],8,24);sfx.retreat();}
+function damage(e,d,c,big){e.hp-=d;e.hit=.08;const p=escreen(e);addText(p.x+rnd(-3,3),p.y-26*p.sc/SK-6,String(Math.round(d))+(big?'!':''),c||'#FFFFFF',.55,big?12:8,true);}
+function onKill(e){
+ N.kills++;N.combo=N.comboT>0?N.combo+1:1;N.comboT=1.8;if(N.combo>0&&N.combo%5===0){N.light++;addText(40,96,tr('連撃 光+1'),'#FFE59A',1,8);}
+ G.maxCombo=Math.max(G.maxCombo,N.combo);const p=escreen(e);const king=e.type==='king';
+ burst(p.x,p.y-12*p.sc/SK*2,['#FFF1A8','#F48FB6','#7FE3F0','#FFFFFF'],king?60:14,king?70:34,true);ring(p.x,p.y-10,king?'#FFE59A':'#F48FB6',king?50:16*p.s+8);
+ if(king){N.shake=.7;N.amp=3;N.flash=.7;N.flashC='#FFFFFF';}
+ sfx.kill(N.combo);absorb(p.x,p.y-14*p.sc,KILLV[e.type]||1,.12);
+}
+const KILLV={tennyo:1,tenhei:1,cart:2,king:6};
+const HUD_T={x:208,y:15};
+function absorb(x,y,v,delay=0){for(let k=0;k<v;k++){const a=-Math.PI/2+rnd(-1.1,1.1),sp=rnd(45,80);N.flyers.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:0,dl:delay+k*.06,tr:[]});}}
+let pickChain=0,pickT=0;
+function pickFx(){N.light++;pickChain=pickT>0?pickChain+1:0;pickT=.45;sfx.pick(pickChain);const el=$('ltBox');el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');N.rings.push({x:HUD_T.x,y:HUD_T.y,c:'#FFE59A',r1:12,l:.25,L:.25});}
+function useSkill(id){
+ if(state!=='night'||!G.owned.includes(id)||N.cds[id]>0)return;
+ const t=TBY[id];N.cds[id]=t.cd;sfx.skill();N.shake=.25;N.amp=2;
+ if(id==='kawa'){N.enemies.forEach(e=>{damage(e,40,'#F08A3C',true);const p=escreen(e);burst(p.x,p.y-10,['#F08A3C','#E2404F','#FFF1A8'],14,32,true);ring(p.x,p.y-8,'#F08A3C',20*p.s+6);});N.flash=.35;N.flashC='#FF6A3C';}
+ if(id==='tama'){N.enemies.forEach(e=>{e.stun=4;const p=escreen(e);N.bolts.push({x:p.x,y:p.y-12*p.s,l:.35});burst(p.x,p.y-10,['#7FE3F0','#FFFFFF'],8,22,true);});N.flash=.45;N.flashC='#7FE3F0';}
+ if(id==='hachi'){N.barrier=6;}
+ if(id==='kai'){const h=Math.min(30,G.houseMax-G.houseHP);G.houseHP+=h;addText(135,370,trf('屋敷 +{0}',Math.round(h)),'#7FE0A0',1.2,12,true);burst(135,380,['#7FE0A0','#FFFFFF'],20,44,true);}
+ if(id==='eda'){N.light+=8;addText(220,60,trf('光 +{0}',8),'#FFE59A',1.2,12,true);}
+ N.banner=1.2;N.bText=tr(t.skill);N.bSub=tr(t.name);
+}
+function updateNight(dt){
+ N.t+=dt;N.lt+=dt;if(N.lt>=2.4){N.lt-=2.4;N.light++;}
+ if(N.banner>0)N.banner-=dt;if(N.comboT>0){N.comboT-=dt;if(N.comboT<=0)N.combo=0;}
+ if(N.queue.length){N.spawnT-=dt;if(N.spawnT<=0){spawn(N.queue.shift());N.spawnT=N.queue.length?N.queue[0].delay:0;}}
+ for(const u of N.units){
+  if(u.hit>0)u.hit-=dt;if(u.pop>0)u.pop-=dt;if(u.atk>0)u.atk-=dt;u.ph+=dt*4;
+  if(u.charm>0){u.charm-=dt;continue;}
+  u.cd-=dt;const st=ustats(u);
+  if(u.type==='okina'){if(u.cd<=0){u.cd=st.period;u.atk=.25;const s=zs(u.z);N.orbs.push({x:PX(u.lo,u.z)+rnd(-4,4),y:PY(u.z)-30*SK*s,v:2,l:7,ph:Math.random()*6});}}
+  else if(u.type==='archer'){if(u.cd<=0){let best=null;for(const e of N.enemies)if(e.lane===u.lane&&e.hp>0&&e.drop<=0&&e.z>u.z+.01&&e.z-u.z<=st.range&&(!best||e.z<best.z))best=e;
+    if(best){u.cd=st.rate;u.atk=.15;const crit=Math.random()<.15;N.projs.push({lo:u.lo,z:u.z,z0:u.z,t:best,d:st.dmg*(crit?2:1),crit,tr:[]});sfx.shoot();}}}
+  else{if(u.cd<=0){let best=null;for(const e of N.enemies){const reach=e.type==='king'?.1:.075;if(e.lane===u.lane&&e.hp>0&&e.z>=u.z&&e.z-u.z<reach&&(!best||e.z<best.z))best=e;}
+    if(best){u.cd=st.rate;u.atk=.15;damage(best,st.dmg,'#FFE59A');const p=escreen(best);burst(p.x,p.y-10,['#FFFFFF','#FFE59A'],5,24);ring(p.x,p.y-10,'#FFFFFF',10*p.s+4);sfx.hit();}}}
+ }
+ for(const e of N.enemies){
+  if(e.hit>0)e.hit-=dt;e.bob+=dt*4;
+  if(e.drop>0){e.drop-=dt*1.5;continue;}
+  if(e.stun>0){e.stun-=dt;continue;}
+  if(e.type==='king'){e.summon-=dt;if(e.summon<=0){e.summon=6;const s=spawn({type:'tennyo',lane:ri(3)});s.z=Math.min(1,e.z+.04);}
+   e.charm-=dt;if(e.charm<=0){e.charm=9;const cand=N.units.filter(u=>u.charm<=0);if(cand.length){const u=pick(cand);u.charm=3.5;const p=cellPos(u.lane,u.row);addText(p.x,p.y-40,tr('羽衣の魅了'),'#F48FB6',1.2,8,true);burst(p.x,p.y-14,['#F48FB6','#FFFFFF'],12,26,true);}}}
+  const reach=e.type==='king'?.09:.055;let blk=null;
+  for(const u of N.units)if(u.lane===e.lane&&u.z<=e.z&&e.z-u.z<reach&&(!blk||u.z>blk.z))blk=u;
+  if(blk){e.atk-=dt;if(e.atk<=0){e.atk=1;blk.hp-=e.dmg;blk.hit=.1;const p=cellPos(blk.lane,blk.row);burst(p.x,p.y-14,['#E2404F','#FFFFFF'],4,18);}}
+  else e.z-=e.spd*dt;
+  if(e.z<=0){e.hp=0;e.reached=true;
+   if(N.barrier>0){addText(PX(e.lo,0),360,tr('結界！'),'#FFE59A',.8,12,true);burst(PX(e.lo,0),370,['#FFE59A','#FFFFFF'],12,30,true);}
+   else{const d=e.type==='king'?G.houseHP:e.dmg;G.houseHP-=d;N.shake=.35;N.amp=2;N.hurt=.35;N.flash=.15;N.flashC='#E2404F';addText(PX(e.lo,0),360,`-${Math.round(d)}`,'#FF6B6B',.9,12,true);sfx.house();}}
+ }
+ N.units=N.units.filter(u=>{if(u.hp<=0){const p=cellPos(u.lane,u.row);burst(p.x,p.y-12,['#C8D0F5','#FFFFFF'],12,30);if(bubbleUnit===u)hideBubble();return false;}return true;});
+ N.enemies=N.enemies.filter(e=>{if(e.hp<=0){if(!e.reached)onKill(e);if(e===N.boss)N.boss=null;return false;}return true;});
+ N.projs=N.projs.filter(p=>{const t=p.t;if(t.hp<=0||!N.enemies.includes(t))return false;
+  p.z+=1.15*dt;p.lo=lerp(p.lo,t.lo,Math.min(1,dt*8));
+  const prog=clamp((p.z-p.z0)/Math.max(.02,t.z-p.z0),0,1);const s=zs(p.z);const sx=PX(p.lo,p.z),sy=PY(p.z)-(15+Math.sin(prog*Math.PI)*9)*SK*s;
+  p.tr.push([sx,sy]);if(p.tr.length>5)p.tr.shift();p.sx=sx;p.sy=sy;
+  if(p.z>=t.z){damage(t,p.d,p.crit?'#FFE59A':'#FFFFFF',p.crit);if(p.crit){sfx.crit();const q=escreen(t);ring(q.x,q.y-12,'#FFE59A',12*q.s+4);}return false;}return true;});
+ N.orbs=N.orbs.filter(o=>{o.l-=dt;o.ph+=dt*5;o.y-=4*dt;if(o.l<=0){absorb(o.x,o.y,o.v);return false;}return true;});
+ if(tut<2&&tut>=1&&N.orbs.length&&!hintShown){const o=N.orbs[0];showHint(tr('光の星をタップ！'),o.x-50,o.y-38,100);}
+ if(pickT>0)pickT-=dt;
+ N.flyers=N.flyers.filter(f=>{f.t+=dt;if(f.t<f.dl)return true;const tt=f.t-f.dl;
+  if(tt<.2){f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=.86;f.vy*=.86;}
+  else{const k=Math.min(1,dt*(5+(tt-.2)*55));f.x+=(HUD_T.x-f.x)*k;f.y+=(HUD_T.y-f.y)*k;}
+  f.tr.push([f.x,f.y]);if(f.tr.length>6)f.tr.shift();
+  if(tt>.2&&Math.hypot(HUD_T.x-f.x,HUD_T.y-f.y)<5){pickFx();return false;}return true;});
+ N.parts=N.parts.filter(p=>{p.l-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=60*dt;p.vx*=.98;return p.l>0;});
+ N.texts=N.texts.filter(t=>{t.l-=dt;t.y-=14*dt;return t.l>0;});
+ N.rings=N.rings.filter(r=>(r.l-=dt)>0);N.bolts=N.bolts.filter(b=>(b.l-=dt)>0);
+ for(const id in N.cds)if(N.cds[id]>0)N.cds[id]=Math.max(0,N.cds[id]-dt);
+ if(N.barrier>0)N.barrier-=dt;if(N.flash>0)N.flash-=dt;if(N.shake>0)N.shake-=dt;if(N.hurt>0)N.hurt-=dt;
+ if(N.light>60)N.light=60;
+ if(G.houseHP<=0){G.houseHP=0;onLose();return;}
+ if(N.queue.length===0&&N.enemies.length===0&&N.spawned>0)onNightClear();
+}
+// ===== battle render =====
+function cellPoly(l,r,fill){const lo=l-1,z=ROWZ[r],a=z-.05,b=z+.05,w=.42;ctx.beginPath();ctx.moveTo(PX(lo-w,a),PY(a));ctx.lineTo(PX(lo+w,a),PY(a));ctx.lineTo(PX(lo+w,b),PY(b));ctx.lineTo(PX(lo-w,b),PY(b));ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
+function drawBattle(t){
+ let sx=0,sy=0;if(N.shake>0){const a=N.amp||1;sx=Math.round(rnd(-a,a));sy=Math.round(rnd(-a,a));}
+ ctx.translate(sx,sy);
+ drawFieldBase(G.night,t,{beam:N.boss?.6:0});
+ // placement highlights
+ const cost=UNITS[sel].cost;const can=N.light>=cost&&state==='night';
+ if(can||N.ghost){const a=.16+.12*Math.sin(t*6);for(let r=0;r<4;r++)for(let l=0;l<3;l++){if(!canPlace(l,r))continue;cellPoly(l,r,`rgba(255,229,154,${a})`);}}
+ if(N.hover){const {l,r}=N.hover;cellPoly(l,r,canPlace(l,r)&&N.light>=UNITS[N.ghost||sel].cost?'rgba(255,240,180,.5)':'rgba(255,107,107,.45)');}
+ // depth-sorted entities
+ const L=fieldLayers(G.night);const ents=[];
+ for(const p of L.props)ents.push({z:p.z,f:()=>drawProp(p,t)});
+ for(const u of N.units)ents.push({z:u.z+.001,f:()=>drawUnit(u,t)});
+ for(const e of N.enemies)ents.push({z:e.z,f:()=>drawEnemy(e,t)});
+ if(N.ghost&&N.hover){const {l,r}=N.hover;ents.push({z:ROWZ[r],f:()=>{const p=cellPos(l,r);drawSpr(UNITS[N.ghost].spr,p.x,p.y,SK*zs(ROWZ[r]),{a:.55});}});}
+ ents.sort((a,b)=>b.z-a.z).forEach(e=>e.f());
+ // projectiles
+ for(const p of N.projs){if(p.sx==null)continue;p.tr.forEach(([x,y],i)=>{ctx.globalAlpha=(i+1)/7;ctx.fillStyle=p.crit?'#FFE59A':'#BFE9FF';ctx.fillRect(Math.round(x),Math.round(y),1,2);});ctx.globalAlpha=1;
+  ctx.fillStyle='#FFFFFF';ctx.fillRect(Math.round(p.sx)-1,Math.round(p.sy),3,1);ctx.fillRect(Math.round(p.sx),Math.round(p.sy)-1,1,3);glow(p.sx,p.sy,5,p.crit?'255,220,120':'170,230,255',.6);}
+ for(const r of N.rings){const k=1-r.l/r.L;ctx.globalAlpha=r.l/r.L;ctx.strokeStyle=r.c;ctx.lineWidth=1;ctx.beginPath();ctx.arc(r.x,r.y,2+(r.r1-2)*k,0,6.283);ctx.stroke();ctx.globalAlpha=1;}
+ for(const b of N.bolts){ctx.strokeStyle='#FFFFFF';ctx.lineWidth=1.5;ctx.beginPath();let x=b.x,y=0;ctx.moveTo(x,y);while(y<b.y){y+=10;x=b.x+rnd(-5,5);ctx.lineTo(x,Math.min(y,b.y));}ctx.stroke();glow(b.x,b.y,20,'170,240,255',.6);}
+ // orbs & flyers
+ for(const o of N.orbs){if(o.l<2&&Math.floor(t*10)%2)continue;glow(o.x,o.y,12+Math.sin(o.ph)*2,'255,220,120',.55);drawSpr('star',o.x,o.y+5,1,{ol:OL_INK});}
+ for(const f of N.flyers){if(f.t<f.dl)continue;f.tr.forEach(([x,y],i)=>{ctx.globalAlpha=(i+1)/8;ctx.fillStyle='#FFE59A';ctx.fillRect(Math.round(x),Math.round(y),1,1);});ctx.globalAlpha=1;glow(f.x,f.y,7,'255,220,120',.7);ctx.fillStyle='#FFF8DC';ctx.fillRect(Math.round(f.x)-1,Math.round(f.y),3,1);ctx.fillRect(Math.round(f.x),Math.round(f.y)-1,1,3);}
+ // particles
+ for(const p of N.parts){ctx.fillStyle=p.c;if(p.star){ctx.fillRect(Math.round(p.x)-1,Math.round(p.y),3,1);ctx.fillRect(Math.round(p.x),Math.round(p.y)-1,1,3);}else ctx.fillRect(Math.round(p.x),Math.round(p.y),p.s,p.s);}
+ drawFireflies(t);
+ // veranda + princess
+ drawSpr('kaguyaB',135,404,SK,{tint:N.hurt>0&&Math.floor(t*20)%2?['#FF6B6B',.5]:null});
+ if(N.barrier>0){const a=.25+.15*Math.sin(t*10);ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,229,154,${a*.45})`;ctx.strokeStyle=`rgba(255,240,190,${a+.35})`;ctx.beginPath();ctx.ellipse(135,392,150,46,0,Math.PI,0);ctx.fill();ctx.stroke();ctx.restore();}
+ drawStageFg('field',G.night);
+ ctx.translate(-sx,-sy);
+}
+function drawUnit(u,t){
+ const s=zs(u.z),x=PX(u.lo,u.z),y=PY(u.z),sc=SK*s;
+ let ax=1,ay=1+.03*Math.sin(u.ph);if(u.pop>0){const k=u.pop/.3;ax=1+.3*k;ay=1-.22*k;}if(u.atk>0){ax*=1.08;ay*=.9;}
+ shadow(x,y,14*sc);
+ drawSpr(UNITS[u.type].spr,x,y,sc,{sx:ax,sy:ay,fog:clamp((u.z-.15)*.7,0,.5),tint:u.hit>0?['#FFFFFF',.9]:u.charm>0?['#F48FB6',.35+.25*Math.sin(t*12)]:null});
+ if(u.hp<u.max){const w=Math.round(16*sc/SK*1.6);bar(x,y-27*sc,w,u.hp/u.max,'#7FE0A0');}
+}
+function drawEnemy(e,t){
+ const d=ENEMIES[e.type];const p=escreen(e);let y=p.y;
+ if(d.float)y-=(3+Math.sin(e.bob)*1.5)*p.sc;
+ let ax=1,ay=1;let a=1;
+ if(e.drop>0){const k=e.drop;y-=k*k*90*p.s;a=1-k*.7;ax=1-.4*k;ay=1+.5*k;ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,240,200,${.35*k})`;ctx.fillRect(p.x-5*p.sc,0,10*p.sc,y);ctx.restore();}
+ else if(!d.float){ax=1+.04*Math.sin(e.bob*2);}
+ shadow(p.x,p.y,14*p.sc,.38);
+ if(e.type==='king'){glow(p.x,y-20*p.sc,34*p.sc,'255,226,160',.4+.1*Math.sin(t*3));}
+ drawSpr(d.spr,p.x,y,p.sc,{sx:ax,sy:ay,a,fog:clamp((e.z-.12)*.75,0,.65),tint:e.hit>0?['#FFFFFF',.9]:e.stun>0?['#7FE3F0',.3]:null});
+ if(e.stun>0){for(let i=0;i<3;i++){const an=t*7+i*2.1;ctx.fillStyle='#7FE3F0';ctx.fillRect(Math.round(p.x+Math.cos(an)*8*p.s*2),Math.round(y-26*p.sc+Math.sin(an)*2),1,1);}}
+ if(e.type!=='king'&&e.hp<e.max&&e.drop<=0)bar(p.x,y-27*p.sc,Math.max(8,Math.round(16*p.s*1.6)),e.hp/e.max,'#F48FB6');
+}
+function bar(x,y,w,f,c){x=Math.round(x-w/2);y=Math.round(y);ctx.fillStyle='#0B0618';ctx.fillRect(x-1,y-1,w+2,4);ctx.fillStyle='#2A1E4A';ctx.fillRect(x,y,w,2);ctx.fillStyle=c;ctx.fillRect(x,y,Math.max(0,Math.round(w*f)),2);}
+function drawBattleOverlay(t){
+ for(const tx of N.texts){const k=tx.l/tx.L;ctx.globalAlpha=Math.min(1,k*2.2);const sz=tx.pop&&k>.8?Math.round(tx.size*1.3):tx.size;ptxt(tx.s,tx.x,tx.y,tx.c,sz);ctx.globalAlpha=1;}
+ const left=N.queue.length+N.enemies.length;ptxt(trf('のこり {0}',left),264,40,'#E6DEFF',8,'right');
+ if(N.boss){ptxt(tr('天人の王'),135,42,'#FFE59A',8);ctx.fillStyle='#0B0618';ctx.fillRect(34,45,202,6);ctx.fillStyle='#2A1E4A';ctx.fillRect(35,46,200,4);const w=Math.max(0,Math.round(200*N.boss.hp/N.boss.max));ctx.fillStyle='#F5C842';ctx.fillRect(35,46,w,2);ctx.fillStyle='#E2404F';ctx.fillRect(35,48,w,2);}
+ if(N.combo>=3&&N.comboT>0){const c=['#FFE59A','#F48FB6','#7FE3F0'][Math.floor(t*10)%3];ptxt(String(N.combo),28,72,c,16);ptxt(tr('連撃'),28,84,'#FFFFFF',8);}
+ if(N.banner>0){const a=Math.min(1,N.banner*1.6);ctx.globalAlpha=a;ctx.fillStyle='rgba(11,6,24,.82)';ctx.fillRect(0,206,LW,38);ctx.fillStyle='#F2D27A';ctx.fillRect(0,206,LW,1);ctx.fillRect(0,243,LW,1);ctx.fillStyle='#A8742C';ctx.fillRect(0,207,LW,1);ctx.fillRect(0,242,LW,1);
+  ptxt(N.bText,135,230,'#FFF4DC',16);ptxt(N.bSub,135,240,'#FFE59A',8);ctx.globalAlpha=1;}
+ if(N.flash>0){ctx.globalAlpha=Math.min(.45,N.flash);ctx.fillStyle=N.flashC;ctx.fillRect(0,0,LW,LH);ctx.globalAlpha=1;}
+}
+
+// ===== scenario =====
+const SCN={
+opening:[
+ {stage:'grove',music:'story',set:{okina:{spr:'okina',x:-24}}},
+ {fade:'in',dur:1.4},
+ {narr:'いまは昔。竹を取っては籠や笊に編み、それを売って暮らす翁がいた。'},
+ {move:'okina',x:96,dur:2.6},
+ {say:'翁',who:'okina',text:'あいたた……腰が。今日はこのへんで切り上げるか。'},
+ {flag:'glow',sfx:'chime'},{wait:.9},
+ {emote:'okina',k:'!'},
+ {say:'翁',who:'okina',text:'……なんじゃ。あの竹、根元が光っとる。'},
+ {move:'okina',x:150,dur:1.6},
+ {say:'翁',who:'okina',text:'蛍……ではないな。どれ。'},
+ {flash:1,flag:'cut',sfx:'cut',shake:.3},{wait:.8},
+ {narr:'節の中に、手のひらに乗るほどの女の子が座っていた。'},
+ {fade:'out',dur:1},
+ {stage:'house',n:1,del:['okina'],set:{okina:{spr:'okina',x:62},ouna:{spr:'ouna',x:100},kaguya:{spr:'kaguya',x:178,flip:true}}},
+ {fade:'in',dur:1},
+ {narr:'翁は女の子を連れ帰り、媼とふたりで育てた。三月もすると、背丈はすっかり大人と変わらなくなった。'},
+ {say:'媼',who:'ouna',text:'この子ったら、また着物の丈が足りなくなって。'},
+ {say:'かぐや',who:'kaguya',text:'ごめんなさい。勝手に伸びちゃうの。'},
+ {say:'翁',who:'okina',text:'謝ることはない。よう食うて、よう伸びる。結構なことじゃ。'},
+ {say:'媼',who:'ouna',text:'あんたは米の心配をしなさいな。'},
+ {fade:'out',dur:.8},
+ {stage:'house',n:3,set:{kaguya:{spr:'kaguyaB',x:140,flip:false},okina:{x:52},ouna:{x:86}}},
+ {fade:'in',dur:1},
+ {narr:'その年の秋。姫は夜になると縁側に出て、月ばかり見るようになった。'},
+ {say:'翁',who:'okina',text:'冷えるぞ。何ぞ、あったか。'},
+ {wait:.7},
+ {set:{kaguya:{spr:'kaguya',flip:true}}},
+ {say:'かぐや',who:'kaguya',text:'お爺さん。わたし、この国の者じゃないの。月の都から来たの。'},
+ {say:'かぐや',who:'kaguya',text:'次の十五夜に、迎えが来る。断れるものじゃないの。'},
+ {emote:'ouna',k:'…'},
+ {say:'媼',who:'ouna',text:'断れないって、あんた……。'},
+ {say:'翁',who:'okina',text:'来るなら来ればええ。戸を閉めて、わしが前に座っとる。'},
+ {say:'かぐや',who:'kaguya',text:'相手は人じゃないのよ。'},
+ {say:'翁',who:'okina',text:'わしだって、竹から娘が出てくるとは思っとらんかった。'},
+ {fade:'out',dur:1},
+ {stage:'field',n:0,del:['ouna','kaguya'],set:{okina:{x:92},chujo:{spr:'chujo',x:300,flip:true}}},
+ {fade:'in',dur:1},
+ {narr:'翁は帝に願い出た。帝は中将に命じ、兵をつけて屋敷へ向かわせた。'},
+ {move:'chujo',x:168,dur:1.4},
+ {say:'中将',who:'chujo',text:'中将である。帝の仰せにより、十五夜まで姫をお守りいたす。'},
+ {say:'中将',who:'chujo',text:'弓と槍を並べておけば、天人とて通れまい。'},
+ {say:'翁',who:'okina',text:'ありがたい。ただ、光る星が落ちとったら拾うてくだされ。'},
+ {say:'翁',who:'okina',text:'わしが光る竹から集めますでな。兵を雇う足しになる。'},
+ {emote:'chujo',k:'?'},
+ {say:'中将',who:'chujo',text:'……光る、星？'},
+ {say:'翁',who:'okina',text:'見ればわかる。'},
+ {fade:'out',dur:.8}
+],
+mid:[
+ {stage:'house',n:2,music:'story',set:{okina:{spr:'okina',x:104},kaguya:{spr:'kaguya',x:152,flip:true}}},
+ {fade:'in',dur:1},
+ {narr:'三日目の夜明け前。兵たちが眠るあいだ、翁と姫は縁側にいた。'},
+ {say:'かぐや',who:'kaguya',text:'お爺さん、その手。どうしたの。'},
+ {say:'翁',who:'okina',text:'竹の切り口でやった。毎晩、光る竹を探して割っとるからな。'},
+ {say:'かぐや',who:'kaguya',text:'そんなにたくさん、光る竹なんてないでしょう。'},
+ {say:'翁',who:'okina',text:'探せばある。おまえが入っとったくらいじゃ。'},
+ {wait:.8},
+ {say:'かぐや',who:'kaguya',text:'月の人たちはね、悪い人じゃないの。ただ、あそこでは誰も泣かないの。'},
+ {say:'かぐや',who:'kaguya',text:'わたし、こっちに来てから泣くようになった。たぶん、それがいけないの。'},
+ {emote:'okina',k:'…'},
+ {say:'翁',who:'okina',text:'難しいことはわからん。それより朝飯、何がええ。'},
+ {say:'かぐや',who:'kaguya',text:'……お粥。梅のやつ。'},
+ {say:'翁',who:'okina',text:'よし。'},
+ {fade:'out',dur:1}
+],
+boss:[
+ {stage:'field',n:4,music:'story',set:{okina:{spr:'okina',x:84},kaguya:{spr:'kaguya',x:132},chujo:{spr:'chujo',x:192,flip:true}}},
+ {fade:'in',dur:1},
+ {narr:'十五夜。月が昇ると、あたりは昼のように明るくなった。'},
+ {say:'中将',who:'chujo',text:'……どうしたことだ。弓を引く腕に、力が入らん。'},
+ {flag:'beam',sfx:'boss',shake:.6},
+ {set:{king:{spr:'king',x:135,y:200,scale:2.2,float:1}}},
+ {wait:1.2},
+ {say:'天人の王',who:'king',text:'翁よ。姫は罪をつぐなうため、しばらく下界に預けていたにすぎぬ。'},
+ {say:'天人の王',who:'king',text:'期限は満ちた。こちらへ渡してもらおう。'},
+ {say:'翁',who:'okina',text:'罪とは、何をしたんで。'},
+ {say:'天人の王',who:'king',text:'おまえたちに話して、わかることではない。'},
+ {say:'翁',who:'okina',text:'なら、わしらにも渡す理由はありませんな。'},
+ {emote:'kaguya',k:'!'},
+ {say:'かぐや',who:'kaguya',text:'お爺さん……。'},
+ {say:'中将',who:'chujo',text:'ええい、動け！ 弓を取れ、射よ！'},
+ {fade:'out',dur:.8}
+],
+over:[
+ {stage:'sky',music:'over',set:{cart:{spr:'cart',x:135,y:420,scale:2,float:1},kaguya:{spr:'kaguya',x:135,y:396,scale:2}}},
+ {fade:'in',dur:1.2},
+ {narr:'天の羽衣を着せかけられると、姫はもう泣かなかった。'},
+ {say:'かぐや',who:'kaguya',text:'お爺さん。……あれ。わたし、何を言おうとしたんだっけ。'},
+ {move:'cart',y:250,dur:3,wait:false},{move:'kaguya',y:226,dur:3},
+ {narr:'飛ぶ車は音もなく、月のほうへ小さくなっていった。'},
+ {fade:'out',dur:1.2}
+],
+endA:[
+ {stage:'field',n:4,music:'ending',set:{okina:{spr:'okina',x:92},kaguya:{spr:'kaguya',x:140},chujo:{spr:'chujo',x:198,flip:true}}},
+ {fade:'in',dur:1.2},
+ {narr:'天人たちは光をたたむようにして、雲の上へ引き上げていった。'},
+ {say:'中将',who:'chujo',text:'……退いた。退いたぞ。'},
+ {say:'翁',who:'okina',text:'ふう。腰が抜けるかと思うたわい。'},
+ {set:{pot:{spr:'pot',x:140,y:262,scale:2,float:1}},sfx:'chime'},
+ {say:'かぐや',who:'kaguya',text:'これ……あの人が置いていったの。不死の薬。'},
+ {say:'かぐや',who:'kaguya',text:'飲めば年を取らない。病にもならない。ずっと、このまま。'},
+ {say:'翁',who:'okina',text:'わしもか。'},
+ {say:'かぐや',who:'kaguya',text:'お爺さんも、お婆さんも。わたしも。'}
+],
+drink:[
+ {stage:'house',n:4,music:'ending',del:['okina','kaguya','chujo','pot'],set:{okina:{spr:'okina',x:70},ouna:{spr:'ouna',x:104},kaguya:{spr:'kaguya',x:172,flip:true}}},
+ {fade:'in',dur:1.2},
+ {narr:'それからというもの、月は一度も欠けなかった。'},
+ {say:'媼',who:'ouna',text:'今夜も満月だねえ。'},
+ {say:'かぐや',who:'kaguya',text:'昨日も、その前もね。'},
+ {wait:.8},
+ {say:'翁',who:'okina',text:'……ええ月じゃ。'},
+ {narr:'三人は同じ夜を、何度でも迎えた。'},
+ {fade:'out',dur:1.6}
+],
+burn:[
+ {stage:'fuji',music:'ending',del:['okina','kaguya','chujo','pot'],set:{okina:{spr:'okina',x:84},kaguya:{spr:'kaguya',x:124},chujo:{spr:'chujo',x:188,flip:true}}},
+ {fade:'in',dur:1.4},
+ {narr:'薬は、天にいちばん近い山の頂で焚かれた。'},
+ {say:'中将',who:'chujo',text:'帝も、それがよいと仰せでした。'},
+ {say:'かぐや',who:'kaguya',text:'煙、月まで届くかな。'},
+ {say:'翁',who:'okina',text:'届かんでもええ。腹が減った。帰って粥にしよう。'},
+ {say:'かぐや',who:'kaguya',text:'梅のやつね。'},
+ {narr:'その山はのちに「ふじ」と呼ばれるようになった、という。'},
+ {fade:'out',dur:1.8}
+]};
+
+// ===== scene engine =====
+let SC=null;
+function runScene(name,onDone){
+ SC={cmds:SCN[name],i:0,actors:{},stage:'house',n:0,flags:{},fadeA:1,fadeT:1,fadeSpd:1,block:null,emotes:[],flash:0,shake:0,line:null,onDone};
+ setState('scene');scStep();
+}
+function scExec(c){
+ if(c.stage){SC.stage=c.stage;SC.n=c.n!=null?c.n:SC.n;SC.flags={};}
+ if(c.music)playMusic(c.music);
+ if(c.del)for(const id of c.del)delete SC.actors[id];
+ if(c.set)for(const id in c.set){const a=SC.actors[id]||{x:0,y:null,flip:false,scale:2,ph:Math.random()*6};Object.assign(a,c.set[id]);SC.actors[id]=a;}
+ if(c.flag)SC.flags[c.flag]=1;
+ if(c.sfx&&sfx[c.sfx])sfx[c.sfx]();
+ if(c.flash)SC.flash=c.flash;if(c.shake)SC.shake=c.shake;
+ if(c.emote)SC.emotes.push({id:c.emote,k:c.k,t:1.3});
+ if(c.move){const a=SC.actors[c.move];a.mv={fx:a.x,tx:c.x!=null?c.x:a.x,fy:a.y,ty:c.y!=null?c.y:a.y,t:0,d:c.dur||1};if(c.x!=null&&c.x!==a.x)a.flip=c.x<a.x;if(c.wait!==false)SC.block={k:'move',a};}
+ if(c.fade){SC.fadeT=c.fade==='out'?1:0;SC.fadeSpd=1/(c.dur||.6);SC.block={k:'fade'};}
+ if(c.wait)SC.block={k:'wait',t:c.wait};
+ if(c.say!==undefined||c.narr!==undefined){showLine(c);SC.block={k:'line'};}
+}
+function scStep(){while(SC&&!SC.block&&SC.i<SC.cmds.length)scExec(SC.cmds[SC.i++]);if(SC&&!SC.block&&SC.i>=SC.cmds.length)endScene();}
+function endScene(){const cb=SC&&SC.onDone;SC=null;$('dlg').hidden=true;$('btnSkip').hidden=true;if(cb)cb();}
+function skipScene(){if(!SC)return;sfx.tap();endScene();}
+function showLine(c){
+ const narr=c.narr!==undefined;SC.line={text:tr(narr?c.narr:c.text),shown:0,who:c.who||null,acc:0};
+ $('dlg').hidden=false;$('dlgName').hidden=narr;$('dlgName').textContent=c.say?tr(c.say):'';$('dlgBox').classList.toggle('narr',narr);$('dlgText').textContent='';
+}
+function scTap(){
+ if(!SC||!SC.block)return;
+ if(SC.block.k==='line'){const L=SC.line;if(L.shown<L.text.length){L.shown=L.text.length;$('dlgText').textContent=L.text;}else{SC.block=null;SC.line=null;$('dlg').hidden=true;sfx.cursor();scStep();}}
+}
+function updateScene(dt){
+ const s=SC;if(!s)return;
+ if(s.fadeA!==s.fadeT){const d=s.fadeSpd*dt;s.fadeA=s.fadeA<s.fadeT?Math.min(s.fadeT,s.fadeA+d):Math.max(s.fadeT,s.fadeA-d);}
+ for(const id in s.actors){const a=s.actors[id];a.ph+=dt*3;if(a.mv){a.mv.t+=dt;const k=clamp(a.mv.t/a.mv.d,0,1);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;a.x=lerp(a.mv.fx,a.mv.tx,e);if(a.mv.fy!=null&&a.mv.ty!=null)a.y=lerp(a.mv.fy,a.mv.ty,e);a.walk=k<1;if(k>=1)a.mv=null,a.walk=false;}}
+ s.emotes=s.emotes.filter(e=>(e.t-=dt)>0);if(s.flash>0)s.flash-=dt*1.5;if(s.shake>0)s.shake-=dt;
+ const L=s.line;if(L&&L.shown<L.text.length){L.acc+=dt*28;const n=Math.floor(L.acc);if(n>0){L.acc-=n;L.shown=Math.min(L.text.length,L.shown+n);$('dlgText').textContent=L.text.slice(0,L.shown);if(L.shown%2===0)sfx.type();}}
+ const b=s.block;if(b){if(b.k==='move'&&!b.a.mv)s.block=null;else if(b.k==='fade'&&s.fadeA===s.fadeT)s.block=null;else if(b.k==='wait'&&(b.t-=dt)<=0)s.block=null;}
+ if(!s.block)scStep();
+}
+function drawScene(t){
+ const s=SC;let sx=0,sy=0;if(s.shake>0){sx=Math.round(rnd(-2,2));sy=Math.round(rnd(-2,2));}ctx.translate(sx,sy);
+ drawStage(s.stage,s.n,t,s.flags);
+ const baseY=STAGE_Y[s.stage];
+ const list=Object.entries(s.actors).sort((a,b)=>(a[1].y??baseY)-(b[1].y??baseY));
+ for(const [id,a] of list){const y=(a.y??baseY)-(a.float?(3+Math.sin(a.ph)*2):0)-(a.walk?Math.abs(Math.sin(a.ph*4))*2:0);
+  const talking=SC.line&&SC.line.who===id&&SC.line.shown<SC.line.text.length;
+  if(!a.float)shadow(a.x,(a.y??baseY),12*a.scale,.4);
+  if(id==='king')glow(a.x,y-30,60,'255,226,160',.4);
+  if(id==='pot')glow(a.x,y-10,24,'255,226,160',.5);
+  drawSpr(a.spr,a.x,y,a.scale,{flip:a.flip,sy:1+(talking?.03*Math.sin(t*20):.015*Math.sin(a.ph))});}
+ for(const e of s.emotes){const a=s.actors[e.id];if(!a)continue;const y=(a.y??baseY)-26*a.scale-6-(e.t>1.1?(e.t-1.1)*20:0);ctx.fillStyle='#FFF4DC';ctx.fillRect(a.x-6,y-10,13,12);ctx.fillStyle='#0B0618';ctx.fillRect(a.x-7,y-10,1,12);ctx.fillRect(a.x+7,y-10,1,12);ctx.fillRect(a.x-6,y-11,13,1);ctx.fillRect(a.x-6,y+2,13,1);ctx.fillRect(a.x-1,y+3,3,2);ptxt(e.k,a.x+.5,y-1,'#2A1606',8,'center','#FFF4DC');}
+ if(s.stage==='house'||s.stage==='grove')drawFireflies(t,200,320);
+ drawStageFg(s.stage,s.n);
+ ctx.translate(-sx,-sy);
+}
+function drawSceneFx(){const s=SC;if(s.flash>0){ctx.globalAlpha=Math.min(1,s.flash);ctx.fillStyle='#FFF8EC';ctx.fillRect(0,0,LW,LH);ctx.globalAlpha=1;}
+ if(s.fadeA>0){ctx.globalAlpha=s.fadeA;ctx.fillStyle='#05030C';ctx.fillRect(0,0,LW,LH);ctx.globalAlpha=1;}}
+
+// ===== UI =====
+let state='boot',VIEW={k:'title'};
+const WINS=['wTitle','wDay','wMini','wResult','wChoice','wCard','wPause','wLang'];
+function showWin(id){WINS.forEach(w=>$(w).hidden=w!==id);}
+function setState(s){state=s;
+ $('hud').hidden=!['night','paused','day','mini','result'].includes(s);
+ $('cmd').hidden=!['night','paused'].includes(s);
+ $('btnSkip').hidden=s!=='scene';if(s!=='scene')$('dlg').hidden=true;
+ if(s!=='night'){hideBubble();hideHint();}
+ if(s==='scene')showWin(null);
+}
+let toastT=null;function toast(m){const e=$('toast');e.textContent=m;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>e.hidden=true,1300);}
+let hintShown=false;function showHint(m,x,y,w,up){const h=$('hint');h.textContent=m;h.style.setProperty('--x',Math.round(clamp(x,4,266-w)));h.style.setProperty('--y',Math.round(y));h.style.setProperty('--w',w);h.classList.toggle('up',!!up);h.hidden=false;hintShown=true;}
+function hideHint(){$('hint').hidden=true;hintShown=false;}
+let bubbleUnit=null;function showBubble(u){bubbleUnit=u;const p=cellPos(u.lane,u.row);const b=$('ubub');b.style.setProperty('--x',Math.round(clamp(p.x-32,4,202)));b.style.setProperty('--y',Math.round(p.y-30*SK*zs(u.z)-30));$('btnRetreat').innerHTML=`${tr('撤収')} <i class="ic st"></i>+${Math.floor(UNITS[u.type].cost/2)}`;b.hidden=false;}
+function hideBubble(){bubbleUnit=null;$('ubub').hidden=true;}
+function syncSoundBtns(){['btnBgm','btnBgm2'].forEach(i=>$(i).textContent=trf('音楽 {0}',tr(AU.bgm?'オン':'オフ')));['btnSe','btnSe2'].forEach(i=>$(i).textContent=trf('効果音 {0}',tr(AU.se?'オン':'オフ')));}
+
+function buildCmd(){
+ const u=$('units');u.innerHTML='';['okina','archer','guard'].forEach((k,i)=>{const d=UNITS[k];const b=document.createElement('button');b.className='pw uc a';b.style.cssText=`--x:${4+i*88};--y:412;--w:86`;b.dataset.u=k;
+  b.innerHTML=`${sImg(d.spr,1)}<span class="nm"><span>${tr(d.name)} <span class="t8 cost"><i class="ic st"></i>${d.cost}</span></span><span class="t8 sub">${tr(d.info)}</span></span>`;
+  b.addEventListener('pointerdown',ev=>cardDown(ev,k));u.appendChild(b);});
+ const trBox=$('trs');trBox.innerHTML='';TREASURES.forEach((t,i)=>{const own=G&&G.owned.includes(t.id);const b=document.createElement('button');b.className='pw ts a'+(own?'':' empty');b.style.cssText=`--x:${4+i*53};--y:449;--w:51`;b.dataset.t=t.id;
+  b.innerHTML=own?`${sImg(t.icon,1)}<span>${tr(t.skill)}</span><span class="cd t8" hidden></span>`:`<span class="t8 sub">${tr('宝')}</span>`;
+  b.setAttribute('aria-label',own?`${tr(t.skill)}: ${tr(t.desc)}`:trf('{0}（未入手）',tr(t.name)));if(own)b.onclick=()=>useSkill(t.id);else b.disabled=true;trBox.appendChild(b);});
+ lastHud='';
+}
+let lastHud='';
+function hudUpdate(){
+ if(!G)return;const light=N?N.light:startLight();const key=[G.night,light,Math.ceil(G.houseHP),G.houseMax,sel].join('|');
+ if(key!==lastHud){lastHud=key;$('hudPhase').textContent=phaseL(Math.min(4,G.night));$('hudMoon').src=moonURL(FRAC[Math.min(4,G.night)]);$('hudMoon').style.cssText='width:calc(var(--p)*15);height:calc(var(--p)*15)';
+  $('hudLight').textContent=light;const g=$('hpG');if(!g.children.length)for(let i=0;i<12;i++)g.appendChild(document.createElement('i')).className='seg';
+  const f=G.houseHP/G.houseMax;[...g.children].forEach((s,i)=>{s.className='seg'+((i+.5)/12<=f?(f<.3?' r':f<.6?' y':' g'):'');});
+  document.querySelectorAll('.uc').forEach(b=>{b.classList.toggle('sel',b.dataset.u===sel);b.classList.toggle('poor',light<UNITS[b.dataset.u].cost);});}
+ if(N)document.querySelectorAll('.ts[data-t]').forEach(b=>{const id=b.dataset.t;if(!G.owned.includes(id))return;const cd=N.cds[id]||0;const el=b.querySelector('.cd');if(el){el.hidden=cd<=0;el.style.height=`calc(100% - var(--p)*8)`;el.textContent=Math.ceil(cd);}b.classList.toggle('ready',cd<=0&&state==='night');});
+}
+// ===== flow =====
+function toTitle(){G=null;N=null;VIEW={k:'title'};setState('title');showWin('wTitle');playMusic('title');
+ $('memTxt').textContent=memory>0?trf('月の記憶 {0}（はじめの光 +{1}）',memory,memBonus()):tr('負けても「月の記憶」が残る');syncSoundBtns();}
+function startGame(){newRun();runScene('opening',()=>showDay());}
+let dayOpts=[],daySel=0;
+function showDay(){
+ N=null;VIEW={k:'stage',name:'grove',n:0};setState('day');showWin('wDay');playMusic('day');buildCmd();hudUpdate();
+ $('dayHead').textContent=trf('第{0}日 昼　今宵は{1}',numL(G.night),phaseL(G.night));$('dayStory').textContent=tr(DAY_TEXT[G.night]);
+ dayOpts=makeOptions();daySel=0;renderOpts();
+}
+function makeOptions(){
+ const opts=[];const left=TREASURES.filter(t=>!G.owned.includes(t.id));
+ if(left.length){const t=pick(left);opts.push({kind:'trial',t,icon:t.icon,tag:tr('難題'),cls:'trial',title:trf('{0}の難題',tr(t.suitor)),desc:trf('「{0}」の真贋を見極める。本物なら夜の技「{1}」が使える。{2}。',tr(t.name),tr(t.skill),tr(t.desc))});}
+ const LV=G.lv;const pool=[
+  {kind:'up',key:'archer',icon:'archer',tag:tr('鍛錬'),cls:'up',title:tr('弓兵を鍛える'),desc:trf('弓兵の攻撃が35%上がる。いま Lv{0}。',LV.archer)},
+  {kind:'up',key:'guard',icon:'guard',tag:tr('鍛錬'),cls:'up',title:tr('槍兵を鍛える'),desc:trf('槍兵の体力と攻撃が35%上がる。いま Lv{0}。',LV.guard)},
+  {kind:'up',key:'okina',icon:'okina',tag:tr('鍛錬'),cls:'up',title:tr('翁と竹を取る'),desc:trf('翁が光の星を生む間隔が短くなる。いま Lv{0}。',LV.okina)},
+  {kind:'repair',icon:'pot',tag:tr('備え'),cls:'prep',title:tr('屋敷を修繕する'),desc:tr('屋敷の最大体力が20増え、体力が40もどる。')},
+  {kind:'bamboo',icon:'i_take',tag:tr('備え'),cls:'prep',title:tr('光る竹を探す'),desc:trf('毎夜はじめの光が3増える。いま +{0}。',G.bonus)}];
+ shuffle(pool);while(opts.length<3)opts.push(pool.pop());return opts;
+}
+function renderOpts(){const box=$('dayOpts');box.innerHTML='';
+ dayOpts.forEach((o,i)=>{const b=document.createElement('button');b.className='opt'+(i===daySel?' sel':'');b.innerHTML=`<span class="ic">${sImg(o.icon,1)}</span><span><span class="tag t8 ${o.cls}">${o.tag}</span>${o.title}</span>`;
+  b.onclick=()=>{if(daySel===i){chooseOpt();return;}daySel=i;sfx.cursor();renderOpts();};box.appendChild(b);});
+ const o=dayOpts[daySel];$('dayDetT').textContent=o.title;$('dayDet').textContent=o.desc;}
+function chooseOpt(){const o=dayOpts[daySel];sfx.ok();
+ if(o.kind==='trial'){startTrial(o.t);return;}
+ if(o.kind==='up')G.lv[o.key]++;if(o.kind==='repair'){G.houseMax+=20;G.houseHP=Math.min(G.houseMax,G.houseHP+40);}if(o.kind==='bamboo')G.bonus+=3;
+ toNight();}
+function toNight(){if(G.night===4)runScene('boss',()=>startNight());else startNight();}
+let miniTO=null,miniItems=[],miniDone=false,miniTick=null;
+function startTrial(t){
+ setState('mini');showWin('wMini');miniDone=false;
+ $('miniSuitor').textContent=trf('{0}の難題',tr(t.suitor));$('miniTitle').textContent=tr(t.name);
+ const P=1.1;const mm=$('miniMoon');mm.src=moonURL(1,10);mm.style.cssText=`width:calc(var(--p)*46);height:calc(var(--p)*46);--pd:${P}s`;mm.classList.remove('pulse');void mm.offsetWidth;mm.classList.add('pulse');
+ miniItems=shuffle([{real:1,p:P},{real:0,p:P*.62},{real:0,p:P*1.6}]);const box=$('miniItems');box.innerHTML='';
+ miniItems.forEach(it=>{const b=document.createElement('button');b.className='pw item';b.innerHTML=`<span class="pulse" style="--pd:${it.p}s">${sImg(t.icon,3)}</span><span class="t8 lb">　</span>`;b.onclick=()=>resolveTrial(t,it.real,b);it.el=b;box.appendChild(b);});
+ $('miniRes').textContent='';$('miniNext').hidden=true;
+ const tm=$('miniTimer');tm.innerHTML='';for(let i=0;i<14;i++)tm.appendChild(document.createElement('i'));
+ let left=14;clearInterval(miniTick);miniTick=setInterval(()=>{left--;[...tm.children].forEach((e,i)=>e.classList.toggle('off',i>=left));if(left<=0){clearInterval(miniTick);resolveTrial(t,0,null);}},500);
+}
+function resolveTrial(t,ok,btn){if(miniDone)return;miniDone=true;clearInterval(miniTick);
+ miniItems.forEach(it=>{it.el.disabled=true;const lb=it.el.querySelector('.lb');lb.textContent=tr(it.real?'本物':'偽物');if(it.real)it.el.classList.add('real');});
+ if(ok){G.owned.push(t.id);$('miniRes').innerHTML=`<span class="gold">${trf('本物だ。夜の技「{0}」を覚えた',tr(t.skill))}</span>`;sfx.win();}
+ else{if(btn)btn.classList.add('wrong');G.consol=2;$('miniRes').innerHTML=`<span style="color:var(--red)">${tr(btn?'偽物をつかまされた。':'時間切れ。')}${trf('慰めに光 +{0}',2)}</span>`;sfx.ng();}
+ $('miniNext').hidden=false;}
+function startNight(){
+ beginNight();VIEW={k:'battle'};setState('night');showWin(null);buildCmd();playMusic('night');hudUpdate();
+ if(tut<1)showHint(tr('兵を選び、光るマスに置こう。ドラッグでも置ける'),30,330,210);
+}
+function onNightClear(){
+ setState('result');G.kills+=N.kills;const n=G.night;G.night++;const heal=Math.min(15,G.houseMax-G.houseHP);G.houseHP+=heal;sfx.win();
+ if(G.night>=5){setTimeout(()=>runScene('endA',()=>{VIEW={k:'stage',name:'field',n:4};setState('end');showWin('wChoice');}),900);return;}
+ showWin('wResult');$('resHead').textContent=`${nightL(n)} ${phaseL(n)}`;
+ $('resStats').innerHTML=`<div class="inset"><p class="t8 sub">${tr('退けた使い')}</p><p class="t16">${N.kills}</p></div><div class="inset"><p class="t8 sub">${tr('最大連撃')}</p><p class="t16">${G.maxCombo}</p></div>`;
+ $('resLine').textContent=RES_LINE[n]?tr(RES_LINE[n]):'';$('resHeal').textContent=trf('夜明けに屋敷を手当てした（+{0}）',Math.round(heal));
+}
+function afterDawn(){if(G.night===2)runScene('mid',()=>showDay());else showDay();}
+function onLose(){setState('result');sfx.lose();const earned=G.night+G.owned.length+1;memory+=earned;store.set('jugoya_memory',memory);
+ setTimeout(()=>runScene('over',()=>{VIEW={k:'stage',name:'sky',n:0};setState('end');showCard('月へ',trf('{0} {1}にて',nightL(G.night),phaseL(G.night)),tr('姫は月へ帰った'),trf('月の記憶 +{0}（合計 {1}）。次は、はじめの光 +{2}',earned,memory,memBonus()),tr('もう一度'));}),700);}
+function finishEnd(drink){const earned=8+G.owned.length;memory+=earned;store.set('jugoya_memory',memory);
+ runScene(drink?'drink':'burn',()=>{VIEW={k:'stage',name:drink?'house':'fuji',n:4};setState('end');
+  showCard('end',tr(drink?'結末 その一':'結末 その二'),tr(drink?'終わらない十五夜':'限りある日々'),trf('月の記憶 +{0}（合計 {1}）',earned,memory),tr('タイトルへ'));});}
+let cardMode='';function showCard(mode,head,title,mem,btn){cardMode=mode;showWin('wCard');$('cardHead').textContent=head;$('cardTitle').textContent=title;$('cardText').textContent=tr(mode==='end'?'ここまで遊んでくれて、ありがとう。':'迎えの光は、今夜も満ちる。');$('cardMem').textContent=mem;$('btnCard').textContent=btn;}
+
+// ===== input =====
+const scr=$('screen');
+function toLogical(ev){const r=cv.getBoundingClientRect();return{x:(ev.clientX-r.left)/r.width*LW,y:(ev.clientY-r.top)/r.height*LH};}
+function nearestCell(x,y){let best=null,bd=1e9;for(let r=0;r<4;r++)for(let l=0;l<3;l++){const z=ROWZ[r],s=zs(z);const p=cellPos(l,r);const hw=LN*s*.5,hh=Math.max(10,(PY(z-.05)-PY(z+.05))/2);const d=Math.hypot((x-p.x)/hw,(y-p.y)/hh);if(d<bd){bd=d;best={l,r};}}return bd<1.25?best:null;}
+let drag=null;
+function cardDown(ev,k){ev.preventDefault();audioInit();if(state!=='night')return;sel=k;sfx.cursor();lastHud='';hideBubble();drag={k,moved:false,id:ev.pointerId,sx:ev.clientX,sy:ev.clientY};}
+window.addEventListener('pointermove',ev=>{if(!drag||state!=='night')return;if(Math.hypot(ev.clientX-drag.sx,ev.clientY-drag.sy)>8)drag.moved=true;if(!drag.moved)return;const p=toLogical(ev);N.ghost=drag.k;N.hover=p.y<408?nearestCell(p.x,p.y):null;});
+window.addEventListener('pointerup',ev=>{if(!drag)return;const d=drag;drag=null;if(state==='night'&&N){if(d.moved&&N.hover)placeUnit(d.k,N.hover.l,N.hover.r);N.ghost=null;N.hover=null;}});
+cv.addEventListener('pointerdown',ev=>{
+ ev.preventDefault();audioInit();
+ if(state==='scene'){scTap();return;}
+ if(state!=='night')return;const p=toLogical(ev);
+ let bo=null,bd=18;for(const o of N.orbs){const d=Math.hypot(o.x-p.x,o.y-p.y);if(d<bd){bd=d;bo=o;}}
+ if(bo){N.orbs.splice(N.orbs.indexOf(bo),1);absorb(bo.x,bo.y,bo.v);addText(bo.x,bo.y-8,`+${bo.v}`,'#FFE59A',.6,12,true);burst(bo.x,bo.y,['#FFE59A','#FFFFFF','#F48FB6'],8,22,true);ring(bo.x,bo.y,'#FFE59A',12);sfx.orb();if(tut<2&&tut>=1){tut=2;store.set('jugoya_tut2',2);hideHint();}return;}
+ const c=nearestCell(p.x,p.y);if(!c){hideBubble();return;}
+ const u=N.units.find(u=>u.lane===c.l&&u.row===c.r);if(u){if(bubbleUnit===u)hideBubble();else showBubble(u);sfx.cursor();return;}
+ hideBubble();placeUnit(sel,c.l,c.r);
+});
+$('dlg').addEventListener('pointerdown',()=>{});
+scr.addEventListener('pointerdown',ev=>{if(state==='scene'&&ev.target!==$('btnSkip')&&ev.target!==cv){audioInit();scTap();}});
+$('btnSkip').onclick=ev=>{ev.stopPropagation();skipScene();};
+$('btnRetreat').onclick=()=>{if(bubbleUnit&&N){retreat(bubbleUnit);hideBubble();}};
+$('btnStart').onclick=()=>{audioInit();sfx.ok();startGame();};
+const tgB=()=>{audioInit();setBgm(!AU.bgm);syncSoundBtns();sfx.tap();},tgS=()=>{audioInit();setSe(!AU.se);syncSoundBtns();sfx.tap();};
+$('btnBgm').onclick=tgB;$('btnBgm2').onclick=tgB;$('btnSe').onclick=tgS;$('btnSe2').onclick=tgS;
+$('btnDayOk').onclick=()=>chooseOpt();
+$('miniNext').onclick=()=>{sfx.ok();toNight();};
+$('btnDawn').onclick=()=>{sfx.ok();afterDawn();};
+$('btnDrink').onclick=()=>{sfx.ok();finishEnd(true);};$('btnBurn').onclick=()=>{sfx.ok();finishEnd(false);};
+$('btnCard').onclick=()=>{sfx.ok();if(cardMode==='end')toTitle();else startRetry();};
+function startRetry(){newRun();showDay();}
+$('btnPause').onclick=()=>{if(state==='night'){setState('paused');showWin('wPause');syncSoundBtns();sfx.tap();}};
+$('btnResume').onclick=()=>{setState('night');showWin(null);sfx.tap();};
+$('btnGiveUp').onclick=()=>{setState('night');showWin(null);G.houseHP=0;};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='night'){setState('paused');showWin('wPause');syncSoundBtns();}});
+
+// ===== main loop =====
+let last=performance.now(),TT=0;
+function frame(now){
+ const dt=Math.min(.05,(now-last)/1000);last=now;TT+=dt;
+ updAmb(dt);
+ if(state==='night')updateNight(dt);
+ if(state==='scene'&&SC)updateScene(dt);
+ ctx.setTransform(S,0,0,S,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,LW,LH);
+ try{
+  if(state==='scene'&&SC){drawScene(TT);post(.26);drawSceneFx();}
+  else if(N&&['night','paused','result'].includes(state)&&VIEW.k==='battle'){drawBattle(TT);post(.24);drawBattleOverlay(TT);}
+  else if(VIEW.k==='stage'){drawStage(VIEW.name,VIEW.n,TT,{});drawStageFg(VIEW.name,VIEW.n);post(.26);ctx.fillStyle='rgba(5,3,12,.35)';ctx.fillRect(0,0,LW,LH);}
+  else{drawTitle(TT);post(.3);}
+ }catch(err){console.error(err);}
+ if(G&&['night','paused','day','mini','result'].includes(state))hudUpdate();
+ requestAnimationFrame(frame);
+}
+{const R=document.documentElement.style;const u=n=>`url(${sprite(n,{}).toDataURL()})`;R.setProperty('--icDown',u('ic_down'));R.setProperty('--icUp',u('ic_up'));R.setProperty('--icRight',u('ic_right'));R.setProperty('--icFF',u('ic_ff'));R.setProperty('--icPause',u('ic_pause'));R.setProperty('--icStar',u('star'));}
+$('hudStar').src=sURL('star');$('hudStar').style.cssText='width:calc(var(--p)*11);height:calc(var(--p)*10)';
+layout();window.addEventListener('resize',layout);if(window.ResizeObserver)new ResizeObserver(layout).observe($('fit'));
+buildLogo();if(document.fonts&&document.fonts.load)document.fonts.load('40px DotGothic16').then(()=>buildLogo()).catch(()=>{});
+toTitle();requestAnimationFrame(frame);
+
+// ===== language UI =====
+function applyStatic(){
+ document.documentElement.lang=LANG;
+ document.body.classList.toggle('nl',LANG!=='ja');
+ document.querySelectorAll('[data-i18n]').forEach(el=>{if(el.dataset.ja==null)el.dataset.ja=el.textContent;el.textContent=tr(el.dataset.ja);});
+ const cur=LANGS.find(([c])=>c===LANG);$('btnLang').textContent=(LANG==='ja'?'言語：':'Language: ')+cur[1];
+ syncSoundBtns();
+}
+function openLang(){
+ showWin('wLang');const box=$('langList');box.innerHTML='';
+ LANGS.forEach(([c,name])=>{const b=document.createElement('button');b.className='opt lang'+(c===LANG?' sel':'');b.lang=c;b.textContent=name;
+  b.onclick=()=>{LANG=c;store.set('jugoya_lang',c);sfx.ok();applyStatic();toTitle();};box.appendChild(b);});
+}
+$('btnLang').onclick=()=>{audioInit();sfx.tap();openLang();};
+applyStatic();
+
+})();
+</script>
+</body>
+</html>

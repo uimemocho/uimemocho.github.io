@@ -334,5 +334,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-11T05:46:13Z",
     "updatedAt": "2026-10-11T07:24:11Z"
+  },
+  {
+    "slug": "jugoya",
+    "title": "十五夜",
+    "kind": "game",
+    "description": "光る竹から生まれた姫を、十五夜まで月の使いから守り抜く。HD-2D風ドット絵のタワーディフェンス。シナリオシーン・BGM付き、9言語対応。",
+    "url": "/apps/jugoya/",
+    "thumbnail": "/project-thumbnails/jugoya.webp",
+    "sourceFolder": "261011_十五夜",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-13T02:40:15Z",
+    "updatedAt": "2026-10-13T02:40:15Z"
   }
 ]
