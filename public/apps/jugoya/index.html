@@ -326,6 +326,10 @@ ic_ff:["k..k..","kk.kk.","kkkkkk","kk.kk.","k..k.."],
 ic_pause:["kk.kk","kk.kk","kk.kk","kk.kk","kk.kk"],
 i_take:["....y.....","...kbk....","...kbk....","...kBk....","...kbk....","...kyk....","...kbk....","...kBk....","...kbk...."]
 };
+
+SPR.archerB=SPR.archer.map((r,i)=>({5:"...khhhhhhk.....",6:"...khhhhhhk...n.",7:"...khHhhHhk..n..",8:"....kHhhHk..n..."})[i]||r);
+SPR.guardB=SPR.guard.map((r,i)=>({5:"...khhhhhhk.n...",6:"...khhhhhhk.n...",7:"...khHhhHhk.n...",8:"....kHhhHk..n..."})[i]||r);
+SPR.okinaB=SPR.okina.map((r,i)=>({4:"....kwWwwwWk..y.",5:"....kwwWWwwk..b.",6:"....kWwwwwWk..b.",7:"....kwwwwwwk..b."})[i]||r);
 const OL_INK='#0B0618';
 
 const SPC={};
@@ -932,7 +936,7 @@ function drawBattle(t){
  for(const p of L.props)ents.push({z:p.z,f:()=>drawProp(p,t)});
  for(const u of N.units)ents.push({z:u.z+.001,f:()=>drawUnit(u,t)});
  for(const e of N.enemies)ents.push({z:e.z,f:()=>drawEnemy(e,t)});
- if(N.ghost&&N.hover){const {l,r}=N.hover;ents.push({z:ROWZ[r],f:()=>{const p=cellPos(l,r);drawSpr(UNITS[N.ghost].spr,p.x,p.y,SK*zs(ROWZ[r]),{a:.55});}});}
+ if(N.ghost&&N.hover){const {l,r}=N.hover;ents.push({z:ROWZ[r],f:()=>{const p=cellPos(l,r);drawSpr(UNITS[N.ghost].spr+'B',p.x,p.y,SK*zs(ROWZ[r]),{a:.55});}});}
  ents.sort((a,b)=>b.z-a.z).forEach(e=>e.f());
  // projectiles
  for(const p of N.projs){if(p.sx==null)continue;p.tr.forEach(([x,y],i)=>{ctx.globalAlpha=(i+1)/7;ctx.fillStyle=p.crit?'#FFE59A':'#BFE9FF';ctx.fillRect(Math.round(x),Math.round(y),1,2);});ctx.globalAlpha=1;
@@ -955,7 +959,7 @@ function drawUnit(u,t){
  const s=zs(u.z),x=PX(u.lo,u.z),y=PY(u.z),sc=SK*s;
  let ax=1,ay=1+.03*Math.sin(u.ph);if(u.pop>0){const k=u.pop/.3;ax=1+.3*k;ay=1-.22*k;}if(u.atk>0){ax*=1.08;ay*=.9;}
  shadow(x,y,14*sc);
- drawSpr(UNITS[u.type].spr,x,y,sc,{sx:ax,sy:ay,fog:clamp((u.z-.15)*.7,0,.5),tint:u.hit>0?['#FFFFFF',.9]:u.charm>0?['#F48FB6',.35+.25*Math.sin(t*12)]:null});
+ drawSpr(UNITS[u.type].spr+'B',x,y,sc,{sx:ax,sy:ay,fog:clamp((u.z-.15)*.7,0,.5),tint:u.hit>0?['#FFFFFF',.9]:u.charm>0?['#F48FB6',.35+.25*Math.sin(t*12)]:null});
  if(u.hp<u.max){const w=Math.round(16*sc/SK*1.6);bar(x,y-27*sc,w,u.hp/u.max,'#7FE0A0');}
 }
 function drawEnemy(e,t){
