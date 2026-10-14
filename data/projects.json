@@ -358,5 +358,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-13T04:40:00Z",
     "updatedAt": "2026-10-13T04:40:00Z"
+  },
+  {
+    "slug": "enemy-run",
+    "title": "ENEMY RUN",
+    "kind": "game",
+    "description": "シューティングの敵側になって、パワーアップしていく英雄機から5つの惑星を越えて逃げきる縦型ピクセルシューティング。全5ステージ・難易度3段階・9言語対応。",
+    "url": "/apps/enemy-run/",
+    "thumbnail": "/project-thumbnails/enemy-run.webp",
+    "sourceFolder": "261015_ENEMYRUN",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-14T17:05:00Z",
+    "updatedAt": "2026-10-14T17:05:00Z"
   }
 ]
