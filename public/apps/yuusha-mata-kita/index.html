@@ -4,18 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0d0810">
-<meta name="description" content="殺しても、殺しても、勇者が来る。魔王になって、何度でもよみがえる勇者を迎え撃つツクール風ピクセルRPG。コメディからホラー、そして真実へ。エンディング3種。">
+<meta name="description" content="倒しても、倒しても、勇者が来る。魔王になって、何度でもよみがえる勇者を迎え撃つツクール風ピクセルRPG。コメディからホラー、そして真実へ。エンディング3種。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="uimemocho">
 <meta property="og:title" content="勇者がまた来た。">
-<meta property="og:description" content="殺しても、殺しても、勇者が来る。魔王になって、何度でもよみがえる勇者を迎え撃つツクール風ピクセルRPG。コメディからホラー、そして真実へ。エンディング3種。">
+<meta property="og:description" content="倒しても、倒しても、勇者が来る。魔王になって、何度でもよみがえる勇者を迎え撃つツクール風ピクセルRPG。コメディからホラー、そして真実へ。エンディング3種。">
 <meta property="og:url" content="https://uimemocho.github.io/apps/yuusha-mata-kita/">
 <meta property="og:image" content="https://uimemocho.github.io/apps/yuusha-mata-kita/ogp.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="勇者がまた来た。">
-<meta name="twitter:description" content="殺しても、殺しても、勇者が来る。魔王になって、何度でもよみがえる勇者を迎え撃つツクール風ピクセルRPG。コメディからホラー、そして真実へ。エンディング3種。">
+<meta name="twitter:description" content="倒しても、倒しても、勇者が来る。魔王になって、何度でもよみがえる勇者を迎え撃つツクール風ピクセルRPG。コメディからホラー、そして真実へ。エンディング3種。">
 <meta name="twitter:image" content="https://uimemocho.github.io/apps/yuusha-mata-kita/ogp.png">
 <title>勇者がまた来た。</title>
 <style>html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}*,*::before,*::after{box-sizing:inherit}[hidden]{display:none!important}</style>
@@ -634,7 +634,7 @@ const PORT={3:'第八十二代 魔王',5:'第八十三代 魔王',7:'第八十�
 async function portrait(x){if(x!==13){await say(`歴代の肖像。「${PORT[x]}」`);await say('名前の下に、もう一行 刻まれていたようだ。けずられて、読めない。');return say('……どの肖像も、同じ顔を している。')}
   F.portrait=true;await say('「第八十八代 魔王」');await say('自分の 肖像だ。……描かせた 覚えは ない。');await say('額の裏に、だれかの 字で「ノエル」と 書いてある。');return say('……私の 名だ。なぜ、こんなところに。',{name:'魔王'})}
 async function readLetter(){F.letter=true;await say('机の上に、封をされた 手紙。教会の 紋章。');
-  await say('「教会より 王国へ。勇者と 魔王の 殺し合いにより、魂は 循環し、その あまりをもって 王都の結界を 保つ」');
+  await say('「教会より 王国へ。勇者と 魔王の 戦いにより、魂は 循環し、その あまりをもって 王都の結界を 保つ」');
   await say('「魔王が 勝てば、勇者は 教会にて 蘇る。勇者が 勝てば、勇者は ＿＿＿＿＿＿＿」');
   await say('……そこだけ、黒く 塗りつぶされている。');
   await say('「いずれにせよ、循環は 止まらない。――知らせるな」');
@@ -702,9 +702,9 @@ async function finalScene(){F.honeCrypt=false;F.hideHone=false;NPCS[0].dir='left
   await Y('……おれも、思い出した。おれは、おまえの 続きだ。');await M('そして 私は、おまえの 残りだ。');
   await Y('教会の鐘が 鳴るたび、おれは 目を覚ました。そのたびに、何かが なくなった。');
   await M('それは 私が 持っている。おまえの 母の顔も、幼なじみとの 約束も。');
-  const cmds=[{label:'ころす',desc:'勇者を 殺す。\n私は 生きのびる。'},{label:'ころされる',desc:'勇者に 殺される。\n勇者が 次の魔王になる。'}];
+  const cmds=[{label:'たおす',desc:'勇者を 倒す。\n私は 生きのびる。'},{label:'たおされる',desc:'勇者に 倒される。\n勇者が 次の魔王になる。'}];
   if(F.portrait&&F.mirror&&F.letter)cmds.push({label:'ルールを こわす',desc:'勇者でも 魔王でもない、\n三つめの 答え。',red:true});
-  const pre=['勇者を 殺せば、私は 生きのびる。そして、次の勇者が 来る。','勇者に 殺されれば、勇者が 次の魔王に なる。','どちらを 選んでも――','同じ穴の ムジナだ。'];
+  const pre=['勇者を 倒せば、私は 生きのびる。そして、次の勇者が 来る。','勇者に 倒されれば、勇者が 次の魔王に なる。','どちらを 選んでも――','同じ穴の ムジナだ。'];
   await enterBattle(()=>{B={cfg:{special:true},enemy:{kind:'hero',name:'勇者（最後）',hp:1,maxhp:1,m:1,cape:HERO_CAPE},eOff:0,mOff:0,aOff:0,eFl:0,mFl:0,eA:1,mA:1,parts:[],nums:[],cmd:null,ally:false,crack:0,hideHP:true}});
   bgm('final');await say('最後の勇者が、目の前に いる。',{auto:1400});for(const t of pre)await say(t);
   const i=await bcommand(cmds);if(i===0)await endingA(h);else if(i===1)await endingB(h);else await endingC(h)}
@@ -825,7 +825,7 @@ function updateTitle(){if(busy||uiActive())return;const has=hasSave;
   if(jp.a){if(titleIdx===1&&!has){sfx('ng');return}sfx('ok');run(titleIdx===0?newGame:continueGame)}}
 async function newGame(){await fadeTo(1,400);F=newFlags();ST=newStats();ENTS.length=0;placeP('throne',9,2,'down');P.seated=true;P.hidden=false;mode='field';bgm(null);
   F.name=await nameEntry();fadeA=1;await card(['魔王 ノエル。'],{});
-  await card(['魔王城。']);await card(['殺しても、','殺しても、']);await card(['勇者が 来る。']);await card(['第一章','勇者が また来た'],{chapter:true});
+  await card(['魔王城。']);await card(['倒しても、','倒しても、']);await card(['勇者が 来る。']);await card(['第一章','勇者が また来た'],{chapter:true});
   bgm('castle');NPCS[0].dir='left';await fadeTo(0,500);sfx('alarm');shakeT=.3;
   await say('魔王様！ また 勇者で ございます！',{name:'ホネ吉'});await say('またか。今日で 何度目だ。',{name:'魔王'});await say('本日は、まだ 一度目で ございます。',{name:'ホネ吉'});await say('……通せ。',{name:'魔王'});
   await waveCore(1,{skipAlarm:true})}
@@ -933,7 +933,7 @@ function drawTitle(){for(let y=0;y<240;y++){gx.fillStyle=lerpC('#0e0818','#2c163
   gx.fillStyle='#08050c';gx.fillRect(0,214,320,26);
   const hx=((time*16)%300)-20;gx.drawImage(humSprite(clamp(hx/220,0,1),HERO_CAPE,'right',Math.floor(time*6)%2),Math.round(hx),198);
   ctx.drawImage(G,0,0,640,480);
-  txtC('勇者がまた来た。',320,96,C.bone,40);txtC('殺しても、殺しても、勇者が来る。',320,156,C.dim,16);
+  txtC('勇者がまた来た。',320,96,C.bone,40);txtC('倒しても、倒しても、勇者が来る。',320,156,C.dim,16);
   const has=hasSave;['はじめから','つづきから'].forEach((s,i)=>{txtC(s,320,286+i*36,i===1&&!has?C.dim:C.bone,16);if(i===titleIdx)arrowR(240,290+i*36)});
   const E=getEndings();setFont(16);txt('ENDING',220,404,C.dim);['A','B','C'].forEach((k,i)=>{const x=318+i*36;ctx.strokeStyle=E.includes(k)?C.gold:'#4a3c54';ctx.lineWidth=2;ctx.strokeRect(x,400,26,26);txt(E.includes(k)?k:'?',x+13,404,E.includes(k)?C.gold:'#4a3c54',16,'center')})}
 
