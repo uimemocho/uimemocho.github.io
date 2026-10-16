@@ -370,5 +370,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-14T17:05:00Z",
     "updatedAt": "2026-10-14T17:05:00Z"
+  },
+  {
+    "slug": "yuusha-mata-kita",
+    "title": "勇者がまた来た。",
+    "kind": "game",
+    "description": "殺しても、殺しても、勇者が来る。魔王になって、何度でもよみがえる勇者を迎え撃つツクール風ピクセルRPG。コメディからホラー、そして真実へ。エンディング3種。",
+    "url": "/apps/yuusha-mata-kita/",
+    "thumbnail": "/project-thumbnails/yuusha-mata-kita.webp",
+    "sourceFolder": "261016_勇者がまた来た",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-16T00:50:00Z",
+    "updatedAt": "2026-10-16T00:50:00Z"
   }
 ]
