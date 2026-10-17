@@ -382,5 +382,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-16T00:50:00Z",
     "updatedAt": "2026-10-16T00:50:00Z"
+  },
+  {
+    "slug": "paper-bout",
+    "title": "紙闘",
+    "kind": "game",
+    "description": "裸電球ひとつのコンクリート地下室で、トイレットペーパー60mを引き出し切る3Dタイムアタック。急げば切れる、止まれば負ける。CPU戦、ランクと通り名つき。",
+    "url": "/apps/paper-bout/",
+    "thumbnail": "/project-thumbnails/paper-bout.webp",
+    "sourceFolder": "261016_紙闘",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-17T01:30:00Z",
+    "updatedAt": "2026-10-17T01:30:00Z"
   }
 ]
