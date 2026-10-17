@@ -126,6 +126,12 @@ h1{margin:0;font-family:var(--f-disp);font-weight:400;font-size:clamp(64px,19vw,
 .btn .dots{display:inline-flex;gap:4px}
 .btn .dots i{width:9px;height:9px;border-radius:50%}
 .btn:active{transform:translateY(1px)}
+.dhead{font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--ash);text-align:center;margin-bottom:2px}
+.dbtn{justify-content:space-between;padding:0 18px}
+.dbtn small{font-family:var(--f-num);font-weight:600;font-size:12px;color:var(--ash);letter-spacing:.04em}
+.dbtn[aria-current="true"]{border-color:var(--tape)}
+.dbtn[aria-current="true"]{box-shadow:inset 3px 0 0 var(--tape)}
+.btn.ghost{background:transparent;min-height:44px;font-size:14px;color:var(--ash)}
 .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:-2px}
 .chip{appearance:none;min-height:36px;border-radius:3px;border:1px solid var(--line);background:transparent;color:var(--ash);font-family:var(--f-body);font-weight:700;font-size:13px;cursor:pointer}
 .chip[aria-pressed="true"]{color:#121110;background:var(--tape);border-color:var(--tape)}
@@ -189,14 +195,16 @@ a.btn{text-decoration:none}
       <h1 class="logo">紙闘</h1>
       <div class="latin" lang="en">SHI · TŌ</div>
     </div>
-    <div class="panel">
+    <div class="panel" id="diffPanel" hidden>
+      <div class="dhead">CPUの強さ</div>
+      <button class="btn dbtn" type="button" id="dEasy" data-d="easy"><b>やさしい</b><small>約47秒で出し切る</small></button>
+      <button class="btn dbtn" type="button" id="dNormal" data-d="normal"><b>ふつう</b><small>約33秒で出し切る</small></button>
+      <button class="btn dbtn" type="button" id="dHard" data-d="hard"><b>つよい</b><small>約24秒で出し切る</small></button>
+      <button class="btn ghost" type="button" id="bDiffBack">戻る</button>
+    </div>
+    <div class="panel" id="mainPanel">
       <button class="btn primary" id="bSolo" type="button"><span data-i="solo"></span></button>
       <button class="btn" id="bCpu" type="button"><span data-i="cpu"></span></button>
-      <div class="chips" role="group" aria-label="CPU">
-        <button class="chip" type="button" id="dEasy" data-d="easy" data-i="easy"></button>
-        <button class="chip" type="button" id="dNormal" data-d="normal" data-i="normal"></button>
-        <button class="chip" type="button" id="dHard" data-d="hard" data-i="hard"></button>
-      </div>
       <button class="btn" id="bOnline" type="button"><span class="dots"><i style="background:var(--p1)"></i><i style="background:var(--p2)"></i></span><span data-i="online"></span></button>
       <div class="best"><span data-i="best"></span> <b id="bestT">--.--</b></div>
     </div>
@@ -642,7 +650,7 @@ addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;au
 /* ================= flow ================= */
 function hideScreens(){['#title','#result','#room'].forEach(s=>$(s).hidden=true);}
 function startGame(mode,seed){audioInit();setupPlayers(mode,seed);phase='count';cdT=CD_TOTAL;intro={t:0};$('#hud').style.opacity='0';$('#center').innerHTML='';sfxWhoosh(.9,0);sfxWhoosh(.7,1.35);cdShown=-1;resultTimer=0;hideScreens();$('#hud').hidden=false;$('#bQuit').hidden=false;MUS.target='race';}
-function toTitle(){if(NET.room)leaveRoom();phase='title';hideScreens();$('#hud').hidden=true;$('#bQuit').hidden=true;$('#center').innerHTML='';$('#title').hidden=false;setupPlayers('cpu');players[1].ctrl='idle';players.forEach(p=>{p.hint.hidden=true});MUS.target='title';updateBest();}
+function toTitle(){if(NET.room)leaveRoom();phase='title';showDiff(false);hideScreens();$('#hud').hidden=true;$('#bQuit').hidden=true;$('#center').innerHTML='';$('#title').hidden=false;setupPlayers('cpu');players[1].ctrl='idle';players.forEach(p=>{p.hint.hidden=true});MUS.target='title';updateBest();}
 function updateBest(){const b=parseFloat(LS.get('kk_best'));$('#bestT').textContent=isFinite(b)?b.toFixed(2)+' s':'--.--';}
 function showResult(){const snap=grabFrame();phase='result';requestAnimationFrame(fitCamera);$('#hud').hidden=true;$('#bQuit').hidden=true;players.forEach(p=>p.hint.hidden=true);
  const rows=$('#rRows');rows.innerHTML='';let head='',rec=false;const fins=players.map(p=>p.fin==null?Infinity:p.fin);
@@ -711,11 +719,13 @@ $('#bSaveImg').onclick=async()=>{const b=shareBlob;if(!b){shareStatus('画像を
 $('#bCopy').onclick=()=>{const b=$('#bCopy');const done=()=>{b.textContent=tr('copied');setTimeout(()=>b.textContent=tr('copy'),1600);};
  try{navigator.clipboard.writeText(shareText).then(done,()=>fallbackCopy(done));}catch(e){fallbackCopy(done);}};
 function fallbackCopy(done){const ta=document.createElement('textarea');ta.value=shareText;ta.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();if(ok)done();}
-$('#bSolo').onclick=()=>startGame('solo');$('#bCpu').onclick=()=>startGame('cpu');$('#bOnline').onclick=()=>{audioInit();openRoomScreen();};
+$('#bSolo').onclick=()=>startGame('solo');$('#bCpu').onclick=()=>{audioInit();showDiff(true);};$('#bOnline').onclick=()=>{audioInit();openRoomScreen();};
 $('#bRetry').onclick=()=>{if(gameMode==='online'&&NET.room){backToLobby();}else startGame(gameMode);};
 $('#bMenu').onclick=toTitle;$('#bQuit').onclick=toTitle;
-document.querySelectorAll('.chip').forEach(c=>{c.onclick=()=>{diff=c.dataset.d;LS.set('kk_diff',diff);syncChips();}});
-function syncChips(){document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.d===diff)));}
+function showDiff(on){$('#diffPanel').hidden=!on;$('#mainPanel').hidden=on;syncChips();if(on){const c=document.querySelector('.dbtn[aria-current="true"]')||$('#dNormal');try{c.focus({preventScroll:true})}catch(_){}}}
+document.querySelectorAll('.dbtn').forEach(c=>{c.onclick=()=>{diff=c.dataset.d;LS.set('kk_diff',diff);showDiff(false);startGame('cpu');}});
+$('#bDiffBack').onclick=()=>showDiff(false);
+function syncChips(){document.querySelectorAll('.dbtn').forEach(c=>c.setAttribute('aria-current',String(c.dataset.d===diff)));}
 
 
 /* ================= online: room number ================= */
