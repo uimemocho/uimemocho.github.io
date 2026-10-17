@@ -394,5 +394,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-17T01:30:00Z",
     "updatedAt": "2026-10-17T01:30:00Z"
+  },
+  {
+    "slug": "kasou-nugenai",
+    "title": "ハロウィン、仮装が脱げない。",
+    "kind": "game",
+    "description": "0時の渋谷。外せなくなったARフィルター「KAMEN」から幼なじみを取り戻す、ハロウィン×配信文化の令和ホラーRPG。全6章・エンディング3種。",
+    "url": "/apps/kasou-nugenai/",
+    "thumbnail": "/project-thumbnails/kasou-nugenai.webp",
+    "sourceFolder": "261017_ハロウィン仮装が脱げない",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-17T12:40:00Z",
+    "updatedAt": "2026-10-17T12:40:00Z"
   }
 ]
