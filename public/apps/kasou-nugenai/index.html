@@ -124,7 +124,7 @@ body{background:var(--ink);color:var(--bone);font-family:var(--f-ui);overflow:hi
 @keyframes bob{50%{transform:translateY(2px)}}
 /* list / panels */
 #list{position:absolute;pointer-events:auto;padding:calc(var(--pad) * .8) calc(var(--pad) * .7);min-width:min(calc(var(--u)*86),calc(100% - var(--edge)*2));max-width:calc(100% - var(--edge)*2);max-height:calc(100% - var(--edge)*2);overflow:auto;}
-#list.center{left:50%;top:50%;transform:translate(-50%,-50%);}
+#list.center{left:50%;top:50%;transform:translate(-50%,-50%);min-width:min(calc(var(--u)*150),calc(100% - var(--edge)*2));}
 #list.menu{right:var(--edge);top:var(--edge);}
 #list.battle{left:var(--edge);right:var(--edge);bottom:var(--edge);max-width:none;}
 #ui.inb #msg{min-height:var(--bh,0px);}
@@ -169,6 +169,7 @@ body{background:var(--ink);color:var(--bone);font-family:var(--f-ui);overflow:hi
 #end .logo{font-size:calc(var(--u)*20);}
 #end .stat{margin-top:calc(var(--u)*2);font-size:var(--fs-xs);color:var(--dim);font-variant-numeric:tabular-nums;letter-spacing:.08em;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
 #end .stat b{color:var(--bone);font-weight:normal;}
+#end .note2{margin-top:calc(var(--u)*3);font-size:var(--fs-xs);color:var(--pump);letter-spacing:.06em;}
 .obj{position:absolute;left:var(--edge);top:var(--edge);max-width:calc(100% - var(--edge)*2);display:flex;gap:8px;align-items:baseline;padding:5px 10px;border-radius:999px;background:rgba(8,7,12,.82);box-shadow:0 0 0 1px rgba(255,122,26,.45);font-size:var(--fs-s);line-height:1.35;animation:objIn .5s cubic-bezier(.2,1.2,.4,1) both;transition:opacity .6s;}
 .obj b{flex:none;font-weight:normal;color:var(--pump);font-size:var(--fs-xs);letter-spacing:.14em;}
 .obj.fade{opacity:0;}
@@ -446,7 +447,7 @@ const G={mode:'boot',busy:false,t:0,map:null,mapId:'cross',cam:{x:0,y:0},camLock
   shake:0,glitch:0,flash:0,flashC:'#fff',mosaic:0,darkBoost:0,black:0,dawn:false,js:null,ambT:300,ntT:1500,
   p:{x:14,y:11,fx:224,fy:176,dir:'up',moving:false,tx:0,ty:0,anim:0,steps:0},enc:26,
   st:null,items:null,flags:{},viewers:812,maxViewers:812,B:null,parts:[]};
-function freshStats(){G.st={lv:1,exp:0,hp:42,mhp:42,atk:9,def:3,bat:100,ero:0,blind:0,block:false};G.items={energy:1,battery:0,charm:0,gold:0};G.likes=0;G.flags={};G.viewers=812;G.maxViewers=812;G.enc=26;}
+function freshStats(){G.st={lv:1,exp:0,hp:42,mhp:42,atk:9,def:3,bat:100,ero:0,blind:0,block:false};G.items={energy:1,battery:0,charm:0,gold:0};G.likes=0;G.flags={};G.viewers=812;G.maxViewers=812;G.enc=26;G.playT=0;}
 freshStats();
 const LV_EXP=[0,0,10,24,44,72,108,152,205,270,350,445,555,680,820,980,1160];
 const SKILLS=[
@@ -1120,12 +1121,11 @@ async function talkObj(o){
   if(o.kind==='mio')await msg('……',{who:'mio'});
 }
 async function fieldMenu(){SFX.ok();
-  for(;;){const i0=await listSelect([{label:'いまの目的'},{label:'ステータス'},{label:'アイテム'},{label:'セーブ'},{label:'音量'},{label:'とじる'}],{title:'MENU',pos:'menu'});
-    if(i0<0||i0===5)return;if(i0===0){await showGuide();continue;}const i=i0-1;
+  for(;;){const i0=await listSelect([{label:'いまの目的'},{label:'ステータス'},{label:'アイテム'},{label:'セーブ'},{label:'ロード'},{label:'音量'},{label:'とじる'}],{title:'MENU',pos:'menu'});
+    if(i0<0||i0===6)return;if(i0===4){const sv=await loadFlow();if(sv){await fade(1,500);continueGame(sv);return;}continue;}if(i0===5){await volumeMenu();continue;}if(i0===0){await showGuide();continue;}const i=i0-1;
     if(i===0)await showStatus();
     if(i===1){const id=await itemMenu(false);if(id)await useItem(id,false);}
-    if(i===2){const ok=saveGame();await msg(ok?'セーブしました。':'このブラウザでは保存できませんでした。');}
-    if(i===3)await volumeMenu();}}
+    if(i===2)await saveFlow();}}
 function showStatus(){const s=G.st,f=G.flags,k=[];if(f.phone)k.push('ミオのスマホ');const pr=(f.p1?1:0)+(f.p2?1:0)+(f.p3?1:0);if(pr)k.push('プリ '+pr+'/3');
   const row=(a,b)=>`<dt>${a}</dt><dd>${b}</dd>`;
   return infoPanel(`<div class="lt">ステータス</div><dl>${row('レベル','Lv'+s.lv)}${row('フォロワー',s.exp+'人')}${row('いいね',G.likes)}${row('HP',s.hp+' / '+s.mhp)}${row('バッテリー',s.bat+'%')}${row('侵食',s.ero+'%')}${row('攻撃 / 防御',s.atk+' / '+s.def)}${row('だいじなもの',k.join('、')||'なし')}</dl><div class="ft">A / B で とじる</div>`);}
@@ -1142,13 +1142,30 @@ async function volumeMenu(){const lv=[0,.35,.7,1],names=['オフ','小','中','�
 try{const v=JSON.parse(localStorage.getItem('kasou-vol')||'null');if(v){AU.bgmV=v.b;AU.sfxV=v.s;}}catch(e){}
 
 /* save */
-const SAVE_KEY='kasou-nugenai-v1',END_KEY='kasou-nugenai-ends';
-function saveData(){return{map:G.mapId,x:G.p.x,y:G.p.y,dir:G.p.dir,st:G.st,items:G.items,likes:G.likes,flags:G.flags,viewers:G.viewers,max:G.maxViewers};}
-function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(saveData()));return true;}catch(e){return false;}}
+const OLD_KEY='kasou-nugenai-v1',END_KEY='kasou-nugenai-ends',SLOTS=['auto','1','2','3'];
+const slotKey=id=>'kasou-nugenai-'+(id==='auto'?'auto':'s'+id);
+const CHAP={cross:['第一章','0時の交差点'],station:['第二章','顔のない改札'],alley:['第三章','さらされた路地'],bldg:['第四章','切り抜き工場'],archive:['第五章','アーカイブの海'],roof:['最終章','百万人の屋上']};
+try{if(localStorage.getItem(OLD_KEY)&&!localStorage.getItem(slotKey('auto')))localStorage.setItem(slotKey('auto'),localStorage.getItem(OLD_KEY));localStorage.removeItem(OLD_KEY);}catch(e){}
+function saveData(){return{map:G.mapId,x:G.p.x,y:G.p.y,dir:G.p.dir,st:G.st,items:G.items,likes:G.likes,flags:G.flags,viewers:G.viewers,max:G.maxViewers,pt:G.playT||0,at:Date.now()};}
+function saveGame(id='auto'){try{localStorage.setItem(slotKey(id),JSON.stringify(saveData()));return true;}catch(e){return false;}}
+function readSlot(id){try{const s=localStorage.getItem(slotKey(id));return s?JSON.parse(s):null;}catch(e){return null;}}
+function anySave(){return SLOTS.some(id=>readSlot(id));}
+function fmtPT(sec){sec=Math.floor(sec||0);const h=Math.floor(sec/3600),m=Math.floor(sec/60)%60,s2=sec%60;return h+':'+String(m).padStart(2,'0')+':'+String(s2).padStart(2,'0');}
+function fmtAt(t){if(!t)return'';const d=new Date(t);return`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function slotOpt(id,mode){const sv=readSlot(id),nm=id==='auto'?'オート':'スロット'+id;
+  if(!sv)return{label:nm+'　─ 空き ─',disabled:mode==='load',desc:mode==='save'?'ここにセーブする':'セーブデータがありません'};
+  const c=sv.flags&&sv.flags.atChoice?['最終章','エンディング分岐']:(CHAP[sv.map]||['','']);
+  return{label:`${nm}　${c[0]}　${c[1]}`,note:'Lv'+sv.st.lv,desc:`${fmtAt(sv.at)} 保存　プレイ ${fmtPT(sv.pt)}　侵食 ${sv.st.ero}%`};}
+async function pickSlot(mode){const ids=mode==='save'?['1','2','3']:SLOTS;
+  const i=await listSelect(ids.map(id=>slotOpt(id,mode)),{title:mode==='save'?'セーブ先をえらぶ':'ロードするデータをえらぶ',pos:'center'});return i<0?null:ids[i];}
+async function saveFlow(){const id=await pickSlot('save');if(!id)return false;
+  if(readSlot(id)){const j=await listSelect([{label:'上書きする'},{label:'やめる'}],{title:'スロット'+id+'に上書きしますか？',pos:'center'});if(j!==0)return false;}
+  const ok=saveGame(id);SFX.gateOK();await msg(ok?`スロット${id}にセーブしました。`:'このブラウザでは保存できませんでした。');return ok;}
+async function loadFlow(){const id=await pickSlot('load');if(!id)return null;return readSlot(id);}
 let lastAuto=-1e9;
-function autoSave(force){const now=performance.now();if(!force&&now-lastAuto<6000)return;if(G.mode!=='field'||G.dawn||!G.flags.prologue||G.flags.bossDone)return;if(!saveGame())return;lastAuto=now;
-  const A=$('as');A.hidden=true;void A.offsetWidth;A.style.animation='none';void A.offsetWidth;A.style.animation='';A.hidden=false;clearTimeout(autoSave.t);autoSave.t=setTimeout(()=>{A.hidden=true;},2200);}
-function loadSave(){try{const s=localStorage.getItem(SAVE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+function showAutoBadge(){const A=$('as');A.hidden=true;void A.offsetWidth;A.style.animation='none';void A.offsetWidth;A.style.animation='';A.hidden=false;clearTimeout(showAutoBadge.t);showAutoBadge.t=setTimeout(()=>{A.hidden=true;},2200);}
+function autoSave(force){const now=performance.now();if(!force&&now-lastAuto<6000)return;if(G.mode!=='field'||G.dawn||!G.flags.prologue||G.flags.bossDone)return;if(!saveGame('auto'))return;lastAuto=now;showAutoBadge();}
+function runWhenFree(fn){const t=()=>{if(G.busy)setTimeout(t,60);else runScript(fn);};t();}
 function getEnds(){try{return JSON.parse(localStorage.getItem(END_KEY)||'[]');}catch(e){return[];}}
 function addEnd(n){try{const e=getEnds();if(!e.includes(n))e.push(n);localStorage.setItem(END_KEY,JSON.stringify(e));}catch(e){}}
 
@@ -1157,7 +1174,7 @@ function addEnd(n){try{const e=getEnds();if(!e.includes(n))e.push(n);localStorag
    ========================================================= */
 async function evCharge(){SFX.charge();const s=G.st;s.hp=s.mhp;s.bat=100;updHUD();G.flash=.3;G.flashC='#5dff9a';
   const i=await ask('充電スポット。HPとバッテリーが全回復した。\nここでセーブしますか？',[{label:'セーブする'},{label:'しない'}]);
-  if(i===0){const ok=saveGame();await msg(ok?'セーブしました。':'このブラウザでは保存できませんでした。');}}
+  if(i===0)await saveFlow();}
 async function evVend(){if(!G.flags.vend){G.flags.vend=1;await msg('いらっしゃいませ。ハロウィン限定エナジードリンクを、どうぞ。',{who:'npc',name:'自販機'});SFX.vend();await wait(300);SFX.vend();G.items.energy+=2;SFX.drop();await msg('エナドリを2本手に入れた。');}
   else{await msg('お客様の「顔」は、ただいま在庫切れです。……飲み物でしたら、「いいね」でお売りします。',{who:'npc',name:'自販機',style:'scary'});await shop([['energy',30],['battery',40]]);}}
 async function evTrash(){if(!G.flags.trash){G.flags.trash=1;await msg('ゴミ袋の山の中から、着信音が鳴っている。');SFX.notify();await wait(400);G.items.battery++;SFX.drop();await msg('……鳴っていたのはスマホではなく、モバイルバッテリーだった。\nモバイルバッテリーを手に入れた。');}
@@ -1485,6 +1502,9 @@ async function afterBoss(){const m=G.map,mio=m.obj('mio');G.flags.bossDone=1;G.m
   G.flash=1;G.flashC='#fff';AU.playBGM('roof',2);setLB(true);
   await msg('ジャック・オ・ストリームが砕けた。ミオが、ひざをついている。');
   await msg('……ユウ。まだ、配信、ついてる。',{who:'mio'});
+  G.flags.atChoice=1;G.p.x=9;G.p.y=8;G.p.dir='up';if(saveGame('auto'))showAutoBadge();
+  await endingChoice();}
+async function endingChoice(){const m=G.map,mio=m.obj('mio');mio.led=false;mio.hidden=false;mio.dir='down';mio.look=Object.assign({},MIO_LOOK);G.mode='field';setLB(true);
   notify('配信を終了しますか？');await wait(800);
   await msg('配信を終了すると、すべての視聴者が、あなたたちを忘れます。フォロワーも、いいねも、今夜の記録も。',{who:'ai'});
   const i=await ask('続ければ、あなたは永遠に、見てもらえます。',[{label:'配信を続ける'},{label:'電源を切る'}],{who:'ai',cancel:false});
@@ -1514,19 +1534,19 @@ async function endBad(){const mio=G.map.obj('mio');await msg('……続ける。
   await msg('ユウの顔はもう、スマホの光と区別がつかない。');G.viewers=Infinity;showHUD(false);
   G.black=1;await wait(1000);await msg('この配信を見ている、あなたへ。',{style:'scary'});await msg('次は、おまえ。',{style:'scary',speed:.15});SFX.jump();G.glitch=2;await wait(800);G.glitch=0;
   await endCard(3,'#永久配信','同時接続数 ∞');}
-function buildScreen(E,parts){$('msg').hidden=true;$('list').hidden=true;$('info').hidden=true;E.innerHTML='';const hero=document.createElement('div');hero.className='hero';E.appendChild(hero);
+function buildScreen(E,parts){if(E.id==='end')$('title').hidden=true;$('msg').hidden=true;$('list').hidden=true;$('info').hidden=true;E.innerHTML='';const hero=document.createElement('div');hero.className='hero';E.appendChild(hero);
   for(const[c,t]of parts){const d=document.createElement('div');d.className=c;if(Array.isArray(t)){t.forEach((x,i)=>{const sp=document.createElement('span');sp.className='l'+(i+1);sp.textContent=x;d.appendChild(sp);});}else d.innerHTML=t;hero.appendChild(d);}
   const host=document.createElement('div');host.className='host';E.appendChild(host);return host;}
 const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
 async function endCard(n,t,s){addEnd(n);setLB(false);showHUD(false);$('comments').innerHTML='';G.mode='end';
   const E=$('end');const mv=isFinite(G.maxViewers)?fmtV(Math.floor(G.maxViewers)):'∞';
-  const host=buildScreen(E,[['eyebrow','END '+n+' / 3'],['logo',esc(t)],['sub',esc(s)],['stat',`<span>Lv <b>${G.st.lv}</b></span><span>侵食 <b>${G.st.ero}%</b></span><span>最大同接 <b>${mv}</b></span>`]]);E.hidden=false;SFX.boom();
-  await listSelect([{label:'タイトルへ'}],{host,cancel:false});E.hidden=true;try{localStorage.removeItem(SAVE_KEY);}catch(e){}toTitle();}
+  const host=buildScreen(E,[['eyebrow','END '+n+' / 3'],['logo',esc(t)],['sub',esc(s)],['stat',`<span>Lv <b>${G.st.lv}</b></span><span>侵食 <b>${G.st.ero}%</b></span><span>最大同接 <b>${mv}</b></span><span>プレイ <b>${fmtPT(G.playT)}</b></span>`],['note2','オートセーブから、エンディング分岐をやり直せます']]);E.hidden=false;SFX.boom();
+  await listSelect([{label:'タイトルへ'}],{host,cancel:false});E.hidden=true;toTitle();}
 async function gameOver(kind){$('ui').classList.remove('inb');showHUD(false);$('ebar').hidden=true;$('comments').innerHTML='';SFX.down();G.glitch=1.5;
   if(kind==='ero'){G.flash=1;G.flashC='#ff7a1a';}await wait(900);G.mode='over';G.B=null;AU.playBGM('over',1);AU.heart=0;
   const E=$('end');const host=buildScreen(E,[['eyebrow','GAME OVER'],['logo',kind==='ero'?'仮装が完了しました':'通信が切断されました'],['sub',kind==='ero'?'あなたの顔は、もうフィルターと区別がつかない。':'電波の届かない場所で、ユウは目を閉じた。']]);E.hidden=false;
-  const sv=loadSave();const i=await listSelect([{label:'最後のセーブから',disabled:!sv},{label:'タイトルへ'}],{host,cancel:false});E.hidden=true;
-  if(i===0&&sv)continueGame(sv);else toTitle();}
+  for(;;){const i=await listSelect([{label:'ロードする',disabled:!anySave()},{label:'タイトルへ'}],{host,cancel:false});
+    if(i===0){const sv=await loadFlow();if(!sv)continue;E.hidden=true;await fade(1,500);continueGame(sv);return;}E.hidden=true;toTitle();return;}}
 
 /* =========================================================
    TITLE / FLOW
@@ -1542,14 +1562,16 @@ async function titleScreen(){
   AU.playBGM('title',2);
   await new Promise(res=>{UI.active={key(k){if(k==='a'||k==='menu'){UI.active=null;res();}}};});
   AU.init();AU.playBGM('title',1.5);SFX.notify();G.mode='title';
-  const sv=loadSave();
-  host.innerHTML='';const i=await listSelect([{label:'はじめから'},{label:'つづきから',disabled:!sv,note:''}],{host,cancel:false,start:sv?1:0});
+  const has=anySave();let sv=null;
+  for(;;){host.innerHTML='';const i=await listSelect([{label:'はじめから'},{label:'つづきから',disabled:!has}],{host,cancel:false,start:has?1:0});
+    if(i===1){sv=await loadFlow();if(!sv)continue;}break;}
   SFX.boom();G.glitch=1;await fade(1,900);T.hidden=true;G.hidePlayer=false;G.camLock=null;G.flags={};
-  if(i===1&&sv)continueGame(sv);else{G.black=0;runScript(prologue);}
+  if(sv)continueGame(sv);else{G.black=0;runScript(prologue);}
 }
-function continueGame(sv){freshStats();G.likes=sv.likes||0;Object.assign(G.st,sv.st);G.st.blind=0;G.st.block=false;Object.assign(G.items,sv.items);G.flags=sv.flags||{};G.viewers=sv.viewers||13204;G.maxViewers=sv.max||G.viewers;
+function continueGame(sv){freshStats();UI.active=null;UI.msg=null;['msg','list','info','end','ebar','card'].forEach(k=>$(k).hidden=true);$('ui').classList.remove('inb','lbon');G.blackout=false;G.flags.ledOff=0;G.likes=sv.likes||0;Object.assign(G.st,sv.st);G.st.blind=0;G.st.block=false;Object.assign(G.items,sv.items);G.flags=sv.flags||{};G.viewers=sv.viewers||13204;G.maxViewers=sv.max||G.viewers;G.playT=sv.pt||0;
   G.dawn=false;G.blackout=false;G.black=0;G.js=null;G.hidePlayer=false;G.camLock=null;setMap(sv.map,sv.x,sv.y,sv.dir);G.mode='field';G.B=null;$('title').hidden=true;$('end').hidden=true;
-  showHUD(true);AU.playBGM(G.map.bgm,1.5);checkEro();fade(0,800);}
+  showHUD(true);AU.playBGM(G.map.bgm,1.5);checkEro();fade(0,800);lastAuto=performance.now();
+  if(G.flags.atChoice&&G.flags.bossDone)runWhenFree(endingChoice);}
 
 /* =========================================================
    MAIN LOOP
@@ -1569,6 +1591,7 @@ function frame(now){const dt=clamp((now-last)/16.667,0,3);last=now;G.t+=dt;
     G.ntT-=dt;if(G.ntT<=0){G.ntT=rnd(1800,3200);const n=NT[G.mapId];if(n&&G.mapId!=='roof')notify(pick(n),Math.random()<.4);}
     if(G.st.ero>=75&&Math.random()<.0015){SFX.whisper();G.glitch=.6;}}
   if(isFinite(G.viewers)){G.viewers+=Math.random()<.3?ri(0,3):0;G.maxViewers=Math.max(G.maxViewers,G.viewers);}else G.maxViewers=Infinity;
+  if(G.mode==='field'||G.mode==='battle')G.playT=(G.playT||0)+dt/60;
   if(canControl()){G.autoT=(G.autoT||0)+dt;if(G.autoT>3600){G.autoT=0;autoSave(true);}}
   uiT+=dt;if(uiT>20){uiT=0;if(canControl())showObj();else if(G.mode!=='field'||G.dawn||UI.active)$('obj').hidden=true;$('viewers').textContent=isFinite(G.viewers)?fmtV(Math.floor(G.viewers)):'∞';}
   // particles
