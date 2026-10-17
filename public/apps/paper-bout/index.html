@@ -168,7 +168,7 @@ select{appearance:none;font-family:var(--f-body);font-weight:700;font-size:12px;
 .badge{font-family:var(--f-hand);font-size:13px;line-height:1;color:#1b1a17;background:var(--tape);padding:4px 8px 3px;transform:rotate(-2deg)}
 .badge.rec{background:var(--p2);color:#fff;font-family:var(--f-body);font-weight:900;font-size:11px;padding:5px 8px 4px}
 a.btn{text-decoration:none}
-.three{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px}
+.three{display:grid;grid-template-columns:1.5fr 1fr .8fr;gap:8px}
 .three .btn{font-size:14px;padding:0 10px;min-height:48px}
 .shot{margin:0;justify-self:center;width:min(220px,58vw);aspect-ratio:4/5;max-width:100%;box-shadow:0 10px 30px rgba(0,0,0,.6);transform:rotate(-1.5deg);border:1px solid var(--line)}
 .shot img{display:block;width:100%;height:100%;object-fit:cover}
@@ -250,8 +250,8 @@ a.btn{text-decoration:none}
       <div class="rows" id="rRows"></div>
       <figure class="shot" id="rShot" hidden><img id="rImg" alt="リザルト画像"></figure>
       <div class="three" id="rShare" hidden>
-        <button class="btn primary" id="bSaveImg" type="button">画像を保存</button>
-        <a class="btn" id="bShareX" href="https://x.com/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg><span>X</span></a>
+        <a class="btn primary" id="bShareX" href="https://x.com/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg><span>Xに投稿</span></a>
+        <button class="btn" id="bSaveImg" type="button">画像を保存</button>
         <button class="btn" id="bCopy" type="button">コピー</button>
       </div>
       <div class="status" id="shareStatus"></div>
@@ -277,7 +277,7 @@ a.btn{text-decoration:none}
 'use strict';
 /* ================= i18n ================= */
 const I18N={
-ja:{sub:'トイレットペーパー引き出しタイムアタック',solo:'ひとりでタイムアタック',cpu:'CPUと対戦',online:'部屋番号で対戦',easy:'やさしい',normal:'ふつう',hard:'つよい',how:'三角に折られた先っちょを下にスワイプして引き出す。急に引くとミシン目で切れる。芯だけになったらゴール。',best:'ベスト',remain:'残り',tension:'張力',torn:'切れた',pick:'つまみ直し中',done:'出し切った',win:'{p}の勝ち',draw:'引き分け',retry:'もう一度',menu:'メニュー',newRec:'自己ベスト更新',tears:'切れ',on:'音 オン',off:'音 オフ',go:'スタート',roomTitle:'部屋番号で対戦',roomHint:'4桁の部屋番号を入力するか、新しく部屋を作る',join:'入室',create:'部屋を作る',back:'戻る',roomNo:'部屋番号',ready:'準備OK',unready:'準備を取り消す',leave:'退室',waitOpp:'相手の入室を待っています。部屋番号を伝えてください。',bothIn:'そろいました。ふたりとも準備OKで開始。',waitReady:'相手の準備を待っています',stReady:'準備OK',stNot:'準備中',stEmpty:'空席',full:'この部屋は満員です',needCode:'4桁の数字を入力してください',connecting:'接続しています',noRoom:'接続できませんでした。通信環境を確かめて、もう一度試してください。',oppLeft:'相手が退室しました',dnf:'未完走',alias:'通り名',share:'Xでシェア',copy:'コピー',copied:'コピーしました',shareTxt:'紙闘で60mを{t}秒で引き出した。\n通り名【{n}】RANK {r}\n#紙闘'}
+ja:{sub:'トイレットペーパー引き出しタイムアタック',solo:'ひとりでタイムアタック',cpu:'CPUと対戦',online:'部屋番号で対戦',easy:'やさしい',normal:'ふつう',hard:'つよい',how:'三角に折られた先っちょを下にスワイプして引き出す。急に引くとミシン目で切れる。芯だけになったらゴール。',best:'ベスト',remain:'残り',tension:'張力',torn:'切れた',pick:'つまみ直し中',done:'出し切った',win:'{p}の勝ち',draw:'引き分け',retry:'もう一度',menu:'メニュー',newRec:'自己ベスト更新',tears:'切れ',on:'音 オン',off:'音 オフ',go:'スタート',roomTitle:'部屋番号で対戦',roomHint:'4桁の部屋番号を入力するか、新しく部屋を作る',join:'入室',create:'部屋を作る',back:'戻る',roomNo:'部屋番号',ready:'準備OK',unready:'準備を取り消す',leave:'退室',waitOpp:'相手の入室を待っています。部屋番号を伝えてください。',bothIn:'そろいました。ふたりとも準備OKで開始。',waitReady:'相手の準備を待っています',stReady:'準備OK',stNot:'準備中',stEmpty:'空席',full:'この部屋は満員です',needCode:'4桁の数字を入力してください',connecting:'接続しています',noRoom:'接続できませんでした。通信環境を確かめて、もう一度試してください。',oppLeft:'相手が退室しました',dnf:'未完走',alias:'通り名',share:'Xでシェア',copy:'コピー',copied:'コピーしました',shareTxt:'紙闘で60mを{t}秒で引き出した。\n通り名【{n}】RANK {r}\n#紙闘 #ゲーム制作 #gamedev'}
 };
 const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let lang='ja';
@@ -562,33 +562,33 @@ function checkAllDone(){if(players.every(q=>q.state==='done'||q.ctrl==='idle'))r
 
 /* ================= ranks & street names ================= */
 const RANKS=[
- {r:'SSS',t:22.8,n:'六十メートルの暴君',f:'この地下で、紙はお前に逆らわない。'},
- {r:'SS',t:24.7,n:'カラカラの帝王',f:'蓋が鳴りやむ前に、芯が見えていた。'},
- {r:'S+',t:26.5,n:'地下最速の指',f:'誰もその指の動きを見ていない。'},
- {r:'S',t:28.6,n:'ミシン目を読む者',f:'どこで切れるか、指が先に知っている。'},
- {r:'A+',t:31,n:'蓋鳴らしの名手',f:'カラカラが、拍手に聞こえ始めた。'},
- {r:'A',t:33.8,n:'地下の引き手',f:'壁の正の字に、名前を刻んでいい。'},
- {r:'B+',t:37.3,n:'夜更けの挑戦者',f:'電球が揺れるたび、少しずつ速くなる。'},
- {r:'B',t:42,n:'蓋を鳴らす常連',f:'カラカラの音で、誰が来たか分かる。'},
- {r:'C+',t:47.8,n:'芯を探す者',f:'あと何メートルかは、まだ数えている。'},
- {r:'C',t:56,n:'三角折りの新入り',f:'最初の一枚に、まだ遠慮がある。'},
- {r:'D',t:70,n:'芯に届かぬ者',f:'紙はまだ、お前を試している。'},
- {r:'E',t:Infinity,n:'紙に遊ばれし者',f:'今夜は、ロールのほうが一枚上手だった。'}];
+ {k:'sss',r:'SSS',t:22.8,n:'六十メートルの暴君',f:'この地下で、紙はお前に逆らわない。'},
+ {k:'ss',r:'SS',t:24.7,n:'カラカラの帝王',f:'蓋が鳴りやむ前に、芯が見えていた。'},
+ {k:'s-plus',r:'S+',t:26.5,n:'地下最速の指',f:'誰もその指の動きを見ていない。'},
+ {k:'s',r:'S',t:28.6,n:'ミシン目を読む者',f:'どこで切れるか、指が先に知っている。'},
+ {k:'a-plus',r:'A+',t:31,n:'蓋鳴らしの名手',f:'カラカラが、拍手に聞こえ始めた。'},
+ {k:'a',r:'A',t:33.8,n:'地下の引き手',f:'壁の正の字に、名前を刻んでいい。'},
+ {k:'b-plus',r:'B+',t:37.3,n:'夜更けの挑戦者',f:'電球が揺れるたび、少しずつ速くなる。'},
+ {k:'b',r:'B',t:42,n:'蓋を鳴らす常連',f:'カラカラの音で、誰が来たか分かる。'},
+ {k:'c-plus',r:'C+',t:47.8,n:'芯を探す者',f:'あと何メートルかは、まだ数えている。'},
+ {k:'c',r:'C',t:56,n:'三角折りの新入り',f:'最初の一枚に、まだ遠慮がある。'},
+ {k:'d',r:'D',t:70,n:'芯に届かぬ者',f:'紙はまだ、お前を試している。'},
+ {k:'e',r:'E',t:Infinity,n:'紙に遊ばれし者',f:'今夜は、ロールのほうが一枚上手だった。'}];
 /* conditions that override the street name; the rank letter always comes from the time */
 const SPECIAL=[
- {ok:o=>o.time>=105,n:'芯に住む者',f:'ここで暮らしたほうが早い。'},
- {ok:o=>o.tears>=10,n:'床一面の祝祭',f:'紙吹雪の中で、一人だけ笑っていた。'},
- {ok:o=>o.tears>=6,n:'紙吹雪製造機',f:'床が、祝ってくれている。'},
- {ok:o=>o.tears>=3,n:'ちぎり魔',f:'引くより先に、裂いていた。'},
- {ok:o=>o.margin!=null&&o.margin>0&&o.margin<.1,n:'紙一重の勝者',f:'差はミシン目ひとつ分もなかった。'},
- {ok:o=>o.margin!=null&&o.margin<0&&o.margin>-.1,n:'紙一重に泣く者',f:'あと一枚、指が届かなかった。'},
- {ok:o=>o.margin!=null&&o.margin>=12,n:'格の違い',f:'相手が半分のとき、もう芯を見ていた。'},
- {ok:o=>o.margin!=null&&o.margin<0&&o.mode==='cpu'&&o.diff==='easy',n:'やさしさに負けた者',f:'CPUは手加減していた。たぶん。'},
- {ok:o=>o.tears===0&&o.time<=24.7,n:'無音の暴君',f:'一枚も切らず、誰より速く。'},
- {ok:o=>Math.round(o.time*100)%100===0,n:'秒針と同期する者',f:'コンマ以下を、すべて捨ててきた。'}];
-function rankOf(time,tears,margin){const k=RANKS.find(x=>time<=x.t);let n=k.n,f=k.f,sp=false;const o={time,tears,margin,mode:gameMode,diff};
- for(const x of SPECIAL){if(x.ok(o)){n=x.n;f=x.f;sp=true;break;}}
- return {r:k.r,n,f,sp,top:k.r.startsWith('S'),clean:tears===0&&time<=33.8};}
+ {ok:o=>o.time>=105,k:'shin-ni-sumu',n:'芯に住む者',f:'ここで暮らしたほうが早い。'},
+ {ok:o=>o.tears>=10,k:'shukusai',n:'床一面の祝祭',f:'紙吹雪の中で、一人だけ笑っていた。'},
+ {ok:o=>o.tears>=6,k:'kamifubuki',n:'紙吹雪製造機',f:'床が、祝ってくれている。'},
+ {ok:o=>o.tears>=3,k:'chigiri-ma',n:'ちぎり魔',f:'引くより先に、裂いていた。'},
+ {ok:o=>o.margin!=null&&o.margin>0&&o.margin<.1,k:'hitoe-win',n:'紙一重の勝者',f:'差はミシン目ひとつ分もなかった。'},
+ {ok:o=>o.margin!=null&&o.margin<0&&o.margin>-.1,k:'hitoe-lose',n:'紙一重に泣く者',f:'あと一枚、指が届かなかった。'},
+ {ok:o=>o.margin!=null&&o.margin>=12,k:'kaku-no-chigai',n:'格の違い',f:'相手が半分のとき、もう芯を見ていた。'},
+ {ok:o=>o.margin!=null&&o.margin<0&&o.mode==='cpu'&&o.diff==='easy',k:'yasashisa',n:'やさしさに負けた者',f:'CPUは手加減していた。たぶん。'},
+ {ok:o=>o.tears===0&&o.time<=24.7,k:'muon',n:'無音の暴君',f:'一枚も切らず、誰より速く。'},
+ {ok:o=>Math.round(o.time*100)%100===0,k:'byoshin',n:'秒針と同期する者',f:'コンマ以下を、すべて捨ててきた。'}];
+function rankOf(time,tears,margin){const k=RANKS.find(x=>time<=x.t);let n=k.n,f=k.f,sp=false,key=k.k;const o={time,tears,margin,mode:gameMode,diff};
+ for(const x of SPECIAL){if(x.ok(o)){n=x.n;f=x.f;sp=true;key=x.k;break;}}
+ return {r:k.r,n,f,sp,key,top:k.r.startsWith('S'),clean:tears===0&&time<=33.8};}
 
 /* ================= HUD ================= */
 let hudEls=[];
@@ -662,13 +662,19 @@ function showResult(){const snap=grabFrame();phase='result';requestAnimationFram
  const mine=players[0],rk=$('#rRank'),sh=$('#rShare');
  const margin=players.length>1&&isFinite(fins[1])?fins[1]-fins[0]:(players.length>1?99:null);
  if(mine&&mine.fin!=null){const R=rankOf(mine.fin,mine.tears,margin);rk.hidden=false;sh.hidden=false;rk.classList.toggle('top',R.top);$('#rLetter').textContent=R.r;$('#rName').textContent=R.n;$('#rFlavor').textContent=R.f;$('#rClean').hidden=!R.clean;
-  const txt=tr('shareTxt').replace('{t}',mine.fin.toFixed(2)).replace('{n}',R.n).replace('{r}',R.r);shareText=txt;$('#bShareX').href='https://x.com/intent/post?text='+encodeURIComponent(txt);$('#bCopy').textContent=tr('copy');}
+  const txt=tr('shareTxt').replace('{t}',mine.fin.toFixed(2)).replace('{n}',R.n).replace('{r}',R.r);shareText=txt;shareUrl=RANK_PAGE+R.key+'/';$('#bShareX').href='https://x.com/intent/post?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(shareUrl);$('#bCopy').textContent=tr('copy');}
  else{rk.hidden=true;sh.hidden=true;}
  $('#rShot').hidden=true;$('#shareStatus').textContent='';shareBlob=null;
  if(mine&&mine.fin!=null){const R=rankOf(mine.fin,mine.tears,margin);const vs=players.length>1?(fins[0]<fins[1]-.005?'WIN':fins[0]>fins[1]+.005?'LOSE':'DRAW'):null;
   composeShare(snap,{R,time:mine.fin,tears:mine.tears,rec,vs}).then(b=>{if(!b)return;shareBlob=b;const u=URL.createObjectURL(b);const im=$('#rImg');if(im.dataset.u)URL.revokeObjectURL(im.dataset.u);im.dataset.u=u;im.src=u;$('#rShot').hidden=false;});}
  $('#result').hidden=false;MUS.target='title';}
-let shareText='',shareBlob=null;
+let shareText='',shareBlob=null,shareUrl='';
+/* each rank and street name has its own page on the site whose link card shows that rank, so a plain X post still carries a picture */
+const RANK_PAGE='https://uimemocho.github.io/apps/paper-bout/r/';
+/* phones: the share sheet hands X the result image itself; the claude.ai viewer refuses Web Share, so it keeps the link */
+$('#bShareX').addEventListener('click',e=>{const b=shareBlob;if(!b||window.claude||typeof File!=='function'||!navigator.canShare||!matchMedia('(pointer:coarse)').matches)return;
+ const file=new File([b],'shito_result.png',{type:'image/png'});let ok=false;try{ok=navigator.canShare({files:[file]});}catch(_){}if(!ok)return;
+ e.preventDefault();navigator.share({files:[file],text:shareText+'\n'+shareUrl}).catch(()=>{});});
 /* the WebGL buffer is only readable right after a render, so draw and copy in one go */
 function grabFrame(){try{renderer.render(scene,camera);const src=renderer.domElement,c=mkCanvas(src.width,src.height);c.getContext('2d').drawImage(src,0,0);return c;}catch(e){return null;}}
 function modeLabel(){if(gameMode==='solo')return 'SOLO TIME ATTACK';if(gameMode==='cpu')return 'VS CPU · '+({easy:'EASY',normal:'NORMAL',hard:'HARD'}[diff]||'');return 'ONLINE VS';}
@@ -711,14 +717,14 @@ async function composeShare(snap,o){try{if(document.fonts&&document.fonts.ready)
 function shareStatus(t){$('#shareStatus').textContent=t||'';}
 $('#bSaveImg').onclick=async()=>{const b=shareBlob;if(!b){shareStatus('画像を作っています。少し待ってからもう一度押してください。');return;}
  const file=(typeof File==='function')?new File([b],'shito_result.png',{type:'image/png'}):null;
- try{if(file&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:shareText});shareStatus('');return;}}catch(e){if(e&&e.name==='AbortError')return;}
+ try{if(file&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:shareText+'\n'+shareUrl});shareStatus('');return;}}catch(e){if(e&&e.name==='AbortError')return;}
  let dl=null;try{dl=(window.claude&&window.claude.use)?await window.claude.use('downloads'):null;}catch(e){dl=null;}
  if(!dl){shareStatus('上の画像を長押しして保存し、Xの投稿に添付してください。');return;}
  try{await dl.save({filename:'shito_result.png',data:b});shareStatus('保存しました。Xの投稿に画像を添付してください。');}
  catch(e){const c=e&&e.code;if(c==='declined')shareStatus('');else if(c==='rate_limited')shareStatus('保存の確認が開いています。そちらで選んでください。');else shareStatus('ここでは保存できません。上の画像を長押しして保存してください。');}};
 $('#bCopy').onclick=()=>{const b=$('#bCopy');const done=()=>{b.textContent=tr('copied');setTimeout(()=>b.textContent=tr('copy'),1600);};
- try{navigator.clipboard.writeText(shareText).then(done,()=>fallbackCopy(done));}catch(e){fallbackCopy(done);}};
-function fallbackCopy(done){const ta=document.createElement('textarea');ta.value=shareText;ta.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();if(ok)done();}
+ try{navigator.clipboard.writeText(shareText+'\n'+shareUrl).then(done,()=>fallbackCopy(done));}catch(e){fallbackCopy(done);}};
+function fallbackCopy(done){const ta=document.createElement('textarea');ta.value=shareText+'\n'+shareUrl;ta.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();if(ok)done();}
 $('#bSolo').onclick=()=>startGame('solo');$('#bCpu').onclick=()=>{audioInit();showDiff(true);};$('#bOnline').onclick=()=>{audioInit();openRoomScreen();};
 $('#bRetry').onclick=()=>{if(gameMode==='online'&&NET.room){backToLobby();}else startGame(gameMode);};
 $('#bMenu').onclick=toTitle;$('#bQuit').onclick=toTitle;
