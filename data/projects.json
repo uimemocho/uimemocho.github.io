@@ -406,5 +406,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-17T12:40:00Z",
     "updatedAt": "2026-10-17T23:43:03Z"
+  },
+  {
+    "slug": "kozeni-gp",
+    "title": "ころがれ！小銭GP",
+    "kind": "game",
+    "description": "日本の硬貨が日常を転がる3Dアイテムレース。デコピンのタイミングで加速、スワイプで操作。4コース3周バトル、部屋番号で友だちと対戦。9言語対応。",
+    "url": "/apps/kozeni-gp/",
+    "thumbnail": "/project-thumbnails/kozeni-gp.webp",
+    "sourceFolder": "261018_ころがれ小銭GP",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-18T10:50:00Z",
+    "updatedAt": "2026-10-18T10:50:00Z"
   }
 ]
