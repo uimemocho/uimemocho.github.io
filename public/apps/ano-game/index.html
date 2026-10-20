@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0a10">
+<meta name="description" content="あの広告の「ピン抜き」を、ちゃんと遊べるパズルにしました。水・マグマ・コイン・敵、抜く順番だけが正解。全6ステージ、9言語対応。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="uimemocho">
+<meta property="og:title" content="あのゲーム">
+<meta property="og:description" content="あの広告の「ピン抜き」を、ちゃんと遊べるパズルにしました。水・マグマ・コイン・敵、抜く順番だけが正解。全6ステージ、9言語対応。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/ano-game/">
+<meta property="og:image" content="https://uimemocho.github.io/apps/ano-game/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="あのゲーム">
+<meta name="twitter:description" content="あの広告の「ピン抜き」を、ちゃんと遊べるパズルにしました。水・マグマ・コイン・敵、抜く順番だけが正解。全6ステージ、9言語対応。">
+<meta name="twitter:image" content="https://uimemocho.github.io/apps/ano-game/ogp.png">
+<title>あのゲーム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a10; --panel:#17141f; --panel2:#211c2c; --line:#332b45;
+  --text:#e8e4f0; --dim:#8b83a3; --mute:#5c5470;
+  --tape:#ffd400; --tape2:#111014;
+  --lava:#ff4d16; --water:#2f8cff; --gold:#ffcf3f; --foe:#a855f7; --hero:#35c2ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Noto Sans JP',system-ui,sans-serif; font-weight:700;
+  font-feature-settings:'tnum' 1; overflow:hidden;
+  overscroll-behavior:none; touch-action:manipulation;
+}
+#app{
+  height:100dvh; display:flex; flex-direction:column; gap:6px;
+  padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 8px);
+  max-width:520px; margin:0 auto;
+}
+
+/* ---------- ヘッダ ---------- */
+.head{display:flex; align-items:center; gap:8px}
+h1{
+  font-family:'Dela Gothic One',sans-serif; font-weight:400;
+  font-size:clamp(21px,6.4vw,28px); letter-spacing:.02em; line-height:1;
+  display:flex; align-items:center; gap:7px;
+}
+h1 .redact{
+  display:inline-block; width:clamp(64px,20vw,96px); height:.72em;
+  background:#000; border:1px solid #000; box-shadow:0 0 0 2px var(--bg);
+  transform:skewX(-4deg);
+}
+.sub{font-size:9px; font-weight:400; color:var(--mute); letter-spacing:.02em; margin-top:3px}
+.icnbtn{
+  margin-left:auto; width:38px; height:38px; flex:none; border-radius:9px;
+  background:var(--panel); border:1px solid var(--line); color:var(--dim);
+  font-size:15px; cursor:pointer; font-family:inherit;
+}
+.icnbtn:active{background:var(--panel2)}
+.icnbtn:focus-visible,.btn:focus-visible,.stg:focus-visible{outline:2px solid var(--tape); outline-offset:2px}
+
+/* ---------- ステージ選択 ---------- */
+.stages{display:flex; gap:5px}
+.stg{
+  flex:1; height:30px; border-radius:7px; cursor:pointer;
+  background:var(--panel); border:1px solid var(--line); color:var(--mute);
+  font-family:'Noto Sans JP',sans-serif; font-weight:900; font-size:12px;
+}
+.stg.on{background:var(--tape); border-color:var(--tape); color:#161016}
+.stg.done{color:var(--text); border-color:#4a3f63}
+.stg.lock{opacity:.34; cursor:not-allowed}
+
+/* ---------- HUD ---------- */
+.hud{display:flex; align-items:center; gap:9px; background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:7px 9px}
+.hud .lab{font-size:9px; color:var(--dim); letter-spacing:.08em}
+.bar{flex:1; height:9px; background:#0d0b12; border:1px solid var(--line); border-radius:99px; overflow:hidden}
+.bar i{display:block; height:100%; width:0%; background:linear-gradient(90deg,#ffb020,var(--gold)); transition:width .12s linear}
+.num{font-size:12px; font-weight:900; letter-spacing:.02em}
+.num b{color:var(--gold)}
+.pins{font-size:10px; color:var(--dim)}
+.pins b{color:var(--text); font-size:12px}
+
+/* ---------- ステージ枠 ---------- */
+.stagewrap{
+  flex:1 1 0; min-height:0; position:relative;
+  padding:7px; border-radius:12px; border:1px solid var(--line);
+  background:repeating-linear-gradient(135deg,var(--tape) 0 12px,var(--tape2) 12px 24px);
+}
+.inner{
+  position:absolute; inset:7px; display:flex; align-items:center; justify-content:center;
+  background:#0d0b12; border-radius:5px; overflow:hidden;
+}
+canvas{
+  display:block; max-width:100%; max-height:100%; width:auto; height:auto;
+  min-width:0; min-height:0;
+}
+.badge{
+  position:absolute; top:-7px; right:8px; z-index:3;
+  background:#e11d48; color:#fff; font-size:9px; font-weight:900; letter-spacing:.04em;
+  padding:3px 7px; border-radius:3px; transform:rotate(-3deg); box-shadow:0 2px 0 #7f1030;
+}
+.tip{font-size:10px; font-weight:400; color:var(--dim); text-align:center; min-height:15px; line-height:1.35}
+
+/* ---------- 下部 ---------- */
+.foot{display:flex; gap:6px}
+.btn{
+  flex:1; height:42px; border-radius:9px; cursor:pointer; font-family:inherit;
+  font-weight:900; font-size:13px; letter-spacing:.04em;
+  background:var(--panel); border:1px solid var(--line); color:var(--text);
+}
+.btn:active{transform:translateY(1px)}
+.btn.main{background:var(--tape); border-color:var(--tape); color:#161016}
+
+/* ---------- オーバーレイ ---------- */
+.ov{
+  position:absolute; inset:0; z-index:5; display:none;
+  align-items:center; justify-content:center; flex-direction:column; gap:12px;
+  background:rgba(8,7,12,.82); backdrop-filter:blur(2px); padding:18px; text-align:center;
+}
+.ov.on{display:flex}
+.ov h2{
+  font-family:'Dela Gothic One',sans-serif; font-weight:400; font-size:clamp(26px,9vw,38px);
+  line-height:1; position:relative; display:inline-block; padding:0 6px;
+}
+.ov.clear h2{color:var(--tape)}
+.ov.fail h2{color:#ff466e}
+.ov h2 .cens{
+  position:absolute; left:-4px; right:-4px; top:38%; height:20%; background:#000;
+  transform-origin:left center; animation:unbar .5s cubic-bezier(.6,0,.2,1) forwards;
+}
+@keyframes unbar{0%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+.ov p{font-size:11px; font-weight:400; color:var(--dim); line-height:1.6}
+.ov .row{display:flex; gap:8px; width:100%; max-width:280px}
+.ov{overflow:auto}
+.cta{
+  display:none; width:100%; max-width:280px; position:relative;
+  background:linear-gradient(160deg,#241d33,#15111e); border:1px solid #4a3f63;
+  border-radius:12px; padding:13px 12px 10px; text-align:center;
+}
+.ov.clear .cta{display:block}
+.cta .ad{
+  position:absolute; top:-8px; left:10px; background:#ffd400; color:#161016;
+  font-size:9px; font-weight:900; letter-spacing:.06em; padding:2px 6px; border-radius:3px;
+}
+.cta .lead{font-size:12px; font-weight:900; color:var(--text); line-height:1.5}
+.cta .lead em{font-style:normal; color:var(--tape)}
+.cta .url{font-size:10px; font-weight:400; color:var(--dim); margin-top:5px; letter-spacing:.02em}
+.ctabtn{
+  margin-top:9px; display:flex; align-items:center; justify-content:center; gap:9px;
+  height:48px; border-radius:10px; text-decoration:none;
+  background:linear-gradient(180deg,#3ee07a,#16a24a); color:#fff;
+  font-size:15px; font-weight:900; letter-spacing:.04em;
+  border:1px solid #0f7a35; box-shadow:0 3px 0 #0b5c28;
+  text-shadow:0 1px 0 rgba(0,0,0,.25);
+  animation:ctapulse 1.1s ease-in-out infinite;
+}
+.ctabtn:active{transform:translateY(2px) scale(.98); box-shadow:0 1px 0 #0b5c28; animation:none}
+.ctabtn:focus-visible{outline:2px solid var(--tape); outline-offset:2px}
+.ctabtn .tri{width:0; height:0; border-left:9px solid #fff; border-top:6px solid transparent; border-bottom:6px solid transparent}
+@keyframes ctapulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.05)}
+}
+.ov.clear .row .btn{height:38px; font-size:12px}
+.head>div:first-child{min-width:0; flex:1}
+h1{white-space:nowrap}
+h1.long{font-size:clamp(17px,5vw,23px)}
+h1.long .redact{width:clamp(36px,11vw,64px)}
+.sub{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.hbtns{margin-left:auto; display:flex; gap:6px; flex:none}
+.hbtns .icnbtn{margin-left:0}
+#langbtn{width:auto; min-width:38px; padding:0 8px; font-size:11px; font-weight:900; letter-spacing:.04em}
+.langs{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:100%; max-width:300px}
+.chip{height:38px; border-radius:8px; background:var(--panel); border:1px solid var(--line); color:var(--text);
+  font-family:inherit; font-size:12px; font-weight:700; cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--tape); border-color:var(--tape); color:#161016}
+.ov.lang .row{display:none}
+.ov.lang .langs{display:grid}
+.ov:not(.lang) .langs{display:none}
+.icnbtn.muted{color:var(--mute); text-decoration:line-through}
+
+@media (max-height:560px){
+  .sub{display:none}
+  .tip{display:none}
+  h1{font-size:19px}
+  .btn{height:36px}
+  .stg{height:26px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ctabtn{animation:none}
+  .ov h2 .cens{animation:none; transform:scaleX(0)}
+  *{transition:none!important}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="head">
+    <div>
+      <h1><span data-i="title">あのゲーム</span><span class="redact" aria-hidden="true"></span></h1>
+      <div class="sub" data-i="sub"></div>
+    </div>
+    <div class="hbtns"><button class="icnbtn" id="langbtn" aria-label="Language">JA</button><button class="icnbtn" id="snd" aria-label="sound" aria-pressed="false">♪</button></div>
+  </div>
+
+  <div class="stages" id="stages"></div>
+
+  <div class="hud">
+    <span class="lab" data-i="coins"></span>
+    <span class="bar"><i id="gbar"></i></span>
+    <span class="num"><b id="gnow">0</b> / <span id="ggoal">0</span></span>
+    <span class="pins"><span data-i="pins"></span> <b id="pleft">0</b></span>
+  </div>
+
+  <div class="stagewrap">
+    <div class="badge" id="badge" data-i="badge"></div>
+    <div class="inner">
+      <canvas id="cv"></canvas>
+      <div class="ov" id="ov">
+        <h2 id="ovt">クリア<span class="cens"></span></h2>
+        <p id="ovp"></p>
+        <div class="cta" id="cta">
+          <span class="ad">PR</span>
+          <div class="lead" id="ctalead"></div>
+          <a class="ctabtn" id="ctabtn" href="https://uimemocho.github.io/" target="_blank" rel="noopener">
+            <span class="tri" aria-hidden="true"></span><span data-i="ctaBtn"></span>
+          </a>
+          <div class="url">uimemocho.github.io</div>
+        </div>
+        <div class="langs" id="langs"></div>
+        <div class="row">
+          <button class="btn" id="ovretry">もう一回</button>
+          <button class="btn main" id="ovnext">つぎへ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip" id="tip"></div>
+
+  <div class="foot">
+    <button class="btn" id="retry" data-i="retry"></button>
+    <button class="btn" id="how" data-i="how"></button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   あのゲーム / CORE SIM  — DOM非依存・決定論的
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var W = 30, H = 44;
+
+  var E = 0, WALL = 1, PIN = 2, WATER = 3, LAVA = 4, GOLD = 5, STEAM = 6, SOLID = 7;
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  var HERO_W = 5, HERO_H = 8, FOE_W = 5, FOE_H = 6;
+
+  /* ---------- レベル定義 ----------
+     walls : [x,y,w,h]
+     pins  : {x,y,w,h}
+     mats  : [type, x,y,w,h]  type: 'GOLD'|'LAVA'|'WATER'
+     hero  : [x,y]  (5x8 の左上)
+     foes  : [[x,y]] (5x6 の左上)
+  --------------------------------------------------- */
+  var LEVELS = [
+    /* 1 ── チュートリアル：抜けば落ちる */
+    {
+      id: 1, name: 'まずは抜く', goal: 26,
+      tip: 'ピンをタップして抜く。落ちたお宝がキャラに触れれば回収。',
+      walls: [[1, 41, 28, 2], [1, 8, 1, 9], [9, 8, 1, 9], [10, 8, 1, 9], [19, 8, 1, 9]],
+      pins: [{ x: 2, y: 17, w: 7, h: 1 }, { x: 11, y: 17, w: 8, h: 1 }],
+      mats: [['LAVA', 2, 8, 7, 9], ['GOLD', 11, 8, 8, 9]],
+      hero: [13, 33], foes: []
+    },
+    /* 2 ── 水はマグマを消す */
+    {
+      id: 2, name: 'しょうか', goal: 24,
+      tip: '水はマグマを消す。何から抜くか。',
+      walls: [
+        [1, 41, 28, 2],
+        [12, 6, 1, 12], [12, 19, 1, 22], [18, 6, 1, 35],
+        [2, 12, 1, 7], [2, 19, 10, 1]
+      ],
+      pins: [
+        { x: 3, y: 18, w: 9, h: 1 },
+        { x: 13, y: 15, w: 5, h: 1 },
+        { x: 13, y: 28, w: 5, h: 1 }
+      ],
+      mats: [['WATER', 3, 12, 9, 6], ['GOLD', 13, 8, 5, 7], ['LAVA', 13, 22, 5, 6]],
+      hero: [13, 33], foes: []
+    },
+    /* 3 ── 敵は道をふさぎ、お宝を横取りする */
+    {
+      id: 3, name: 'じゃまもの', goal: 20,
+      tip: '敵はお宝を横取りする。マグマは敵を溶かす。',
+      walls: [
+        [1, 41, 28, 2],
+        [12, 6, 1, 11], [12, 18, 1, 23],
+        [18, 6, 1, 11], [18, 18, 1, 23],
+        [2, 11, 1, 7], [2, 18, 10, 1],
+        [28, 13, 1, 5], [19, 13, 1, 4], [19, 18, 9, 1]
+      ],
+      pins: [
+        { x: 3, y: 17, w: 9, h: 1 },
+        { x: 20, y: 17, w: 8, h: 1 },
+        { x: 13, y: 14, w: 5, h: 1 },
+        { x: 13, y: 28, w: 5, h: 1 }
+      ],
+      mats: [['WATER', 3, 11, 9, 6], ['LAVA', 20, 13, 8, 4], ['GOLD', 13, 8, 5, 6]],
+      hero: [13, 33], foes: [[13, 20]]
+    },
+    /* 4 ── 二重底 */
+    {
+      id: 4, name: 'にじゅうぞこ', goal: 20,
+      tip: '下に落とす前に、上を空にする。',
+      walls: [
+        [1, 41, 28, 2],
+        [11, 4, 1, 26], [19, 4, 1, 26],
+        [1, 22, 10, 1], [20, 22, 9, 1],
+        [1, 30, 10, 1], [20, 30, 9, 1]
+      ],
+      pins: [
+        { x: 12, y: 13, w: 7, h: 1 },
+        { x: 12, y: 21, w: 7, h: 1 },
+        { x: 12, y: 29, w: 7, h: 1 }
+      ],
+      mats: [['LAVA', 12, 8, 7, 5], ['GOLD', 12, 14, 7, 7]],
+      hero: [13, 33], foes: []
+    },
+    /* 5 ── 液体は穴を探す。粉は真下に落ちる */
+    {
+      id: 5, name: 'ふりわけ', goal: 18,
+      tip: 'マグマは横に広がって穴へ流れる。お宝は真下にしか落ちない。',
+      walls: [
+        [1, 41, 28, 2],
+        [4, 18, 1, 11], [25, 18, 1, 11], [4, 28, 22, 1],
+        [12, 19, 1, 6], [18, 19, 1, 6],
+        [12, 29, 1, 12], [18, 29, 1, 12]
+      ],
+      pins: [
+        { x: 6, y: 28, w: 4, h: 1 },
+        { x: 13, y: 28, w: 5, h: 1 },
+        { x: 13, y: 25, w: 5, h: 1 }
+      ],
+      mats: [['LAVA', 5, 26, 20, 2], ['GOLD', 13, 20, 5, 5]],
+      hero: [13, 33], foes: []
+    },
+    /* 6 ── 総合 */
+    {
+      id: 6, name: 'あのステージ', goal: 18,
+      tip: '全部ある。順番だけが正解。',
+      walls: [
+        [1, 41, 28, 2],
+        [12, 2, 1, 15], [12, 18, 1, 23], [18, 2, 1, 39],
+        [2, 11, 1, 7], [2, 18, 10, 1]
+      ],
+      pins: [
+        { x: 3, y: 17, w: 9, h: 1 },
+        { x: 13, y: 24, w: 5, h: 1 },
+        { x: 13, y: 32, w: 5, h: 1 },
+        { x: 13, y: 13, w: 5, h: 1 },
+        { x: 13, y: 6, w: 5, h: 1 }
+      ],
+      mats: [
+        ['WATER', 3, 11, 9, 6], ['LAVA', 13, 2, 5, 4],
+        ['GOLD', 13, 8, 5, 5], ['LAVA', 13, 20, 5, 4]
+      ],
+      hero: [13, 33], foes: [[13, 26]]
+    }
+  ];
+
+  var MAT = { GOLD: GOLD, LAVA: LAVA, WATER: WATER, WALL: WALL };
+
+  /* ---------- Sim ---------- */
+  function Sim(level, seed) {
+    this.level = level;
+    this.seed = seed === undefined ? 20270101 : seed;
+    this.reset();
+  }
+
+  Sim.prototype.reset = function () {
+    var lv = this.level, i, r;
+    this.rand = mulberry32(this.seed);
+    this.g = new Uint8Array(W * H);
+    this.ent = new Int16Array(W * H); this.ent.fill(-1);
+    this.pinAt = new Int16Array(W * H); this.pinAt.fill(-1);
+    this.life = new Uint8Array(W * H);
+    this.fdir = new Int8Array(W * H);
+    this.movedF = new Uint8Array(W * H);
+
+    this.tick = 0;
+    this.moves = 0;
+    this.stillFor = 0;
+    this.gold = 0;
+    this.melted = 0;
+    this.stolen = 0;
+    this.state = 'ready';      /* ready | run | clear | fail */
+    this.failReason = '';
+    this.fx = [];              /* 演出イベント（UIが吸い出す） */
+
+    /* 外枠 */
+    this.fill(WALL, 0, 0, 1, H);
+    this.fill(WALL, W - 1, 0, 1, H);
+    this.fill(WALL, 0, H - 2, W, 2);
+
+    for (i = 0; i < (lv.walls || []).length; i++) {
+      r = lv.walls[i]; this.fill(WALL, r[0], r[1], r[2], r[3]);
+    }
+
+    /* ピン */
+    this.pins = [];
+    for (i = 0; i < lv.pins.length; i++) {
+      var p = lv.pins[i];
+      this.pins.push({ x: p.x, y: p.y, w: p.w, h: p.h, pulled: false, frac: 0, idx: i });
+      this.fillPin(i, p.x, p.y, p.w, p.h);
+    }
+
+    /* エンティティ */
+    this.entities = [];
+    var hx = lv.hero[0], hy = lv.hero[1];
+    this.entities.push({ kind: 'hero', x: hx, y: hy, w: HERO_W, h: HERO_H, alive: true });
+    for (i = 0; i < (lv.foes || []).length; i++) {
+      this.entities.push({ kind: 'foe', x: lv.foes[i][0], y: lv.foes[i][1], w: FOE_W, h: FOE_H, alive: true });
+    }
+    for (i = 0; i < this.entities.length; i++) this.stampEnt(i);
+
+    /* 物質 */
+    for (i = 0; i < (lv.mats || []).length; i++) {
+      var m = lv.mats[i];
+      this.fill(MAT[m[0]], m[1], m[2], m[3], m[4]);
+    }
+    this.goldTotal = this.count(GOLD);
+    return this;
+  };
+
+  Sim.prototype.fill = function (t, x, y, w, h) {
+    for (var j = 0; j < h; j++) for (var k = 0; k < w; k++) {
+      var xx = x + k, yy = y + j;
+      if (xx < 0 || yy < 0 || xx >= W || yy >= H) continue;
+      this.g[yy * W + xx] = t;
+    }
+  };
+  Sim.prototype.fillPin = function (id, x, y, w, h) {
+    for (var j = 0; j < h; j++) for (var k = 0; k < w; k++) {
+      var xx = x + k, yy = y + j;
+      if (xx < 0 || yy < 0 || xx >= W || yy >= H) continue;
+      var i = yy * W + xx;
+      this.g[i] = PIN; this.pinAt[i] = id;
+    }
+  };
+  Sim.prototype.stampEnt = function (id) {
+    var e = this.entities[id];
+    for (var j = 0; j < e.h; j++) for (var k = 0; k < e.w; k++) {
+      var i = (e.y + j) * W + (e.x + k);
+      this.g[i] = SOLID; this.ent[i] = id;
+    }
+  };
+  Sim.prototype.clearEnt = function (id) {
+    var e = this.entities[id];
+    for (var j = 0; j < e.h; j++) for (var k = 0; k < e.w; k++) {
+      var i = (e.y + j) * W + (e.x + k);
+      if (this.ent[i] === id) { this.g[i] = E; this.ent[i] = -1; }
+    }
+    e.alive = false;
+  };
+  Sim.prototype.count = function (t) {
+    var n = 0; for (var i = 0; i < W * H; i++) if (this.g[i] === t) n++; return n;
+  };
+
+  /* ピンを frac(0→1) の割合まで引き抜く。抜けた先端から順に穴が開く */
+  Sim.prototype.retract = function (id, frac) {
+    var p = this.pins[id];
+    if (!p || p.pulled) return false;
+    if (this.state === 'clear' || this.state === 'fail') return false;
+    frac = frac < 0 ? 0 : (frac > 1 ? 1 : frac);
+    var horiz = p.w >= p.h;
+    var len = horiz ? p.w : p.h;
+    var keep = Math.round(len * (1 - frac));   /* まだ棒が残っている長さ */
+    var changed = 0, j, k, i;
+    for (var n = keep; n < len; n++) {
+      if (horiz) {
+        for (j = 0; j < p.h; j++) {
+          i = (p.y + j) * W + (p.x + n);
+          if (this.g[i] === PIN && this.pinAt[i] === id) { this.g[i] = E; this.pinAt[i] = -1; changed++; }
+        }
+      } else {
+        for (k = 0; k < p.w; k++) {
+          i = (p.y + n) * W + (p.x + k);
+          if (this.g[i] === PIN && this.pinAt[i] === id) { this.g[i] = E; this.pinAt[i] = -1; changed++; }
+        }
+      }
+    }
+    p.frac = frac;
+    if (frac >= 1) p.pulled = true;
+    if (changed) { this.state = 'run'; this.stillFor = 0; }
+    return changed > 0;
+  };
+
+  /* 一気に抜く（テスト・内部用） */
+  Sim.prototype.pull = function (id) {
+    var p = this.pins[id];
+    if (!p || p.pulled) return false;
+    if (this.state === 'clear' || this.state === 'fail') return false;
+    this.retract(id, 1);
+    this.fx.push({ t: 'pull', x: p.x + p.w / 2, y: p.y + p.h / 2 });
+    return true;
+  };
+  Sim.prototype.pinsLeft = function () {
+    var n = 0; for (var i = 0; i < this.pins.length; i++) if (!this.pins[i].pulled) n++; return n;
+  };
+
+  /* 通過可能判定（密度差でめり込む） */
+  function passable(dst, t) {
+    if (dst === E) return true;
+    if (t === GOLD && (dst === WATER || dst === STEAM)) return true;
+    if (t === WATER && dst === STEAM) return true;
+    if (t === LAVA && dst === STEAM) return true;
+    return false;
+  }
+
+  Sim.prototype.swap = function (a, b) {
+    var g = this.g, l = this.life, f = this.fdir;
+    var tg = g[a], tl = l[a], tf = f[a];
+    g[a] = g[b]; l[a] = l[b]; f[a] = f[b];
+    g[b] = tg; l[b] = tl; f[b] = tf;
+    this.movedF[b] = 1;
+    this.moves++;
+  };
+
+  Sim.prototype.step = function () {
+    if (this.state === 'clear' || this.state === 'fail') return this.state;
+    var g = this.g, x, y, i, k;
+    this.tick++;
+    this.moves = 0;
+    this.movedF.fill(0);
+
+    /* --- 落下・拡散 --- */
+    for (y = H - 2; y >= 0; y--) {
+      var l2r = ((this.tick + y) & 1) === 0;
+      for (k = 0; k < W; k++) {
+        x = l2r ? k : (W - 1 - k);
+        i = y * W + x;
+        if (this.movedF[i]) continue;
+        var t = g[i];
+        if (t === WATER || t === LAVA || t === GOLD) this.moveDown(x, y, t);
+        else if (t === STEAM) this.moveUp(x, y);
+      }
+    }
+
+    /* --- 蒸気の寿命 --- */
+    for (i = 0; i < W * H; i++) {
+      if (g[i] === STEAM) { if (--this.life[i] <= 0) { g[i] = E; this.moves++; } }
+    }
+
+    /* --- 反応 --- */
+    this.react();
+
+    /* --- 静止判定 --- */
+    if (this.moves === 0) this.stillFor++; else this.stillFor = 0;
+
+    /* --- 勝敗 --- */
+    var hero = this.entities[0];
+    if (!hero.alive) {
+      this.state = 'fail'; this.failReason = 'マグマに触れた';
+    } else if (this.stillFor >= 3) {
+      if (this.gold >= this.level.goal) {
+        this.state = 'clear';
+      } else if (this.gold + this.count(GOLD) < this.level.goal) {
+        this.state = 'fail';
+        this.failReason = this.melted > 0 ? 'お宝が溶けた'
+          : (this.stolen > 0 ? 'お宝を横取りされた' : 'お宝がたりない');
+      } else if (this.pinsLeft() === 0) {
+        this.state = 'fail';
+        this.failReason = this.stolen > 0 ? 'お宝を横取りされた' : 'お宝がたりない';
+      }
+    }
+    return this.state;
+  };
+
+  Sim.prototype.moveDown = function (x, y, t) {
+    var g = this.g, i = y * W + x, d = (y + 1) * W + x;
+    if (passable(g[d], t)) { this.swap(i, d); return; }
+    var first = this.rand() < 0.5 ? -1 : 1;
+    for (var s = 0; s < 2; s++) {
+      var dx = s === 0 ? first : -first;
+      var nx = x + dx;
+      if (nx < 0 || nx >= W) continue;
+      var dd = (y + 1) * W + nx;
+      if (passable(g[dd], t) && passable(g[y * W + nx], t)) { this.swap(i, dd); return; }
+    }
+    if (t === GOLD) return;                 /* 粉体：横流れなし */
+    /* 液体：横方向。上に同種があれば圧で広がる／近くに落ち口があれば流れる */
+    var LOOK = W;
+    var hasAbove = (y > 0) && (g[(y - 1) * W + x] === t);
+    var fd = this.fdir[i] || (this.rand() < 0.5 ? -1 : 1);
+    for (var s2 = 0; s2 < 2; s2++) {
+      var ddx = s2 === 0 ? fd : -fd;
+      var mx = x + ddx;
+      if (mx < 0 || mx >= W) continue;
+      var mi = y * W + mx;
+      if (!passable(g[mi], t)) continue;
+      var okDrop = false;
+      for (var d = 1; d <= LOOK; d++) {
+        var cx = x + ddx * d;
+        if (cx < 0 || cx >= W) break;
+        if (!passable(g[y * W + cx], t)) break;
+        if (passable(g[(y + 1) * W + cx], t)) { okDrop = true; break; }
+      }
+      if (!okDrop && !hasAbove) continue;
+      this.fdir[i] = ddx; this.swap(i, mi); this.fdir[mi] = ddx; return;
+    }
+  };
+
+  Sim.prototype.moveUp = function (x, y) {
+    var g = this.g, i = y * W + x;
+    if (y <= 0) { g[i] = E; this.moves++; return; }
+    var u = (y - 1) * W + x;
+    if (g[u] === E) { this.swap(i, u); return; }
+    var first = this.rand() < 0.5 ? -1 : 1;
+    for (var s = 0; s < 2; s++) {
+      var nx = x + (s === 0 ? first : -first);
+      if (nx < 0 || nx >= W) continue;
+      var uu = (y - 1) * W + nx;
+      if (g[uu] === E) { this.swap(i, uu); return; }
+    }
+  };
+
+  Sim.prototype.react = function () {
+    var g = this.g, x, y, i, n, ni, nt;
+    var DX = [1, -1, 0, 0], DY = [0, 0, 1, -1];
+    for (y = 0; y < H; y++) {
+      for (x = 0; x < W; x++) {
+        i = y * W + x;
+        var t = g[i];
+        if (t !== LAVA && t !== GOLD) continue;
+        for (n = 0; n < 4; n++) {
+          var nx = x + DX[n], ny = y + DY[n];
+          if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+          ni = ny * W + nx; nt = g[ni];
+          if (t === LAVA) {
+            if (nt === WATER) {
+              g[i] = STEAM; this.life[i] = 26 + ((x * 7 + y * 3) % 10);
+              g[ni] = STEAM; this.life[ni] = 26 + ((nx * 5 + ny * 3) % 10);
+              this.moves++;
+              this.fx.push({ t: 'steam', x: x, y: y });
+              break;
+            } else if (nt === GOLD) {
+              g[ni] = E; this.melted++; this.moves++;
+              this.fx.push({ t: 'melt', x: nx, y: ny });
+            } else if (nt === SOLID) {
+              var eid = this.ent[ni];
+              if (eid >= 0 && this.entities[eid].alive) {
+                if (this.entities[eid].kind === 'hero') {
+                  this.entities[eid].alive = false;
+                  this.fx.push({ t: 'dead', x: nx, y: ny });
+                } else {
+                  this.fx.push({ t: 'kill', x: this.entities[eid].x, y: this.entities[eid].y });
+                  this.clearEnt(eid);
+                  this.moves++;
+                }
+              }
+            }
+          } else { /* GOLD */
+            if (nt === SOLID) {
+              var eg = this.ent[ni];
+              if (eg >= 0 && this.entities[eg].alive) {
+                if (this.entities[eg].kind === 'hero') {
+                  g[i] = E; this.gold++; this.moves++;
+                  this.fx.push({ t: 'get', x: x, y: y });
+                } else {
+                  g[i] = E; this.stolen++; this.moves++;
+                  this.fx.push({ t: 'steal', x: x, y: y });
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /* 静止するまで進める（テスト・オート用） */
+  Sim.prototype.settle = function (maxSteps) {
+    var n = maxSteps || 900;
+    for (var s = 0; s < n; s++) {
+      var st = this.step();
+      if (st === 'clear' || st === 'fail') return st;
+      if (this.stillFor >= 3) return this.state;
+    }
+    return this.state;
+  };
+
+  var API = {
+    W: W, H: H,
+    E: E, WALL: WALL, PIN: PIN, WATER: WATER, LAVA: LAVA, GOLD: GOLD, STEAM: STEAM, SOLID: SOLID,
+    HERO_W: HERO_W, HERO_H: HERO_H, FOE_W: FOE_W, FOE_H: FOE_H,
+    LEVELS: LEVELS, Sim: Sim, mulberry32: mulberry32
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  else root.ANOCORE = API;
+
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/* ============================================================
+   あのゲーム / I18N — 9言語
+   ============================================================ */
+(function (root) {
+  'use strict';
+  var LANG_NAMES = {
+    ja: '日本語', en: 'English', 'zh-Hans': '简体中文', 'zh-Hant': '繁體中文',
+    ko: '한국어', fr: 'Français', de: 'Deutsch', ru: 'Русский', it: 'Italiano'
+  };
+
+  var D = {
+    ja: {
+      title: 'あのゲーム',
+      sub: '※あの広告とは一切関係ありません／モザイク・目線処理済み',
+      sound: '音のオンオフ', lang: '言語', langTitle: 'ことば',
+      coins: 'おたから', pins: 'ピン', badge: '99%が失敗',
+      clear: 'クリア', fail: 'しっぱい',
+      ctaBtn: 'ほかのゲームであそぶ', again: 'もう一回', next: 'つぎへ', first: 'さいしょへ',
+      retry: 'やりなおす', how: 'あそびかた', close: 'とじる', here: 'ここ！', stage: 'ステージ{n}',
+      got: 'コイン <b>{n}</b> 枚かくほ。', allNote: '全ステージ突破。あなたは1%側です。',
+      tutFail: '99%はここで失敗します。', ratio: 'コイン {a} / {b}',
+      f_lava: 'マグマに触れた', f_melt: 'お宝が溶けた', f_stolen: 'お宝を横取りされた', f_short: 'お宝がたりない',
+      helpIntro: '光っているピンをタップすると、スライドして抜ける。抜いたら戻せない。',
+      coinN: 'コイン', coinD: 'は真下にしか落ちない。キャラに触れれば回収。',
+      lavaN: 'マグマ', lavaD: 'は横に広がって穴を探す。触れたキャラは終わり。コインも溶ける。',
+      waterN: '水', waterD: 'はマグマを消して蒸気にする。',
+      foeN: '敵', foeD: 'は道をふさぎ、コインを横取りする。マグマには溶ける。',
+      tips: [
+        'ピンをタップして抜く。落ちたお宝がキャラに触れれば回収。',
+        '水はマグマを消す。何から抜くか。',
+        '敵はお宝を横取りする。マグマは敵を溶かす。',
+        '下に落とす前に、上を空にする。',
+        'マグマは横に広がって穴へ流れる。お宝は真下にしか落ちない。',
+        '全部ある。順番だけが正解。'
+      ],
+      cta: [
+        'このレベルをクリアできたあなたへ。<br><em>もっとむずかしいゲーム</em>が待ってます。',
+        '<em>IQ上位1%</em>のあなたなら、<br>こっちも解けるはず。',
+        'ピン抜きだけじゃ物足りない？<br><em>ほかにもいろいろ</em>あります。',
+        'ここまで来た人は<em>ほとんどいません</em>。<br>次のゲームへどうぞ。',
+        '指が覚えているうちに。<br><em>無料</em>であそべるゲームを公開中。',
+        '<em>全ステージ突破</em>。おめでとう。<br>続きはこちらで。'
+      ]
+    },
+    en: {
+      title: 'THAT GAME',
+      sub: '*Not affiliated with that ad in any way / Mosaic and eye bars applied',
+      sound: 'Sound on/off', lang: 'Language', langTitle: 'Language',
+      coins: 'COINS', pins: 'PINS', badge: '99% FAIL',
+      clear: 'CLEAR', fail: 'FAILED',
+      ctaBtn: 'PLAY MORE GAMES', again: 'Retry', next: 'Next', first: 'Back to 1',
+      retry: 'Restart', how: 'How to play', close: 'Close', here: 'HERE!', stage: 'Stage {n}',
+      got: 'You secured <b>{n}</b> coins.', allNote: 'All stages cleared. You are the 1%.',
+      tutFail: '99% of players fail here.', ratio: 'Coins {a} / {b}',
+      f_lava: 'Touched the lava', f_melt: 'The coins melted', f_stolen: 'The coins were snatched', f_short: 'Not enough coins',
+      helpIntro: 'Tap a glowing pin and it slides out. Once pulled, it never goes back.',
+      coinN: 'Coins', coinD: ' only fall straight down. Collected when they touch the hero.',
+      lavaN: 'Lava', lavaD: ' spreads sideways looking for a gap. It ends the hero and melts coins.',
+      waterN: 'Water', waterD: ' puts out lava and turns into steam.',
+      foeN: 'Monsters', foeD: ' block the way and snatch coins. Lava melts them.',
+      tips: [
+        'Tap a pin to pull it. Coins that reach the hero are collected.',
+        'Water puts out lava. Which pin goes first?',
+        'Monsters snatch coins. Lava melts monsters.',
+        'Empty the top before you open the bottom.',
+        'Lava spreads sideways into gaps. Coins only fall straight down.',
+        'Everything is here. Only the order matters.'
+      ],
+      cta: [
+        'You cleared this level.<br>A <em>harder game</em> is waiting.',
+        'If you are in the <em>top 1% IQ</em>,<br>you can solve this one too.',
+        'Pin pulling not enough?<br>There is <em>plenty more</em>.',
+        '<em>Almost nobody</em> gets this far.<br>On to the next game.',
+        'While your fingers still remember.<br>More games, <em>free</em> to play.',
+        '<em>All stages cleared</em>. Congrats.<br>Continue over here.'
+      ]
+    },
+    'zh-Hans': {
+      title: '那个游戏',
+      sub: '※与那个广告毫无关系／已做马赛克与眼部遮挡处理',
+      sound: '声音开关', lang: '语言', langTitle: '语言',
+      coins: '宝藏', pins: '插销', badge: '99%会失败',
+      clear: '过关', fail: '失败',
+      ctaBtn: '玩更多游戏', again: '再来一次', next: '下一关', first: '回到第一关',
+      retry: '重来', how: '玩法', close: '关闭', here: '这里！', stage: '第{n}关',
+      got: '获得金币 <b>{n}</b> 枚。', allNote: '全部通关。你就是那1%。',
+      tutFail: '99%的人在这里失败。', ratio: '金币 {a} / {b}',
+      f_lava: '碰到了岩浆', f_melt: '宝藏被熔化了', f_stolen: '宝藏被抢走了', f_short: '宝藏不够',
+      helpIntro: '点击发光的插销，它会滑出来。拔出后无法复原。',
+      coinN: '金币', coinD: '只会垂直下落。碰到角色即可收集。',
+      lavaN: '岩浆', lavaD: '会向两侧流动寻找缺口。碰到角色就结束，金币也会熔化。',
+      waterN: '水', waterD: '能浇灭岩浆，变成蒸汽。',
+      foeN: '怪物', foeD: '会挡路并抢走金币。岩浆能熔化它们。',
+      tips: [
+        '点击插销将其拔出。落下的宝藏碰到角色即可收集。',
+        '水能浇灭岩浆。先拔哪一根？',
+        '怪物会抢走宝藏。岩浆能熔化怪物。',
+        '打开下面之前，先把上面清空。',
+        '岩浆会横向流进缺口。宝藏只会垂直下落。',
+        '要素全都在。只有顺序是答案。'
+      ],
+      cta: [
+        '献给通过这一关的你。<br><em>更难的游戏</em>正在等你。',
+        '如果你是<em>IQ前1%</em>，<br>这个也一定能解开。',
+        '只拔插销还不过瘾？<br>还有<em>很多别的</em>游戏。',
+        '能走到这里的人<em>寥寥无几</em>。<br>去玩下一个游戏吧。',
+        '趁手感还在。<br>更多游戏<em>免费</em>开玩。',
+        '<em>全部通关</em>，恭喜。<br>后续请到这里。'
+      ]
+    },
+    'zh-Hant': {
+      title: '那個遊戲',
+      sub: '※與那個廣告毫無關係／已做馬賽克與眼部遮擋處理',
+      sound: '聲音開關', lang: '語言', langTitle: '語言',
+      coins: '寶藏', pins: '插銷', badge: '99%會失敗',
+      clear: '過關', fail: '失敗',
+      ctaBtn: '玩更多遊戲', again: '再來一次', next: '下一關', first: '回到第一關',
+      retry: '重來', how: '玩法', close: '關閉', here: '這裡！', stage: '第{n}關',
+      got: '獲得金幣 <b>{n}</b> 枚。', allNote: '全部破關。你就是那1%。',
+      tutFail: '99%的人在這裡失敗。', ratio: '金幣 {a} / {b}',
+      f_lava: '碰到了岩漿', f_melt: '寶藏被熔化了', f_stolen: '寶藏被搶走了', f_short: '寶藏不夠',
+      helpIntro: '點擊發光的插銷，它會滑出來。拔出後無法復原。',
+      coinN: '金幣', coinD: '只會垂直落下。碰到角色即可收集。',
+      lavaN: '岩漿', lavaD: '會往兩側流動尋找缺口。碰到角色就結束，金幣也會熔化。',
+      waterN: '水', waterD: '能澆熄岩漿，變成蒸氣。',
+      foeN: '怪物', foeD: '會擋路並搶走金幣。岩漿能熔化牠們。',
+      tips: [
+        '點擊插銷將其拔出。落下的寶藏碰到角色即可收集。',
+        '水能澆熄岩漿。先拔哪一根？',
+        '怪物會搶走寶藏。岩漿能熔化怪物。',
+        '打開下面之前，先把上面清空。',
+        '岩漿會橫向流進缺口。寶藏只會垂直落下。',
+        '要素全都在。只有順序是答案。'
+      ],
+      cta: [
+        '獻給通過這一關的你。<br><em>更難的遊戲</em>正在等你。',
+        '如果你是<em>IQ前1%</em>，<br>這個也一定能解開。',
+        '只拔插銷還不過癮？<br>還有<em>很多別的</em>遊戲。',
+        '能走到這裡的人<em>寥寥無幾</em>。<br>去玩下一個遊戲吧。',
+        '趁手感還在。<br>更多遊戲<em>免費</em>開玩。',
+        '<em>全部破關</em>，恭喜。<br>後續請到這裡。'
+      ]
+    },
+    ko: {
+      title: '그 게임',
+      sub: '※그 광고와는 아무 관련 없습니다／모자이크·눈가림 처리됨',
+      sound: '소리 켜기/끄기', lang: '언어', langTitle: '언어',
+      coins: '보물', pins: '핀', badge: '99%가 실패',
+      clear: '클리어', fail: '실패',
+      ctaBtn: '다른 게임 하러 가기', again: '한 번 더', next: '다음', first: '처음으로',
+      retry: '다시 하기', how: '플레이 방법', close: '닫기', here: '여기!', stage: '스테이지 {n}',
+      got: '코인 <b>{n}</b>개 확보.', allNote: '모든 스테이지 돌파. 당신은 1%입니다.',
+      tutFail: '99%가 여기서 실패합니다.', ratio: '코인 {a} / {b}',
+      f_lava: '마그마에 닿았다', f_melt: '보물이 녹았다', f_stolen: '보물을 빼앗겼다', f_short: '보물이 부족하다',
+      helpIntro: '빛나는 핀을 탭하면 미끄러지듯 빠집니다. 한번 빼면 되돌릴 수 없어요.',
+      coinN: '코인', coinD: '은 바로 아래로만 떨어집니다. 캐릭터에 닿으면 획득.',
+      lavaN: '마그마', lavaD: '는 옆으로 퍼지며 틈을 찾습니다. 닿은 캐릭터는 끝, 코인도 녹아요.',
+      waterN: '물', waterD: '은 마그마를 꺼서 수증기로 만듭니다.',
+      foeN: '괴물', foeD: '은 길을 막고 코인을 빼앗습니다. 마그마에 녹아요.',
+      tips: [
+        '핀을 탭해서 빼세요. 떨어진 보물이 캐릭터에 닿으면 획득.',
+        '물은 마그마를 끕니다. 무엇부터 뺄까?',
+        '괴물은 보물을 빼앗습니다. 마그마는 괴물을 녹여요.',
+        '아래를 열기 전에 위를 비우세요.',
+        '마그마는 옆으로 퍼져 틈으로 흐릅니다. 보물은 바로 아래로만 떨어져요.',
+        '전부 다 있습니다. 순서만이 정답.'
+      ],
+      cta: [
+        '이 레벨을 깬 당신에게.<br><em>더 어려운 게임</em>이 기다립니다.',
+        '<em>IQ 상위 1%</em>인 당신이라면<br>이것도 풀 수 있을 거예요.',
+        '핀 빼기만으로는 아쉽다면?<br><em>다른 게임도 많아요</em>.',
+        '여기까지 온 사람은 <em>거의 없습니다</em>.<br>다음 게임으로.',
+        '손이 기억할 때.<br><em>무료</em>로 즐기는 게임 공개 중.',
+        '<em>모든 스테이지 돌파</em>. 축하합니다.<br>다음은 여기서.'
+      ]
+    },
+    fr: {
+      title: 'CE JEU-LÀ',
+      sub: '*Aucun lien avec cette pub / Mosaïque et bandeaux appliqués',
+      sound: 'Son activé/désactivé', lang: 'Langue', langTitle: 'Langue',
+      coins: 'TRÉSOR', pins: 'GOUPILLES', badge: '99 % ÉCHOUENT',
+      clear: 'RÉUSSI', fail: 'ÉCHEC',
+      ctaBtn: 'JOUER À D’AUTRES JEUX', again: 'Rejouer', next: 'Suivant', first: 'Au début',
+      retry: 'Recommencer', how: 'Comment jouer', close: 'Fermer', here: 'ICI !', stage: 'Niveau {n}',
+      got: '<b>{n}</b> pièces récupérées.', allNote: 'Tous les niveaux réussis. Vous faites partie des 1 %.',
+      tutFail: '99 % des joueurs échouent ici.', ratio: 'Pièces {a} / {b}',
+      f_lava: 'Contact avec la lave', f_melt: 'Le trésor a fondu', f_stolen: 'Le trésor a été volé', f_short: 'Pas assez de trésor',
+      helpIntro: 'Touchez une goupille lumineuse : elle glisse et sort. Impossible de la remettre.',
+      coinN: 'Les pièces', coinD: ' tombent uniquement tout droit. Récupérées au contact du héros.',
+      lavaN: 'La lave', lavaD: ' s’étale sur les côtés et cherche une ouverture. Le héros n’y survit pas, les pièces fondent.',
+      waterN: 'L’eau', waterD: ' éteint la lave et se change en vapeur.',
+      foeN: 'Les monstres', foeD: ' bloquent le passage et volent les pièces. La lave les fait fondre.',
+      tips: [
+        'Touchez une goupille pour la retirer. Les pièces qui touchent le héros sont récupérées.',
+        'L’eau éteint la lave. Laquelle retirer en premier ?',
+        'Les monstres volent le trésor. La lave fait fondre les monstres.',
+        'Videz le haut avant d’ouvrir le bas.',
+        'La lave s’étale dans les ouvertures. Les pièces tombent tout droit.',
+        'Tout y est. Seul l’ordre compte.'
+      ],
+      cta: [
+        'Vous avez réussi ce niveau.<br>Un <em>jeu plus difficile</em> vous attend.',
+        'Si vous êtes dans le <em>top 1 % en QI</em>,<br>celui-ci est pour vous.',
+        'Les goupilles ne suffisent pas ?<br>Il y a <em>bien d’autres jeux</em>.',
+        '<em>Presque personne</em> n’arrive jusqu’ici.<br>Passez au jeu suivant.',
+        'Tant que vos doigts s’en souviennent.<br>Des jeux <em>gratuits</em> en ligne.',
+        '<em>Tous les niveaux réussis</em>. Bravo.<br>La suite, c’est par ici.'
+      ]
+    },
+    de: {
+      title: 'DAS SPIEL',
+      sub: '*Steht in keinerlei Verbindung zu dieser Werbung / Mosaik und Augenbalken angewendet',
+      sound: 'Ton an/aus', lang: 'Sprache', langTitle: 'Sprache',
+      coins: 'SCHATZ', pins: 'STIFTE', badge: '99 % SCHEITERN',
+      clear: 'GESCHAFFT', fail: 'GESCHEITERT',
+      ctaBtn: 'WEITERE SPIELE', again: 'Nochmal', next: 'Weiter', first: 'Zum Anfang',
+      retry: 'Neustart', how: 'Anleitung', close: 'Schließen', here: 'HIER!', stage: 'Level {n}',
+      got: '<b>{n}</b> Münzen gesichert.', allNote: 'Alle Level geschafft. Du gehörst zu den 1 %.',
+      tutFail: '99 % scheitern hier.', ratio: 'Münzen {a} / {b}',
+      f_lava: 'Lava berührt', f_melt: 'Der Schatz ist geschmolzen', f_stolen: 'Der Schatz wurde geklaut', f_short: 'Zu wenig Schatz',
+      helpIntro: 'Tippe einen leuchtenden Stift an – er gleitet heraus. Zurück geht es nicht.',
+      coinN: 'Münzen', coinD: ' fallen nur senkrecht nach unten. Sie zählen, sobald sie die Figur berühren.',
+      lavaN: 'Lava', lavaD: ' breitet sich seitlich aus und sucht Lücken. Für die Figur ist dann Schluss, Münzen schmelzen.',
+      waterN: 'Wasser', waterD: ' löscht Lava und wird zu Dampf.',
+      foeN: 'Monster', foeD: ' versperren den Weg und klauen Münzen. Lava lässt sie schmelzen.',
+      tips: [
+        'Tippe einen Stift an, um ihn zu ziehen. Münzen, die die Figur erreichen, zählen.',
+        'Wasser löscht Lava. Welcher Stift zuerst?',
+        'Monster klauen den Schatz. Lava lässt Monster schmelzen.',
+        'Leere oben, bevor du unten öffnest.',
+        'Lava fließt seitlich in Lücken. Münzen fallen nur senkrecht.',
+        'Alles ist da. Nur die Reihenfolge zählt.'
+      ],
+      cta: [
+        'Du hast dieses Level geschafft.<br>Ein <em>schwereres Spiel</em> wartet.',
+        'Wenn du zu den <em>Top 1 % IQ</em> gehörst,<br>schaffst du das auch.',
+        'Stifte ziehen reicht dir nicht?<br>Es gibt <em>noch viel mehr</em>.',
+        '<em>Kaum jemand</em> kommt so weit.<br>Weiter zum nächsten Spiel.',
+        'Solange die Finger es noch wissen.<br>Weitere Spiele, <em>kostenlos</em>.',
+        '<em>Alle Level geschafft</em>. Glückwunsch.<br>Weiter geht es hier.'
+      ]
+    },
+    ru: {
+      title: 'ТА САМАЯ ИГРА',
+      sub: '*Не связано с той рекламой / Мозаика и полосы на глазах применены',
+      sound: 'Звук вкл/выкл', lang: 'Язык', langTitle: 'Язык',
+      coins: 'КЛАД', pins: 'ШТИФТЫ', badge: '99% ПРОИГРЫВАЮТ',
+      clear: 'ПРОЙДЕНО', fail: 'НЕУДАЧА',
+      ctaBtn: 'ИГРАТЬ В ДРУГИЕ ИГРЫ', again: 'Ещё раз', next: 'Дальше', first: 'В начало',
+      retry: 'Заново', how: 'Как играть', close: 'Закрыть', here: 'ЗДЕСЬ!', stage: 'Уровень {n}',
+      got: 'Собрано монет: <b>{n}</b>.', allNote: 'Все уровни пройдены. Вы из тех самых 1%.',
+      tutFail: '99% проигрывают здесь.', ratio: 'Монеты {a} / {b}',
+      f_lava: 'Коснулся лавы', f_melt: 'Клад расплавился', f_stolen: 'Клад утащили', f_short: 'Не хватило клада',
+      helpIntro: 'Нажмите на светящийся штифт — он выскользнет. Вернуть его нельзя.',
+      coinN: 'Монеты', coinD: ' падают только строго вниз. Засчитываются при касании героя.',
+      lavaN: 'Лава', lavaD: ' растекается в стороны и ищет щели. Герою конец, монеты плавятся.',
+      waterN: 'Вода', waterD: ' гасит лаву и превращается в пар.',
+      foeN: 'Монстры', foeD: ' загораживают путь и утаскивают монеты. Лава их растапливает.',
+      tips: [
+        'Нажмите на штифт, чтобы вытащить его. Монеты, долетевшие до героя, засчитываются.',
+        'Вода гасит лаву. Какой штифт первым?',
+        'Монстры утаскивают клад. Лава растапливает монстров.',
+        'Опустошите верх, прежде чем открыть низ.',
+        'Лава растекается в щели. Монеты падают только вниз.',
+        'Здесь есть всё. Важен только порядок.'
+      ],
+      cta: [
+        'Вы прошли этот уровень.<br>Вас ждёт <em>игра посложнее</em>.',
+        'Если ваш IQ в <em>топ-1%</em>,<br>справитесь и с этой.',
+        'Мало вытаскивать штифты?<br>Есть <em>много другого</em>.',
+        'Сюда доходят <em>единицы</em>.<br>Переходите к следующей игре.',
+        'Пока пальцы помнят.<br>Ещё игры — <em>бесплатно</em>.',
+        '<em>Все уровни пройдены</em>. Поздравляем.<br>Продолжение здесь.'
+      ]
+    },
+    it: {
+      title: 'QUEL GIOCO',
+      sub: '*Nessun legame con quella pubblicità / Mosaico e bande sugli occhi applicati',
+      sound: 'Audio on/off', lang: 'Lingua', langTitle: 'Lingua',
+      coins: 'TESORO', pins: 'PERNI', badge: 'IL 99% FALLISCE',
+      clear: 'SUPERATO', fail: 'FALLITO',
+      ctaBtn: 'GIOCA AD ALTRI GIOCHI', again: 'Riprova', next: 'Avanti', first: 'Dall’inizio',
+      retry: 'Ricomincia', how: 'Come si gioca', close: 'Chiudi', here: 'QUI!', stage: 'Livello {n}',
+      got: '<b>{n}</b> monete recuperate.', allNote: 'Tutti i livelli superati. Sei nell’1%.',
+      tutFail: 'Il 99% fallisce qui.', ratio: 'Monete {a} / {b}',
+      f_lava: 'Hai toccato la lava', f_melt: 'Il tesoro si è sciolto', f_stolen: 'Il tesoro è stato rubato', f_short: 'Tesoro insufficiente',
+      helpIntro: 'Tocca un perno luminoso: scivola fuori. Una volta tolto, non torna indietro.',
+      coinN: 'Le monete', coinD: ' cadono solo in verticale. Si raccolgono quando toccano l’eroe.',
+      lavaN: 'La lava', lavaD: ' si allarga ai lati cercando un varco. Per l’eroe è finita, le monete si sciolgono.',
+      waterN: 'L’acqua', waterD: ' spegne la lava e diventa vapore.',
+      foeN: 'I mostri', foeD: ' bloccano la strada e rubano le monete. La lava li scioglie.',
+      tips: [
+        'Tocca un perno per toglierlo. Le monete che arrivano all’eroe si raccolgono.',
+        'L’acqua spegne la lava. Quale perno per primo?',
+        'I mostri rubano il tesoro. La lava scioglie i mostri.',
+        'Svuota sopra prima di aprire sotto.',
+        'La lava scorre ai lati nei varchi. Le monete cadono solo in verticale.',
+        'C’è tutto. Conta solo l’ordine.'
+      ],
+      cta: [
+        'Hai superato questo livello.<br>Ti aspetta un <em>gioco più difficile</em>.',
+        'Se sei nel <em>top 1% di QI</em>,<br>risolverai anche questo.',
+        'Togliere perni non basta?<br>C’è <em>molto altro</em>.',
+        '<em>Quasi nessuno</em> arriva fin qui.<br>Passa al prossimo gioco.',
+        'Finché le dita ricordano.<br>Altri giochi, <em>gratis</em>.',
+        '<em>Tutti i livelli superati</em>. Complimenti.<br>Il seguito è qui.'
+      ]
+    }
+  };
+
+  function detect() {
+    try {
+      var s = localStorage.getItem('anogame_lang');
+      if (s && D[s]) return s;
+    } catch (e) { }
+    var n = ((navigator.languages && navigator.languages[0]) || navigator.language || 'ja').toLowerCase();
+    if (n.indexOf('zh') === 0) return (n.indexOf('tw') >= 0 || n.indexOf('hk') >= 0 || n.indexOf('mo') >= 0 || n.indexOf('hant') >= 0) ? 'zh-Hant' : 'zh-Hans';
+    var b = n.split('-')[0];
+    return D[b] ? b : 'en';
+  }
+
+  var I = {
+    NAMES: LANG_NAMES, D: D, lang: detect(),
+    set: function (l) { if (!D[l]) return; I.lang = l; try { localStorage.setItem('anogame_lang', l); } catch (e) { } },
+    t: function (k, vars) {
+      var s = (D[I.lang] && D[I.lang][k] !== undefined) ? D[I.lang][k] : D.ja[k];
+      if (vars && typeof s === 'string') for (var v in vars) s = s.split('{' + v + '}').join(vars[v]);
+      return s;
+    },
+    FAIL_KEY: { 'マグマに触れた': 'f_lava', 'お宝が溶けた': 'f_melt', 'お宝を横取りされた': 'f_stolen', 'お宝がたりない': 'f_short' }
+  };
+  root.ANOI18N = I;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var C = window.ANOCORE, W = C.W, H = C.H;
+
+  /* 1セル = SUB×SUB のモザイク片、モザイク片1つ = PX ピクセル */
+  var SUB = 5, PX = 3;
+  var FW = W * SUB, FH = H * SUB;
+  var COIN = SUB + 2;
+
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  cv.width = FW * PX; cv.height = FH * PX;
+
+  /* モザイク用の中間バッファ（1px = モザイク片1つ） */
+  var fcv = document.createElement('canvas'); fcv.width = FW; fcv.height = FH;
+  var f = fcv.getContext('2d');
+  var img = f.createImageData(FW, FH);
+  var DAT = img.data;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var I18 = window.ANOI18N, T = I18.t;
+  var helpOpen = false;
+  var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  /* ---------- ノイズ ---------- */
+  var NF = new Float32Array(FW * FH);
+  var NC = new Float32Array(W * H);
+  (function () {
+    var r = C.mulberry32(31337), i;
+    for (i = 0; i < FW * FH; i++) NF[i] = r() * 2 - 1;
+    for (i = 0; i < W * H; i++) NC[i] = r() * 2 - 1;
+  })();
+
+  /* ---------- 状態 ---------- */
+  var sim = null, lvIndex = 0, unlocked = 1, retries = 0, viewY0 = 0;
+  var parts = [], shake = 0, overT = 0, tutorial = false, muted = false;
+  var anims = [], lastSfx = {};
+  var PULL_MS = 300;
+
+  /* ---------- 音 ---------- */
+  var AC = null;
+  function ac() {
+    if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function tone(f0, f1, dur, type, vol) {
+    var a = ac(); if (!a || muted) return;
+    var o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
+    o.type = type || 'square'; o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol || 0.06, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function hiss(dur, vol, f0, f1) {
+    var a = ac(); if (!a || muted) return;
+    var n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    var s = a.createBufferSource(); s.buffer = buf;
+    var bp = a.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(f0 || 1400, a.currentTime);
+    if (f1) bp.frequency.exponentialRampToValueAtTime(f1, a.currentTime + dur);
+    bp.Q.value = 1.4;
+    var g = a.createGain(); g.gain.value = vol || 0.05;
+    s.connect(bp); bp.connect(g); g.connect(a.destination); s.start();
+  }
+  function sfx(name) {
+    var now = performance.now();
+    if (lastSfx[name] && now - lastSfx[name] < 55) return;
+    lastSfx[name] = now;
+    switch (name) {
+      case 'grab': tone(150, 118, 0.05, 'square', 0.05); break;
+      case 'slide': hiss(0.26, 0.05, 800, 3200); tone(320, 140, 0.26, 'sawtooth', 0.03); break;
+      case 'pull': tone(190, 80, 0.09, 'square', 0.06); break;
+      case 'get': tone(1000 + Math.random() * 300, 1700, 0.06, 'triangle', 0.045); break;
+      case 'melt': hiss(0.16, 0.05, 700); break;
+      case 'steam': hiss(0.24, 0.045, 2600, 900); break;
+      case 'kill': tone(320, 70, 0.22, 'sawtooth', 0.07); break;
+      case 'dead': tone(240, 45, 0.6, 'square', 0.09); break;
+      case 'clear':
+        [523, 659, 784, 1046].forEach(function (fq, i) { setTimeout(function () { tone(fq, fq, 0.13, 'triangle', 0.07); }, i * 85); });
+        break;
+    }
+  }
+
+  /* ---------- パーティクル（フィールド座標） ---------- */
+  function burst(cx, cy, n, col, spd, up, size) {
+    for (var i = 0; i < n; i++) {
+      parts.push({
+        x: (cx + 0.5) * SUB, y: (cy + 0.5) * SUB,
+        vx: (Math.random() * 2 - 1) * spd,
+        vy: (Math.random() * 2 - 1) * spd - (up || 0),
+        g: up ? -0.008 : 0.05, life: 1, dec: 0.02 + Math.random() * 0.03,
+        c: col, s: size || 1.4
+      });
+    }
+    if (parts.length > 400) parts.splice(0, parts.length - 400);
+  }
+  function stepParts() {
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vy += p.g; p.life -= p.dec;
+      if (p.life <= 0) parts.splice(i, 1);
+    }
+  }
+  function drainFx() {
+    var q = sim.fx, n = 0;
+    while (q.length && n++ < 60) {
+      var e = q.shift();
+      switch (e.t) {
+        case 'get': burst(e.x, e.y, 3, '#ffe27a', 0.5, 0.45, 1.3); sfx('get'); break;
+        case 'melt': burst(e.x, e.y, 3, '#a86a30', 0.3, 0.25, 1.5); sfx('melt'); break;
+        case 'steam': burst(e.x, e.y, 2, '#e8eef8', 0.25, 0.3, 2.0); sfx('steam'); break;
+        case 'kill': burst(e.x + 2, e.y + 3, 18, '#c084fc', 0.9, 0.25, 1.8); sfx('kill'); shake = Math.max(shake, 5); break;
+        case 'steal': burst(e.x, e.y, 4, '#c084fc', 0.5, 0.3, 1.4); sfx('get'); break;
+        case 'dead': burst(e.x, e.y, 28, '#ff7a2a', 1.1, 0.2, 2.0); sfx('dead'); shake = 14; break;
+        case 'pull': sfx('pull'); break;
+      }
+    }
+    if (q.length > 200) q.length = 0;
+  }
+
+  /* ---------- 液体マスク ---------- */
+  var dilW = new Uint8Array(W * H), dilL = new Uint8Array(W * H), dilS = new Uint8Array(W * H);
+  function dilate() {
+    dilW.fill(0); dilL.fill(0); dilS.fill(0);
+    var g = sim.g, x, y, t, dx, dy;
+    for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+      t = g[y * W + x];
+      if (t !== C.WATER && t !== C.LAVA && t !== C.STEAM) continue;
+      var tgt = t === C.WATER ? dilW : (t === C.LAVA ? dilL : dilS);
+      for (dy = -1; dy <= 1; dy++) for (dx = -1; dx <= 1; dx++) {
+        var nx = x + dx, ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        tgt[ny * W + nx] = 1;
+      }
+    }
+  }
+  function mk(x, y, type) {
+    if (x < 0 || x >= W || y < 0 || y >= H) return 1;
+    var t = sim.g[y * W + x];
+    return (t === type || t === C.WALL || t === C.PIN || t === C.SOLID) ? 1 : 0;
+  }
+  function bil(cx, cy, type) {
+    var x0 = Math.floor(cx), y0 = Math.floor(cy), tx = cx - x0, ty = cy - y0;
+    var a = mk(x0, y0, type), b = mk(x0 + 1, y0, type), c = mk(x0, y0 + 1, type), e = mk(x0 + 1, y0 + 1, type);
+    return (a + (b - a) * tx) * (1 - ty) + (c + (e - c) * tx) * ty;
+  }
+  function mkS(x, y) {
+    if (x < 0 || x >= W || y < 0 || y >= H) return 0;
+    var i = y * W + x;
+    return sim.g[i] === C.STEAM ? Math.min(1, sim.life[i] / 20) : 0;
+  }
+  function bilS(cx, cy) {
+    var x0 = Math.floor(cx), y0 = Math.floor(cy), tx = cx - x0, ty = cy - y0;
+    var a = mkS(x0, y0), b = mkS(x0 + 1, y0), c = mkS(x0, y0 + 1), e = mkS(x0 + 1, y0 + 1);
+    return (a + (b - a) * tx) * (1 - ty) + (c + (e - c) * tx) * ty;
+  }
+
+  /* ---------- 背景・液体・壁 ---------- */
+  function paintField(t) {
+    var g = sim.g, y0f = viewY0 * SUB;
+    var fx, fy, i4, cxf, cyf, ncx, ncy, ci, nt, v, r, gg, b, k, sy, sx2, nz;
+    for (fy = y0f; fy < FH; fy++) {
+      cyf = (fy + 0.5) / SUB - 0.5;
+      ncy = (fy / SUB) | 0;
+      sy = fy - ncy * SUB;
+      for (fx = 0; fx < FW; fx++) {
+        ncx = (fx / SUB) | 0;
+        ci = ncy * W + ncx;
+        i4 = (fy * FW + fx) << 2;
+        nz = NF[fy * FW + fx];
+        nt = g[ci];
+
+        /* 壁 */
+        if (nt === C.WALL) {
+          k = NC[ci] * 7 + nz * 9;
+          sx2 = fx - ncx * SUB;
+          if (sy === 0) k += 13; else if (sy >= SUB - 1) k -= 15;
+          if (sx2 >= SUB - 1) k -= 6;
+          DAT[i4] = 58 + k; DAT[i4 + 1] = 52 + k; DAT[i4 + 2] = 78 + k * 1.1; DAT[i4 + 3] = 255;
+          continue;
+        }
+
+        /* 背景 */
+        var vg = fy / FH;
+        r = 20 - 9 * vg + nz * 3.5; gg = 18 - 8 * vg + nz * 3.5; b = 32 - 13 * vg + nz * 4;
+
+        /* マグマ */
+        if (dilL[ci]) {
+          cxf = (fx + 0.5) / SUB - 0.5;
+          v = bil(cxf, cyf, C.LAVA);
+          if (v > 0.18) {
+            var flick = 0.5 + 0.5 * Math.sin(fx * 0.33 + t * 0.0042) * Math.sin(fy * 0.27 - t * 0.0031 + nz);
+            if (v >= 0.5) {
+              var edge = v < 0.66 ? (v - 0.5) / 0.16 : 1;
+              var hot = 0.35 + 0.65 * edge;
+              r = 70 + 185 * hot + 30 * flick * edge;
+              gg = 14 + 88 * hot * hot + 55 * flick * edge;
+              b = 6 + 16 * hot + 10 * flick * edge;
+              if (edge > 0.9 && flick > 0.72) { r += 30; gg += 60; b += 20; }
+            } else {
+              var gl = (v - 0.18) * 3.1;
+              r += 120 * gl; gg += 42 * gl; b += 10 * gl;
+            }
+          }
+        }
+
+        /* 水 */
+        if (dilW[ci]) {
+          cxf = (fx + 0.5) / SUB - 0.5;
+          v = bil(cxf, cyf, C.WATER);
+          if (v >= 0.5) {
+            var up = bil(cxf, cyf - 1.25, C.WATER);
+            var surf = 1 - (up > 1 ? 1 : up);
+            var ed = v < 0.68 ? (0.68 - v) / 0.18 : 0;
+            var rip = Math.sin(fx * 0.45 + t * 0.005 + fy * 0.3) * 5;
+            r = 12 + 62 * surf + 46 * ed + rip;
+            gg = 88 + 96 * surf + 60 * ed + rip;
+            b = 168 + 62 * surf + 50 * ed + rip * 0.5;
+          }
+        }
+
+        /* 蒸気 */
+        if (dilS[ci]) {
+          cxf = (fx + 0.5) / SUB - 0.5;
+          var s = bilS(cxf, cyf);
+          if (s > 0.04) {
+            var a2 = Math.min(0.72, s * 0.85);
+            r += (214 - r) * a2; gg += (223 - gg) * a2; b += (238 - b) * a2;
+          }
+        }
+
+        /* コインの下地：粒の隙間が背景に抜けず、山として見えるように */
+        if (nt === C.GOLD) { r = r * 0.32 + 46; gg = gg * 0.32 + 28; b = b * 0.32 + 8; }
+
+        DAT[i4] = r; DAT[i4 + 1] = gg; DAT[i4 + 2] = b; DAT[i4 + 3] = 255;
+      }
+    }
+    f.putImageData(img, 0, 0, 0, y0f, FW, FH - y0f);
+  }
+
+  /* ---------- コイン ---------- */
+  var coins = [];
+  (function buildCoins() {
+    var squash = [1, 0.72, 0.34];
+    for (var s = 0; s < squash.length; s++) {
+      var big = document.createElement('canvas'); big.width = big.height = 48;
+      var b = big.getContext('2d');
+      b.translate(24, 24); b.scale(squash[s], 1);
+      var rg = b.createRadialGradient(-6, -7, 2, 0, 0, 22);
+      rg.addColorStop(0, '#fff6cf'); rg.addColorStop(0.42, '#ffd24a');
+      rg.addColorStop(0.82, '#e0a012'); rg.addColorStop(1, '#8a5c05');
+      b.fillStyle = rg;
+      b.beginPath(); b.arc(0, 0, 22, 0, 6.2832); b.fill();
+      b.strokeStyle = 'rgba(90,52,0,.85)'; b.lineWidth = 3;
+      b.beginPath(); b.arc(0, 0, 21, 0, 6.2832); b.stroke();
+      b.strokeStyle = 'rgba(255,246,200,.55)'; b.lineWidth = 2.4;
+      b.beginPath(); b.arc(0, 0, 13, 2.5, 5.4); b.stroke();
+      b.fillStyle = 'rgba(255,255,255,.6)';
+      b.beginPath(); b.ellipse(-7, -8, 5, 3.4, -0.6, 0, 6.2832); b.fill();
+      var tile = document.createElement('canvas'); tile.width = tile.height = COIN;
+      var tc = tile.getContext('2d'); tc.imageSmoothingEnabled = true;
+      tc.drawImage(big, 0, 0, COIN, COIN);
+      coins.push(tile);
+    }
+  })();
+
+  /* ---------- キャラ ---------- */
+  function rr(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath();
+  }
+  function grad(x0, y0, x1, y1, a, b) {
+    var g = f.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, a); g.addColorStop(1, b); return g;
+  }
+
+  /* 黒棒の目線隠し */
+  function censor(cx, cy, halfW, h) {
+    f.fillStyle = '#050508';
+    f.fillRect(cx - halfW, cy - h / 2, halfW * 2, h);
+    f.strokeStyle = 'rgba(255,255,255,.16)'; f.lineWidth = 0.6;
+    f.strokeRect(cx - halfW + 0.3, cy - h / 2 + 0.3, halfW * 2 - 0.6, h - 0.6);
+  }
+
+  function drawHero(e, dead) {
+    var X = e.x * SUB, Y = e.y * SUB, w = e.w * SUB;
+    var u = w / 25, cx = X + w / 2;
+    var P = dead
+      ? { skinA: '#9a94a6', skinB: '#615b70', shirtA: '#7d8598', shirtB: '#464e60', pantA: '#4a4a5c', pantB: '#2a2a38', hatA: '#6a6470', hatB: '#3a3644' }
+      : { skinA: '#ffe2c0', skinB: '#c9895a', shirtA: '#5fccff', shirtB: '#1263b4', pantA: '#41506f', pantB: '#1c2233', hatA: '#a76c33', hatB: '#4a2b0e' };
+
+    /* 脚 */
+    f.fillStyle = grad(X, Y + 28 * u, X + w, Y + 40 * u, P.pantA, P.pantB);
+    rr(f, cx - 6.6 * u, Y + 27 * u, 5.4 * u, 13 * u, 2 * u); f.fill();
+    rr(f, cx + 1.2 * u, Y + 27 * u, 5.4 * u, 13 * u, 2 * u); f.fill();
+    f.fillStyle = dead ? '#22202a' : '#2b2334';
+    rr(f, cx - 7.2 * u, Y + 37.6 * u, 6.4 * u, 2.6 * u, 1.1 * u); f.fill();
+    rr(f, cx + 0.8 * u, Y + 37.6 * u, 6.4 * u, 2.6 * u, 1.1 * u); f.fill();
+
+    /* 腕 */
+    f.fillStyle = grad(X, Y, X + w, Y, P.shirtA, P.shirtB);
+    rr(f, cx - 10.4 * u, Y + 17 * u, 4 * u, 11 * u, 1.8 * u); f.fill();
+    rr(f, cx + 6.4 * u, Y + 17 * u, 4 * u, 11 * u, 1.8 * u); f.fill();
+    f.fillStyle = grad(cx - 10 * u, Y + 26 * u, cx + 10 * u, Y + 29 * u, P.skinA, P.skinB);
+    rr(f, cx - 10.2 * u, Y + 26.6 * u, 3.6 * u, 3.4 * u, 1.6 * u); f.fill();
+    rr(f, cx + 6.6 * u, Y + 26.6 * u, 3.6 * u, 3.4 * u, 1.6 * u); f.fill();
+
+    /* 胴 */
+    f.fillStyle = grad(cx - 8 * u, Y + 16 * u, cx + 9 * u, Y + 29 * u, P.shirtA, P.shirtB);
+    rr(f, cx - 7.8 * u, Y + 15.5 * u, 15.6 * u, 13 * u, 3.4 * u); f.fill();
+    f.fillStyle = 'rgba(255,255,255,.16)';
+    rr(f, cx - 6.6 * u, Y + 16.6 * u, 4 * u, 10 * u, 2 * u); f.fill();
+    f.fillStyle = 'rgba(0,0,0,.22)';
+    rr(f, cx - 7.8 * u, Y + 25.6 * u, 15.6 * u, 2.8 * u, 1.4 * u); f.fill();
+
+    /* 首・頭 */
+    f.fillStyle = grad(cx - 6 * u, Y + 5 * u, cx + 7 * u, Y + 17 * u, P.skinA, P.skinB);
+    rr(f, cx - 2.4 * u, Y + 13.6 * u, 4.8 * u, 3 * u, 1.2 * u); f.fill();
+    f.beginPath(); f.ellipse(cx, Y + 9.4 * u, 5.7 * u, 6.2 * u, 0, 0, 6.2832); f.fill();
+    f.fillStyle = 'rgba(0,0,0,.20)';
+    f.beginPath(); f.ellipse(cx + 2.6 * u, Y + 9.8 * u, 3.1 * u, 5.4 * u, 0, 0, 6.2832); f.fill();
+
+    /* 顔 */
+    f.fillStyle = dead ? '#1a1822' : '#2a1a12';
+    f.beginPath(); f.ellipse(cx - 2.1 * u, Y + 9.2 * u, 0.95 * u, 1.15 * u, 0, 0, 6.2832); f.fill();
+    f.beginPath(); f.ellipse(cx + 2.1 * u, Y + 9.2 * u, 0.95 * u, 1.15 * u, 0, 0, 6.2832); f.fill();
+    f.fillStyle = 'rgba(255,255,255,.75)';
+    f.fillRect(cx - 2.5 * u, Y + 8.6 * u, 0.7 * u, 0.7 * u);
+    f.fillRect(cx + 1.7 * u, Y + 8.6 * u, 0.7 * u, 0.7 * u);
+    f.fillStyle = 'rgba(0,0,0,.35)';
+    rr(f, cx - 1.5 * u, Y + 12 * u, 3 * u, 0.9 * u, 0.45 * u); f.fill();
+
+    /* 帽子 */
+    f.fillStyle = grad(cx - 9 * u, Y + 1 * u, cx + 9 * u, Y + 7 * u, P.hatA, P.hatB);
+    f.beginPath(); f.ellipse(cx, Y + 5.4 * u, 10.2 * u, 2.5 * u, 0, 0, 6.2832); f.fill();
+    rr(f, cx - 5.4 * u, Y + 0.6 * u, 10.8 * u, 5.4 * u, 2.4 * u); f.fill();
+    f.fillStyle = 'rgba(0,0,0,.42)';
+    rr(f, cx - 5.6 * u, Y + 3.9 * u, 11.2 * u, 1.7 * u, 0.8 * u); f.fill();
+    f.fillStyle = 'rgba(255,255,255,.14)';
+    rr(f, cx - 4.6 * u, Y + 1.3 * u, 3.2 * u, 2.6 * u, 1.2 * u); f.fill();
+
+    censor(cx, Y + 9.3 * u, 8.4 * u, 2.9 * u);
+  }
+
+  function drawFoe(e) {
+    var X = e.x * SUB, Y = e.y * SUB, w = e.w * SUB;
+    var u = w / 25, cx = X + w / 2;
+    f.fillStyle = '#6b21a8';
+    f.beginPath(); f.moveTo(cx - 7 * u, Y + 6 * u); f.lineTo(cx - 9.4 * u, Y + 0.6 * u); f.lineTo(cx - 3.6 * u, Y + 4.4 * u); f.closePath(); f.fill();
+    f.beginPath(); f.moveTo(cx + 7 * u, Y + 6 * u); f.lineTo(cx + 9.4 * u, Y + 0.6 * u); f.lineTo(cx + 3.6 * u, Y + 4.4 * u); f.closePath(); f.fill();
+
+    f.fillStyle = grad(cx - 9 * u, Y + 3 * u, cx + 9 * u, Y + 26 * u, '#c77dff', '#5b1e97');
+    rr(f, cx - 9.4 * u, Y + 3.4 * u, 18.8 * u, 20 * u, 7.2 * u); f.fill();
+    f.fillStyle = 'rgba(255,255,255,.15)';
+    f.beginPath(); f.ellipse(cx - 4 * u, Y + 8.6 * u, 3.4 * u, 4.4 * u, -0.3, 0, 6.2832); f.fill();
+    f.fillStyle = 'rgba(0,0,0,.26)';
+    rr(f, cx - 9.4 * u, Y + 19 * u, 18.8 * u, 4.4 * u, 4 * u); f.fill();
+
+    f.fillStyle = '#4c1785';
+    rr(f, cx - 7 * u, Y + 22 * u, 5.4 * u, 6 * u, 2 * u); f.fill();
+    rr(f, cx + 1.6 * u, Y + 22 * u, 5.4 * u, 6 * u, 2 * u); f.fill();
+
+    f.fillStyle = '#fff3b0';
+    f.beginPath(); f.ellipse(cx - 3.6 * u, Y + 10.4 * u, 2.5 * u, 2.1 * u, 0, 0, 6.2832); f.fill();
+    f.beginPath(); f.ellipse(cx + 3.6 * u, Y + 10.4 * u, 2.5 * u, 2.1 * u, 0, 0, 6.2832); f.fill();
+    f.fillStyle = '#2a0a3a';
+    f.beginPath(); f.ellipse(cx - 3.2 * u, Y + 10.6 * u, 1.15 * u, 1.5 * u, 0, 0, 6.2832); f.fill();
+    f.beginPath(); f.ellipse(cx + 4 * u, Y + 10.6 * u, 1.15 * u, 1.5 * u, 0, 0, 6.2832); f.fill();
+
+    f.fillStyle = '#37093f';
+    rr(f, cx - 4.4 * u, Y + 15 * u, 8.8 * u, 3 * u, 1.4 * u); f.fill();
+    f.fillStyle = '#fff';
+    for (var i = 0; i < 4; i++) f.fillRect(cx - 3.6 * u + i * 2.2 * u, Y + 15 * u, 1.1 * u, 1.3 * u);
+
+    censor(cx, Y + 10.5 * u, 10.8 * u, 3.2 * u);
+  }
+
+  /* ---------- ピン ---------- */
+  function pinSlide(e) {
+    if (e < 0.16) return -0.10 * Math.sin(e / 0.16 * Math.PI);   /* 溜め */
+    var k = (e - 0.16) / 0.84;
+    return Math.pow(k, 1.55);
+  }
+  function animOf(id) {
+    for (var i = 0; i < anims.length; i++) if (anims[i].id === id) return anims[i];
+    return null;
+  }
+  function drawPin(p, t) {
+    var an = animOf(p.idx);
+    var e = an ? Math.min(1, (t - an.t0) / PULL_MS) : 0;
+    var s = an ? pinSlide(e) : 0;
+    if (s >= 1) return;
+    var horiz = p.w >= p.h;
+    var len = (horiz ? p.w : p.h) * SUB;
+    var thick = (horiz ? p.h : p.w) * SUB;
+    var off = s * (len + 3 * SUB);
+    var x = p.x * SUB - (horiz ? off : 0);
+    var y = p.y * SUB - (horiz ? 0 : off);
+    var pulse = REDUCE ? 0.5 : (0.5 + 0.5 * Math.sin(t / 300));
+
+    f.save();
+    if (!an) { f.shadowColor = 'rgba(255,70,110,' + (0.25 + pulse * 0.4) + ')'; f.shadowBlur = 4; }
+    f.fillStyle = horiz ? grad(x, y, x, y + thick, '#f6f9ff', '#525b73')
+      : grad(x, y, x + thick, y, '#f6f9ff', '#525b73');
+    if (horiz) rr(f, x, y + 0.7, len, thick - 1.4, thick * 0.3);
+    else rr(f, x + 0.7, y, thick - 1.4, len, thick * 0.3);
+    f.fill();
+    f.restore();
+
+    f.fillStyle = 'rgba(255,255,255,.55)';
+    if (horiz) f.fillRect(x + 1, y + 1.1, len - 2, 0.9); else f.fillRect(x + 1.1, y + 1, 0.9, len - 2);
+
+    var r = SUB * 0.95;
+    var rx = horiz ? x - r * 0.9 : x + thick / 2;
+    var ry = horiz ? y + thick / 2 : y - r * 0.9;
+    f.lineWidth = 2.4; f.strokeStyle = 'rgba(0,0,0,.55)';
+    f.beginPath(); f.arc(rx, ry, r, 0, 6.2832); f.stroke();
+    f.lineWidth = 1.5; f.strokeStyle = an ? '#ff8aa6' : '#ff466e';
+    f.beginPath(); f.arc(rx, ry, r, 0, 6.2832); f.stroke();
+  }
+
+  /* ---------- 全体描画 ---------- */
+  function render(t) {
+    dilate();
+    paintField(t);
+
+    var g = sim.g, x, y;
+    for (y = viewY0; y < H; y++) {
+      for (x = 0; x < W; x++) {
+        if (g[y * W + x] !== C.GOLD) continue;
+        f.drawImage(coins[(x * 7 + y * 13) % 3], x * SUB - 1, y * SUB - 1, COIN, COIN);
+      }
+    }
+    for (var i = 0; i < sim.entities.length; i++) {
+      var e = sim.entities[i];
+      if (e.kind === 'hero') drawHero(e, !e.alive);
+      else if (e.alive) drawFoe(e);
+    }
+    for (var p = 0; p < sim.pins.length; p++) if (!sim.pins[p].pulled) drawPin(sim.pins[p], t);
+
+    for (var q = 0; q < parts.length; q++) {
+      var pt = parts[q];
+      f.globalAlpha = Math.max(0, pt.life); f.fillStyle = pt.c;
+      f.fillRect(pt.x - pt.s / 2, pt.y - pt.s / 2, pt.s, pt.s);
+    }
+    f.globalAlpha = 1;
+
+    var sx = 0, sy = 0;
+    if (shake > 0.4) { sx = (Math.random() * 2 - 1) * shake; sy = (Math.random() * 2 - 1) * shake; shake *= 0.86; }
+    var y0f = viewY0 * SUB;
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#0d0b12'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(fcv, 0, y0f, FW, FH - y0f, sx, sy, FW * PX, (FH - y0f) * PX);
+
+    if (tutorial && !sim.pins[0].pulled) drawArrow(sim.pins[0], t, sx, sy);
+  }
+
+  function drawArrow(p, t, sx, sy) {
+    var bob = REDUCE ? 0 : Math.sin(t / 220) * 5;
+    var cx = (p.x + p.w / 2) * SUB * PX + sx;
+    var cy = (p.y - viewY0) * SUB * PX - 30 + bob + sy;
+    ctx.save();
+    ctx.fillStyle = '#ffd400'; ctx.strokeStyle = '#111014'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 18); ctx.lineTo(cx - 12, cy - 4); ctx.lineTo(cx - 5, cy - 4);
+    ctx.lineTo(cx - 5, cy - 18); ctx.lineTo(cx + 5, cy - 18); ctx.lineTo(cx + 5, cy - 4);
+    ctx.lineTo(cx + 12, cy - 4); ctx.closePath();
+    ctx.stroke(); ctx.fill();
+    ctx.font = '900 15px "Noto Sans JP",sans-serif'; ctx.textAlign = 'center';
+    ctx.lineWidth = 4; ctx.strokeText(T('here'), cx, cy - 24); ctx.fillText(T('here'), cx, cy - 24);
+    ctx.restore();
+  }
+
+  /* ---------- HUD ---------- */
+  function hud() {
+    var goal = sim.level.goal;
+    $('gnow').textContent = sim.gold;
+    $('ggoal').textContent = goal;
+    $('gbar').style.width = Math.min(100, sim.gold / goal * 100) + '%';
+    $('pleft').textContent = sim.pinsLeft();
+  }
+  function buildStages() {
+    var box = $('stages'); box.innerHTML = '';
+    C.LEVELS.forEach(function (lv, i) {
+      var b = document.createElement('button');
+      b.className = 'stg' + (i === lvIndex ? ' on' : '') + (i < unlocked ? '' : ' lock') + (i < unlocked - 1 ? ' done' : '');
+      b.textContent = lv.id;
+      b.setAttribute('aria-label', T('stage', { n: lv.id }));
+      b.onclick = function () { if (i < unlocked) { lvIndex = i; retries = 0; load(); } };
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------- 進行 ---------- */
+  function load() {
+    var lv = C.LEVELS[lvIndex];
+    sim = new C.Sim(lv, 20270101 + retries * 977);
+    for (var i = 0; i < 220 && sim.stillFor < 3; i++) sim.step();
+    sim.fx.length = 0; sim.state = 'ready'; sim.stillFor = 0;
+    parts.length = 0; anims.length = 0; shake = 0; overT = 0;
+
+    var first = H - 1;
+    for (var y = 0; y < H && first === H - 1; y++) {
+      for (var x = 1; x < W - 1; x++) if (sim.g[y * W + x] !== C.E) { first = y; break; }
+    }
+    viewY0 = Math.max(0, Math.min(H - 20, first - 2));
+    cv.height = (FH - viewY0 * SUB) * PX;
+
+    tutorial = (lv.id === 1);
+    $('tip').textContent = T('tips')[lvIndex] || lv.tip;
+    $('badge').style.display = lv.id === 1 ? 'block' : 'none';
+    $('ov').className = 'ov';
+    buildStages(); hud();
+  }
+
+
+  function showOver(kind) {
+    var ov = $('ov');
+    ov.className = 'ov on ' + kind;
+    if (kind === 'clear') {
+      $('ovt').innerHTML = T('clear') + '<span class="cens"></span>';
+      $('ovp').innerHTML = T('got', { n: sim.gold }) +
+        (lvIndex >= C.LEVELS.length - 1 ? '<br>' + T('allNote') : '');
+      $('ovnext').textContent = lvIndex >= C.LEVELS.length - 1 ? T('first') : T('next');
+      $('ovnext').style.display = '';
+      unlocked = Math.max(unlocked, Math.min(C.LEVELS.length, lvIndex + 2));
+      var CL = T('cta');
+      $('ctalead').innerHTML = lvIndex >= C.LEVELS.length - 1 ? CL[CL.length - 1] : CL[lvIndex % (CL.length - 1)];
+      sfx('clear');
+    } else if (kind === 'fail') {
+      $('ovt').innerHTML = T('fail') + '<span class="cens"></span>';
+      var fk = I18.FAIL_KEY[sim.failReason];
+      $('ovp').innerHTML = (fk ? T(fk) : sim.failReason) + (I18.lang === 'ja' ? '。' : '.') +
+        (tutorial ? '<br>' + T('tutFail') : '<br>' + T('ratio', { a: sim.gold, b: sim.level.goal }));
+      $('ovnext').style.display = 'none';
+    }
+    buildStages();
+  }
+  function showHelp() {
+    $('ov').className = 'ov on help';
+    $('ovt').innerHTML = T('how');
+    $('ovp').innerHTML = T('helpIntro') + '<br><br>' +
+      '<b style="color:#ffcf3f">' + T('coinN') + '</b>' + T('coinD') + '<br>' +
+      '<b style="color:#ff6a2a">' + T('lavaN') + '</b>' + T('lavaD') + '<br>' +
+      '<b style="color:#4aa8ff">' + T('waterN') + '</b>' + T('waterD') + '<br>' +
+      '<b style="color:#c77dff">' + T('foeN') + '</b>' + T('foeD');
+    $('ovnext').style.display = 'none';
+  }
+
+  /* ---------- 入力 ---------- */
+  function hit(cx, cy) {
+    var r = cv.getBoundingClientRect();
+    var x = (cx - r.left) / r.width * W;
+    var y = (cy - r.top) / r.height * (H - viewY0) + viewY0;
+    var best = -1, bd = 1e9, i;
+    for (i = 0; i < sim.pins.length; i++) {
+      var p = sim.pins[i];
+      if (p.pulled || animOf(i)) continue;
+      if (x < p.x - 1.5 || x > p.x + p.w + 1.5 || y < p.y - 1.5 || y > p.y + p.h + 1.5) continue;
+      var px = Math.max(p.x, Math.min(p.x + p.w, x)), py = Math.max(p.y, Math.min(p.y + p.h, y));
+      var d = (px - x) * (px - x) + (py - y) * (py - y);
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+  }
+  cv.addEventListener('pointerdown', function (ev) {
+    ac();
+    if (sim.state === 'clear' || sim.state === 'fail') return;
+    var i = hit(ev.clientX, ev.clientY);
+    if (i < 0) return;
+    anims.push({ id: i, t0: performance.now() });
+    tutorial = false;
+    sfx('grab'); sfx('slide');
+  });
+
+  function applyLang() {
+    document.documentElement.lang = I18.lang;
+    document.title = T('title');
+    document.querySelector('h1').classList.toggle('long', T('title').length > 8);
+    var els = document.querySelectorAll('[data-i]');
+    for (var i = 0; i < els.length; i++) els[i].textContent = T(els[i].getAttribute('data-i'));
+    $('ovretry').textContent = T('again');
+    $('snd').setAttribute('aria-label', T('sound'));
+    $('langbtn').setAttribute('aria-label', T('lang'));
+    $('langbtn').textContent = I18.lang === 'zh-Hans' ? '简' : (I18.lang === 'zh-Hant' ? '繁' : I18.lang.toUpperCase());
+    if (sim) { $('tip').textContent = T('tips')[lvIndex] || ''; buildStages(); }
+  }
+  function showLang() {
+    $('ov').className = 'ov on lang';
+    $('ovt').innerHTML = T('langTitle');
+    $('ovp').innerHTML = '';
+    var box = $('langs'); box.innerHTML = '';
+    Object.keys(I18.NAMES).forEach(function (k) {
+      var b = document.createElement('button');
+      b.className = 'chip'; b.lang = k; b.textContent = I18.NAMES[k];
+      b.setAttribute('aria-pressed', String(k === I18.lang));
+      b.onclick = function () { I18.set(k); applyLang(); $('ov').className = 'ov'; };
+      box.appendChild(b);
+    });
+  }
+  $('langbtn').onclick = function () {
+    if (sim.state === 'clear' || sim.state === 'fail') return;
+    if ($('ov').classList.contains('lang')) { $('ov').className = 'ov'; return; }
+    showLang();
+  };
+
+  $('retry').onclick = function () { retries++; load(); };
+  $('how').onclick = function () { ac(); showHelp(); };
+  $('ovretry').onclick = function () {
+    if ($('ov').classList.contains('help') || $('ov').classList.contains('lang')) { $('ov').className = 'ov'; return; }
+    retries++; load();
+  };
+  $('ovnext').onclick = function () {
+    if (sim.state === 'clear') {
+      lvIndex = lvIndex >= C.LEVELS.length - 1 ? 0 : lvIndex + 1;
+      retries = 0; load();
+    }
+  };
+  $('snd').onclick = function () {
+    muted = !muted;
+    $('snd').classList.toggle('muted', muted);
+    $('snd').setAttribute('aria-pressed', muted ? 'true' : 'false');
+    $('snd').style.color = muted ? '' : '#ffd400';
+    if (!muted) { ac(); sfx('get'); }
+  };
+
+  /* ---------- ループ ---------- */
+  var prev = 0, acc = 0;
+  function frame(t) {
+    var dt = Math.min(64, t - prev); prev = t; acc += dt;
+
+    for (var i = anims.length - 1; i >= 0; i--) {
+      var an = anims[i], e = (t - an.t0) / PULL_MS, p = sim.pins[an.id];
+      if (e >= 1) {
+        sim.retract(an.id, 1);
+        sim.fx.push({ t: 'pull', x: p.x + p.w / 2, y: p.y + p.h / 2 });
+        anims.splice(i, 1);
+      } else {
+        var s = pinSlide(e);
+        if (s > 0 && sim.retract(an.id, s) && !REDUCE) {
+          burst(p.x + p.w * (1 - s), p.y, 1, '#ffe6a0', 0.45, 0.15, 1.2);
+        }
+      }
+    }
+
+    var budget = 0;
+    while (acc >= 8 && budget < 6) {
+      acc -= 8; budget++;
+      if (sim.state !== 'clear' && sim.state !== 'fail') sim.step();
+    }
+    if (acc > 200) acc = 0;
+
+    drainFx(); stepParts(); render(t); hud();
+
+    if ((sim.state === 'clear' || sim.state === 'fail') && !$('ov').classList.contains('on')) {
+      overT += dt;
+      if (overT > 780) showOver(sim.state);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  window.ANODBG = {
+    go: function (i) { lvIndex = Math.max(0, Math.min(C.LEVELS.length - 1, i)); retries = 0; load(); },
+    unlockAll: function () { unlocked = C.LEVELS.length; buildStages(); },
+    sim: function () { return sim; },
+    pull: function (i) { anims.push({ id: i, t0: performance.now() }); }
+  };
+  if (location.hash === '#all') unlocked = C.LEVELS.length;
+
+  applyLang();
+  load();
+  requestAnimationFrame(function (t) { prev = t; frame(t); });
+})();
+
+</script>
+</body>
+</html>

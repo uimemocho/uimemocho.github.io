@@ -418,5 +418,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-18T10:50:00Z",
     "updatedAt": "2026-10-18T10:50:00Z"
+  },
+  {
+    "slug": "ano-game",
+    "title": "あのゲーム",
+    "kind": "game",
+    "description": "あの広告の「ピン抜き」を、ちゃんと遊べるパズルにしました。水・マグマ・コイン・敵、抜く順番だけが正解。全6ステージ、9言語対応。",
+    "url": "/apps/ano-game/",
+    "thumbnail": "/project-thumbnails/ano-game.webp",
+    "sourceFolder": "261020_あのゲーム",
+    "sourceEntry": "ano_game_v1.4.html",
+    "publishedAt": "2026-10-20T00:18:43Z",
+    "updatedAt": "2026-10-20T00:18:43Z"
   }
 ]
