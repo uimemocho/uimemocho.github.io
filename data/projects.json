@@ -430,5 +430,17 @@
     "sourceEntry": "ano_game_v1.4.html",
     "publishedAt": "2026-10-20T00:18:43Z",
     "updatedAt": "2026-10-20T00:18:43Z"
+  },
+  {
+    "slug": "paper-run",
+    "title": "紙走",
+    "kind": "game",
+    "description": "地下駐車場の坂で、60mのトイレットペーパーを転がしてゴールまで運ぶ3Dタイムアタック。押せば速い、押しすぎると破れる。CPU戦とオンライン対戦、ランクと通り名つき。",
+    "url": "/apps/paper-run/",
+    "thumbnail": "/project-thumbnails/paper-run.webp",
+    "sourceFolder": "261022_紙走",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-22T14:30:00Z",
+    "updatedAt": "2026-10-22T14:30:00Z"
   }
 ]
