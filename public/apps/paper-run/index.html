@@ -809,29 +809,40 @@ function showResult(){
   shareBlob=null;show('rShot',false);shareStatus('');
   show('result',true);$('result').scrollTop=0;
   if(mode==='online')pushPresence({st:'end',ready:false});
-  setTimeout(async()=>{const snap=grabFrame();const b=await composeShare(snap,R);if(!b||state!=='result')return;shareBlob=b;
+  setTimeout(async()=>{const snap=grabShareFrame();const b=await composeShare(snap,R);if(!b||state!=='result')return;shareBlob=b;
     try{const u=URL.createObjectURL(b);$('rImg').src=u;show('rShot',true);}catch(e){}},700);
 }
 
 // ----- share image -----
 let shareText='',shareUrl='',shareBlob=null;
 function grabFrame(){try{renderer.render(scene,cam);const src=renderer.domElement,c=cvs(src.width,src.height);c.getContext('2d').drawImage(src,0,0);return c;}catch(e){return null;}}
+/* the share image gets its own low three-quarter shot so the roll sits in the upper picture area, clear of the text */
+const shareCam=new THREE.PerspectiveCamera(40,1080/760,.01,90);
+function grabShareFrame(){try{
+  const W=1080,Hh=760,pr=renderer.getPixelRatio(),size=renderer.getSize(new THREE.Vector2());
+  renderer.setSize(W/pr,Hh/pr,false);
+  const F=frameInto(me.st.s,mkF()),r=rAt(me.st.s),c=F.p.clone().addScaledVector(F.r,me.lat).addScaledVector(F.n,r);
+  shareCam.aspect=W/Hh;shareCam.position.copy(c).addScaledVector(F.t,.12+r*5).addScaledVector(F.r,-(.06+r*2.5)).addScaledVector(F.n,.01+r*.45);
+  shareCam.lookAt(c.clone().addScaledVector(F.n,.015));shareCam.updateProjectionMatrix();
+  const lv=PR.label.visible;PR.label.visible=false;
+  renderer.render(scene,shareCam);const src=renderer.domElement,cv=cvs(src.width,src.height);cv.getContext('2d').drawImage(src,0,0);
+  PR.label.visible=lv&&PR.vis;renderer.setSize(size.x,size.y,false);renderer.render(scene,cam);return cv;}catch(e){return null;}}
 async function composeShare(snap,R){
   try{if(document.fonts){await Promise.all(["60px 'Dela Gothic One'","600 40px 'Oswald'","700 30px 'Zen Kaku Gothic New'"].map(f=>document.fonts.load(f,'紙走通り名')));}}catch(e){}
   const W=1080,H=1350,c=cvs(W,H),g=c.getContext('2d');g.fillStyle='#0c0c0b';g.fillRect(0,0,W,H);
-  if(snap){const s=Math.max(W/snap.width,H*.78/snap.height),dw=snap.width*s,dh=snap.height*s;g.drawImage(snap,(W-dw)/2,0,dw,dh);}
-  let gr=g.createLinearGradient(0,H*.36,0,H);gr.addColorStop(0,'rgba(12,12,11,0)');gr.addColorStop(.45,'rgba(12,12,11,.9)');gr.addColorStop(1,'#0c0c0b');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  if(snap){const s=Math.max(W/snap.width,H*.6/snap.height),dw=snap.width*s,dh=snap.height*s;g.drawImage(snap,(W-dw)/2,0,dw,dh);}
+  let gr=g.createLinearGradient(0,H*.4,0,H);gr.addColorStop(0,'rgba(12,12,11,0)');gr.addColorStop(.33,'#0c0c0b');gr.addColorStop(1,'#0c0c0b');g.fillStyle=gr;g.fillRect(0,0,W,H);
   gr=g.createLinearGradient(0,0,0,240);gr.addColorStop(0,'rgba(12,12,11,.8)');gr.addColorStop(1,'rgba(12,12,11,0)');g.fillStyle=gr;g.fillRect(0,0,W,240);
   g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#f4f1ea';
   g.save();g.translate(64,150);g.transform(1,0,-.16,1,0,0);g.font="110px 'Dela Gothic One',sans-serif";g.fillText('紙走',0,0);g.restore();
   g.font="600 22px 'Oswald',sans-serif";g.fillStyle='#cfc9bd';g.fillText('S H I  ·  S Ō',70,190);
   g.textAlign='right';g.font="600 24px 'Oswald',sans-serif";g.fillStyle='#948f86';g.fillText(modeLabel(),W-64,92);
   g.textAlign='center';
-  g.font="600 28px 'Oswald',sans-serif";g.fillStyle='#948f86';g.fillText('R A N K',W/2,H*.56);
-  g.save();g.translate(W/2,H*.56+230);g.transform(1,0,-.16,1,0,0);g.font=`${R.torn?190:250}px 'Dela Gothic One',sans-serif`;g.fillStyle=R.torn?'#d4372b':'#f4f1ea';g.fillText(R.label,0,0);g.restore();
-  g.font="700 30px 'Zen Kaku Gothic New',sans-serif";g.fillStyle='#948f86';g.fillText('通り名',W/2,H*.56+300);
-  g.font="64px 'Dela Gothic One',sans-serif";g.fillStyle='#f4f1ea';g.fillText(R.name,W/2,H*.56+378);
-  g.font="600 72px 'Oswald',sans-serif";g.fillStyle='#f4f1ea';g.fillText(R.torn?`DNF  ${me.tearS.toFixed(1)} m`:`${me.fin.toFixed(2)} s`,W/2,H*.56+470);
+  g.font="600 28px 'Oswald',sans-serif";g.fillStyle='#948f86';g.fillText('R A N K',W/2,H*.585);
+  g.save();g.translate(W/2,H*.585+200);g.transform(1,0,-.16,1,0,0);g.font=`${R.torn?160:210}px 'Dela Gothic One',sans-serif`;g.fillStyle=R.torn?'#d4372b':'#f4f1ea';g.fillText(R.label,0,0);g.restore();
+  g.font="700 30px 'Zen Kaku Gothic New',sans-serif";g.fillStyle='#948f86';g.fillText('通り名',W/2,H*.585+258);
+  g.font="58px 'Dela Gothic One',sans-serif";g.fillStyle='#f4f1ea';g.fillText(R.name,W/2,H*.585+326);
+  g.font="600 64px 'Oswald',sans-serif";g.fillStyle='#f4f1ea';g.fillText(R.torn?`DNF  ${me.tearS.toFixed(1)} m`:`${me.fin.toFixed(2)} s`,W/2,H*.585+404);
   g.font="600 22px 'Oswald',sans-serif";g.fillStyle='#948f86';g.fillText('uimemocho.github.io/apps/paper-run/',W/2,H-40);
   g.strokeStyle='rgba(239,234,224,.4)';g.setLineDash([14,10]);g.lineWidth=2;g.beginPath();g.moveTo(W*.2,H-90);g.lineTo(W*.8,H-90);g.stroke();
   return await new Promise(res=>{try{c.toBlob(b=>res(b),'image/png');}catch(e){res(null);}});
