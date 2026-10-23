@@ -442,5 +442,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-22T14:30:00Z",
     "updatedAt": "2026-10-22T14:30:00Z"
+  },
+  {
+    "slug": "paper-supply",
+    "title": "紙給",
+    "kind": "game",
+    "description": "公衆トイレの個室で、紙が尽きる瞬間にトイレットペーパーを投げ入れる3Dタイミングゲーム。早すぎても遅すぎても苦情。CPU戦と、同じトイレで30秒の補給数を競うオンライン対戦つき。",
+    "url": "/apps/paper-supply/",
+    "thumbnail": "/project-thumbnails/paper-supply.webp",
+    "sourceFolder": "261023_紙給",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-23T15:30:00Z",
+    "updatedAt": "2026-10-23T15:30:00Z"
   }
 ]
