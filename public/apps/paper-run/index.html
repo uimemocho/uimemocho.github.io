@@ -4,18 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0c0c0b">
-<meta name="description" content="60mのトイレットペーパーを坂で転がし、紙を使い切ったらゴールの3Dタイムアタック。地下駐車場・石畳・雨上がり・工事中の4ステージ。押しすぎると破れ、勢いがないと穴に落ちる。CPU戦とオンライン対戦つき。">
+<meta name="description" content="60mのトイレットペーパーを坂で転がし、紙を使い切ったらゴールの3Dタイムアタック。地下駐車場・石畳・雨・工事中の4ステージ。押しすぎると破れ、勢いがないと穴に落ちる。CPU戦とオンライン対戦つき。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="uimemocho">
 <meta property="og:title" content="紙走">
-<meta property="og:description" content="60mのトイレットペーパーを坂で転がし、紙を使い切ったらゴールの3Dタイムアタック。地下駐車場・石畳・雨上がり・工事中の4ステージ。押しすぎると破れ、勢いがないと穴に落ちる。CPU戦とオンライン対戦つき。">
+<meta property="og:description" content="60mのトイレットペーパーを坂で転がし、紙を使い切ったらゴールの3Dタイムアタック。地下駐車場・石畳・雨・工事中の4ステージ。押しすぎると破れ、勢いがないと穴に落ちる。CPU戦とオンライン対戦つき。">
 <meta property="og:url" content="https://uimemocho.github.io/apps/paper-run/">
 <meta property="og:image" content="https://uimemocho.github.io/apps/paper-run/ogp.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="紙走">
-<meta name="twitter:description" content="60mのトイレットペーパーを坂で転がし、紙を使い切ったらゴールの3Dタイムアタック。地下駐車場・石畳・雨上がり・工事中の4ステージ。押しすぎると破れ、勢いがないと穴に落ちる。CPU戦とオンライン対戦つき。">
+<meta name="twitter:description" content="60mのトイレットペーパーを坂で転がし、紙を使い切ったらゴールの3Dタイムアタック。地下駐車場・石畳・雨・工事中の4ステージ。押しすぎると破れ、勢いがないと穴に落ちる。CPU戦とオンライン対戦つき。">
 <meta name="twitter:image" content="https://uimemocho.github.io/apps/paper-run/ogp.png">
 <title>紙走</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -305,7 +305,7 @@ const STAGES=[
   {id:'stone',no:2,name:'石畳の坂',tag:'凸凹道',env:'stone',curve:[.24,34],
    profile:[[-99,0],[-1.4,6],[0,6],[8,10],[16,3],[25,9],[35,2],[43,8],[53,4],[60,0]],
    bumps:[[8.5,15,.8],[26,33,1],[44,51,1]]},
-  {id:'rain',no:3,name:'雨上がりの坂',tag:'水たまり',env:'rain',curve:[.16,46],
+  {id:'rain',no:3,name:'雨の坂',tag:'小雨・水たまり',env:'rain',curve:[.16,46],
    profile:[[-99,0],[-1.4,6],[0,6],[7,11],[18,2],[25,8],[35,1],[42,10],[52,3],[60,0]],
    puddles:[[9,10.6],[20,21.6],[30.5,32],[44,45.8],[53,54.4]]},
   {id:'works',no:4,name:'工事中の坂',tag:'穴あき道',env:'works',curve:[.12,50],
@@ -658,15 +658,30 @@ function updateLights(s,time){
 const ENVS={
   garage:{bg:0x090908,fog:.07,hemi:[0x3a3832,0x0e0d0c,.75],lampCol:0xffe4ba,lampI:1.7,lampD:11,HW:2.1,exp:1.05},
   stone:{bg:0x0d1422,fog:.045,hemi:[0x34425f,0x110f0c,.7],lampCol:0xffb46a,lampI:2.6,lampD:14,HW:2.3,exp:1.1},
-  rain:{bg:0x0b1019,fog:.05,hemi:[0x34455f,0x0a0a0c,.6],lampCol:0xe2ecff,lampI:2.8,lampD:15,HW:2.5,exp:1.1},
+  rain:{bg:0x0b1019,fog:.065,hemi:[0x34455f,0x0a0a0c,.6],lampCol:0xe2ecff,lampI:2.8,lampD:15,HW:2.5,exp:1.1},
   works:{bg:0x0d0e12,fog:.045,hemi:[0x3e3f46,0x0f0e0c,.65],lampCol:0xfff0d4,lampI:3.0,lampD:15,HW:2.4,exp:1.08},
 };
 let ENV=ENVS.garage,HW=2.1;
+// light rain: streaks recycled in a box around the camera
+let RAIN=null;
+function makeRain(){
+  const N=700,pos=new Float32Array(N*6),seed=new Float32Array(N*3);
+  for(let i=0;i<N;i++){seed[i*3]=(Math.random()-.5)*9;seed[i*3+1]=Math.random()*6;seed[i*3+2]=(Math.random()-.5)*9;}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const m=new THREE.LineBasicMaterial({color:0xc8d6ea,transparent:true,opacity:.45,depthWrite:false});
+  const L=new THREE.LineSegments(g,m);L.frustumCulled=false;add(L);RAIN={L,g,pos,seed,N,y:0};
+}
+function updateRain(dt,camPos){
+  if(!RAIN)return;const R=RAIN;R.y=(R.y+dt*6.5)%6;
+  for(let i=0;i<R.N;i++){const x=camPos.x+R.seed[i*3]+R.y*.12,z=camPos.z+R.seed[i*3+2];let y=camPos.y+3-((R.seed[i*3+1]+R.y)%6);
+    const o=i*6;R.pos[o]=x;R.pos[o+1]=y;R.pos[o+2]=z;R.pos[o+3]=x-.02;R.pos[o+4]=y-.22;R.pos[o+5]=z;}
+  R.g.attributes.position.needsUpdate=true;
+}
 let fontsReady=false,decalsMade=false;
 function clearWorld(){
   scene.remove(WORLD);
   WORLD.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});
-  WORLD=new THREE.Group();scene.add(WORLD);LAMPS.length=0;BLINK.length=0;decalsMade=false;
+  WORLD=new THREE.Group();scene.add(WORLD);LAMPS.length=0;BLINK.length=0;decalsMade=false;RAIN=null;
 }
 function buildWorld(stage){
   clearWorld();ENV=ENVS[stage.env];HW=ENV.HW;
@@ -759,9 +774,10 @@ const BUILD={
   },
   rain(){
     const ac=tex('asph',()=>asphaltCanvas(1024,23,'#3b3d42')),aT=tex('asphT',()=>texOf(ac,true)),aB=tex('asphB',()=>bumpOf(ac));
-    add(new THREE.Mesh(ribbon({sA:S0,sB:S1,seg:.1,a:[-HW,0],b:[HW,0],uv:(L,j,s)=>[j*HW*2/2.4,s/2.4]}),new THREE.MeshStandardMaterial({map:aT,bumpMap:aB,bumpScale:.01,roughness:.32,metalness:.12,color:0x9da2aa})));
+    add(new THREE.Mesh(ribbon({sA:S0,sB:S1,seg:.1,a:[-HW,0],b:[HW,0],uv:(L,j,s)=>[j*HW*2/2.4,s/2.4]}),new THREE.MeshStandardMaterial({map:aT,bumpMap:aB,bumpScale:.004,roughness:.36,metalness:.12,color:0x9da2aa})));
     for(const sd of[-1,1])longDecal(sd*(HW-.28)-.06,sd*(HW-.28)+.06,solidTex('#e9e7e0'),{vPer:3,rough:.3});
     decal(-5,S1-.2,-.05,.05,tex('cdash',()=>textDecal(16,128,(g,w,h)=>{g.fillStyle='#ece9e2';g.fillRect(0,0,w,h*.55);})),{vPer:5,rough:.3,opacity:.8});
+    makeRain();
     const pm=STAGE.puddles||[];
     pm.forEach((p,i)=>{decal(p[0],p[1],-HW+.15,HW-.15,tex('pud'+i,()=>texOf(puddleCanvas(30+i),false)),{rough:.02,metal:.5,color:0x1b2533,opacity:.92,lift:.0005});
       if(i===0||i===3)standSign(p[0]-4,HW-.35,.62,.62,1.5,diamond('スリップ\n注意'));});
@@ -984,7 +1000,7 @@ function auInit(){
   const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=68;const lfo=ctx.createOscillator();lfo.frequency.value=13;const lg=ctx.createGain();lg.gain.value=22;lfo.connect(lg);lg.connect(o.frequency);lfo.start();
   const cf=ctx.createBiquadFilter();cf.type='bandpass';cf.frequency.value=950;cf.Q.value=5;const cg=ctx.createGain();cg.gain.value=0;o.connect(cf);cf.connect(cg);cg.connect(master);o.start();AU.creakG=cg;
   const src3=ctx.createBufferSource();src3.buffer=nb;src3.loop=true;src3.playbackRate.value=.5;const rf=ctx.createBiquadFilter();rf.type='bandpass';rf.frequency.value=420;rf.Q.value=1.6;const rgn=ctx.createGain();rgn.gain.value=0;src3.connect(rf);rf.connect(rgn);rgn.connect(master);src3.start();AU.ratG=rgn;
-  {const s4=ctx.createBufferSource();s4.buffer=nb;s4.loop=true;s4.playbackRate.value=.9;const f4=ctx.createBiquadFilter();f4.type='bandpass';f4.frequency.value=1800;f4.Q.value=.4;const g4=ctx.createGain();g4.gain.value=0;s4.connect(f4);f4.connect(g4);g4.connect(master);s4.start();AU.rainG=g4;}
+  {const s4=ctx.createBufferSource();s4.buffer=nb;s4.loop=true;s4.playbackRate.value=.9;const f4=ctx.createBiquadFilter();f4.type='lowpass';f4.frequency.value=1600;f4.Q.value=.3;const g4=ctx.createGain();g4.gain.value=0;s4.connect(f4);f4.connect(g4);g4.connect(master);s4.start();AU.rainG=g4;}
   AU.bgm=ctx.createGain();AU.bgm.gain.value=.32;AU.bgm.connect(master);AU.bgm.connect(revIn);
   AU.next=ctx.currentTime+.1;AU.step=0;setInterval(bgmTick,25);
 }
@@ -1045,7 +1061,9 @@ function bgmTick(){
     th.play(t,st,bar,AU.intense,AU.bgm,spb);
     AU.next+=spb;AU.step++;
   }
-  if(AU.rainG)setP(AU.rainG.gain,STAGE.env==='rain'?.05:STAGE.env==='stone'?.012:0,.5);
+  // light rain: a quiet hiss plus sparse drops, only on the rain stage
+  if(AU.rainG)setP(AU.rainG.gain,STAGE.env==='rain'?.014:0,.6);
+  if(STAGE.env==='rain'&&Math.random()<.35)nHit(c.currentTime+Math.random()*.02,.02,'bandpass',1800+Math.random()*2600,.012+Math.random()*.02,null,3);
 }
 
 function sfxClick(vol){if(!AU.ctx)return;nHit(AU.ctx.currentTime,.008,'highpass',3800,.05*vol);}
@@ -1478,7 +1496,7 @@ function stepWorld(dtR){
     const gi=Math.max(0,Math.min(ghostData.length-1.001,(racing?runT:0)/.05)),i=gi|0,u=gi-i,gs=ghostData[i]+(ghostData[Math.min(ghostData.length-1,i+1)]-ghostData[i])*u;
     placeRoll(ghost,gs,gs/rAt(gs),.3);stepWorld.gs=gs;
   }
-  updateLights(me.st.s,clock);
+  updateLights(me.st.s,clock);updateRain(dtR,cam.position);
   const F=frameInto(me.st.s,FA);
   fill.position.copy(F.p).addScaledVector(F.n,.25).addScaledVector(F.t,-.2).addScaledVector(F.r,me.lat+.12);
   // camera

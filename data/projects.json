@@ -435,13 +435,13 @@
     "slug": "paper-run",
     "title": "紙走",
     "kind": "game",
-    "description": "60mのトイレットペーパーを坂で転がし、紙を使い切ったらゴールの3Dタイムアタック。地下駐車場・石畳・雨上がり・工事中の4ステージ。押しすぎると破れ、勢いがないと穴に落ちる。CPU戦とオンライン対戦つき。",
+    "description": "60mのトイレットペーパーを坂で転がし、紙を使い切ったらゴールの3Dタイムアタック。地下駐車場・石畳・雨・工事中の4ステージ。押しすぎると破れ、勢いがないと穴に落ちる。CPU戦とオンライン対戦つき。",
     "url": "/apps/paper-run/",
     "thumbnail": "/project-thumbnails/paper-run.webp",
     "sourceFolder": "261022_紙走",
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-22T14:30:00Z",
-    "updatedAt": "2026-10-24T05:00:00Z"
+    "updatedAt": "2026-10-24T04:00:00Z"
   },
   {
     "slug": "paper-supply",
