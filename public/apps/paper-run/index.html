@@ -102,8 +102,8 @@ input{-webkit-user-select:text;user-select:text}
 .val{font-family:var(--f-num);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;text-shadow:0 2px 0 #000}
 .val small{font-size:12px;margin-left:2px;color:var(--ash)}
 #gWrap{position:absolute;right:max(18px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
-#gauge{position:relative;width:12px;height:min(36vh,240px);background:#0c0c0b;box-shadow:inset 0 0 0 1px rgba(239,234,224,.45)}
-#gFill{position:absolute;left:2px;right:2px;bottom:2px;height:0;background:var(--bone)}
+#gauge{position:relative;width:12px;height:min(36vh,240px);background:#0c0c0b;transform:translateZ(0);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(239,234,224,.45)}
+#gFill{position:absolute;left:2px;right:2px;bottom:2px;top:2px;background:var(--bone);transform-origin:50% 100%;transform:scaleY(0);will-change:transform}
 #gLim{position:absolute;left:-7px;right:-7px;height:2px;background:var(--blood);bottom:calc(83.33% - 1px)}
 #gPct{font-family:var(--f-num);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;min-width:3.2em;text-align:center}
 #hSpeed{position:absolute;bottom:calc(22px + env(safe-area-inset-bottom,0px));left:max(16px,env(safe-area-inset-left,0px))}
@@ -1530,7 +1530,7 @@ function stepWorld(dtR){
     $('hPaper').innerHTML=Math.max(0,L_ROLL-me.st.s).toFixed(1)+'<small>m</small>';
     $('hV').innerHTML=me.st.v.toFixed(1)+'<small>m/s</small>';
     const T=me.tearS>=0?1.2:me.fin!==null?0:me.st.tension+(state==='run'?Math.sin(clock*23)*.025*me.st.bump:0),frac=Math.max(0,Math.min(1,T/1.2));
-    $('gFill').style.height=`calc(${frac*100}% - ${frac*4}px)`;
+    $('gFill').style.transform=`scaleY(${(Math.round(frac*400)/400).toFixed(4)})`;
     $('gFill').style.background=T>1?'var(--blood)':T>.8?'var(--sodium)':'var(--bone)';
     $('gPct').textContent=Math.round(Math.min(T,1.5)*100)+'%';$('gPct').style.color=T>1?'var(--blood)':'';
     $('gWet').textContent=me.st.wet>.04&&!me.done?`湿り ${Math.round(me.st.wet*100)}%`:'';
