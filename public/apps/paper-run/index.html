@@ -47,7 +47,7 @@ input{-webkit-user-select:text;user-select:text}
   padding:calc(24px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .scr>.inner{margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:26px;width:100%}
 #title{background:radial-gradient(ellipse at 50% 42%,rgba(12,12,11,.15),rgba(12,12,11,.82) 78%)}
-#title>.inner{margin:0;min-height:100%;justify-content:space-between;padding-top:6vh}
+#title>.inner{margin:0;min-height:100%;box-sizing:border-box;justify-content:space-between;padding-top:6vh;padding-bottom:max(6vh,calc(28px + env(safe-area-inset-bottom,0px)))}
 .logoWrap{display:flex;flex-direction:column;align-items:center}
 .logo{margin:0;font-family:var(--f-disp);font-weight:400;font-size:clamp(96px,31vw,190px);line-height:1;letter-spacing:-.02em;color:#f4f1ea;transform:skewX(-9deg);
   text-shadow:0 0 54px rgba(255,190,130,.16),0 4px 0 #000}
@@ -984,25 +984,70 @@ function auInit(){
   const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=68;const lfo=ctx.createOscillator();lfo.frequency.value=13;const lg=ctx.createGain();lg.gain.value=22;lfo.connect(lg);lg.connect(o.frequency);lfo.start();
   const cf=ctx.createBiquadFilter();cf.type='bandpass';cf.frequency.value=950;cf.Q.value=5;const cg=ctx.createGain();cg.gain.value=0;o.connect(cf);cf.connect(cg);cg.connect(master);o.start();AU.creakG=cg;
   const src3=ctx.createBufferSource();src3.buffer=nb;src3.loop=true;src3.playbackRate.value=.5;const rf=ctx.createBiquadFilter();rf.type='bandpass';rf.frequency.value=420;rf.Q.value=1.6;const rgn=ctx.createGain();rgn.gain.value=0;src3.connect(rf);rf.connect(rgn);rgn.connect(master);src3.start();AU.ratG=rgn;
+  {const s4=ctx.createBufferSource();s4.buffer=nb;s4.loop=true;s4.playbackRate.value=.9;const f4=ctx.createBiquadFilter();f4.type='bandpass';f4.frequency.value=1800;f4.Q.value=.4;const g4=ctx.createGain();g4.gain.value=0;s4.connect(f4);f4.connect(g4);g4.connect(master);s4.start();AU.rainG=g4;}
   AU.bgm=ctx.createGain();AU.bgm.gain.value=.32;AU.bgm.connect(master);AU.bgm.connect(revIn);
   AU.next=ctx.currentTime+.1;AU.step=0;setInterval(bgmTick,25);
 }
 function setP(p,v,tc=.05){if(AU.ctx)p.setTargetAtTime(v,AU.ctx.currentTime,tc);}
 function nHit(t,dur,type,freq,gain,dest,q=1){const c=AU.ctx;if(!c)return;const s=c.createBufferSource();s.buffer=AU.noise;const f=c.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;const g=c.createGain();g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(f);f.connect(g);g.connect(dest||AU.master);s.start(t,Math.random()*1.5);s.stop(t+dur+.05);}
 function tone(t,f0,f1,dur,gain,type='sine',dest){const c=AU.ctx;if(!c)return;const o=c.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+dur);const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(dest||AU.master);o.start(t);o.stop(t+dur+.05);}
-const BASS=[41.2,41.2,49.0,36.7];
-function bgmTick(){
-  const c=AU.ctx;if(!c)return;const spb=60/96/4;
-  while(AU.next<c.currentTime+.12){
-    const t=AU.next,st=AU.step%16,bar=Math.floor(AU.step/16)%4,I=AU.intense,d=AU.bgm;
+/* ----- per-stage music: each stage has its own groove, the title plays the selected stage's ----- */
+function pluck(t,f,dur,gain,d,bright){const c=AU.ctx,o=c.createOscillator(),o2=c.createOscillator(),fl=c.createBiquadFilter(),g=c.createGain();
+  o.type='triangle';o2.type='sawtooth';o.frequency.value=f;o2.frequency.value=f*1.003;fl.type='lowpass';fl.frequency.setValueAtTime(f*(bright||6),t);fl.frequency.exponentialRampToValueAtTime(f*1.2,t+dur*.6);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  const g2=c.createGain();g2.gain.value=.35;o.connect(fl);o2.connect(g2);g2.connect(fl);fl.connect(g);g.connect(d);o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05);}
+function pad(t,freqs,dur,gain,d,type){const c=AU.ctx,g=c.createGain(),fl=c.createBiquadFilter();fl.type='lowpass';fl.frequency.value=1400;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+dur*.25);g.gain.exponentialRampToValueAtTime(.0001,t+dur);fl.connect(g);g.connect(d);
+  for(const f of freqs){const o=c.createOscillator();o.type=type||'sine';o.frequency.value=f;const lf=c.createOscillator(),lg=c.createGain();lf.frequency.value=4.5;lg.gain.value=f*.004;lf.connect(lg);lg.connect(o.frequency);o.connect(fl);o.start(t);lf.start(t);o.stop(t+dur+.05);lf.stop(t+dur+.05);}}
+const THEMES={
+  garage:{bpm:96,play(t,st,bar,I,d,spb){
     if(st===0||st===8||(I>.4&&st===11))tone(t,130,38,.32,.85,'sine',d);
     if(st===4||st===12)nHit(t,.16,'bandpass',1700,.22+.15*I,d,.9);
     if(st%2===1||(I>.55))nHit(t,.035,'highpass',7000,(st%4===2?.07:.04)*(.6+I),d);
-    if(st===0){const o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain();o.type='sawtooth';o.frequency.value=BASS[bar];f.type='lowpass';f.frequency.value=140+I*160;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+spb*15);o.connect(f);f.connect(g);g.connect(d);o.start(t);o.stop(t+spb*16);}
+    if(st===0){const B=[41.2,41.2,49.0,36.7],c=AU.ctx,o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain();o.type='sawtooth';o.frequency.value=B[bar];f.type='lowpass';f.frequency.value=140+I*160;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+spb*15);o.connect(f);f.connect(g);g.connect(d);o.start(t);o.stop(t+spb*16);}
     if(st===14&&bar===3){tone(t,233,229,.5,.06,'square',d);tone(t,353,350,.45,.04,'square',d);}
+  }},
+  // 石畳: night old town — koto-like plucks on a miyako-bushi scale over taiko
+  stone:{bpm:84,play(t,st,bar,I,d,spb){
+    const SC=[164.8,174.6,220,246.9,261.6,329.6,349.2,440,493.9,523.3];
+    const PH=[[0,7],[3,5],[6,6],[8,4],[11,5],[14,3]],PH2=[[0,8],[2,7],[6,5],[8,4],[10,2],[12,3],[14,0]];
+    for(const [s,n] of (bar%2?PH2:PH))if(s===st)pluck(t,SC[n],.9,.13,d,7);
+    if(st===0||st===10||(I>.45&&(st===6||st===14)))tone(t,92,48,.45,.8,'sine',d),nHit(t,.12,'lowpass',380,.35,d);
+    if(st===4&&bar%2===0)tone(t,1318,1310,.6,.035,'triangle',d);
+    if(st%4===2)nHit(t,.05,'bandpass',5200,.035*(.6+I),d,2);
+    if(st===0&&bar%2===0)pad(t,[82.4,123.5],spb*32,.06,d,'triangle');
+  }},
+  // 雨上がり: slow lo-fi — soft electric-piano chords, brushed snare, swung hats
+  rain:{bpm:76,play(t,st,bar,I,d,spb){
+    const CH=[[174.6,220,261.6,329.6],[164.8,196,246.9,293.7],[146.8,174.6,220,261.6],[130.8,164.8,196,246.9]];
+    if(st===0)pad(t,CH[bar],spb*15,.05,d,'triangle');
+    if(st===6||st===14){const c=CH[bar];pluck(t,c[(st+bar)%4]*2,.7,.06,d,3);}
+    if(st===0||st===10)tone(t,110,45,.3,.6,'sine',d);
+    if(st===4||st===12)nHit(t,.22,'bandpass',2400,.11+.06*I,d,.7);
+    const sw=(st%2===1)?spb*.18:0;if(st%2===1||I>.6)nHit(t+sw,.03,'highpass',8000,.03*(.6+I),d);
+    if(st===0){const R=[43.65,41.2,36.7,32.7];tone(t,R[bar]*2,R[bar]*2,spb*14,.12,'sine',d);}
+  }},
+  // 工事中: driving four-on-the-floor with metal clanks and a site alarm
+  works:{bpm:118,play(t,st,bar,I,d,spb){
+    if(st%4===0)tone(t,140,40,.26,.85,'sine',d);
+    if(st===4||st===12)nHit(t,.14,'bandpass',1900,.2+.1*I,d,1);
+    nHit(t,.025,'highpass',7500,(st%2?.05:.025)*(.6+I),d);
+    if(st%2===0){const R=[55,55,65.4,49][bar],c=AU.ctx,o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain();o.type='sawtooth';o.frequency.value=st%4===2?R*2:R;f.type='lowpass';f.frequency.value=260+I*300;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.13,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+spb*1.6);o.connect(f);f.connect(g);g.connect(d);o.start(t);o.stop(t+spb*2);}
+    if(st===6||st===14){tone(t,523,519,.18,.05,'square',d);tone(t,739,735,.16,.035,'square',d);nHit(t,.08,'bandpass',3100,.08,d,6);}
+    if(bar===3&&(st===8||st===10))tone(t,988,988,.12,.05,'square',d);
+  }},
+};
+function bgmTick(){
+  const c=AU.ctx;if(!c)return;const th=THEMES[STAGE.env]||THEMES.garage,spb=60/th.bpm/4;
+  if(AU.theme!==th){AU.theme=th;AU.next=Math.max(AU.next,c.currentTime+.05);AU.step=0;}
+  while(AU.next<c.currentTime+.12){
+    const t=AU.next,st=AU.step%16,bar=Math.floor(AU.step/16)%4;
+    th.play(t,st,bar,AU.intense,AU.bgm,spb);
     AU.next+=spb;AU.step++;
   }
+  if(AU.rainG)setP(AU.rainG.gain,STAGE.env==='rain'?.05:STAGE.env==='stone'?.012:0,.5);
 }
+
 function sfxClick(vol){if(!AU.ctx)return;nHit(AU.ctx.currentTime,.008,'highpass',3800,.05*vol);}
 function sfxWhoosh(p){const c=AU.ctx;if(!c)return;const t=c.currentTime,s=c.createBufferSource();s.buffer=AU.noise;const f=c.createBiquadFilter();f.type='bandpass';f.Q.value=1.4;f.frequency.setValueAtTime(500,t);f.frequency.exponentialRampToValueAtTime(2400+p*2600,t+.18);const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18+p*.25,t+.04);g.gain.exponentialRampToValueAtTime(.0001,t+.26);s.connect(f);f.connect(g);g.connect(AU.master);s.start(t,Math.random());s.stop(t+.3);tone(t,90,55,.12,.25*p);}
 function sfxBrake(){const c=AU.ctx;if(!c)return;const t=c.currentTime;nHit(t,.22,'bandpass',700,.18,null,2);}
