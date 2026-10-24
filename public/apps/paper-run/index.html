@@ -47,7 +47,7 @@ input{-webkit-user-select:text;user-select:text}
   padding:calc(24px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .scr>.inner{margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:26px;width:100%}
 #title{background:radial-gradient(ellipse at 50% 42%,rgba(12,12,11,.15),rgba(12,12,11,.82) 78%)}
-#title>.inner{margin:0;min-height:100%;box-sizing:border-box;justify-content:space-between;padding-top:6vh;padding-bottom:max(6vh,calc(28px + env(safe-area-inset-bottom,0px)))}
+#title>.inner{margin:0;min-height:100%;box-sizing:border-box;justify-content:space-between;padding-top:6vh;padding-bottom:2vh}
 .logoWrap{display:flex;flex-direction:column;align-items:center}
 .logo{margin:0;font-family:var(--f-disp);font-weight:400;font-size:clamp(96px,31vw,190px);line-height:1;letter-spacing:-.02em;color:#f4f1ea;transform:skewX(-9deg);
   text-shadow:0 0 54px rgba(255,190,130,.16),0 4px 0 #000}
@@ -1486,7 +1486,7 @@ function stepWorld(dtR){
   if(state==='title'||state==='room'){
     const a=clock*.18;frameInto(0,FA);
     _cp.copy(FA.p).addScaledVector(FA.t,Math.cos(a)*.62+.05).addScaledVector(FA.r,Math.sin(a)*.62+me.lat).addScaledVector(FA.n,.1+.03*Math.sin(clock*.3));
-    _cl.copy(FA.p).addScaledVector(FA.r,me.lat).addScaledVector(FA.n,.15);cam.position.copy(_cp);cam.lookAt(_cl);camLook.copy(_cl);cam.fov=55;
+    _cl.copy(FA.p).addScaledVector(FA.r,me.lat).addScaledVector(FA.n,.075);cam.position.copy(_cp);cam.lookAt(_cl);camLook.copy(_cl);cam.fov=55;
   }else if(state==='intro'){
     const k=ease(Math.min(1,stateT/2.4));
     frameInto(3,FA);_ip.copy(FA.p).addScaledVector(UP,2.1).addScaledVector(FA.r,-1.1).addScaledVector(FA.t,-7.5);frameInto(24,FB);_il.copy(FB.p);
