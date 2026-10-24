@@ -454,5 +454,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-23T15:30:00Z",
     "updatedAt": "2026-10-23T15:30:00Z"
+  },
+  {
+    "slug": "chou-kaiga-kyoshitsu",
+    "title": "超絵画教室",
+    "kind": "game",
+    "description": "先生といっしょに、指で気ままにお絵かき。スマホで遊べる、ちょっと不思議な水彩レッスン。",
+    "url": "/apps/chou-kaiga-kyoshitsu/",
+    "thumbnail": "/project-thumbnails/chou-kaiga-kyoshitsu.webp",
+    "sourceFolder": "261024_超絵画教室",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-24T08:44:38Z",
+    "updatedAt": "2026-10-24T09:03:06Z"
   }
 ]
