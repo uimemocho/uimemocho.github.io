@@ -59,8 +59,19 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .qbar{position:relative;height:calc(var(--u)*2.6);background:rgba(243,232,211,.14);border-radius:99px;margin-top:calc(var(--u)*1.4);overflow:hidden}
 #qFill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ff8a3d,#e3402b);border-radius:99px;transition:width .25s}
 #qFill.ok{background:linear-gradient(90deg,#ffd970,#f2c14e)}
-#qMark{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff}
-#qScore{font-size:calc(var(--u)*2.8);opacity:.8;margin-top:calc(var(--u)*1.2);white-space:nowrap}
+#qFill.sss{background:linear-gradient(90deg,#ff5a5a,#ffd25a,#6aff8a,#5ad2ff,#c65aff)}
+#qMarks i{position:absolute;top:0;bottom:0;width:1px;margin-left:-.5px;background:rgba(255,255,255,.45)}
+#qMarks i.clear{width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 6px rgba(255,255,255,.8)}
+#qMarks i.SSS{width:2px;margin-left:-1px;background:#ffe27a}
+#qLabels{position:relative;height:calc(var(--u)*3.4);margin-top:calc(var(--u)*.8);font-size:calc(var(--u)*2.5);white-space:nowrap}
+#qLabels span{position:absolute;top:0;transform:translateX(-50%);font-family:var(--num);font-weight:700;opacity:.75}
+#qLabels span.clear{transform:translateX(calc(-100% - var(--u)*.8));font-family:inherit;font-weight:700;opacity:.95;color:#fff}
+#qLabels span.SSS{color:#ffe27a;opacity:1}
+.fr-sub{font-size:.62em;opacity:.7;margin-left:.4em;font-family:inherit}
+.q-rank{font-family:var(--heavy);font-style:normal;margin-left:calc(var(--u)*1.6);font-size:calc(var(--u)*4.2)}
+.q-rank.SSS{background:linear-gradient(90deg,#ff5a5a,#ffd25a,#6aff8a,#5ad2ff,#c65aff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.q-rank.SS{color:#ffd25a}.q-rank.S{color:#ff9a3a}.q-rank.A{color:#ff5a4a}.q-rank.B{color:#6ab4ff}
+#qScore{font-size:calc(var(--u)*2.8);opacity:.8;margin-top:calc(var(--u)*.4);white-space:nowrap}
 
 /* bubbles */
 .notif{position:absolute;z-index:7;left:calc(var(--u)*3);right:calc(var(--u)*3);top:calc(env(safe-area-inset-top) + var(--u)*31);display:flex;gap:calc(var(--u)*2.8);align-items:center;border-radius:calc(var(--u)*5.2);padding:calc(var(--u)*2.8) calc(var(--u)*3.6);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);box-shadow:0 calc(var(--u)*1.6) calc(var(--u)*6) rgba(0,0,0,.3);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;pointer-events:none;opacity:0;transform:translateY(-120%) scale(.96);transition:transform .5s cubic-bezier(.2,1.25,.35,1),opacity .25s}
@@ -304,8 +315,9 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
       </div>
     </div>
     <div class="quota">
-      <div class="qtop"><span>ノルマ <b id="qText">0 / 0</b></span><span id="qTries"></span></div>
-      <div class="qbar"><div id="qFill"></div><div id="qMark"></div></div>
+      <div class="qtop"><span>破壊率 <b id="qText">0%</b><em id="qRank" class="q-rank"></em></span><span id="qTries"></span></div>
+      <div class="qbar"><div id="qFill"></div><div id="qMarks"></div></div>
+      <div id="qLabels"></div>
       <div id="qScore"></div>
     </div>
   </div>
@@ -322,7 +334,7 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <div id="frJ" class="fr-j"></div>
     <div class="fr-n"><span id="frN">0</span><small>個破壊</small></div>
     <div class="fr-rows">
-      <div class="fr-row"><span>ノルマ</span><b id="frQ"></b></div>
+      <div class="fr-row"><span>破壊率</span><b id="frQ"></b></div>
       <div class="fr-row"><span>残りの回数</span><b id="frT"></b></div>
     </div>
     <div id="frMsg" class="fr-msg"></div>
@@ -443,7 +455,7 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
    0. 定数・小物
    ========================================================= */
 const GAME_URL = 'https://uimemocho.github.io/apps/cho-chabudai-gaeshi/';
-const VERSION = 'ver 2026.10.25-6';
+const VERSION = 'ver 2026.10.25-7';
 const SAVE_KEY = 'cho_chabudai_v2';
 const KM = 1000, PI = Math.PI;
 const V3 = THREE.Vector3;
@@ -477,15 +489,14 @@ const STAGES = [
 const MUTTERS = ['……っ','ぐ……','もう……','……ぬぅ','くっ……'];
 /* 難易度（シミュレーションで調整）：会心・上出来・まずまずの幅、輪の周期、ノルマ、1回の破壊力、SSSの基準点 */
 const BAL = [
-  {perfect:0.110, great:0.240, good:0.420, period:1.150, quota:0.580, power:0.587, sss:107},
-  {perfect:0.101, great:0.226, good:0.403, period:1.091, quota:0.603, power:0.623, sss:103},
-  {perfect:0.091, great:0.211, good:0.386, period:1.033, quota:0.626, power:0.651, sss:105},
-  {perfect:0.082, great:0.197, good:0.369, period:0.974, quota:0.649, power:0.688, sss:113},
-  {perfect:0.073, great:0.183, good:0.351, period:0.916, quota:0.671, power:0.749, sss:118},
-  {perfect:0.064, great:0.169, good:0.334, period:0.857, quota:0.694, power:0.808, sss:122},
-  {perfect:0.054, great:0.154, good:0.317, period:0.799, quota:0.717, power:0.556, sss:154},
-  {perfect:0.045, great:0.140, good:0.300, period:0.740, quota:0.740, power:0.553, sss:153}
-];
+  {perfect:0.110, great:0.240, good:0.420, period:1.150, quota:0.30, power:0.248, sss:56},
+  {perfect:0.101, great:0.226, good:0.403, period:1.091, quota:0.37, power:0.268, sss:59},
+  {perfect:0.091, great:0.211, good:0.386, period:1.033, quota:0.44, power:0.318, sss:70},
+  {perfect:0.082, great:0.197, good:0.369, period:0.974, quota:0.50, power:0.367, sss:80},
+  {perfect:0.073, great:0.183, good:0.351, period:0.916, quota:0.55, power:0.408, sss:88},
+  {perfect:0.064, great:0.169, good:0.334, period:0.857, quota:0.60, power:0.453, sss:97},
+  {perfect:0.054, great:0.154, good:0.317, period:0.799, quota:1.00, power:0.506, sss:173},
+  {perfect:0.045, great:0.140, good:0.300, period:0.740, quota:1.00, power:0.499, sss:167}];
 STAGES.forEach((S,i) => { Object.assign(S, BAL[i]); });
 const JUDGE = {
   PERFECT:{label:'ちくしょーーー！！', sub:'堪忍袋の緒が切れた', col:'#ffd25a', size:12, frac:.62, dmg:100, rainbow:true},
@@ -496,7 +507,11 @@ const JUDGE = {
 const RANKS = [['SSS',140],['SS',122],['S',105],['A',88],['B',70],['C',-1e9]];
 const rankOf = pts => RANKS.find(r => pts >= r[1])[0];
 // ステージの基準点からの差でランクを決める（SSSから18点刻み）
-const rankOfStage = (pts, i) => { const d = pts - BAL[i].sss; return d >= 0 ? 'SSS' : d >= -18 ? 'SS' : d >= -36 ? 'S' : d >= -54 ? 'A' : d >= -72 ? 'B' : 'C'; };
+// ランク＝破壊率（オーバーキル）。ノルマでB、SSSラインまでを4等分してA/S/SS
+const RANK_LINES = i => { const q = Math.round(BAL[i].quota*100), s = BAL[i].sss, d = s - q; return [['SSS',s],['SS',q+d*.75],['S',q+d*.5],['A',q+d*.25],['B',q]].map(([r,v]) => [r, Math.round(v)]); };
+const rankOfNorm = n => n >= 1 ? 'SSS' : n >= .75 ? 'SS' : n >= .5 ? 'S' : n >= .25 ? 'A' : n >= 0 ? 'B' : 'C';
+const rankOfStage = (pts, i) => { const L = RANK_LINES(i); const hit = L.find(([,v]) => pts >= v); return hit ? hit[0] : 'C'; };
+const normOf = (pts, i) => { const q = BAL[i].quota*100; return (pts - q)/(BAL[i].sss - q); };
 
 const $ = id => document.getElementById(id);
 const rand = (a,b) => a + Math.random()*(b-a);
@@ -533,7 +548,7 @@ function fmtMass(kg){ return kg < 1000 ? fmtNum(kg) + 'kg' : fmtNum(kg/1000) + '
 const save = { seenOP:false, muted:false, bestRank:'', bestPts:-1, maxStage:0, total:0, clears:0, last:null, stages:[] };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && typeof s === 'object') Object.assign(save, s); } catch(e){}
 if (!Array.isArray(save.stages)) save.stages = [];
-if (save.bal !== 2){ save.stages = []; save.bestRank = ''; save.bestPts = -1; save.bal = 2; } // 難易度変更前のランクは無効にする
+if (save.bal !== 3){ save.stages = []; save.bestRank = ''; save.bestPts = -1; save.bal = 3; } // 難易度変更前のランクは無効にする
 const THUMB_KEY = 'cho_chabudai_thumbs_v1';
 let thumbs = {}; try { thumbs = JSON.parse(localStorage.getItem(THUMB_KEY) || '{}') || {}; } catch(e){}
 function store(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e){} }
@@ -1872,17 +1887,32 @@ const MOVES = {
     metric(){ return 0; },
     start(c){
       const pow = c.pow, E = cfg.earth, body = cfg.earthBody, crack = cfg.earthCrack;
-      const before = stageSt.damage, add = Math.round(JUDGE[c.judge].dmg*STAGES[cur].power*(.3 + .7*c.pull)); stageSt.raw = (stageSt.raw || 0) + add;
-      const after = Math.min(100, before + add), final = after >= 100;
+      const before = stageSt.damage, add = Math.round(JUDGE[c.judge].dmg*STAGES[cur].power*(.3 + .7*c.pull)*c.prec); stageSt.raw = (stageSt.raw || 0) + add;
+      const after = Math.min(100, before + add), final = stageSt.tries <= 0 && stageSt.raw >= 100;   // 3回返し切ってから砕く
       stageSt.damage = after; stageSt.flipN = after - before;
-      const Tf = .35, Tfly = 2.2, Ti = Tf + Tfly;
+      // ちゃぶ台ロケット：天板を正面に向けて浮き上がり、脚から噴射して地球へ一直線
+      const Tf = .35, Tig = .6, Tl = Tf + Tig, Tfly = 2.0, Ti = Tl + Tfly;
       const target = E.position.clone().add(new V3(0,0,RE*.98)).add(new V3(0,-RE*.2,0));
-      const p0 = new V3(0,1.8,TZ - .3);
+      const p0 = new V3(0,1.8,TZ - .3), p1 = p0.clone().add(new V3(0,1.3,.4));
+      const fwd = target.clone().sub(p1).normalize();
+      const qNose = new THREE.Quaternion().setFromUnitVectors(new V3(0,1,0), fwd), q0 = new THREE.Quaternion(), qRoll = new THREE.Quaternion();
+      const flame = final ? [0xfff2c0, 0xffb040, 0x7ad0ff] : [0xffd890, 0xff8a30, 0xff5a20];
+      // 4本の脚がそのまま噴射口になる
+      const LEG = [0,1,2,3].map(i => { const a = i*PI/2 + PI/4; return new V3(Math.cos(a)*.25, -.02, Math.sin(a)*.25); });
+      const thrust = (s, k) => { tableG.updateMatrixWorld();
+        LEG.forEach(l => { const tip = tableG.localToWorld(_v.copy(l));
+          glow(tip, .16*s*rand(.9,1.2)*(1 + k), flame[0], {life:.1});
+          glow(tip.clone().addScaledVector(fwd, -.25*s*rand(.3,1.5)*(1 + k)), .2*s*rand(.8,1.3)*(1 + k), pick(flame), {life:rand(.15,.35), spark:Math.random() < .25, vel:fwd.clone().multiplyScalar(-s*rand(1.5,4))}); }); };
       during(0, Tf, k => tableTilt(c.tilt + (PI*.5 - c.tilt)*easeIn(k), 1.5*k*k));
+      at(Tf, () => q0.copy(tableG.quaternion));
+      // 点火：ふわっと浮いて、天板を地球へ向ける
+      during(Tf, Tl, k => { const e = easeOut(k); tableG.position.lerpVectors(p0, p1, e); tableG.position.x += Math.sin(k*90)*.012*k; tableG.quaternion.copy(q0).slerp(qNose, easeInOut(k)); if (k > .35) thrust(1, (k - .35)*.6); });
+      at(Tf + .1, () => Snd.whoosh(.3, 80, 600, Tig));
+      at(Tl, () => { Snd.slam(); flash(120, .35); ring(p1.clone().addScaledVector(fwd, -.3), .2, 2.4, 0xffe0b0, {life:.5, face:true}); glow(p1, 2.2, 0xfff0d0, {life:.35, grow:2}); Snd.whoosh(.55, 120, 2600, Tfly); });
       const maxS = final ? RE*3.2/(TR*2) : RE*.7/(TR*2);
-      during(Tf, Ti, k => { const e = Math.pow(k, 3); tableG.position.lerpVectors(p0, target, e); const s = Math.exp(Math.log(maxS)*Math.pow(k,1.6)); tableG.scale.setScalar(s); _q.setFromAxisAngle(AXX, PI*.5 + k*8); tableG.quaternion.copy(_q);
-        glow(tableG.position, TR*2*s*rand(1.2,2), final ? 0xffe0a0 : 0xff9a40, {life:.25}); });
-      at(Tf, () => Snd.whoosh(.5, 100, 2000, Tfly));
+      during(Tl, Ti, k => { const e = Math.pow(k, 3.2); tableG.position.lerpVectors(p1, target, e); const s = Math.exp(Math.log(maxS)*Math.pow(k,1.6)); tableG.scale.setScalar(s);
+        qRoll.setFromAxisAngle(fwd, k*k*14); tableG.quaternion.multiplyQuaternions(qRoll, qNose);
+        Dir.shake = 0; thrust(s, .4 + k); if (k > .55) glow(_v2.copy(tableG.position).addScaledVector(fwd, TR*.6*s), TR*2.4*s*(k - .45), final ? 0xffe8c0 : 0xffb070, {life:.12, op:.6}); });
       at(Ti, () => {
         Snd.slam(); flash(400, .8); Dir.shake = 1.4;
         glow(target, RE*2.5, 0xffd8a0, {life:1.3, grow:.8}); ring(target, RE*.3, RE*1.6, 0xffe0c0, {life:1.1, face:true});
@@ -1906,8 +1936,13 @@ const MOVES = {
         at(Ti + 1.5, () => Dir.to(E.position.clone().add(new V3(RE*5, RE*2, RE*11)), E.position.clone(), 2.2));
       }
       at(0, () => Dir.cut(new V3(.95,.7,-3.0), new V3(0,.55,-.4)));
-      at(Tf, () => Dir.follow((p,l) => { const tp = tableG.position; const back = _v.copy(tp).sub(E.position).normalize(); p.copy(tp).addScaledVector(back, TR*2*tableG.scale.x*3 + 4).add(_v2.set(0, TR*tableG.scale.x*1.2 + 1, 0)); l.copy(E.position); }, 4));
-      at(Ti - .5, () => Dir.to(E.position.clone().add(new V3(RE*2.6, RE*.8, RE*5.5)), E.position.clone(), .8));
+      // 追尾カメラ：斜め後ろから、ちゃぶ台の先に地球が見える構図
+      const side = new V3().crossVectors(fwd, new V3(0,1,0)).normalize(), upv = new V3().crossVectors(side, fwd).normalize();
+      const chase = (p,l) => { const tp = tableG.position, d = TR*2*tableG.scale.x; p.copy(tp).addScaledVector(fwd, -(d*2.3 + 2.3)).addScaledVector(side, d*.25 + .2).addScaledVector(upv, d*.85 + .8); l.copy(p).addScaledVector(fwd, d*10 + 10).addScaledVector(upv, -(d*1.5 + 1.5)); };
+      at(Tf, () => Dir.follow(chase, 5));
+      at(Tl, () => Dir.follow(chase, 400));   // 発射後は加速が速すぎるので、カメラを機体に固定する
+      // 激突の瞬間に引きの斜め横へカット：ひびの入った地球を見せる
+      at(Ti, () => { Dir.cut(target.clone().addScaledVector(side, RE*2.4).addScaledVector(fwd, -RE*2.6).addScaledVector(upv, RE*.6), target.clone().lerp(E.position, .55)); Dir.follow((p,l) => { p.copy(Dir.pos); l.copy(Dir.look); }, 1); });
       mv.final = final;
       mv.dur = final ? Ti + 4.4 : Ti + 2.4;
     }
@@ -1917,8 +1952,8 @@ const MOVES = {
     metric(){ return 0; },
     start(c){
       const PL = cfg.planets, ctr = cfg.ctr;
-      const before = stageSt.damage, add = Math.round(JUDGE[c.judge].dmg*STAGES[cur].power*(.3 + .7*c.pull)); stageSt.raw = (stageSt.raw || 0) + add;
-      const after = Math.min(100, before + add), final = after >= 100;
+      const before = stageSt.damage, add = Math.round(JUDGE[c.judge].dmg*STAGES[cur].power*(.3 + .7*c.pull)*c.prec); stageSt.raw = (stageSt.raw || 0) + add;
+      const after = Math.min(100, before + add), final = stageSt.tries <= 0 && stageSt.raw >= 100;   // 3回返し切ってから砕く
       stageSt.damage = after; stageSt.flipN = after - before;
       const Tf = .35, Tup = .8, T0 = Tf + Tup + .5;
       during(0, Tf, k => tableTilt(c.tilt + (PI*.5 - c.tilt)*easeIn(k), 1.5*k*k));
@@ -2061,13 +2096,22 @@ function updateHud(){
   $('stName').innerHTML = `<span style="font-family:var(--num);font-weight:700;letter-spacing:.2em;color:var(--ash);font-size:.72em;margin-right:.6em">STAGE ${String(cur+1).padStart(2,'0')}</span>${S.name}`;
   updateQuota();
 }
-function quotaNeed(){ return STAGES[cur].pct ? 100 : Math.ceil(stageSt.total*STAGES[cur].quota); }
+function quotaNeed(){ if (STAGES[cur].pct) return 100; const q = Math.round(BAL[cur].quota*100), t = stageSt.total; let n = 1; while (Math.round(n/t*100) < q) n++; return n; }
+// 現在の破壊率（地球・太陽系は100%を超えたぶんの威力も数える）
+function ratioNow(){ return STAGES[cur].pct ? (stageSt.destroyed >= 100 ? stageSt.raw : stageSt.destroyed) : Math.round(stageSt.destroyed/stageSt.total*100); }
+function gaugeMax(){ return STAGES[cur].pct ? Math.ceil(BAL[cur].sss*1.08/10)*10 : 100; }
 function updateQuota(){
   if (!stageSt.total) return;
-  const need = quotaNeed(), has = stageSt.destroyed, tot = STAGES[cur].pct ? 100 : stageSt.total;
-  $('qText').textContent = STAGES[cur].pct ? `${has}% / 100%` : `${has} / ${need}`;
-  $('qFill').style.width = Math.min(100, has/tot*100) + '%'; $('qFill').classList.toggle('ok', has >= need);
-  $('qMark').style.left = (need/tot*100) + '%'; $('qMark').style.display = STAGES[cur].pct ? 'none' : 'block';
+  const r = ratioNow(), mx = gaugeMax(), L = RANK_LINES(cur), q = L[4][1], rk = r >= q ? rankOfStage(r, cur) : '';
+  $('qText').textContent = r + '%';
+  const now = $('qRank'); now.textContent = rk; now.className = 'q-rank ' + rk;
+  $('qFill').style.width = Math.min(100, r/mx*100) + '%'; $('qFill').classList.toggle('ok', r >= q); $('qFill').classList.toggle('sss', rk === 'SSS');
+  const key = cur + ':' + mx;
+  if ($('qMarks').dataset.k !== key){
+    $('qMarks').dataset.k = key;
+    $('qMarks').innerHTML = L.slice().reverse().map(([n,v]) => `<i class="${n === 'B' ? 'clear' : n}" style="left:${v/mx*100}%"></i>`).join('');
+    $('qLabels').innerHTML = L.slice().reverse().map(([n,v]) => n === 'B' ? `<span class="clear" style="left:${v/mx*100}%">ノルマ ${v}%</span>` : `<span class="r ${n}" style="left:${v/mx*100}%">${n}</span>`).join('');
+  }
   $('qTries').innerHTML = [0,1,2].map(i => `<i class="${i < 3 - stageSt.tries ? 'used' : ''}"></i>`).join('');
   $('qScore').textContent = `破壊した重さ ${fmtMass(run.mass || 0)}`;
 }
@@ -2179,7 +2223,7 @@ function showIntro(){
   const S = STAGES[cur];
   $('inNo').textContent = `STAGE ${String(cur+1).padStart(2,'0')}`;
   $('inName').textContent = S.name;
-  $('inQuota').innerHTML = STAGES[cur].pct ? `ノルマ　${S.target}を<b>100%</b>壊す` : `ノルマ　<b>${quotaNeed()}</b>個以上壊す`;
+  $('inQuota').innerHTML = `ノルマ <b>${RANK_LINES(cur)[4][1]}%</b>　SSS <b>${BAL[cur].sss}%</b>`;
   const el = $('intro'); el.classList.remove('hide'); requestAnimationFrame(() => el.classList.add('show'));
   const I = cfg.intro;
   Dir.cut(v3(I[0]), v3(I[1])); Dir.to(v3(I[2]), v3(I[3]), 7, smooth);
@@ -2221,10 +2265,12 @@ function pullRelease(){
   }
   const S = STAGES[cur], e = pullS.err;
   const j = (TEST && window.__force) || (e < S.perfect ? 'PERFECT' : e < S.great ? 'GREAT' : e < S.good ? 'GOOD' : 'BAD');
-  doFlip(j, pullS.pull);
+  doFlip(j, pullS.pull, e);
 }
-function doFlip(j, pull){
+function doFlip(j, pull, err){
   const S = STAGES[cur];
+  // 会心の中でもドンピシャほど強い（最大+30%）
+  const prec = j === 'PERFECT' ? 1 + .3*Math.max(0, 1 - (err || 0)/S.perfect) : 1;
   state = 'move'; og.clearRect(0,0,ov.width,ov.height);
   stageSt.tries--; stageSt.used++; stageSt.judges.push(j); stageSt.flipN = 0; run.flips++;
   if (j === 'PERFECT'){ stageSt.perfects++; run.perfects++; }
@@ -2250,14 +2296,14 @@ function doFlip(j, pull){
     const alive = objs.filter(o => o.alive);
     alive.forEach(o => o.metric = M_.metric(o));
     alive.sort((a,b) => a.metric - b.metric);
-    const frac = JUDGE[j].frac*S.power*(.3 + .7*pull);
-    k = Math.max(1, Math.min(alive.length, Math.round(alive.length*frac)));
+    const frac = JUDGE[j].frac*S.power*(.3 + .7*pull)*prec;   // 全体のx%を壊す（回数を重ねても目減りしない）
+    k = Math.max(1, Math.min(alive.length, Math.round(stageSt.total*frac)));
     victims = alive.slice(0, k);
   }
   const pow = j === 'PERFECT' ? 1.35 : j === 'GREAT' ? 1.1 : j === 'GOOD' ? .95 : .8;
   slowmo(.28, .7);
   newMove();
-  M_.start({victims, k, judge:j, pull, pow, tilt});
+  M_.start({victims, k, judge:j, pull, pow, tilt, prec});
   mv.ev.sort((a,b) => a.t - b.t);
 }
 function updateMove(gdt){
@@ -2272,15 +2318,17 @@ function endMove(){
   ui.counter.classList.remove('show'); cine(false);
   if (cur === STAGES.length - 1 && mv.final){ finishGame(); return; }
   state = 'flipres';
-  const need = quotaNeed(), ok = stageSt.destroyed >= need;
+  const need = quotaNeed(), ok = stageSt.destroyed >= need, done = stageSt.tries <= 0 || (!STAGES[cur].pct && stageSt.destroyed >= stageSt.total);
   const J = JUDGE[stageSt.judges[stageSt.judges.length-1]];
   $('frJ').innerHTML = `<span class="${J.rainbow ? 'rainbow' : ''}">${J.label}</span>`; $('frJ').style.color = J.col;
   $('frN').textContent = STAGES[cur].pct ? stageSt.flipN : stageSt.flipN;
   $('frN').nextSibling.textContent = STAGES[cur].pct ? '%破壊' : '個破壊';
-  $('frQ').textContent = STAGES[cur].pct ? `${stageSt.destroyed}% / 100%` : `${stageSt.destroyed} / ${need}`;
+  const r = ratioNow(), rk = ok ? rankOfStage(r, cur) : '';
+  $('frQ').innerHTML = `${r}%<span class="fr-sub">／ノルマ ${RANK_LINES(cur)[4][1]}%</span>` + (rk ? `<span class="q-rank ${rk}">${rk}</span>` : '');
   $('frT').textContent = `${stageSt.tries}回`;
   let msg, btn;
-  if (ok){ msg = '<b>ノルマ達成！</b>'; btn = 'ステージクリア'; }
+  if (ok && done){ msg = rk === 'SSS' ? '<b>オーバーキル！</b>' : '<b>ノルマ達成！</b>'; btn = 'ステージクリア'; }
+  else if (ok){ const nx = RANK_LINES(cur).slice().reverse().find(([,v]) => v > r); msg = nx ? `<b>ノルマ達成！</b>　あと${nx[1] - r}%で${nx[0]}` : '<b>SSSライン突破！</b>'; btn = 'もっと返す'; }
   else if (stageSt.tries <= 0){ msg = 'ノルマに届かなかった……'; btn = '結果を見る'; }
   else { msg = `あと<b>${STAGES[cur].pct ? (100 - stageSt.destroyed) + '%' : (need - stageSt.destroyed) + '個'}</b>。まだ返せる`; btn = 'もう一度返す'; }
   $('frMsg').innerHTML = msg; $('frBtn').textContent = btn;
@@ -2289,17 +2337,15 @@ function endMove(){
 function nextFromFlip(){
   if (state !== 'flipres') return;
   $('flipres').classList.remove('show'); Snd.tick();
-  const ok = stageSt.destroyed >= quotaNeed();
-  if (ok) stageClear();
-  else if (stageSt.tries <= 0) gameOver();
+  const ok = stageSt.destroyed >= quotaNeed(), done = stageSt.tries <= 0 || (!STAGES[cur].pct && stageSt.destroyed >= stageSt.total);
+  if (ok && done) stageClear();
+  else if (done) gameOver();
   else { respawnTable(); ready(); }
 }
 function respawnTable(){ resetActors(); dust(new V3(0,.2,TZ), .5, {col:0xffffff, op:.6, life:.8}); glow(new V3(0,.4,TZ), .9, 0xfff0c8, {life:.5}); }
 function stagePts(){
   // 地球・太陽系は100%を超えた分の破壊力も点にする（全力の会心ほど高い）
-  const ratio = STAGES[cur].pct ? Math.min(1.2, (stageSt.raw || stageSt.destroyed)/100) : stageSt.destroyed/stageSt.total;
-  const used = Math.max(1, 3 - stageSt.tries);           // 会心は「数」ではなく「投げた中の割合」で評価
-  return Math.round(ratio*100 + stageSt.tries*20 + stageSt.perfects/used*28);
+  return ratioNow();
 }
 let lastClear = null;
 const TAGS = '#超ちゃぶ台返し #ゲーム開発 #個人開発 #gamedev';
@@ -2354,7 +2400,7 @@ function stageClear(){
   const pts = stagePts(), rk = rankOfStage(pts, cur);
   run.pts.push(pts); run.ranks.push(rk);
   const prev = save.stages[cur], isNew = !prev || pts > prev.pts;
-  lastClear = {i:cur, rank:rk, ratio: STAGES[cur].pct ? Math.min(100, stageSt.destroyed) : Math.round(stageSt.destroyed/stageSt.total*100), perfects:stageSt.perfects};
+  lastClear = {i:cur, rank:rk, ratio: pts, perfects:stageSt.perfects};
   if (isNew) save.stages[cur] = {rank:rk, pts}; save.total += run.count - (run.saved || 0); run.saved = run.count; store();
   Snd.clear();
   const S = STAGES[cur];
@@ -2362,7 +2408,8 @@ function stageClear(){
   $('clRuby').textContent = S.ruby; setFont($('clWaza'), S.waza, U()*8.5, .6); $('clLogo').textContent = `ちゃぶ台：${S.logo}`;
   const rEl = $('clRank'); rEl.textContent = rk; rEl.className = 'rank ' + rk;
   $('clRows').innerHTML = [
-    ['破壊率', STAGES[cur].pct ? stageSt.destroyed + '%' : Math.round(stageSt.destroyed/stageSt.total*100) + '%（' + stageSt.destroyed + '/' + stageSt.total + '）'],
+    ['破壊率', pts + '%' + (STAGES[cur].pct ? '' : '（' + stageSt.destroyed + '/' + stageSt.total + '）')],
+    ['ノルマ / SSSライン', RANK_LINES(cur)[4][1] + '% / ' + BAL[cur].sss + '%'],
     ['使った回数', stageSt.used + '回'], ['会心の一撃', stageSt.perfects + '回'], ['破壊した重さ', fmtMass(stageSt.score)]
   ].map(([a,b]) => `<div class="cl-row"><span>${a}</span><b>${b}</b></div>`).join('');
   const N = STAGES[cur+1];
@@ -2390,7 +2437,7 @@ function gameOver(){
   $('ovSub').textContent = `第${cur+1}段階　${STAGES[cur].name}`;
   const rk = 'C';
   const rEl = $('ovRank'); rEl.textContent = rk; rEl.className = 'rank ' + rk;
-  $('ovRows').innerHTML = [['ノルマ', STAGES[cur].pct ? `${stageSt.destroyed}% / 100%` : `${stageSt.destroyed} / ${quotaNeed()}`], ['到達', `第${cur+1}段階`], ['破壊した重さ', fmtMass(run.mass)]].map(([a,b]) => `<div class="cl-row"><span>${a}</span><b>${b}</b></div>`).join('');
+  $('ovRows').innerHTML = [['破壊率 / ノルマ', `${ratioNow()}% / ${RANK_LINES(cur)[4][1]}%`], ['到達', `第${cur+1}段階`], ['破壊した重さ', fmtMass(run.mass)]].map(([a,b]) => `<div class="cl-row"><span>${a}</span><b>${b}</b></div>`).join('');
   save.total += run.count - (run.saved || 0); run.saved = run.count; store();
   const el = $('over'); el.classList.remove('hide'); requestAnimationFrame(() => el.classList.add('show'));
   ui.hud.classList.add('hide'); hideIra(); hideMutter();
@@ -2701,7 +2748,7 @@ function showTitle(){
 }
 const ICONS = ['茶','家','商','都','島','界','球','陽'];
 const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-function overallRank(){ if (save.stages.filter(Boolean).length < STAGES.length) return ''; const d = STAGES.reduce((a,_,i) => a + (save.stages[i].pts - BAL[i].sss), 0)/STAGES.length; return d >= 0 ? 'SSS' : d >= -18 ? 'SS' : d >= -36 ? 'S' : d >= -54 ? 'A' : d >= -72 ? 'B' : 'C'; }
+function overallRank(){ if (save.stages.filter(Boolean).length < STAGES.length) return ''; const n = STAGES.reduce((a,_,i) => a + Math.min(1.1, normOf(save.stages[i].pts, i)), 0)/STAGES.length; return rankOfNorm(n); }
 function showMap(){
   state = 'map';
   ['final','intro','clear','over','story','title'].forEach(id => $(id).classList.add('hide'));
