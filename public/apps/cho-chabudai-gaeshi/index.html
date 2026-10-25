@@ -455,7 +455,7 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
    0. 定数・小物
    ========================================================= */
 const GAME_URL = 'https://uimemocho.github.io/apps/cho-chabudai-gaeshi/';
-const VERSION = 'ver 2026.10.25-8';
+const VERSION = 'ver 2026.10.25-9';
 const SAVE_KEY = 'cho_chabudai_v2';
 const KM = 1000, PI = Math.PI;
 const V3 = THREE.Vector3;
@@ -1731,19 +1731,19 @@ const MOVES = {
       const a = 120*pow, v0 = 6, vmax = 90*Math.sqrt(pow), t1 = (vmax - v0)/a, s1 = v0*t1 + .5*a*t1*t1;
       const sAt = t => t < t1 ? v0*t + .5*a*t*t : s1 + vmax*(t - t1);
       const tOf = s => s < s1 ? (-v0 + Math.sqrt(v0*v0 + 2*a*s))/a : t1 + (s - s1)/vmax;
-      const Tf = .45, z0 = -.9, Tr = tOf(reach);
+      const Tf = .45, z0 = -2.4, Tr = tOf(reach);   // 起き上がりながら前へ飛び出す
       during(0, Tf, k => {
         const e = easeInOut(k);
         _q.setFromAxisAngle(AXZ, PI/2*e); _q2.setFromAxisAngle(AXX, -c.tilt*(1-e)); _q.multiply(_q2);
-        tableG.quaternion.copy(_q); tableG.position.set(0, lerp(0, TR - .3, e) + Math.sin(k*PI)*.5, lerp(TZ, z0, e));
+        tableG.quaternion.copy(_q); tableG.position.set(.3*e, lerp(0, TR - .3 + .35, e) + Math.sin(k*PI)*.7, lerp(TZ, z0, easeIn(k)));
       });
       at(Tf, () => { Snd.loop('roll', true, 'roll'); aura = glow(tableG.position, 7, 0xffb060, {life:Tr + .4, grow:0, op:.7}); aura.userData.follow = tableG; });
       let lastBlade = 0;
       during(Tf, Tf + Tr, (k, dt, t) => {
         const tt = t - Tf, s = sAt(tt), z = z0 - s;
         const gs = 1 + 3.5*smooth(Math.min(1, tt/.9)); tableG.scale.setScalar(gs);
-        tableG.position.set(0, (TR - .3)*gs + .35*gs, z);
-        _q.setFromAxisAngle(AXZ, PI/2); _q2.setFromAxisAngle(AXY, 0); _q.multiply(_q2); _q2.setFromAxisAngle(AXX, -s/TR); tableG.quaternion.copy(_q).multiply(_q2);
+        tableG.position.set(.3*gs, (TR - .3)*gs + .35*gs, z);
+        _q.setFromAxisAngle(AXZ, PI/2); _q2.setFromAxisAngle(AXY, s/TR); tableG.quaternion.copy(_q).multiply(_q2);   // 天板の軸（＝車軸）まわりに回して、前へ転がす
         Snd.loopMod('roll', Math.min(1, tt/1.5));
         if (Math.random() < .8) glow(new V3(rand(-.4,.4), rand(.3,2.2), z + 1.2), rand(1.5,3.2), 0xff9a40, {life:.35, vel:new V3(0,1.2,0)});
         if (Math.random() < .5) dust(new V3(rand(-.5,.5), .1, z + 1), 1.2, {col:0xbfb3a0, op:.45, life:1.4});
@@ -1756,10 +1756,10 @@ const MOVES = {
         glow(p, 14, 0xffd7a0, {life:.9, grow:1}); ring(p.clone().setY(.5), 2, 40, 0xffe0b0, {life:.7}); Snd.boom(.8); Dir.shake = 1;
         for (let i=0;i<6;i++) dust(p.clone().add(new V3(rand(-4,4),0,rand(-4,4))), 6, {col:0xbfb3a0, op:.7});
         const q0 = tableG.quaternion.clone();
-        anim(1.2, k => { tableG.position.set(p.x, p.y + Math.sin(k*PI)*14 - k*0, p.z - k*25); _q.setFromAxisAngle(AXX, -k*12); tableG.quaternion.copy(q0).multiply(_q); }, () => { tableG.visible = false; glow(tableG.position, 8, 0xffffff, {life:.5}); });
+        anim(1.2, k => { tableG.position.set(p.x, p.y + Math.sin(k*PI)*14 - k*0, p.z - k*25); _q.setFromAxisAngle(AXY, k*12); tableG.quaternion.copy(q0).multiply(_q); }, () => { tableG.visible = false; glow(tableG.position, 8, 0xffffff, {life:.5}); });
       });
       // カメラ
-      at(0, () => Dir.cut(new V3(.95,.7,-3.0), new V3(0,.55,-.4)));
+      at(0, () => Dir.cut(new V3(.45,2.5,2.3), new V3(0,.35,-5)));   // 頭の上から背中越し：前へ飛び出すのが分かる構図
       at(Tf*.8, () => Dir.follow((p,l) => { const z = tableG.position.z; p.set(3.2, 3.6, z + 9); l.set(0, 1.4, z - 14); }, 4));
       at(Tf + Math.max(.6, Tr*.45), () => Dir.to(new V3(70, 150, -reach*.25 + 60), new V3(0, 0, -reach*.6), 1.9));
       mv.dur = Tf + Tr + 2.4;
