@@ -443,7 +443,7 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
    0. 定数・小物
    ========================================================= */
 const GAME_URL = 'https://uimemocho.github.io/apps/cho-chabudai-gaeshi/';
-const VERSION = 'ver 2026.10.25-4';
+const VERSION = 'ver 2026.10.25-6';
 const SAVE_KEY = 'cho_chabudai_v2';
 const KM = 1000, PI = Math.PI;
 const V3 = THREE.Vector3;
@@ -475,14 +475,28 @@ const STAGES = [
     iras:['宇宙にも、月曜日がある','日曜の夜','永遠に続く月曜日','月曜日（全銀河共通）'] }
 ];
 const MUTTERS = ['……っ','ぐ……','もう……','……ぬぅ','くっ……'];
+/* 難易度（シミュレーションで調整）：会心・上出来・まずまずの幅、輪の周期、ノルマ、1回の破壊力、SSSの基準点 */
+const BAL = [
+  {perfect:0.110, great:0.240, good:0.420, period:1.150, quota:0.580, power:0.587, sss:107},
+  {perfect:0.101, great:0.226, good:0.403, period:1.091, quota:0.603, power:0.623, sss:103},
+  {perfect:0.091, great:0.211, good:0.386, period:1.033, quota:0.626, power:0.651, sss:105},
+  {perfect:0.082, great:0.197, good:0.369, period:0.974, quota:0.649, power:0.688, sss:113},
+  {perfect:0.073, great:0.183, good:0.351, period:0.916, quota:0.671, power:0.749, sss:118},
+  {perfect:0.064, great:0.169, good:0.334, period:0.857, quota:0.694, power:0.808, sss:122},
+  {perfect:0.054, great:0.154, good:0.317, period:0.799, quota:0.717, power:0.556, sss:154},
+  {perfect:0.045, great:0.140, good:0.300, period:0.740, quota:0.740, power:0.553, sss:153}
+];
+STAGES.forEach((S,i) => { Object.assign(S, BAL[i]); });
 const JUDGE = {
-  PERFECT:{label:'ちくしょーーー！！', sub:'堪忍袋の緒が切れた', col:'#ffd25a', size:12, frac:.92, dmg:104, rainbow:true},
-  GREAT:{label:'ちくしょー！', sub:'', col:'#ff7a4a', size:11, frac:.55, dmg:56},
-  GOOD:{label:'ちくしょう', sub:'', col:'#ffd8b0', size:9.5, frac:.32, dmg:33},
-  BAD:{label:'ちっ……', sub:'', col:'#b8b8b8', size:8.5, frac:.16, dmg:16}
+  PERFECT:{label:'ちくしょーーー！！', sub:'堪忍袋の緒が切れた', col:'#ffd25a', size:12, frac:.62, dmg:100, rainbow:true},
+  GREAT:{label:'ちくしょー！', sub:'', col:'#ff7a4a', size:11, frac:.40, dmg:60},
+  GOOD:{label:'ちくしょう', sub:'', col:'#ffd8b0', size:9.5, frac:.24, dmg:32},
+  BAD:{label:'ちっ……', sub:'', col:'#b8b8b8', size:8.5, frac:.10, dmg:14}
 };
 const RANKS = [['SSS',140],['SS',122],['S',105],['A',88],['B',70],['C',-1e9]];
 const rankOf = pts => RANKS.find(r => pts >= r[1])[0];
+// ステージの基準点からの差でランクを決める（SSSから18点刻み）
+const rankOfStage = (pts, i) => { const d = pts - BAL[i].sss; return d >= 0 ? 'SSS' : d >= -18 ? 'SS' : d >= -36 ? 'S' : d >= -54 ? 'A' : d >= -72 ? 'B' : 'C'; };
 
 const $ = id => document.getElementById(id);
 const rand = (a,b) => a + Math.random()*(b-a);
@@ -519,6 +533,7 @@ function fmtMass(kg){ return kg < 1000 ? fmtNum(kg) + 'kg' : fmtNum(kg/1000) + '
 const save = { seenOP:false, muted:false, bestRank:'', bestPts:-1, maxStage:0, total:0, clears:0, last:null, stages:[] };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && typeof s === 'object') Object.assign(save, s); } catch(e){}
 if (!Array.isArray(save.stages)) save.stages = [];
+if (save.bal !== 2){ save.stages = []; save.bestRank = ''; save.bestPts = -1; save.bal = 2; } // 難易度変更前のランクは無効にする
 const THUMB_KEY = 'cho_chabudai_thumbs_v1';
 let thumbs = {}; try { thumbs = JSON.parse(localStorage.getItem(THUMB_KEY) || '{}') || {}; } catch(e){}
 function store(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e){} }
@@ -1857,7 +1872,7 @@ const MOVES = {
     metric(){ return 0; },
     start(c){
       const pow = c.pow, E = cfg.earth, body = cfg.earthBody, crack = cfg.earthCrack;
-      const before = stageSt.damage, add = Math.round(JUDGE[c.judge].dmg*(.3 + .7*c.pull));
+      const before = stageSt.damage, add = Math.round(JUDGE[c.judge].dmg*STAGES[cur].power*(.3 + .7*c.pull)); stageSt.raw = (stageSt.raw || 0) + add;
       const after = Math.min(100, before + add), final = after >= 100;
       stageSt.damage = after; stageSt.flipN = after - before;
       const Tf = .35, Tfly = 2.2, Ti = Tf + Tfly;
@@ -1902,7 +1917,7 @@ const MOVES = {
     metric(){ return 0; },
     start(c){
       const PL = cfg.planets, ctr = cfg.ctr;
-      const before = stageSt.damage, add = Math.round(JUDGE[c.judge].dmg*(.3 + .7*c.pull)*.62);
+      const before = stageSt.damage, add = Math.round(JUDGE[c.judge].dmg*STAGES[cur].power*(.3 + .7*c.pull)); stageSt.raw = (stageSt.raw || 0) + add;
       const after = Math.min(100, before + add), final = after >= 100;
       stageSt.damage = after; stageSt.flipN = after - before;
       const Tf = .35, Tup = .8, T0 = Tf + Tup + .5;
@@ -2114,7 +2129,7 @@ function drawOverlay(){
   og.lineWidth = Rt*S.perfect*2; og.strokeStyle = 'rgba(242,193,78,.18)'; og.beginPath(); og.arc(cx,cy,Rt,0,PI*2); og.stroke();
   // 縮む輪
   if (pullS.pull > .12){
-    const r = Rt*ringScale(), e = pullS.err, perfect = e < S.perfect, great = e < .22;
+    const r = Rt*ringScale(), e = pullS.err, perfect = e < S.perfect, great = e < S.great;
     og.lineWidth = perfect ? 9 : 5; og.strokeStyle = perfect ? '#ffd25a' : great ? '#ffffff' : 'rgba(255,255,255,.55)';
     if (perfect){ og.shadowColor = '#ffb020'; og.shadowBlur = 24; }
     og.beginPath(); og.arc(cx,cy,r,0,PI*2); og.stroke(); og.shadowBlur = 0;
@@ -2140,7 +2155,7 @@ function startRun(){
 }
 function startStage(i){
   buildStage(i);
-  Object.assign(stageSt, {tries:3, destroyed:0, total:STAGES[i].pct ? 100 : objs.length, perfects:0, used:0, score:0, damage:0, flipN:0, first:true, judges:[]});
+  Object.assign(stageSt, {raw:0, tries:3, destroyed:0, total:STAGES[i].pct ? 100 : objs.length, perfects:0, used:0, score:0, damage:0, flipN:0, first:true, judges:[]});
   save.maxStage = Math.max(save.maxStage, i+1); store();
   ui.hud.classList.add('hide'); hint(false); cine(false); $('flipres').classList.remove('show'); ui.counter.classList.remove('show');
   updateHud();
@@ -2205,7 +2220,7 @@ function pullRelease(){
     hideMutter(); toast('もっと強く引っ張って'); ready(); return;
   }
   const S = STAGES[cur], e = pullS.err;
-  const j = (TEST && window.__force) || (e < S.perfect ? 'PERFECT' : e < .22 ? 'GREAT' : e < .42 ? 'GOOD' : 'BAD');
+  const j = (TEST && window.__force) || (e < S.perfect ? 'PERFECT' : e < S.great ? 'GREAT' : e < S.good ? 'GOOD' : 'BAD');
   doFlip(j, pullS.pull);
 }
 function doFlip(j, pull){
@@ -2235,7 +2250,7 @@ function doFlip(j, pull){
     const alive = objs.filter(o => o.alive);
     alive.forEach(o => o.metric = M_.metric(o));
     alive.sort((a,b) => a.metric - b.metric);
-    const frac = JUDGE[j].frac*(.3 + .7*pull);
+    const frac = JUDGE[j].frac*S.power*(.3 + .7*pull);
     k = Math.max(1, Math.min(alive.length, Math.round(alive.length*frac)));
     victims = alive.slice(0, k);
   }
@@ -2281,8 +2296,10 @@ function nextFromFlip(){
 }
 function respawnTable(){ resetActors(); dust(new V3(0,.2,TZ), .5, {col:0xffffff, op:.6, life:.8}); glow(new V3(0,.4,TZ), .9, 0xfff0c8, {life:.5}); }
 function stagePts(){
-  const ratio = STAGES[cur].pct ? Math.min(1, stageSt.destroyed/100) : stageSt.destroyed/stageSt.total;
-  return Math.round(ratio*100 + stageSt.tries*25 + stageSt.perfects*10);
+  // 地球・太陽系は100%を超えた分の破壊力も点にする（全力の会心ほど高い）
+  const ratio = STAGES[cur].pct ? Math.min(1.2, (stageSt.raw || stageSt.destroyed)/100) : stageSt.destroyed/stageSt.total;
+  const used = Math.max(1, 3 - stageSt.tries);           // 会心は「数」ではなく「投げた中の割合」で評価
+  return Math.round(ratio*100 + stageSt.tries*20 + stageSt.perfects/used*28);
 }
 let lastClear = null;
 const TAGS = '#超ちゃぶ台返し #ゲーム開発 #個人開発 #gamedev';
@@ -2334,7 +2351,7 @@ async function shareToX(canvas, text, name){
 }
 function stageClear(){
   state = 'clear';
-  const pts = stagePts(), rk = rankOf(pts);
+  const pts = stagePts(), rk = rankOfStage(pts, cur);
   run.pts.push(pts); run.ranks.push(rk);
   const prev = save.stages[cur], isNew = !prev || pts > prev.pts;
   lastClear = {i:cur, rank:rk, ratio: STAGES[cur].pct ? Math.min(100, stageSt.destroyed) : Math.round(stageSt.destroyed/stageSt.total*100), perfects:stageSt.perfects};
@@ -2386,7 +2403,7 @@ function continueStage(){
 }
 function finishGame(){
   state = 'ending';
-  const pts = stagePts(), srk = rankOf(pts); run.pts.push(pts); run.ranks.push(srk);
+  const pts = stagePts(), srk = rankOfStage(pts, cur); run.pts.push(pts); run.ranks.push(srk);
   if (!save.stages[cur] || pts > save.stages[cur].pts) save.stages[cur] = {rank:srk, pts};
   save.clears++; save.total += run.count - (run.saved || 0); run.saved = run.count;
   const rk = overallRank() || srk;
@@ -2684,7 +2701,7 @@ function showTitle(){
 }
 const ICONS = ['茶','家','商','都','島','界','球','陽'];
 const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-function overallRank(){ if (save.stages.filter(Boolean).length < STAGES.length) return ''; const avg = STAGES.reduce((a,_,i) => a + save.stages[i].pts, 0)/STAGES.length; return rankOf(avg); }
+function overallRank(){ if (save.stages.filter(Boolean).length < STAGES.length) return ''; const d = STAGES.reduce((a,_,i) => a + (save.stages[i].pts - BAL[i].sss), 0)/STAGES.length; return d >= 0 ? 'SSS' : d >= -18 ? 'SS' : d >= -36 ? 'S' : d >= -54 ? 'A' : d >= -72 ? 'B' : 'C'; }
 function showMap(){
   state = 'map';
   ['final','intro','clear','over','story','title'].forEach(id => $(id).classList.add('hide'));
