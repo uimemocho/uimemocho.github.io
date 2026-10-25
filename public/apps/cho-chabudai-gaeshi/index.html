@@ -162,6 +162,8 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .cl-next{margin-top:calc(var(--u)*3);font-size:calc(var(--u)*3.2);opacity:.85}
 .cl-next b{font-family:var(--brush);font-weight:900;font-weight:400;font-size:1.5em;color:var(--gold)}
 .panel .btn{max-width:calc(var(--u)*86)}
+.btn.x-share{display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*1.6);background:#000;color:#fff;border-color:rgba(255,255,255,.35)}
+.btn.x-share svg{width:calc(var(--u)*4.4);height:calc(var(--u)*4.4)}
 
 /* map */
 #map{background:linear-gradient(180deg,rgba(10,7,5,.82),rgba(10,7,5,.92));display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + var(--u)*6) calc(var(--u)*5) calc(env(safe-area-inset-bottom) + var(--u)*5);overflow-y:auto;touch-action:pan-y}
@@ -342,6 +344,7 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <div class="cl-waza"><div class="r" id="clRuby"></div><div class="k" id="clWaza"></div><div class="l" id="clLogo"></div></div>
     <div class="cl-rows" id="clRows"></div>
     <div class="cl-next" id="clNext"></div>
+    <button id="clShare" class="btn x-share"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>でシェア</button>
     <button id="clBtn" class="btn red">次の段階へ</button>
     <button id="clMap" class="btn ghost" style="color:var(--paper)">ステージ選択へ</button>
   </div></div>
@@ -405,7 +408,7 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
       <div class="f-stat wide"><span>破壊した重さ</span><b id="fMass"></b></div>
     </div>
     <div class="f-btns">
-      <button id="fShare" class="btn red">画像でシェア</button>
+      <button id="fShare" class="btn x-share"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>で画像つきシェア</button>
       <div class="row">
         <a id="fX" class="btn" target="_blank" rel="noopener">Xに投稿</a>
         <a id="fLine" class="btn" target="_blank" rel="noopener">LINEで送る</a>
@@ -440,7 +443,7 @@ button,a{font-family:inherit;-webkit-tap-highlight-color:transparent}
    0. 定数・小物
    ========================================================= */
 const GAME_URL = 'https://uimemocho.github.io/apps/cho-chabudai-gaeshi/';
-const VERSION = 'ver 2026.10.25-3';
+const VERSION = 'ver 2026.10.25-4';
 const SAVE_KEY = 'cho_chabudai_v2';
 const KM = 1000, PI = Math.PI;
 const V3 = THREE.Vector3;
@@ -2281,11 +2284,60 @@ function stagePts(){
   const ratio = STAGES[cur].pct ? Math.min(1, stageSt.destroyed/100) : stageSt.destroyed/stageSt.total;
   return Math.round(ratio*100 + stageSt.tries*25 + stageSt.perfects*10);
 }
+let lastClear = null;
+const TAGS = '#超ちゃぶ台返し #ゲーム開発 #個人開発 #gamedev';
+/* ステージクリアのシェア画像：いま画面に映っている破壊後の全景を背景に使う */
+function drawStageShare(L){
+  const S = STAGES[L.i];
+  renderer.render(scene, camera);
+  const src = renderer.domElement;
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1350; const g = c.getContext('2d');
+  g.fillStyle = '#0b0b0c'; g.fillRect(0,0,1080,1350);
+  const sc = Math.max(1080/src.width, 1350/src.height), w = src.width*sc, h = src.height*sc;
+  g.drawImage(src, (1080-w)/2, (1350-h)/2, w, h);
+  let gr = g.createLinearGradient(0,0,0,420); gr.addColorStop(0,'rgba(11,11,12,.88)'); gr.addColorStop(1,'rgba(11,11,12,0)'); g.fillStyle = gr; g.fillRect(0,0,1080,420);
+  gr = g.createLinearGradient(0,760,0,1350); gr.addColorStop(0,'rgba(11,11,12,0)'); gr.addColorStop(.45,'rgba(11,11,12,.82)'); gr.addColorStop(1,'rgba(11,11,12,.96)'); g.fillStyle = gr; g.fillRect(0,760,1080,590);
+  // ロゴ（タイトルと同じ組みを小さく）
+  g.textAlign = 'center'; g.shadowColor = 'rgba(0,0,0,.8)'; g.shadowBlur = 20;
+  g.fillStyle = '#e3402b'; g.font = '120px "Dela Gothic One", sans-serif'; g.fillText('超', 540, 150);
+  g.fillStyle = '#f4f1ea'; g.font = '70px "Dela Gothic One", sans-serif'; g.fillText('ちゃぶ台返し', 540, 240);
+  g.shadowBlur = 0; g.fillStyle = '#fff'; g.font = '600 20px "Chakra Petch", sans-serif'; spacedText(g, 'CHŌ · CHABUDAI · GAESHI', 545, 282, 8);
+  // ステージ情報
+  g.textAlign = 'left'; g.shadowColor = 'rgba(0,0,0,.9)'; g.shadowBlur = 16;
+  g.fillStyle = '#e9e4d8'; g.font = '700 30px "Chakra Petch", sans-serif'; spacedText(g, `STAGE ${String(L.i+1).padStart(2,'0')}  CLEAR`, 90, 960, 10);
+  g.fillStyle = '#fff'; g.font = '96px "Dela Gothic One", sans-serif'; g.fillText(S.name, 84, 1068);
+  g.fillStyle = '#f2c14e'; g.font = '700 26px "Chakra Petch", sans-serif'; spacedText(g, S.ruby, 92, 1118, 4);
+  g.fillStyle = '#e9e4d8'; g.font = '900 44px "Zen Kaku Gothic New", sans-serif'; g.fillText(`必殺　${S.waza}`, 90, 1172);
+  g.shadowBlur = 0;
+  g.fillStyle = '#9b978d'; g.font = '700 28px "Zen Kaku Gothic New", sans-serif'; g.fillText(`破壊率 ${L.ratio}%　会心 ${L.perfects}回`, 90, 1236);
+  // ランク
+  g.textAlign = 'right'; g.fillStyle = '#9b978d'; g.font = '700 24px "Chakra Petch", sans-serif'; spacedText(g, 'RANK', 990, 960, 8);
+  g.font = '150px "Dela Gothic One", sans-serif'; const rw = g.measureText(L.rank).width;
+  const rg = g.createLinearGradient(990-rw,0,990,0); [['#ff5a5a',0],['#ffd25a',.25],['#6aff8a',.5],['#5ad2ff',.75],['#c65aff',1]].forEach(([cc,o]) => rg.addColorStop(o,cc));
+  g.fillStyle = L.rank === 'SSS' ? rg : L.rank === 'SS' ? '#ffd25a' : L.rank === 'S' ? '#ff9a3a' : L.rank === 'A' ? '#ff5a4a' : L.rank === 'B' ? '#6ab4ff' : '#a8a8a8';
+  g.shadowColor = 'rgba(0,0,0,.8)'; g.shadowBlur = 20; g.fillText(L.rank, 990, 1150); g.shadowBlur = 0;
+  g.textAlign = 'center'; g.fillStyle = 'rgba(233,228,216,.55)'; g.font = '600 24px "Chakra Petch", sans-serif'; spacedText(g, 'UIMEMOCHO.GITHUB.IO', 543, 1318, 6);
+  return c;
+}
+const stageShareText = L => `超ちゃぶ台返し STAGE ${String(L.i+1).padStart(2,'0')}「${STAGES[L.i].name}」をランク${L.rank}でクリア！（破壊率${L.ratio}%）\n${GAME_URL}\n${TAGS}`;
+/* 画像つきでXへ：共有シートが使えればまとめて渡す。使えなければ画像を保存してXの投稿画面を開く */
+async function shareToX(canvas, text, name){
+  try {
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    const file = new File([blob], name, {type:'image/png'});
+    if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], text}); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  } catch(e){ if (e && e.name === 'AbortError') return; }
+  window.open('https://x.com/intent/post?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  toast('画像を保存しました。投稿に添付してください');
+}
 function stageClear(){
   state = 'clear';
   const pts = stagePts(), rk = rankOf(pts);
   run.pts.push(pts); run.ranks.push(rk);
   const prev = save.stages[cur], isNew = !prev || pts > prev.pts;
+  lastClear = {i:cur, rank:rk, ratio: STAGES[cur].pct ? Math.min(100, stageSt.destroyed) : Math.round(stageSt.destroyed/stageSt.total*100), perfects:stageSt.perfects};
   if (isNew) save.stages[cur] = {rank:rk, pts}; save.total += run.count - (run.saved || 0); run.saved = run.count; store();
   Snd.clear();
   const S = STAGES[cur];
@@ -2596,7 +2648,7 @@ function drawShare(st){
   const n = g.getImageData(0,0,1080,1350), d = n.data; for (let i=0;i<d.length;i+=4){ const v = (Math.random()-.5)*16; d[i]+=v; d[i+1]+=v; d[i+2]+=v; } g.putImageData(n,0,0);
   return c;
 }
-const shareText = st => `超ちゃぶ台返し、総合ランク${st.rank}で宇宙の法則をひっくり返しました。\n${GAME_URL}\n#ゲーム開発 #個人開発 #gamedev`;
+const shareText = st => `超ちゃぶ台返し、総合ランク${st.rank}で宇宙の法則をひっくり返しました。\n${GAME_URL}\n${TAGS}`;
 let shareCanvas = null;
 async function showFinal(){
   state = 'final';
@@ -2612,7 +2664,6 @@ async function showFinal(){
   const text = shareText(st);
   $('fX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text);
   $('fLine').href = 'https://line.me/R/share?text=' + encodeURIComponent(text);
-  $('fShare').classList.toggle('hide', !(navigator.canShare && navigator.share));
   $('final').classList.remove('hide'); $('final').scrollTop = 0;
 }
 
@@ -2695,6 +2746,7 @@ $('frBtn').addEventListener('click', e => { e.stopPropagation(); nextFromFlip();
 $('clBtn').addEventListener('click', e => { e.stopPropagation(); closeClear(); });
 $('ovCont').addEventListener('click', e => { e.stopPropagation(); continueStage(); });
 $('ovTitle').addEventListener('click', e => { e.stopPropagation(); Snd.tick(); showMap(); });
+$('clShare').addEventListener('click', e => { e.stopPropagation(); if (!lastClear) return; Snd.tick(); shareToX(drawStageShare(lastClear), stageShareText(lastClear), `cho-chabudai-gaeshi-stage${lastClear.i+1}.png`); });
 $('clMap').addEventListener('click', e => { e.stopPropagation(); if (state !== 'clear') return; Snd.tick(); showMap(); });
 $('mpTitle').addEventListener('click', e => { e.stopPropagation(); Snd.tick(); showTitle(); });
 $('mpList').addEventListener('click', e => { const b = e.target.closest('.mp-card'); if (!b || b.disabled) return; playStage(+b.dataset.i); });
@@ -2714,11 +2766,7 @@ $('fCopy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(text); toast('投稿文をコピーしました'); }
   catch(e){ const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('投稿文をコピーしました'); } catch(_){ toast('コピーできませんでした'); } ta.remove(); }
 });
-$('fShare').addEventListener('click', async () => {
-  if (!shareCanvas) return; const text = shareText(save.last || {rank:'C'});
-  try { const blob = await new Promise(r => shareCanvas.toBlob(r,'image/png')); const file = new File([blob], 'cho-chabudai-gaeshi.png', {type:'image/png'});
-    if (navigator.canShare && navigator.canShare({files:[file]})) await navigator.share({files:[file], text}); else await navigator.share({text}); } catch(e){}
-});
+$('fShare').addEventListener('click', () => { if (!shareCanvas) return; shareToX(shareCanvas, shareText(save.last || {rank:'C'}), 'cho-chabudai-gaeshi.png'); });
 
 /* =========================================================
    18. ループ
@@ -2786,7 +2834,7 @@ showTitle();
 requestAnimationFrame(frame);
 setTimeout(() => { const l = $('loading'); l.style.opacity = 0; setTimeout(() => l.remove(), 400); }, 60);
 
-if (TEST) window.__cg = { tick:(dt) => { manualNow += dt*1000; step(dt, manualNow); }, tx:TXT, camera, scene, Dir, W, share:() => drawShare({rank:'SSS', ranks:['SSS','SSS','SSS','SS','SSS','SSS','S','SSS'], count:1234, perfects:9}).toDataURL('image/png'), snap:() => { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/jpeg', .9); }, flip:(j,p) => { if (state === 'ready'){ hideIra(); hint(false); doFlip(j, p == null ? 1 : p); } }, closeIntro:() => closeIntro(), setCam:(p,l)=>{ Dir.cut(new V3(...p), new V3(...l)); Dir.fn = null; },
+if (TEST) window.__cg = { stageShare:() => drawStageShare(lastClear || {i:2, rank:'SSS', ratio:92, perfects:2}).toDataURL('image/png'), stageText:() => stageShareText(lastClear || {i:2, rank:'SSS', ratio:92, perfects:2}), tick:(dt) => { manualNow += dt*1000; step(dt, manualNow); }, tx:TXT, camera, scene, Dir, W, share:() => drawShare({rank:'SSS', ranks:['SSS','SSS','SSS','SS','SSS','SSS','S','SSS'], count:1234, perfects:9}).toDataURL('image/png'), snap:() => { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/jpeg', .9); }, flip:(j,p) => { if (state === 'ready'){ hideIra(); hint(false); doFlip(j, p == null ? 1 : p); } }, closeIntro:() => closeIntro(), setCam:(p,l)=>{ Dir.cut(new V3(...p), new V3(...l)); Dir.fn = null; },
   get state(){ return state; }, get pull(){ return pullS.pull; }, get err(){ return pullS.err; }, get stage(){ return cur; },
   get st(){ return stageSt; }, get run(){ return run; }, get save(){ return save; }, perfectW:() => STAGES[cur].perfect,
   jump:(i) => { ['title','final','story','over','clear','map'].forEach(id => $(id).classList.add('hide')); Snd.init(); Object.assign(run, {count:0, mass:0, perfects:0, flips:0, continues:0, pts:[], ranks:[]}); for (let k=0;k<i;k++){ run.pts.push(150); run.ranks.push('SSS'); } startStage(i); }
