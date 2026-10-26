@@ -478,5 +478,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-25T03:00:00Z",
     "updatedAt": "2026-10-25T03:00:00Z"
+  },
+  {
+    "slug": "ippitsu-yakyu",
+    "title": "一筆野球",
+    "kind": "game",
+    "description": "一筆で描いたバットで1球勝負。長押しで溜めて、ボールに合わせて離すだけ。当てれば必ずホームラン、溜め・タイミング・芯・バットの出来しだいで、飛距離は宇宙を越えて銀河の外まで跳ね上がる3D野球ゲーム。E〜SSSのランクと称号つき。",
+    "url": "/apps/ippitsu-yakyu/",
+    "thumbnail": "/project-thumbnails/ippitsu-yakyu.webp",
+    "sourceFolder": "261025_一筆野球",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-26T23:50:00Z",
+    "updatedAt": "2026-10-26T23:50:00Z"
   }
 ]
