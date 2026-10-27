@@ -320,10 +320,10 @@ function audioInit(){
   MG=AC.createGain();MG.gain.value=.9;const comp=AC.createDynamicsCompressor();MG.connect(comp);comp.connect(AC.destination);
   NB=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   const loop=(f,type,q)=>{const s=AC.createBufferSource();s.buffer=NB;s.loop=true;const fl=AC.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=AC.createGain();g.gain.value=0;s.connect(fl).connect(g).connect(MG);s.start();return[g,fl]};
-  [crowdG]=loop(480,'bandpass',.45);[brushG,brushF]=loop(2400,'bandpass',.8);
+  [crowdG]=loop(380,'lowpass',.5);[brushG,brushF]=loop(2400,'bandpass',.8);
   droneG=AC.createGain();droneG.gain.value=0;droneF=AC.createBiquadFilter();droneF.type='lowpass';droneF.frequency.value=400;droneF.connect(droneG).connect(MG);
   [55,55.6,82.4,110.3].forEach(f=>{const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=f;o.connect(droneF);o.start()});
-  crowdG.gain.value=.035;
+  crowdG.gain.value=0;
 }
 function envG(t,peak,att,dec){const g=AC.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+att);g.gain.exponentialRampToValueAtTime(.0001,t+att+dec);return g}
 function nz(t,o){const s=AC.createBufferSource();s.buffer=NB;const fl=AC.createBiquadFilter();fl.type=o.type||'bandpass';fl.frequency.value=o.f||1000;fl.Q.value=o.q||1;const g=envG(t,o.peak||.5,o.att||.002,o.dec||.1);s.connect(fl).connect(g).connect(MG);s.start(t,Math.random());s.stop(t+(o.att||.002)+(o.dec||.1)+.05);return fl}
@@ -336,10 +336,10 @@ const SFX={
   thud(){if(!AC)return;const t=AC.currentTime;tn(t,{f0:110,f1:32,peak:.95,dec:.4});nz(t,{type:'lowpass',f:380,peak:.9,dec:.25});nz(t+.02,{f:900,q:3,peak:.4,dec:.06})},
   tick(){if(!AC)return;tn(AC.currentTime,{type:'triangle',f0:1800,peak:.07,dec:.04})},
   whiff(){if(!AC)return;const t=AC.currentTime;const f=nz(t,{f:600,q:.9,peak:.22,att:.02,dec:.18});f.frequency.exponentialRampToValueAtTime(180,t+.2)},
-  launch(){if(!AC)return;const t=AC.currentTime;const f=nz(t,{type:'highpass',f:400,q:.7,peak:.5,att:.3,dec:.9});f.frequency.exponentialRampToValueAtTime(6000,t+1.1);tn(t,{type:'sawtooth',f0:80,f1:900,peak:.18,att:.4,dec:.8})},
+  launch(){if(!AC)return;const t=AC.currentTime;const f=nz(t,{type:'bandpass',f:400,q:1.2,peak:.12,att:.3,dec:.6});f.frequency.exponentialRampToValueAtTime(2400,t+1.1);tn(t,{type:'sawtooth',f0:80,f1:900,peak:.18,att:.4,dec:.8})},
   land(){if(!AC)return;const t=AC.currentTime;tn(t,{f0:60,f1:28,peak:.9,dec:1.2});nz(t,{type:'lowpass',f:220,peak:.9,dec:1});tn(t+.1,{type:'triangle',f0:660,f1:660,peak:.12,dec:1.4});tn(t+.1,{type:'triangle',f0:990,f1:990,peak:.08,dec:1.6})},
   ping(){if(!AC)return;const t=AC.currentTime;tn(t,{type:'triangle',f0:1320,f1:1320,peak:.12,dec:.5});tn(t+.06,{type:'triangle',f0:1760,f1:1760,peak:.08,dec:.6})},
-  roar(level,hold){if(!AC)return;const t=AC.currentTime;crowdG.gain.cancelScheduledValues(t);crowdG.gain.setValueAtTime(crowdG.gain.value,t);crowdG.gain.linearRampToValueAtTime(level,t+.25);crowdG.gain.linearRampToValueAtTime(level*.8,t+hold);crowdG.gain.linearRampToValueAtTime(.035,t+hold+2)},
+  roar(level,hold){if(!AC)return;const t=AC.currentTime;crowdG.gain.cancelScheduledValues(t);crowdG.gain.setValueAtTime(crowdG.gain.value,t);crowdG.gain.linearRampToValueAtTime(level*.3,t+.25);crowdG.gain.linearRampToValueAtTime(level*.18,t+hold);crowdG.gain.linearRampToValueAtTime(0,t+hold+2)},
   stage(lv){if(!AC)return;const t=AC.currentTime;const f=[0,520,660,880,1175][lv];tn(t,{type:'square',f0:f,f1:f,peak:.06,dec:.12});tn(t,{type:'triangle',f0:f*2,f1:f*2,peak:.08,dec:.25});if(lv>=3){nz(t,{type:'highpass',f:3000,q:.5,peak:.2,att:.01,dec:.3})}if(lv===4){tn(t,{type:'sawtooth',f0:220,f1:880,peak:.12,att:.05,dec:.35})}},
   fizz(){if(!AC)return;const t=AC.currentTime;const f=nz(t,{f:1200,q:2,peak:.3,att:.01,dec:.35});f.frequency.exponentialRampToValueAtTime(150,t+.35);tn(t,{type:'square',f0:300,f1:80,peak:.06,dec:.3})},
   stamp(i,big){if(!AC)return;const t=AC.currentTime;const f=440*Math.pow(1.26,i);nz(t,{f:2600,q:1,peak:.35,dec:.04});tn(t,{type:'triangle',f0:f,f1:f,peak:big?.2:.13,dec:big?.6:.22});if(big){tn(t,{type:'triangle',f0:f*1.5,f1:f*1.5,peak:.12,dec:.8});tn(t,{f0:90,f1:40,peak:.6,dec:.4})}},
@@ -693,7 +693,7 @@ PAD.cv.addEventListener('pointerdown',e=>{if(PAD.done||G.mode!=='draw')return;au
   PAD.on=true;PAD.len=0;PAD.raw=[{x:PAD.G.x,y:PAD.G.y,t:p.t},p];PAD.last=p;PAD.w0=PAD.ppm*.06;PAD.dry=false;PAD.cv.setPointerCapture(e.pointerId);msg('そのまま右へ！',false)});
 PAD.cv.addEventListener('pointermove',e=>{if(!PAD.on)return;const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
   for(const ev of evs){const p=padPt(ev);const d=Math.hypot(p.x-PAD.last.x,p.y-PAD.last.y);if(d<1.5)continue;const dt=Math.max(1,p.t-PAD.last.t);const v=d/dt;
-    const k=PAD.ppm/204;const w=clamp((15-v*4.2)*k,4*k,16*k);PAD.dry=v>2.4;inkStamp(PAD.last,p,lerp(PAD.w0,w,.35));PAD.raw.push(p);PAD.len=(PAD.len||0)+d;PAD.last=p;SFX.brush(clamp(v*.08,0,.3))}if(PAD.on){msg(`長さ ${Math.round(PAD.len/PAD.ppm*100)}cm`,false)}});
+    const k=PAD.ppm/204;const w=clamp((15-v*4.2)*k,4*k,16*k);PAD.dry=v>2.4;inkStamp(PAD.last,p,lerp(PAD.w0,w,.35));PAD.raw.push(p);PAD.len=(PAD.len||0)+d;PAD.last=p;SFX.brush(clamp(v*.025,0,.08))}if(PAD.on){msg(`長さ ${Math.round(PAD.len/PAD.ppm*100)}cm`,false)}});
 function padUp(){if(!PAD.on)return;PAD.on=false;SFX.brush(0);
   // dry-brush tail
   const n=PAD.raw.length;if(n>3){const a=PAD.raw[n-2],b=PAD.raw[n-1];const dx=b.x-a.x,dy=b.y-a.y,l=Math.hypot(dx,dy)||1;inkStamp(b,{x:b.x+dx/l*6,y:b.y+dy/l*6},PAD.w0*.4)}
