@@ -218,6 +218,15 @@ a.btn{text-decoration:none;display:inline-block}
 #colors button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--sumi)}
 #colors button:focus-visible{outline:2px solid var(--blood);outline-offset:4px}
 #colorName{font-size:12px;font-weight:700;color:#6f675a;letter-spacing:.1em}
+#cutin{position:fixed;inset:0;z-index:8;pointer-events:none;overflow:hidden;opacity:0}
+#cutin .band{position:absolute;left:-15%;right:-15%;top:38%;height:clamp(96px,22vw,150px);background:var(--c,#ff3d7f);box-shadow:0 0 0 7px #fff,0 18px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#cutin .band2{position:absolute;left:-15%;right:-15%;top:calc(38% + clamp(96px,22vw,150px) + 26px);height:14px;background:#fff}
+#cutin span{font-family:var(--f-disp);font-size:clamp(36px,11vw,76px);line-height:1;color:var(--tc,#fff);white-space:nowrap;text-shadow:0 4px 0 rgba(0,0,0,.25)}
+#cutin i{font-style:normal;font-family:var(--f-num);font-weight:600;font-size:14px;letter-spacing:.4em;color:var(--tc,#fff);opacity:.85}
+#cutin.go{animation:cutF .95s linear forwards}#cutin.go .band{animation:cutA .95s cubic-bezier(.2,.9,.25,1) forwards}#cutin.go .band2{animation:cutB .95s cubic-bezier(.2,.9,.25,1) forwards}
+@keyframes cutF{0%,96%{opacity:1}100%{opacity:0}}
+@keyframes cutA{0%{transform:translateX(-120%)}16%{transform:translateX(0)}22%{transform:translateX(0) scale(1.06)}76%{transform:translateX(3%)}100%{transform:translateX(125%)}}
+@keyframes cutB{0%{transform:translateX(120%)}20%{transform:translateX(0)}76%{transform:translateX(-3%)}100%{transform:translateX(-125%)}}
 #spAura{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:.35;transition:background 1s}
 #spPhase{position:absolute;left:0;right:0;top:calc(112px + env(safe-area-inset-top,0px));text-align:center}
 #spPhase span{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.24em;padding:5px 12px 5px 15px;color:var(--ink);background:var(--cyan);border-radius:2px;transition:background .6s}
@@ -248,7 +257,7 @@ a.btn{text-decoration:none;display:inline-block}
 <div id="call"><div class="t"></div><div class="s"></div><div class="s2"></div></div>
 <div id="flash"></div>
 
-<div id="spAura"></div>
+<div id="spAura"></div><div id="cutin"><div class="band"><i></i><span></span></div><div class="band2"></div></div>
 <div id="spui" hidden>
   <div id="spDist"><div><span class="v">0</span><span class="u">m</span></div><div class="m">飛距離</div></div>
   <div id="spPhase"><span>上空</span></div><div id="spLabel"></div>
@@ -981,7 +990,7 @@ function buildSpace(){
   // ball + trail + warp
   const bm=new THREE.Mesh(new THREE.SphereGeometry(.12,24,16),new THREE.MeshBasicMaterial({map:ballTex,depthTest:false,transparent:true}));bm.renderOrder=1e5;s.add(bm);SP.ball=bm;
   const bg=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xfff0d0,blending:THREE.AdditiveBlending,depthTest:false,opacity:.7}));bg.scale.set(.9,.9,1);bg.renderOrder=1e5-1;s.add(bg);SP.bglow=bg;
-  SP.jet=makeJet(false);SP.jet.renderOrder=1e5-2;SP.jet.traverse(o=>o.renderOrder=1e5-2);s.add(SP.jet);
+  SP.jet=makeJet(false);SP.jet.traverse(o=>{if(!o.isGroup)o.renderOrder=1e5-2});s.add(SP.jet);
   const tc=new THREE.Mesh(new THREE.ConeGeometry(.045,1.4,16,1,true),new THREE.MeshBasicMaterial({color:0xefeae0,transparent:true,opacity:.14,blending:THREE.AdditiveBlending,depthTest:false,side:THREE.DoubleSide}));tc.renderOrder=1e5-2;s.add(tc);SP.tcone=tc;
   {const n=110,p=new Float32Array(n*6);const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));const ls=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xefeae0,transparent:true,opacity:0,depthTest:false,blending:THREE.AdditiveBlending}));ls.renderOrder=1e4;ls.frustumCulled=false;s.add(ls);SP.warp=ls;
    SP.warpSeeds=[];for(let i=0;i<n;i++)SP.warpSeeds.push([rnd(-7,7),rnd(-7,7),rnd(-7,7)])}
@@ -999,7 +1008,7 @@ function goSpace(){
   $('spui').hidden=false;$('spAura').style.opacity=.35;$('hud').hidden=true;G.mode='space';
 }
 function spaceUpdate(dt){
-  if(!SP.end){SP.t+=dt;let r=SP.rate*slowAt(SP.s)*Math.min(1,.25+SP.t/1.2)*clamp((SP.sEnd-SP.s)/.45,.1,1);if(SP.skip)r*=6;SP.s=Math.min(SP.sEnd,SP.s+r*dt);
+  if(!SP.end){SP.t+=dt;let r=SP.rate*slowAt(SP.s)*Math.min(1,.25+SP.t/1.2)*clamp((SP.sEnd-SP.s)/.45,.1,1);if(SP.skip)r*=6;if(SP.freeze>0){SP.freeze-=dt;r*=.04}SP.s=Math.min(SP.sEnd,SP.s+r*dt);
     for(let i=0;i<MILES.length;i++){if(i>SP.lastMile&&SP.s>=MILES[i][0]){SP.lastMile=i;const el=$('spLabel');el.innerHTML=`<span class="k">通過</span>${MILES[i][1]}`;el.style.opacity=1;clearTimeout(SP.lt);SP.lt=setTimeout(()=>el.style.opacity=0,1400);SFX.ping();spMilestone(false)}}
     if(SP.s>=SP.sEnd-1e-4){SP.end=true;spaceEnd()}
     SP.vel=r}
@@ -1008,7 +1017,7 @@ function spaceUpdate(dt){
   // order and place
   const list=SP.objs.map(o=>{const d=[o.P[0]-B[0],o.P[1]-B[1],o.P[2]-B[2]];const dist=Math.hypot(...d);return{o,d,dist}}).sort((a,b)=>b.dist-a.dist);
   list.forEach((e,i)=>{const o=e.o,f=dv/(e.dist+(o.unit?o.R:o.R));o.mesh.position.set(e.d[0]*f,e.d[1]*f,e.d[2]*f);o.mesh.scale.setScalar(o.unit?o.R*f:f);
-    const vis=o.vis(s);o.mesh.visible=vis>.01;o.mesh.traverse(m=>{m.renderOrder=i+(m.material&&m.material.uniforms?.5:0);if(m.material&&m.material.opacity!==undefined&&!m.material.uniforms){m.material.opacity=vis*(m.material.userData.base??(m.material.userData.base=m.material.opacity))}})});
+    const vis=o.vis(s);o.mesh.visible=vis>.01;o.mesh.traverse(m=>{if(!m.isGroup)m.renderOrder=i+(m.material&&m.material.uniforms?.5:0);if(m.material&&m.material.opacity!==undefined&&!m.material.uniforms){m.material.opacity=vis*(m.material.userData.base??(m.material.userData.base=m.material.opacity))}})});
   if(SP.earth.mesh.children[1])SP.atm.material.uniforms.op.value=sstep(4.6,6.2,s)*.9;
   // sun light dir
   const sd=new V3(SP.sunObj.P[0]-B[0],SP.sunObj.P[1]-B[1],SP.sunObj.P[2]-B[2]).normalize();SP.sun.position.copy(sd).multiplyScalar(100);
@@ -1020,8 +1029,8 @@ function spaceUpdate(dt){
   SP.cmb.material.opacity=sstep(25.2,26.6,s);
   SP.stadium.material.opacity=1-sstep(3.2,4.6,s);
   // ball in front of camera
-  const fw=new V3(0,-.06,-1).applyQuaternion(c.quaternion);const bp=fw.multiplyScalar(2.6);SP.ball.position.copy(bp);SP.ball.rotation.y+=dt*14;SP.bglow.position.copy(bp);spFX(dt,s,bp);
-  const U=new V3(u[0],u[1],u[2]);SP.tcone.visible=false;{const ph=Math.max(0,SP.ph),v=SP.end?0:clamp((SP.vel||0)/2,0,1);SP.jet.visible=!SP.end;SP.jet.set(bp,U,(.9+.15*ph)*(.7+.5*v),.07+.012*ph,performance.now()*.001,.8);$('speed').style.opacity=SP.end?0:(.25+.06*ph).toFixed(2)}
+  const fw=new V3(0,.05,-1).applyQuaternion(c.quaternion);const bp=fw.multiplyScalar(2.6);{const upv=new V3(0,1,0).applyQuaternion(c.quaternion),fwd=new V3(0,0,-1).applyQuaternion(c.quaternion);SP.J=upv.multiplyScalar(.95).addScaledVector(fwd,.32).normalize()}SP.ball.position.copy(bp);SP.ball.rotation.y+=dt*14;SP.bglow.position.copy(bp);spFX(dt,s,bp);
+  const U=SP.J.clone();SP.tcone.visible=false;{const ph=Math.max(0,SP.ph),v=SP.end?0:clamp((SP.vel||0)/2,0,1);SP.jet.visible=!SP.end;SP.jet.set(bp,U,(.9+.15*ph)*(.7+.5*v),.07+.012*ph,performance.now()*.001,.8);$('speed').style.opacity=SP.end?0:(.25+.06*ph).toFixed(2)}
   // warp lines
   const wp=SP.warp.geometry.attributes.position.array;const vel=SP.end?0:(SP.vel||0);const len=clamp(vel*.5,.05,3)*(1+.25*Math.max(0,SP.ph));
   SP.warpSeeds.forEach((sd2,i)=>{sd2[0]-=U.x*vel*dt*12;sd2[1]-=U.y*vel*dt*12;sd2[2]-=U.z*vel*dt*12;if(Math.hypot(...sd2)>8){sd2[0]=rnd(-6,6)+U.x*7;sd2[1]=rnd(-6,6)+U.y*7;sd2[2]=rnd(-6,6)+U.z*7}
@@ -1041,19 +1050,23 @@ function recordHitSpace(){const D=SP.D;G.total+=D;G.best1=Math.max(G.best1,D);G.
   if(F.broke){openDraw('バットが折れた。新しいバットを描け');return}startAtBatLoop()}
 
 const PH=[[0,'上空',[1,1,1],'rgba(120,200,255,.45)'],[4.4,'大気圏突破',[1,.55,.2],'rgba(255,90,30,.55)'],[5.6,'地球周回',[.6,.85,1],'rgba(40,120,255,.45)'],[8,'太陽系',[1,.85,.45],'rgba(255,190,80,.4)'],[13.5,'光の速さを超えて',[.75,.9,1],'rgba(140,200,255,.5)'],[18.3,'天の川銀河',[.85,.6,1],'rgba(150,80,255,.5)'],[22,'銀河の海',[1,.7,.9],'rgba(255,100,200,.45)'],[26.6,'宇宙の外へ',[1,1,1],'rgba(255,240,200,.7)']];
+const CUTC=['#2ee6ff','#ff6a2e','#2e8bff','#ffd23f','#7ae8ff','#9b5cff','#ff3d7f','#ffffff'];
+function cutIn(ph){const el=$('cutin');const c=CUTC[ph%CUTC.length];el.style.setProperty('--c',c);el.style.setProperty('--tc',ph===7||ph===3||ph===4||ph===0?'#1a1430':'#ffffff');el.querySelector('span').textContent=PH[ph][1]+'!!';el.querySelector('i').textContent=['','PHASE 2','PHASE 3','PHASE 4','PHASE 5','PHASE 6','PHASE 7','FINAL'][ph]||'';
+  el.classList.remove('go');void el.offsetWidth;el.classList.add('go');const f=$('flash');f.style.background=c;f.style.transition='none';f.style.opacity=.55;requestAnimationFrame(()=>{f.style.transition='opacity .45s';f.style.opacity=0;setTimeout(()=>{f.style.background=''},500)});const b=$('burst');b.classList.remove('go');void b.offsetWidth;b.classList.add('go')}
 const PHBG=['#2f7fff','#1a1450','#0a1a4a','#1e1a46','#06305a','#2a1268','#4a1250','#6a3a1a'].map(c=>new THREE.Color(c));
 function spMilestone(big){SP.kick=big?12:6;SP.ringT=0;SFX.stamp(3+Math.max(0,SP.ph),big);const d=$('spDist');d.classList.remove('pop');void d.offsetWidth;d.classList.add('pop');if(big){flash(false,700);shake=.4}}
 function spFX(dt,s,bp){
   if(!SP.trailPS)buildSpaceFX();
   let ph=0;for(let i=0;i<PH.length;i++)if(s>=PH[i][0])ph=i;
   if(ph!==SP.ph){const first=SP.ph<0;SP.ph=ph;$('spPhase').firstChild.textContent=PH[ph][1];$('spAura').style.background=`radial-gradient(ellipse at 50% 55%,transparent 40%,${PH[ph][3]} 100%)`;
-    if(!first){flash(false,300);SP.kick=10;SP.ringT=0;SFX.stage(Math.min(4,1+ph%4));SFX.boom();const el=$('spLabel');el.innerHTML=`<span class="k">突入</span>${PH[ph][1]}`;el.style.opacity=1;clearTimeout(SP.lt);SP.lt=setTimeout(()=>el.style.opacity=0,1500)}}
+    if(!first){cutIn(ph);SP.freeze=.32;SP.kick=22;SP.ringT=0;shake=.55;SFX.stage(Math.min(4,1+ph%4));SFX.stamp(5+ph,true);
+      {const T=SP.trailPS;if(T){const cc=CUTC[ph%CUTC.length];const col=new THREE.Color(cc);for(let k=0;k<120;k++){const i=T.i++%T.n;const a=k/120*Math.PI*2;const d=new V3(Math.cos(a),Math.sin(a),0).applyQuaternion(SP.cam.quaternion).multiplyScalar(rnd(4,9));T.pos[i*3]=SP.ball.position.x;T.pos[i*3+1]=SP.ball.position.y;T.pos[i*3+2]=SP.ball.position.z;T.v[i*3]=d.x;T.v[i*3+1]=d.y;T.v[i*3+2]=d.z;T.life[i]=rnd(.5,.9);const c=k%3?col:new THREE.Color(1,1,1);T.c0[i*3]=c.r;T.c0[i*3+1]=c.g;T.c0[i*3+2]=c.b}}}}}
   {const h=Math.pow(10,s),dip=Math.acos(6.371e6/(6.371e6+h));const U2=SP.dome.material.uniforms;U2.dip.value=dip;
    const atm=1-sstep(3.4,5.0,s);const zA=new THREE.Color(0x2f7fff).lerp(new THREE.Color(0x0a0f3a),sstep(3.2,4.3,s)).lerp(new THREE.Color(0x020210),sstep(4.3,5.2,s));const hA=new THREE.Color(0xd8f2ff).lerp(new THREE.Color(0x6ab8ff),sstep(2.8,3.8,s)).lerp(new THREE.Color(0x02030c),sstep(4.6,5.8,s));
    const pc=PHBG[ph],late=sstep(6,7.5,s);U2.zen.value.copy(zA).lerp(pc.clone().multiplyScalar(.45),late);U2.hor.value.copy(hA).lerp(pc,late);U2.amt.value=sstep(3.6,4.4,s)*(1-sstep(5.6,6.8,s))*1.3}
   const col=PH[ph][2];const hue=(performance.now()*.0004)%1;const rain=ph>=5;
   // trail particles
-  const T=SP.trailPS,U=new V3(...SP.u),vel=SP.end?0:(SP.vel||0);const nEmit=SP.end?0:Math.round(2+ph*1.6+(ph===1?6:0));
+  const T=SP.trailPS,U=SP.J.clone(),vel=SP.end?0:(SP.vel||0);const nEmit=SP.end?0:Math.round(2+ph*1.6+(ph===1?6:0));
   for(let k=0;k<nEmit;k++){const i=T.i++%T.n;const j=new V3(rnd(-1,1),rnd(-1,1),rnd(-1,1)).multiplyScalar(.05+ph*.02);
     T.pos[i*3]=bp.x+j.x;T.pos[i*3+1]=bp.y+j.y;T.pos[i*3+2]=bp.z+j.z;const sp=rnd(1.5,3.5)*(1+ph*.25);T.v[i*3]=-U.x*sp+j.x*4;T.v[i*3+1]=-U.y*sp+j.y*4;T.v[i*3+2]=-U.z*sp+j.z*4;T.life[i]=rnd(.4,.9);
     let c=col;if(rain){const cc=new THREE.Color().setHSL((hue+k*.07)%1,.9,.65);c=[cc.r,cc.g,cc.b]}if(ph===1&&Math.random()<.5)c=[1,.3,.1];T.c0[i*3]=c[0];T.c0[i*3+1]=c[1];T.c0[i*3+2]=c[2]}
