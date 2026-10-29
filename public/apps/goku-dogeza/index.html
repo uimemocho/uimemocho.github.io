@@ -357,7 +357,7 @@ function cvs(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;
 const SHARE_URL=(location.hostname.endsWith('github.io'))?(location.origin+location.pathname):'https://uimemocho.github.io/apps/goku-dogeza/';
 const CH=0.62;                         // character scale (2.9 voxel units -> 1.8 m)
 const SPOT=new THREE.Vector3(0,0,86);  // 土下座地点
-const BOSS_Z=90.5;
+const BOSS_Z=90.5,BOSS_X=-2.4,BOSS_YAW=PI-0.42;   // stands off the front-camera sightline, still facing the player
 
 /* ---------------- data ---------------- */
 const SINS=['会議で「それな」しか言わなかった','冷蔵庫のプリンを食べた','「確認します」と言って三ヶ月放置した','既読をつけたまま五日返さなかった','共有フォルダの「最終_本当に最終_v3」を上書きした','飲み会の幹事なのに店を予約し忘れた','傘立ての傘を間違えて持ち帰った','「5分で終わります」と言って40分話した','Wi-Fiのパスワードを勝手に変えた','誕生日を一日まちがえて祝った','「明日やります」を七回言った','全員に返信で「了解です」を送った','ミーティングURLを貼り忘れた','エアコンの温度を無断で2度下げた','レビュー依頼を「いいね」だけで済ませた'];
@@ -815,7 +815,7 @@ FX.pillar=new THREE.Mesh(new THREE.CylinderGeometry(1.0,1.0,300,28,1,true),new T
 FX.puffs=[];const puffMat=new THREE.MeshLambertMaterial({color:0xc9c0b2,transparent:true,opacity:0,depthWrite:false});
 for(let i=0;i<12;i++){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(1,0),puffMat);m.visible=false;city.add(m);FX.puffs.push({m,a:i/12*TAU+Math.random()*0.3,v:2.5+Math.random()*2.5,s:0.6+Math.random()*0.6});}
 FX.deb=new THREE.InstancedMesh(new THREE.BoxGeometry(0.34,0.22,0.3),vmat(0x4a4c52),40);FX.deb.castShadow=true;city.add(FX.deb);
-FX.debD=[];{const R=rng(5);for(let i=0;i<40;i++)FX.debD.push({a:R()*TAU,v:3+R()*9,vy:4+R()*9,rs:(R()-.5)*20,s:0.6+R()*1.2});}
+FX.debD=[];{const R=rng(5);for(let i=0;i<40;i++){let a=R()*TAU;if(Math.sin(a)>0.3)a=-a;FX.debD.push({a,v:3+R()*9,vy:4+R()*9,rs:(R()-.5)*20,s:0.6+R()*1.2});}}
 const _o=new THREE.Object3D();
 
 /* =========================================================
@@ -1079,7 +1079,7 @@ function resetWorld(){trailReset();
   setEnv('city');clearPS(PA);clearPS(PN);if(camera.view&&camera.view.enabled)camera.clearViewOffset();
   jet.visible=false;halo.visible=false;wings.forEach(w=>{w.visible=false;w.scale.setScalar(1);w.rotation.y=0;});saintGlow.material.opacity=0;C.root.scale.setScalar(CHS);
   SMOKE.v=0;heavenProps.forEach(o=>o.visible=true);LINES.on=false;LINES.a=0;$('#rBlur').classList.remove('on');$('#rApoBig').hidden=true;$('#howto').hidden=true;
-  put(C,0,0,0,0);pose(C,STAND);put(B,0,0,BOSS_Z,PI);pose(B,ARMS_X);
+  put(C,0,0,0,0);pose(C,STAND);put(B,BOSS_X,0,BOSS_Z,BOSS_YAW);pose(B,ARMS_X);
   FX.ring.material.opacity=0;FX.dome.material.opacity=0;FX.crater.visible=false;FX.pillar.material.opacity=0;FX.puffs.forEach(p=>p.m.visible=false);FX.deb.count=0;
   auraDisk.material.opacity=0;speedAmt=0;flashV=0;OV.cap=null;OV.lb=0;OV.res=null;OV.apo=null;
   $('#cap').hidden=true;$('#lbTop').classList.remove('on');$('#lbBot').classList.remove('on');$('#btnSkip').hidden=true;
@@ -1453,7 +1453,7 @@ function finalFX(S,tau){
   let bz=BOSS_Z,by=0,bp=0;const bpose=tau>0.02?FLAIL:ARMS_X;
   if(tau>0){if(rank<3){bp=-(0.25+rank*0.12)*eOut(sat(tau*6))*(1-0.6*sat((tau-0.5)*2));}
     else{const vz=6+rank*3,vy=5+rank*1.6,tl=2*vy/9.8,tt=Math.min(tau,tl);bz=BOSS_Z+vz*tt+(tau>tl?Math.min(1.5,(tau-tl)*3):0);by=Math.max(0,vy*tt-4.9*tt*tt);bp=-Math.min(PI/2,tau*TAU*0.9);}}
-  pose(B,tau>0?lp(ARMS_X,bpose,sat(tau*8)):ARMS_X);put(B,0,by,bz,PI,bp);
+  pose(B,tau>0?lp(ARMS_X,bpose,sat(tau*8)):ARMS_X);put(B,BOSS_X-(bz-BOSS_Z)*0.45,by,bz,BOSS_YAW,bp);
 }
 
 /* ---------- REPLAY ---------- */
