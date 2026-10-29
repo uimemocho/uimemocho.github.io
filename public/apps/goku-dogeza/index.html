@@ -53,7 +53,7 @@ button{font:inherit;color:inherit}
 .btn.primary{background:var(--gold)}
 .btn.small{font-size:14px;padding:8px 12px;min-width:0;box-shadow:0 3px 0 var(--ink)}
 .btn[disabled]{opacity:.45}
-.btn.wait,.btn.wait[disabled]{opacity:1;color:var(--paper);background:linear-gradient(90deg,#6b5520 var(--p,0%),#2c3044 var(--p,0%));box-shadow:0 3px 0 var(--ink);font-size:14px;letter-spacing:0}
+.btn.wait,.btn.wait[disabled]{opacity:1;color:var(--paper);background:linear-gradient(90deg,#6b5520 var(--p,0%),#2c3044 var(--p,0%));box-shadow:0 3px 0 var(--ink);font-size:13px;letter-spacing:0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;padding-left:6px;padding-right:6px}.btn.wait>span{white-space:nowrap}.wdots{letter-spacing:-1px;display:inline-block;width:1.1em;text-align:left}.btn.wait::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.16) 50%,transparent 65%);background-size:250% 100%;animation:wshim 1.4s linear infinite;pointer-events:none}@keyframes wshim{from{background-position:120% 0}to{background-position:-120% 0}}.wspin{width:14px;height:14px;border:2.5px solid rgba(255,255,255,.28);border-top-color:#ffcc33;border-radius:50%;animation:wspin .8s linear infinite;flex:none;box-sizing:border-box}@keyframes wspin{to{transform:rotate(360deg)}}.wdots b{display:inline-block;font-weight:inherit;animation:wdot 1.2s ease-in-out infinite}.wdots b:nth-child(2){animation-delay:.2s}.wdots b:nth-child(3){animation-delay:.4s}@keyframes wdot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
 /* title */
 #scrTitle{justify-content:space-between}
 #scrCharge{pointer-events:auto;touch-action:none;cursor:pointer}
@@ -213,7 +213,7 @@ textarea.inp{resize:none;line-height:1.6}
 
   <section id="scrTitle" class="scr">
     <button class="btn small howbtn" id="btnHow" type="button">遊び方</button>
-    <div class="logo"><h1 class="ol"><b>極</b>土下座</h1><p class="sub ol2">GOKU DOGEZA</p></div>
+    <div class="logo"><h1 class="ol"><b>極</b>土下座</h1><p class="sub ol2">KIWAMI DOGEZA</p></div>
     <div class="tbottom">
       <div class="sin"><span class="lab">謝罪文</span><span class="txt" id="apoTxt">おまかせ</span><button class="btn small" id="btnApo" type="button">書く</button></div>
       <div class="tbtns"><button class="btn" id="btnFace" type="button">キャラを作る</button><button class="btn primary" id="btnStart" type="button">謝罪する</button></div>
@@ -344,7 +344,7 @@ textarea.inp{resize:none;line-height:1.6}
 <script>
 'use strict';
 /* =========================================================
-   極土下座  GOKU DOGEZA
+   極土下座  KIWAMI DOGEZA
    Three.js r128 / WebAudio / MediaRecorder
    ========================================================= */
 const $=s=>document.querySelector(s);
@@ -973,14 +973,16 @@ function recStart(){
     const st=REC.cv.captureStream(30);
     if(recDest){const at=recDest.stream.getAudioTracks()[0];if(at)st.addTrack(at);}
     REC.mime=recMime();
-    REC.mr=new MediaRecorder(st,REC.mime?{mimeType:REC.mime,videoBitsPerSecond:4500000}:undefined);
+    try{REC.mr=new MediaRecorder(st,REC.mime?{mimeType:REC.mime,videoBitsPerSecond:4500000}:undefined);}catch(e){REC.mr=new MediaRecorder(st);}
     REC.chunks=[];REC.mr.ondataavailable=e=>{if(e.data&&e.data.size)REC.chunks.push(e.data);};
     const tok=REC.tok;
-    REC.mr.onstop=()=>{if(tok!==REC.tok)return;const type=(REC.mr&&REC.mr.mimeType)||REC.mime||'video/webm';REC.raw=new Blob(REC.chunks,{type});REC.ext=type.indexOf('mp4')>=0?'mp4':'webm';REC.cap=false;buildHighlight(tok);};
+    REC.fin=false;REC.mr.onstop=()=>recFinalize(tok);REC.mr.onerror=()=>{REC.on=false;recFinalize(tok);};
     REC.t0=AC?AC.currentTime:performance.now()/1000;REC.cap=!!AC;
     REC.mr.start(250);REC.on=true;REC.flash=0;
   }catch(e){REC.on=false;REC.mr=null;}
 }
+/* 録画の後始末（onstopが来ない端末でも必ず一度だけ編集へ進む） */
+function recFinalize(tok){if(tok!==REC.tok||REC.fin)return;REC.fin=true;REC.on=false;const type=(REC.mr&&REC.mr.mimeType)||REC.mime||'video/webm';REC.raw=new Blob(REC.chunks,{type});REC.ext=type.indexOf('mp4')>=0?'mp4':'webm';REC.cap=false;buildHighlight(tok);}
 /* 見せ場の判定（区間はwithHL・リプレイ・リザルトで定義） */
 function recWant(){
   if(STATE==='perform'){const s=PF.segs[PF.i];return !!(s&&s.hl&&s.hl.some(w=>PF.t>=w[0]&&PF.t<=w[1]));}
@@ -990,7 +992,10 @@ function recWant(){
 function recTick(dt){if(!REC.on||!REC.mr)return;recDraw();const w=recWant(),t=recNow();
   if(w&&!REC.cur)REC.cur=[t,t];if(REC.cur){REC.cur[1]=t;if(!w){REC.marks.push(REC.cur);REC.cur=null;}}
   if(t>120)recStop();}
-function recStop(){if(REC.cur){REC.marks.push(REC.cur);REC.cur=null;}REC.on=false;if(REC.mr&&REC.mr.state!=='inactive'){try{REC.mr.stop();}catch(e){}}}
+function recStop(){if(REC.cur){REC.marks.push(REC.cur);REC.cur=null;}REC.on=false;if(!REC.mr||REC.fin)return;const tok=REC.tok;
+  if(REC.mr.state==='inactive'){recFinalize(tok);return;}
+  try{REC.mr.stop();}catch(e){recFinalize(tok);return;}
+  setTimeout(()=>recFinalize(tok),4000);}
 function pcmSlice(a,b){if(!AC||!REC.pL.length||REC.pcm0<-1e5)return null;const sr=AC.sampleRate,base=REC.pcm0<0?0:REC.pcm0;
   const total=REC.pL.reduce((n,c)=>n+c.length,0),s0=Math.max(0,Math.round((a-base)*sr)),s1=Math.min(total,Math.round((b-base)*sr));if(s1-s0<64)return null;
   const buf=AC.createBuffer(2,s1-s0,sr),L=buf.getChannelData(0),R=buf.getChannelData(1);let off=0,w=0;
@@ -999,6 +1004,7 @@ function pcmSlice(a,b){if(!AC||!REC.pL.length||REC.pcm0<-1e5)return null;const s
 /* 本番の全編録画から見せ場だけを切り出して、15秒以内の動画に編集し直す */
 async function buildHighlight(tok){
   const raw=REC.raw;if(!raw||!raw.size){onVideoReady();return;}
+  let fin=false;const wd=setTimeout(()=>{if(fin||tok!==REC.tok)return;fin=true;REC.tok++;REC.blob=raw;REC.editErr='timeout';onVideoReady();},25000);
   const marks=REC.marks.filter(m=>m[1]-m[0]>0.12).map(m=>[m[0],m[1]]);
   if(!marks.length){REC.blob=raw;onVideoReady();return;}
   // 尺の調整：①前半の各カットを比例で詰める（最短0.45秒）②リザルトは頭側だけ詰める（ドドン以降は守る）③それでも長ければ古いカットから落とす
@@ -1016,7 +1022,7 @@ async function buildHighlight(tok){
     if(!REC.ecv){REC.ecv=cvs(540,960);REC.ecx=REC.ecv.getContext('2d');}
     const ex=REC.ecx,st=REC.ecv.captureStream(30);let dest=null;
     if(AC&&REC.pL.length){dest=AC.createMediaStreamDestination();dest.stream.getAudioTracks().forEach(t=>st.addTrack(t));}
-    const mr=new MediaRecorder(st,REC.mime?{mimeType:REC.mime,videoBitsPerSecond:4500000}:undefined),ch=[];mr.ondataavailable=e=>{if(e.data&&e.data.size)ch.push(e.data);};
+    let mr;try{mr=new MediaRecorder(st,REC.mime?{mimeType:REC.mime,videoBitsPerSecond:4500000}:undefined);}catch(e){mr=new MediaRecorder(st);}const ch=[];mr.ondataavailable=e=>{if(e.data&&e.data.size)ch.push(e.data);};
     const stopped=new Promise(r=>{mr.onstop=r;});
     const raf=()=>new Promise(r=>requestAnimationFrame(r));
     const seekTo=(v,t)=>new Promise(r=>{let d=false;const f=()=>{if(d)return;d=true;v.removeEventListener('seeked',f);r();};v.addEventListener('seeked',f);v.currentTime=Math.max(0,t);setTimeout(f,2500);});
@@ -1033,10 +1039,12 @@ async function buildHighlight(tok){
       if(marks[i+2])ready[i%2]=seekTo(v,marks[i+2][0]);                // this player now prepares the cut after next
       postBtnWait(Math.min(99,5+Math.round((i+1)/marks.length*94)));
       if(el()>REC_MAX)break;}
-    mr.stop();await stopped;URL.revokeObjectURL(vurl);
+    try{mr.requestData();}catch(e){}try{mr.stop();}catch(e){}await Promise.race([stopped,new Promise(r=>setTimeout(r,3000))]);URL.revokeObjectURL(vurl);
     if(tok!==REC.tok)return;
     REC.blob=new Blob(ch,{type:mr.mimeType||raw.type});REC.editDur=el();
   }catch(e){if(tok!==REC.tok)return;REC.blob=raw;REC.editErr=String(e);}
+  if(fin)return;fin=true;clearTimeout(wd);
+  if(!REC.blob||REC.blob.size<20000)REC.blob=raw;                 // 編集版が壊れていたら全編を使う
   onVideoReady();
 }
 function recDraw(){
@@ -1539,8 +1547,10 @@ function startResult(){
   $('#rRank').textContent=RANKS[r];$('#rTitle').textContent=TITLES[r];$('#rComment').textContent='「'+PF.comment+'」';$('#rPow').textContent=pw;
   $('#stamp').className='stamp';$('#rcard').className='rcard';$('#rBlur').classList.remove('on');$('#rTap').hidden=false;
   const big=$('#rApoBig');big.hidden=true;big.classList.remove('in');
-  if(recSupported())postBtnWait(0);else postBtnReady();
-  if(!recSupported())$('#rNote').textContent='この端末では動画の作成に対応していません。テキストで投稿できます。';
+  const recOK=recSupported()&&!!REC.mr;
+  if(recOK)postBtnWait(0);else postBtnReady();
+  if(!recOK)$('#rNote').textContent='この端末では動画の作成に対応していません。テキストで投稿できます。';
+  const rt=REC.tok;clearTimeout(REC.wd);if(recOK)REC.wd=setTimeout(()=>{if(rt!==REC.tok||!$('#btnPost').classList.contains('wait'))return;REC.tok++;REC.blob=REC.blob||REC.raw;onVideoReady();},60000);
   $('#btnSave').disabled=true;$('#rVid').removeAttribute('src');
   $('#lbTop').classList.remove('on');$('#lbBot').classList.remove('on');
   OV.res={rank:RANKS[r],title:TITLES[r],comment:PF.comment,pow:pw};OV.resT=0;OV.lb=0;
@@ -1556,7 +1566,7 @@ function updResult(dt){const S=PF.segs[PF.segs.length-1];OV.resT+=dt;const t=OV.
   S.headK=eIO(seg(t,R_UP0,R_UP1));finalUpdate(S,S.TI+1.2,'c3');if(REC.on&&t>R_HIT+RES_REC)recStop();
   const A=OV.apo;if(!A)return;if(!A.hit&&t>=R_HIT)resultHit();if(!A.done&&t>=A.end)resultDone();}
 $('#rTap').addEventListener('pointerdown',e=>{e.preventDefault();const A=OV.apo;if(!A||A.done)return;if(OV.resT<R_HIT)OV.resT=R_HIT;else OV.resT=Math.max(OV.resT,A.end);});
-function postBtnWait(pct){const b=$('#btnPost');b.disabled=true;b.classList.add('wait');b.style.setProperty('--p',(pct||0)+'%');b.textContent=pct?`動画を作成中… ${pct}%`:'動画を作成中…';
+function postBtnWait(pct){const b=$('#btnPost');b.disabled=true;b.classList.add('wait');b.style.setProperty('--p',(pct||0)+'%');b.innerHTML='<i class="wspin"></i><span>動画を作成中<span class="wdots"><b>.</b><b>.</b><b>.</b></span></span>';b.setAttribute('aria-label','動画を作成中 '+(pct||0)+'%');
   $('#rNote').textContent='X投稿用のハイライト動画を作成中です。できあがると「Xに投稿」が押せるようになります。';}
 function postBtnReady(){const b=$('#btnPost');b.disabled=false;b.classList.remove('wait');b.style.removeProperty('--p');b.textContent='Xに投稿';}
 function onVideoReady(){postBtnReady();
