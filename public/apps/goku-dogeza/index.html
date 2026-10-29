@@ -127,7 +127,7 @@ button{font:inherit;color:inherit}
 .rapobig{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 8vh);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none!important;text-align:center;opacity:0}
 .rapobig.in{animation:apoin .45s cubic-bezier(.2,1.6,.4,1) forwards}
 @keyframes apoin{0%{opacity:0;transform:scale(1.4)}55%{opacity:1;transform:scale(.97)}100%{opacity:1;transform:none}}
-.rapobig p{margin:0;max-width:16em;font-weight:900;font-size:clamp(21px,6vw,30px);line-height:1.5;color:#fff;text-wrap:balance;word-break:break-all;text-shadow:0 0 5px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.7),0 3px 2px rgba(0,0,0,.6)}
+.rapobig p{margin:0;max-width:16em;white-space:pre-line;text-align:center;font-weight:900;font-size:clamp(21px,6vw,30px);line-height:1.5;color:#fff;text-wrap:balance;word-break:break-all;text-shadow:0 0 5px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.7),0 3px 2px rgba(0,0,0,.6)}
 .rapobig span{font-weight:700;font-size:13px;color:#fff;text-shadow:0 0 5px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.6),0 2px 2px rgba(0,0,0,.55)}
 .stamp{margin-top:3vh;display:flex;flex-direction:column;align-items:center;pointer-events:none;opacity:0}
 .stamp.in{animation:stamp .45s cubic-bezier(.2,1.8,.4,1) forwards}
@@ -1055,6 +1055,9 @@ function recDraw(){
 }
 function olText(cx,txt,x,y,fill,lw){cx.lineJoin='round';cx.lineWidth=lw;cx.strokeStyle='#0e0f16';cx.strokeText(txt,x,y);cx.fillStyle=fill;cx.fillText(txt,x,y);}
 function glowText(cx,txt,x,y){cx.save();cx.fillStyle='#ffffff';cx.shadowColor='rgba(0,0,0,.9)';cx.shadowBlur=14;cx.fillText(txt,x,y);cx.shadowBlur=6;cx.fillText(txt,x,y);cx.shadowBlur=2;cx.shadowOffsetY=3;cx.shadowColor='rgba(0,0,0,.6)';cx.fillText(txt,x,y);cx.restore();}
+/* 謝罪文の空白・改行を整える（先頭の全角スペースなどで中央からずれないように） */
+function normApo(t){return String(t||'').replace(/\r/g,'').replace(/[ \t\u3000\u00a0]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{2,}/g,'\n').trim();}
+function wrapLines(cx,txt,maxW){return String(txt).split('\n').flatMap(p=>wrap(cx,p.trim(),maxW));}
 function wrap(cx,txt,maxW){const out=[];let line='';for(const ch of txt){if(cx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch;}else line+=ch;}if(line)out.push(line);return out;}
 function drawOverlay(cx,W,H){
   if(REC.flash>0){cx.save();cx.fillStyle=`rgba(255,255,255,${REC.flash*0.85})`;cx.fillRect(0,0,W,H);cx.restore();REC.flash=Math.max(0,REC.flash-0.3);}
@@ -1068,7 +1071,7 @@ function drawOverlay(cx,W,H){
     if(LINES.a>0.01)drawSpeedLines(cx,W,H,LINES.vx*W,LINES.vy*H,Math.min(W,H)*0.36,LINES.a*0.88,Math.floor(t*12));
     if(th>=0){const s=th<0.3?lerp(2.2,1,eOut(th/0.3)):1;
       cx.save();cx.translate(W/2,190);cx.scale(s,s);cx.textAlign='center';cx.font='150px Anton,Impact,sans-serif';olText(cx,r.rank,0,0,'#f6c343',14);cx.font='24px "Dela Gothic One",sans-serif';olText(cx,r.title,0,46,'#f3f1ec',6);cx.font='22px Anton,Impact,sans-serif';olText(cx,'謝罪力 '+r.pow,0,82,'#f3f1ec',5);cx.restore();
-      if(A){const k=th<0.25?eOut(th/0.25):1;cx.save();cx.globalAlpha=k;cx.textAlign='center';cx.font='900 33px "Zen Kaku Gothic New",sans-serif';const ls=wrap(cx,A.text,W-76),lh=48,by=H-150-(ls.length-1)*lh;
+      if(A){const k=th<0.25?eOut(th/0.25):1;cx.save();cx.globalAlpha=k;cx.textAlign='center';cx.font='900 33px "Zen Kaku Gothic New",sans-serif';const ls=wrapLines(cx,A.text,W-76),lh=48,by=H-150-(ls.length-1)*lh;
         ls.forEach((l,i)=>glowText(cx,l,W/2,by+i*lh));cx.font='700 18px "Zen Kaku Gothic New",sans-serif';glowText(cx,A.sig,W/2,by+(ls.length-1)*lh+42);cx.restore();}
     }
     cx.textAlign='left';}
@@ -1554,7 +1557,7 @@ function startResult(){
   $('#btnSave').disabled=true;$('#rVid').removeAttribute('src');
   $('#lbTop').classList.remove('on');$('#lbBot').classList.remove('on');
   OV.res={rank:RANKS[r],title:TITLES[r],comment:PF.comment,pow:pw};OV.resT=0;OV.lb=0;
-  const txt=(APO.mode==='self'&&APO.text.trim())?APO.text.trim():genApology(r);
+  const txt=(APO.mode==='self'&&normApo(APO.text))?normApo(APO.text):genApology(r);
   OV.apo={text:txt,sig:apoSig(),end:R_HIT+R_HOLD,hit:false,done:false};
   $('#rApo').textContent='お詫び　'+txt;$('#rApoTxt').textContent=txt;$('#rApoSig').textContent=OV.apo.sig;
 }
