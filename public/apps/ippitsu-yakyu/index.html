@@ -228,6 +228,12 @@ a.btn{text-decoration:none;display:inline-block}
 @keyframes cutA{0%{transform:translateX(-120%)}16%{transform:translateX(0)}22%{transform:translateX(0) scale(1.06)}76%{transform:translateX(3%)}100%{transform:translateX(125%)}}
 @keyframes cutB{0%{transform:translateX(120%)}20%{transform:translateX(0)}76%{transform:translateX(-3%)}100%{transform:translateX(-125%)}}
 #spAura{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:.35;transition:background 1s}
+#spNext{position:absolute;left:0;right:0;top:calc(146px + env(safe-area-inset-top,0px));text-align:center;color:#fff;font-weight:700;font-size:13px;text-shadow:var(--tsh);opacity:0;transition:opacity .3s}
+#spNext b{color:#ffd23f;margin-right:8px;font-size:11px;letter-spacing:.2em}
+#spMark{position:absolute;left:0;top:0;width:0;height:0;opacity:0;transition:opacity .25s}
+#spMark i{position:absolute;left:-26px;top:-26px;width:52px;height:52px;border:3px solid #ffd23f;border-radius:50%;box-shadow:0 0 12px rgba(255,210,63,.7);animation:mk 1s ease-in-out infinite}
+#spMark em{position:absolute;left:34px;top:-12px;font-style:normal;font-weight:700;font-size:13px;color:#fff;white-space:nowrap;text-shadow:var(--tsh)}
+@keyframes mk{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 #spPhase{position:absolute;left:0;right:0;top:calc(112px + env(safe-area-inset-top,0px));text-align:center}
 #spPhase span{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.24em;padding:5px 12px 5px 15px;color:var(--ink);background:var(--cyan);border-radius:2px;transition:background .6s}
 #spDist.pop .v{animation:dpop .45s ease-out}
@@ -257,10 +263,10 @@ a.btn{text-decoration:none;display:inline-block}
 <div id="call"><div class="t"></div><div class="s"></div><div class="s2"></div></div>
 <div id="flash"></div>
 
-<div id="spAura"></div><div id="cutin"><div class="band"><i></i><span></span></div><div class="band2"></div></div>
+<div id="spAura"></div>
 <div id="spui" hidden>
   <div id="spDist"><div><span class="v">0</span><span class="u">m</span></div><div class="m">飛距離</div></div>
-  <div id="spPhase"><span>上空</span></div><div id="spLabel"></div>
+  <div id="spPhase"><span>上空</span></div><div id="spNext"><b>次の目標</b><span></span></div><div id="spMark"><i></i><em></em></div><div id="spLabel"></div>
   <div id="spSkip">タップで早送り</div>
 </div>
 
@@ -411,7 +417,7 @@ flat(new THREE.CircleGeometry(4,40),dirtM,0,.03,0);
 const chalk=new THREE.MeshStandardMaterial({color:0xe9e4d8,roughness:.9});
 for(const s of[-1,1]){const l=flat(new THREE.PlaneGeometry(.09,100),chalk,s*Math.sin(Math.PI/4)*50,.04,-Math.cos(Math.PI/4)*50,-s*Math.PI/4)}
 for(const [bx,bz] of [[19.4,-19.4],[0,-38.8],[-19.4,-19.4]]){const b=new THREE.Mesh(new THREE.BoxGeometry(.38,.08,.38),chalk);b.position.set(bx,.04,bz);b.rotation.y=Math.PI/4;scene.add(b)}
-{const s=new THREE.Shape();s.moveTo(-.216,-.216);s.lineTo(.216,-.216);s.lineTo(.216,0);s.lineTo(0,.216);s.lineTo(-.216,0);s.closePath();flat(new THREE.ShapeGeometry(s),chalk,0,.045,0)}
+{const s=new THREE.Shape();s.moveTo(-.216,.216);s.lineTo(.216,.216);s.lineTo(.216,0);s.lineTo(0,-.216);s.lineTo(-.216,0);s.closePath();flat(new THREE.ShapeGeometry(s),chalk,0,.045,0)}
 for(const sx of[-1,1]){const cx=sx*.95;for(const [w,d,x,z] of [[1.22,.06,cx,-.9],[1.22,.06,cx,.9],[.06,1.83,cx-.61,0],[.06,1.83,cx+.61,0]])flat(new THREE.PlaneGeometry(w,d),chalk,x,.042,z)}
 const rubber=new THREE.Mesh(new THREE.BoxGeometry(.61,.06,.15),chalk);rubber.position.set(0,.06,-18.44);scene.add(rubber);
 
@@ -913,7 +919,7 @@ function buildSpace(){
   SP.dv=100;SP.u=[0,.94,-.34];{const l=Math.hypot(...SP.u);SP.u=SP.u.map(v=>v/l)}
   SP.objs=[];
   const add=(mesh,P,Rp,unit,vis)=>{mesh.traverse(o=>{if(o.material){o.material.depthTest=false;o.material.depthWrite=false;o.material.transparent=true}});mesh.frustumCulled=false;s.add(mesh);const dd=Math.hypot(P[0],P[1],P[2]);const al=dd>0?(P[0]*SP.u[0]+P[1]*SP.u[1]+P[2]*SP.u[2])/dd:0;const ob={mesh,P,R:Rp,unit,vis:(al>.8&&dd>1e8)?(q=>{const lg=Math.log10(dd);return vis(q)*sstep(lg-1.4,lg-.7,q)*(1-sstep(lg+.5,lg+.9,q))}):vis};SP.objs.push(ob);return ob};
-  const lm=(L,ox,oz)=>[SP.u[0]*L+ox*L,SP.u[1]*L,SP.u[2]*L+oz*L];
+  const lm=(L,ox,oz)=>[SP.u[0]*L+ox*L*.5,SP.u[1]*L,SP.u[2]*L-oz*L*.42];SP.targets=[];const tg=(ob,name,L)=>{SP.targets.push({ob,name,L});return ob};
   // noise
   const hash=(x,y,z)=>{const h=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return h-Math.floor(h)};
   const vn=(x,y,z)=>{const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi;const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf);
@@ -952,14 +958,14 @@ function buildSpace(){
   const ball2=(map,col)=>new THREE.Mesh(new THREE.SphereGeometry(1,40,28),new THREE.MeshStandardMaterial({map,color:col||0xffffff,roughness:1}));
   // moon
   const moonT=sphTex(256,128,(X,Y,Z)=>{const n=fbm(X*3,Y*3,Z*3);const cr=fbm(X*12+3,Y*12,Z*12,2);let v=175+70*n-(cr>.62?30:0);return[v,v*.97,v*.92]});
-  add(ball2(moonT),lm(3.844e8,.05,-.42),.16*.45*3.844e8,true,s=>1);
+  tg(add(ball2(moonT),lm(3.844e8,.05,-.42),.16*.45*3.844e8,true,s=>1),'月',3.844e8);
   const bands=(cols,f)=>sphTex(256,128,(X,Y,Z,lat)=>{const t=Math.sin(lat*f+fbm(X*3,Y*3,Z*3)*3)*.5+.5;const a=cols[0],b=cols[1];return[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)]});
-  add(ball2(bands([[232,170,110],[255,236,206]],14)),lm(7.8e11,-.05,-.45),.24*.47*7.8e11,true,s=>1);
+  tg(add(ball2(bands([[232,170,110],[255,236,206]],14)),lm(7.8e11,-.05,-.45),.24*.47*7.8e11,true,s=>1),'木星',7.8e11);
   {const sat=ball2(bands([[245,205,130],[255,240,200]],10));const ringT=cvTex(256,8,(x)=>{for(let i=0;i<256;i++){x.fillStyle=`rgba(220,200,160,${(i>30&&i<250)?(.25+.5*Math.abs(Math.sin(i*.21))):0})`;x.fillRect(i,0,1,8)}});
    const rg=new THREE.RingGeometry(1.3,2.3,64,1);const uvs=rg.attributes.uv,pp=rg.attributes.position;for(let i=0;i<pp.count;i++){const r=Math.hypot(pp.getX(i),pp.getY(i));uvs.setXY(i,(r-1.3)/1,.5)}
    const ring=new THREE.Mesh(rg,new THREE.MeshBasicMaterial({map:ringT,side:THREE.DoubleSide,transparent:true}));ring.rotation.x=1.2;sat.add(ring);
-   add(sat,lm(1.43e12,.06,-.44),.15*.47*1.43e12,true,s=>1)}
-  add(ball2(bands([[70,170,255],[140,210,255]],8)),lm(4.5e12,-.05,-.42),.14*.44*4.5e12,true,s=>1);
+   tg(add(sat,lm(1.43e12,.06,-.44),.15*.47*1.43e12,true,s=>1),'土星',1.43e12)}
+  tg(add(ball2(bands([[70,170,255],[140,210,255]],8)),lm(4.5e12,-.05,-.42),.14*.44*4.5e12,true,s=>1),'海王星',4.5e12);
   // stars
   const starPts=(n,R,sz,col,op)=>{const p=[];for(let i=0;i<n;i++){const v=new V3(rnd(-1,1),rnd(-1,1),rnd(-1,1)).normalize().multiplyScalar(R);p.push(v.x,v.y,v.z)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));const m=new THREE.Points(g,new THREE.PointsMaterial({color:col,size:sz,sizeAttenuation:false,transparent:true,opacity:op,depthTest:false,depthWrite:false}));m.renderOrder=-100;m.frustumCulled=false;s.add(m);return m};
   SP.dome=new THREE.Mesh(new THREE.SphereGeometry(4000,32,24),new THREE.ShaderMaterial({side:THREE.BackSide,depthTest:false,depthWrite:false,
@@ -970,7 +976,7 @@ function buildSpace(){
   SP.stars=[starPts(2600,3000,1.6,0xe8eeff,1),starPts(500,3000,2.8,0xfff0d8,1)];
   SP.farGal=starPts(1800,3000,1.4,0xb8a8ff,0);
   // proxima
-  {const st=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xff7a4a,blending:THREE.AdditiveBlending}));add(st,lm(4.0e16,.05,-.44),.22*.46*4e16,true,s=>1)}
+  {const st=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xff7a4a,blending:THREE.AdditiveBlending}));tg(add(st,lm(4.0e16,.05,-.44),.22*.46*4e16,true,s=>1),'プロキシマ・ケンタウリ',4e16)}
   // Milky Way particle disc
   {const N=14000,p=[],cl=[];const R0=5e20;for(let i=0;i<N;i++){let x,y,z,c;
      if(i<N*.18){const r=Math.abs(rnd(-1,1)*rnd(0,1))*R0*.18;const a=rnd(0,Math.PI*2);x=r*Math.cos(a);z=r*Math.sin(a);y=rnd(-1,1)*R0*.05*Math.random();c=[1,.82,.55]}
@@ -982,7 +988,7 @@ function buildSpace(){
   // Andromeda + Virgo
   const galTex=cvTex(256,256,(x)=>{x.translate(128,128);for(let i=0;i<2600;i++){const t=Math.random();const arm=i%2;const r=t*118;const a=arm*Math.PI+t*7+rnd(-.35,.35);x.fillStyle=`rgba(${200+Math.random()*55|0},${190+Math.random()*50|0},255,${.5*(1-t)+.1})`;x.fillRect(r*Math.cos(a),r*Math.sin(a)*.42,2.4,2.4)}
     const g=x.createRadialGradient(0,0,0,0,0,40);g.addColorStop(0,'rgba(255,236,200,.95)');g.addColorStop(1,'rgba(255,220,180,0)');x.fillStyle=g;x.fillRect(-128,-128,256,256)});
-  {const a=new THREE.Sprite(new THREE.SpriteMaterial({map:galTex,blending:THREE.AdditiveBlending}));a.material.rotation=.5;add(a,lm(2.4e22,.04,-.46),.3*.48*2.4e22,true,s=>1)}
+  {const a=new THREE.Sprite(new THREE.SpriteMaterial({map:galTex,blending:THREE.AdditiveBlending}));a.material.rotation=.5;tg(add(a,lm(2.4e22,.04,-.46),.3*.48*2.4e22,true,s=>1),'アンドロメダ銀河',2.4e22)}
   for(let i=0;i<46;i++){const a=new THREE.Sprite(new THREE.SpriteMaterial({map:galTex,blending:THREE.AdditiveBlending,color:new THREE.Color().setHSL(rnd(.05,.65),.4,.75)}));a.material.rotation=rnd(0,6);const L=5.4e23*rnd(.92,1.08);const P=lm(L,rnd(-.18,.18),rnd(-.6,-.3));add(a,P,rnd(.03,.07)*.5*L,true,s=>1)}
   // universe edge shell
   const cmbT=sphTex(256,128,(X,Y,Z)=>{const n=fbm(X*5,Y*5,Z*5,4);return[255*(.7+.3*n),140+100*n,70+60*n]});
@@ -996,7 +1002,7 @@ function buildSpace(){
    SP.warpSeeds=[];for(let i=0;i<n;i++)SP.warpSeeds.push([rnd(-7,7),rnd(-7,7),rnd(-7,7)])}
 }
 const MILES=[[2.6,'場外へ'],[3.3,'街の灯りが遠ざかる'],[4.0,'雲を突き抜けた'],[5.0,'宇宙に到達（高度100km）'],[5.61,'宇宙ステーションの高さ'],[6.8,'地球が丸く見える'],[8.58,'月を越えた'],[11.17,'太陽までの距離を越えた'],[11.89,'木星'],[12.16,'土星'],[12.65,'海王星'],[13.4,'ボイジャー1号を追い越した'],[15.98,'1光年'],[16.6,'プロキシマ・ケンタウリ'],[18.5,'天の川の円盤を抜けた'],[21.0,'天の川銀河を脱出'],[22.38,'アンドロメダ銀河'],[23.73,'おとめ座銀河団'],[25.0,'宇宙の大規模構造'],[26.64,'観測可能な宇宙の果て']];
-const PITCH_KEYS=[[2,.35],[3.2,.04],[4.1,-.16],[5.4,-.2],[6.3,-1.0],[6.9,-1.2],[7.7,.02],[18.0,.02],[19.8,-.55],[21.1,-1.35],[21.9,-.4],[22.6,.02],[30,.02]];
+const PITCH_KEYS=[[2,.35],[3.2,.1],[4.1,-.06],[5.0,-.14],[6.3,1.12],[40,1.12]];
 function camPitch(s){for(let i=0;i<PITCH_KEYS.length-1;i++){const [a,va]=PITCH_KEYS[i],[b,vb]=PITCH_KEYS[i+1];if(s<=b)return lerp(va,vb,sstep(a,b,s))}return .02}
 const slowAt=s=>{let g=1;for(const [m] of MILES){g=Math.min(g,.32+.68*(1-Math.exp(-Math.pow((s-m)/.32,2))))}return g};
 function goSpace(){
@@ -1029,7 +1035,7 @@ function spaceUpdate(dt){
   SP.cmb.material.opacity=sstep(25.2,26.6,s);
   SP.stadium.material.opacity=1-sstep(3.2,4.6,s);
   // ball in front of camera
-  const fw=new V3(0,.05,-1).applyQuaternion(c.quaternion);const bp=fw.multiplyScalar(2.6);{const upv=new V3(0,1,0).applyQuaternion(c.quaternion),fwd=new V3(0,0,-1).applyQuaternion(c.quaternion);SP.J=upv.multiplyScalar(.95).addScaledVector(fwd,.32).normalize()}SP.ball.position.copy(bp);SP.ball.rotation.y+=dt*14;SP.bglow.position.copy(bp);spFX(dt,s,bp);
+  const ah=sstep(5.0,6.3,s);const fw=new V3(0,lerp(.05,-.3,ah),-1).applyQuaternion(c.quaternion);const bp=fw.multiplyScalar(2.6);{const upv=new V3(0,1,0).applyQuaternion(c.quaternion),fwd=new V3(0,0,-1).applyQuaternion(c.quaternion);SP.J=upv.multiplyScalar(lerp(.95,.55,ah)).addScaledVector(fwd,lerp(.32,.85,ah)).normalize()}navHUD(s,D);SP.ball.position.copy(bp);SP.ball.rotation.y+=dt*14;SP.bglow.position.copy(bp);spFX(dt,s,bp);
   const U=SP.J.clone();SP.tcone.visible=false;{const ph=Math.max(0,SP.ph),v=SP.end?0:clamp((SP.vel||0)/2,0,1);SP.jet.visible=!SP.end;SP.jet.set(bp,U,(.9+.15*ph)*(.7+.5*v),.07+.012*ph,performance.now()*.001,.8);$('speed').style.opacity=SP.end?0:(.25+.06*ph).toFixed(2)}
   // warp lines
   const wp=SP.warp.geometry.attributes.position.array;const vel=SP.end?0:(SP.vel||0);const len=clamp(vel*.5,.05,3)*(1+.25*Math.max(0,SP.ph));
@@ -1044,22 +1050,27 @@ function spaceEnd(){
   const where=SP.lastMile>=0?MILES[SP.lastMile][1]:'場外';
   G.dist=SP.D;G.reach=where;G.end='本塁打';spMilestone(true);
   call('着弾',fmtS(SP.D),`到達：${where}`,0);
-  setTimeout(()=>{$('spui').hidden=true;$('spAura').style.opacity=0;$('speed').style.opacity=0;$('spLabel').style.opacity=0;F.done=true;F.on=false;G.mode='over';showResult()},2800)}
+  setTimeout(()=>{$('spui').hidden=true;$('spAura').style.opacity=0;$('spNext').style.opacity=0;$('spMark').style.opacity=0;$('speed').style.opacity=0;$('spLabel').style.opacity=0;F.done=true;F.on=false;G.mode='over';showResult()},2800)}
 function recordHitSpace(){const D=SP.D;G.total+=D;G.best1=Math.max(G.best1,D);G.hits++;G.hr++;G.streak=G.streak+1;G.maxStreak=Math.max(G.maxStreak,G.streak);G.ab++;G.B=0;G.S=0;
   $('hud').hidden=false;hud();addTotalFX(D);drawBoard('本塁打',fmtS(D));
   if(F.broke){openDraw('バットが折れた。新しいバットを描け');return}startAtBatLoop()}
 
 const PH=[[0,'上空',[1,1,1],'rgba(120,200,255,.45)'],[4.4,'大気圏突破',[1,.55,.2],'rgba(255,90,30,.55)'],[5.6,'地球周回',[.6,.85,1],'rgba(40,120,255,.45)'],[8,'太陽系',[1,.85,.45],'rgba(255,190,80,.4)'],[13.5,'光の速さを超えて',[.75,.9,1],'rgba(140,200,255,.5)'],[18.3,'天の川銀河',[.85,.6,1],'rgba(150,80,255,.5)'],[22,'銀河の海',[1,.7,.9],'rgba(255,100,200,.45)'],[26.6,'宇宙の外へ',[1,1,1],'rgba(255,240,200,.7)']];
 const CUTC=['#2ee6ff','#ff6a2e','#2e8bff','#ffd23f','#7ae8ff','#9b5cff','#ff3d7f','#ffffff'];
-function cutIn(ph){const el=$('cutin');const c=CUTC[ph%CUTC.length];el.style.setProperty('--c',c);el.style.setProperty('--tc',ph===7||ph===3||ph===4||ph===0?'#1a1430':'#ffffff');el.querySelector('span').textContent=PH[ph][1]+'!!';el.querySelector('i').textContent=['','PHASE 2','PHASE 3','PHASE 4','PHASE 5','PHASE 6','PHASE 7','FINAL'][ph]||'';
-  el.classList.remove('go');void el.offsetWidth;el.classList.add('go');const f=$('flash');f.style.background=c;f.style.transition='none';f.style.opacity=.55;requestAnimationFrame(()=>{f.style.transition='opacity .45s';f.style.opacity=0;setTimeout(()=>{f.style.background=''},500)});const b=$('burst');b.classList.remove('go');void b.offsetWidth;b.classList.add('go')}
+function cutIn(ph){const c=CUTC[ph%CUTC.length];const f=$('flash');f.style.background=c;f.style.transition='none';f.style.opacity=.35;requestAnimationFrame(()=>{f.style.transition='opacity .4s';f.style.opacity=0;setTimeout(()=>{f.style.background=''},450)});const b=$('burst');b.classList.remove('go');void b.offsetWidth;b.classList.add('go');
+  const el=$('spLabel');el.innerHTML=`<span class="k">突入</span>${PH[ph][1]}`;el.style.opacity=1;clearTimeout(SP.lt);SP.lt=setTimeout(()=>el.style.opacity=0,1500)}
 const PHBG=['#2f7fff','#1a1450','#0a1a4a','#1e1a46','#06305a','#2a1268','#4a1250','#6a3a1a'].map(c=>new THREE.Color(c));
+function navHUD(s,D){const n=$('spNext'),mk=$('spMark');if(!SP.targets||SP.end){n.style.opacity=0;mk.style.opacity=0;return}
+  const t=SP.targets.find(q=>q.L>D*1.02&&q.L<=SP.D*1.05);if(!t||s<5.4){n.style.opacity=0;mk.style.opacity=0;return}
+  n.querySelector('span').textContent=`${t.name}　あと ${fmtS(t.L-D)}`;n.style.opacity=1;
+  const v=t.ob.mesh.position.clone().project(SP.cam);const W=innerWidth,H=innerHeight;let x=(v.x*.5+.5)*W,y=(-v.y*.5+.5)*H;const on=v.z<1&&x>30&&x<W-30&&y>170&&y<H-120;
+  if(on){mk.style.transform=`translate(${x}px,${y}px)`;mk.querySelector('em').textContent=t.name;mk.style.opacity=1}else mk.style.opacity=0}
 function spMilestone(big){SP.kick=big?12:6;SP.ringT=0;SFX.stamp(3+Math.max(0,SP.ph),big);const d=$('spDist');d.classList.remove('pop');void d.offsetWidth;d.classList.add('pop');if(big){flash(false,700);shake=.4}}
 function spFX(dt,s,bp){
   if(!SP.trailPS)buildSpaceFX();
   let ph=0;for(let i=0;i<PH.length;i++)if(s>=PH[i][0])ph=i;
   if(ph!==SP.ph){const first=SP.ph<0;SP.ph=ph;$('spPhase').firstChild.textContent=PH[ph][1];$('spAura').style.background=`radial-gradient(ellipse at 50% 55%,transparent 40%,${PH[ph][3]} 100%)`;
-    if(!first){cutIn(ph);SP.freeze=.32;SP.kick=22;SP.ringT=0;shake=.55;SFX.stage(Math.min(4,1+ph%4));SFX.stamp(5+ph,true);
+    if(!first){cutIn(ph);SP.freeze=.18;SP.kick=16;SP.ringT=0;shake=.55;SFX.stage(Math.min(4,1+ph%4));SFX.stamp(5+ph,true);
       {const T=SP.trailPS;if(T){const cc=CUTC[ph%CUTC.length];const col=new THREE.Color(cc);for(let k=0;k<120;k++){const i=T.i++%T.n;const a=k/120*Math.PI*2;const d=new V3(Math.cos(a),Math.sin(a),0).applyQuaternion(SP.cam.quaternion).multiplyScalar(rnd(4,9));T.pos[i*3]=SP.ball.position.x;T.pos[i*3+1]=SP.ball.position.y;T.pos[i*3+2]=SP.ball.position.z;T.v[i*3]=d.x;T.v[i*3+1]=d.y;T.v[i*3+2]=d.z;T.life[i]=rnd(.5,.9);const c=k%3?col:new THREE.Color(1,1,1);T.c0[i*3]=c.r;T.c0[i*3+1]=c.g;T.c0[i*3+2]=c.b}}}}}
   {const h=Math.pow(10,s),dip=Math.acos(6.371e6/(6.371e6+h));const U2=SP.dome.material.uniforms;U2.dip.value=dip;
    const atm=1-sstep(3.4,5.0,s);const zA=new THREE.Color(0x2f7fff).lerp(new THREE.Color(0x0a0f3a),sstep(3.2,4.3,s)).lerp(new THREE.Color(0x020210),sstep(4.3,5.2,s));const hA=new THREE.Color(0xd8f2ff).lerp(new THREE.Color(0x6ab8ff),sstep(2.8,3.8,s)).lerp(new THREE.Color(0x02030c),sstep(4.6,5.8,s));
