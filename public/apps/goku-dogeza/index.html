@@ -1114,11 +1114,11 @@ function updReady(dt){
   const t=stT;
   const k1=eIO(seg(t,0.1,0.7)),k2=eIO(seg(t,1.25,1.6));
   pose(C,lp(lp(STAND,CROUCH,k1),SET,k2));put(C,0,0,0,0);
-  const cp=lerp(0,1,eIO(seg(t,0,1.0)));look(lerp(5.2,3.6,cp),lerp(1.6,1.0,cp),lerp(2.2,3.0,cp),0,lerp(1.2,0.65,cp),lerp(0.4,0.3,cp),lerp(50,46,cp));
+  const cp=lerp(0,1,eIO(seg(t,0,1.0)));look(-lerp(5.2,3.6,cp),lerp(1.6,1.0,cp),lerp(2.2,3.0,cp),0,lerp(1.2,0.65,cp),lerp(0.4,0.3,cp),lerp(50,46,cp));
   if(t>1.2&&!CHG.shown){CHG.shown=1;callout('用意','#f3f1ec',true);}
   if(t>1.85){STATE='charge';CHG.phase='gauge';$('#gauge').style.opacity=1;callout('','#fff',false);droneOn();SFX.tick();}
 }
-function chargeCam(){const k=CHG.push;const s=Math.sin(stT*60)*0.012*CHG.taps;look(lerp(3.6,2.5,k)+s,lerp(1.0,0.78,k),lerp(3.0,2.1,k),0,0.65,0.3,lerp(46,42,k));}
+function chargeCam(){const k=CHG.push;const s=Math.sin(stT*60)*0.012*CHG.taps;look(-lerp(3.6,2.5,k)+s,lerp(1.0,0.78,k),lerp(3.0,2.1,k),0,0.65,0.3,lerp(46,42,k));}
 function updCharge(dt){
   if(CHG.phase==='gauge'){
     if(CHG.pause>0)CHG.pause-=dt;else{CHG.u+=CHG.dir*CHG.speed*dt;if(CHG.u>1){CHG.u=2-CHG.u;CHG.dir=-1;}if(CHG.u<0){CHG.u=-CHG.u;CHG.dir=1;}}
