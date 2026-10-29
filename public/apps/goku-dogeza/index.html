@@ -53,6 +53,7 @@ button{font:inherit;color:inherit}
 .btn.primary{background:var(--gold)}
 .btn.small{font-size:14px;padding:8px 12px;min-width:0;box-shadow:0 3px 0 var(--ink)}
 .btn[disabled]{opacity:.45}
+.btn.wait,.btn.wait[disabled]{opacity:1;color:var(--paper);background:linear-gradient(90deg,#6b5520 var(--p,0%),#2c3044 var(--p,0%));box-shadow:0 3px 0 var(--ink);font-size:14px;letter-spacing:0}
 /* title */
 #scrTitle{justify-content:space-between}
 #scrCharge{pointer-events:auto;touch-action:none;cursor:pointer}
@@ -539,7 +540,7 @@ function buildPerson(o){
   if(of==='suit'){bx(0.3,0.66,0.02,WH,0,0.6,0.25,torso);bx(0.12,0.52,0.03,AC,0,0.58,0.265,torso);bx(0.18,0.1,0.04,AC,0,0.88,0.265,torso);}
   else if(of==='gakuran'){bx(0.56,0.16,0.52,TOP,0,0.98,0,torso);for(let i=0;i<5;i++)bx(0.07,0.07,0.03,AC,0,0.16+i*0.16,0.255,torso);}
   else if(of==='sailor'){bx(0.86,0.34,0.05,PA,0,0.77,-0.255,torso);for(const s of [-1,1]){const c=bx(0.12,0.42,0.02,PA,s*0.15,0.72,0.25,torso);c.rotation.z=s*0.45;}bx(0.22,0.2,0.04,AC,0,0.6,0.265,torso);bx(0.88,0.06,0.5,PA,0,0.06,0,torso);}
-  else if(of==='jersey'){bx(0.04,0.9,0.02,AC,0,0.48,0.25,torso);bx(0.56,0.12,0.5,AC,0,0.96,0,torso);}
+  else if(of==='jersey'){bx(0.04,0.86,0.02,AC,0,0.46,0.255,torso);bx(0.6,0.15,0.56,AC,0,0.985,0,torso);}
   else if(of==='hoodie'){bx(0.74,0.4,0.24,TOP,0,0.86,-0.34,torso);bx(0.52,0.22,0.02,PA,0,0.26,0.25,torso);for(const s of [-1,1])bx(0.035,0.26,0.02,AC,s*0.1,0.72,0.255,torso);}
   else if(of==='tshirt'){bx(0.32,0.26,0.02,AC,0,0.56,0.25,torso);}
   else if(kim){for(const s of [-1,1]){const c=bx(0.1,0.56,0.02,WH,s*0.1,0.68,0.25,torso);c.rotation.z=-s*0.38;}bx(0.9,0.24,0.5,AC,0,0.3,0,torso);}
@@ -1007,7 +1008,7 @@ async function buildHighlight(tok){
   if(tot>budget){const over=tot-budget,pool=tot-(last[1]-last[0]);if(pool>0)for(let i=0;i<marks.length-1;i++){const m=marks[i],len=m[1]-m[0];m[0]+=Math.min(Math.max(0,len-0.45),over*len/pool);}
     tot=sum();if(tot>budget){const c=Math.min(tot-budget,(last[1]-last[0])-minLast);last[0]+=c;tot-=c;}
     while(tot>budget&&marks.length>1){const m=marks.shift();tot-=m[1]-m[0];}}
-  const note=$('#rNote');note.textContent='ハイライト動画を編集中…';
+  const note=$('#rNote');postBtnWait(5);
   try{
     const vurl=URL.createObjectURL(raw),mk=()=>{const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=vurl;return v;};
     const vs=[mk(),mk()];
@@ -1030,7 +1031,7 @@ async function buildHighlight(tok){
         await raf();if(tok!==REC.tok||el()>REC_MAX)break;}
       v.pause();if(src){try{src.stop();}catch(e){}}
       if(marks[i+2])ready[i%2]=seekTo(v,marks[i+2][0]);                // this player now prepares the cut after next
-      note.textContent=`ハイライト動画を編集中… ${Math.round((i+1)/marks.length*100)}%`;
+      postBtnWait(Math.min(99,5+Math.round((i+1)/marks.length*94)));
       if(el()>REC_MAX)break;}
     mr.stop();await stopped;URL.revokeObjectURL(vurl);
     if(tok!==REC.tok)return;
@@ -1538,7 +1539,8 @@ function startResult(){
   $('#rRank').textContent=RANKS[r];$('#rTitle').textContent=TITLES[r];$('#rComment').textContent='「'+PF.comment+'」';$('#rPow').textContent=pw;
   $('#stamp').className='stamp';$('#rcard').className='rcard';$('#rBlur').classList.remove('on');$('#rTap').hidden=false;
   const big=$('#rApoBig');big.hidden=true;big.classList.remove('in');
-  $('#rNote').textContent=recSupported()?'ハイライト動画を作成中…':'この端末では動画の作成に対応していません。テキストで投稿できます。';
+  if(recSupported())postBtnWait(0);else postBtnReady();
+  if(!recSupported())$('#rNote').textContent='この端末では動画の作成に対応していません。テキストで投稿できます。';
   $('#btnSave').disabled=true;$('#rVid').removeAttribute('src');
   $('#lbTop').classList.remove('on');$('#lbBot').classList.remove('on');
   OV.res={rank:RANKS[r],title:TITLES[r],comment:PF.comment,pow:pw};OV.resT=0;OV.lb=0;
@@ -1554,7 +1556,10 @@ function updResult(dt){const S=PF.segs[PF.segs.length-1];OV.resT+=dt;const t=OV.
   S.headK=eIO(seg(t,R_UP0,R_UP1));finalUpdate(S,S.TI+1.2,'c3');if(REC.on&&t>R_HIT+RES_REC)recStop();
   const A=OV.apo;if(!A)return;if(!A.hit&&t>=R_HIT)resultHit();if(!A.done&&t>=A.end)resultDone();}
 $('#rTap').addEventListener('pointerdown',e=>{e.preventDefault();const A=OV.apo;if(!A||A.done)return;if(OV.resT<R_HIT)OV.resT=R_HIT;else OV.resT=Math.max(OV.resT,A.end);});
-function onVideoReady(){
+function postBtnWait(pct){const b=$('#btnPost');b.disabled=true;b.classList.add('wait');b.style.setProperty('--p',(pct||0)+'%');b.textContent=pct?`動画を作成中… ${pct}%`:'動画を作成中…';
+  $('#rNote').textContent='X投稿用のハイライト動画を作成中です。できあがると「Xに投稿」が押せるようになります。';}
+function postBtnReady(){const b=$('#btnPost');b.disabled=false;b.classList.remove('wait');b.style.removeProperty('--p');b.textContent='Xに投稿';}
+function onVideoReady(){postBtnReady();
   if(!REC.blob||!REC.blob.size){$('#rNote').textContent='動画の作成に失敗しました。テキストで投稿できます。';return;}
   REC.url=URL.createObjectURL(REC.blob);const v=$('#rVid');v.src=REC.url;v.play&&v.play().catch(()=>{});
   $('#btnSave').disabled=false;$('#rNote').textContent='見せ場だけを15秒以内にまとめたハイライト動画です。Xに投稿を押すと、対応端末では動画つきで共有できます。';
@@ -1562,6 +1567,7 @@ function onVideoReady(){
 function shareText(){const a=(OV.apo&&OV.apo.text||'').replace(/\s+/g,' '),ex=a.length>42?a.slice(0,42)+'…':a;return `「${ex}」\n\n謝罪ランク${RANKS[PF.rk]}「${TITLES[PF.rk]}」謝罪力${fmtPow(powOf(PF.raw))}\n\n#極土下座`;}
 function openLink(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();}
 async function postX(){
+  if($('#btnPost').disabled)return;
   const text=shareText();
   if(REC.blob&&navigator.canShare&&navigator.share){try{const f=new File([REC.blob],'gokudogeza.'+REC.ext,{type:REC.blob.type});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],text:text+'\n'+SHARE_URL});return;}}catch(e){if(e&&e.name==='AbortError')return;}}
   openLink('https://x.com/intent/post?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(SHARE_URL));
