@@ -874,8 +874,6 @@ const heavenFog=new THREE.Fog(0xf0dcbc,40,260);
   M.box(14.5,1.2,2.2,0,20.6,-58,0xe0b44a);M.box(12,0.7,1.6,0,22.0,-58,0xd9a93a);M.box(16.5,0.9,2.6,0,23.2,-58,0xe7c066);
   for(let i=0;i<9;i++)M.box(0.24,12,0.24,-4+i,13,-58,0xf0d58a,0,0);
   heaven.add(M.mesh());
-  const ringM=new THREE.MeshBasicMaterial({color:0xffd970,transparent:true,opacity:.85});
-  for(let i=0;i<5;i++){const t=new THREE.Mesh(new THREE.TorusGeometry(3+i*1.2,0.12,8,48),ringM);t.position.set((i-2)*14,26+i*4,-90-i*12);t.rotation.x=PI/2+0.3*i;heaven.add(t);}
   const shaftMat=new THREE.MeshBasicMaterial({map:gradTex([[0,'rgba(255,246,214,.0)'],[0.6,'rgba(255,238,190,.55)'],[1,'rgba(255,230,170,.0)']]),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
   for(let i=0;i<5;i++){const c=new THREE.Mesh(new THREE.CylinderGeometry(2+i,8+i*2,120,20,1,true),shaftMat);c.position.set(-30+i*15,50,-80-i*6);c.rotation.z=0.25-i*0.12;heaven.add(c);}
 }
@@ -1390,7 +1388,7 @@ function roofSeg(){return{env:'city',dur:1.7,flash:true,start(){C.root.scale.set
     if(k<0.62){const r=k/0.62;z=lerp(78,84.6,r);p=runPose(z*2.2);}
     else{const r=(k-0.62)/0.38;z=lerp(84.6,85.3,r);x=lerp(19,14.8,r);p=runPose(x*2.2);yaw=lerp(0,-PI/2,eOut(seg(r,0,0.4)));}}
   put(C,x,y,z,yaw,pitch);pose(C,p);
-  hipW(_v);look(lerp(9.5,10.5,u),25,lerp(72.5,76,u),_v.x,_v.y+0.4,_v.z,54);speedAmt=u<0.4?0.6:0;
+  hipW(_v);look(lerp(29,28,u),28,lerp(73,76.5,u),_v.x,_v.y+0.3,_v.z,52);speedAmt=u<0.4?0.6:0;
 }};}
 
 /* ---------- FINAL: landing + dogeza (deterministic for replay) ---------- */
