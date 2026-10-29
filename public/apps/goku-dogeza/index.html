@@ -1056,7 +1056,7 @@ function recDraw(){
 function olText(cx,txt,x,y,fill,lw){cx.lineJoin='round';cx.lineWidth=lw;cx.strokeStyle='#0e0f16';cx.strokeText(txt,x,y);cx.fillStyle=fill;cx.fillText(txt,x,y);}
 function glowText(cx,txt,x,y){cx.save();cx.fillStyle='#ffffff';cx.shadowColor='rgba(0,0,0,.9)';cx.shadowBlur=14;cx.fillText(txt,x,y);cx.shadowBlur=6;cx.fillText(txt,x,y);cx.shadowBlur=2;cx.shadowOffsetY=3;cx.shadowColor='rgba(0,0,0,.6)';cx.fillText(txt,x,y);cx.restore();}
 /* 謝罪文の空白・改行を整える（先頭の全角スペースなどで中央からずれないように） */
-function normApo(t){return String(t||'').replace(/\r/g,'').replace(/[ \t\u3000\u00a0]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{2,}/g,'\n').trim();}
+function normApo(t){return String(t||'').replace(/\r/g,'').replace(/[\u200b-\u200d\u2060\ufeff]/g,'').replace(/[ \t\u3000\u00a0\u2000-\u200a\u202f\u205f]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{2,}/g,'\n').trim();}
 function wrapLines(cx,txt,maxW){return String(txt).split('\n').flatMap(p=>wrap(cx,p.trim(),maxW));}
 function wrap(cx,txt,maxW){const out=[];let line='';for(const ch of txt){if(cx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch;}else line+=ch;}if(line)out.push(line);return out;}
 function drawOverlay(cx,W,H){
@@ -1072,7 +1072,8 @@ function drawOverlay(cx,W,H){
     if(th>=0){const s=th<0.3?lerp(2.2,1,eOut(th/0.3)):1;
       cx.save();cx.translate(W/2,190);cx.scale(s,s);cx.textAlign='center';cx.font='150px Anton,Impact,sans-serif';olText(cx,r.rank,0,0,'#f6c343',14);cx.font='24px "Dela Gothic One",sans-serif';olText(cx,r.title,0,46,'#f3f1ec',6);cx.font='22px Anton,Impact,sans-serif';olText(cx,'謝罪力 '+r.pow,0,82,'#f3f1ec',5);cx.restore();
       if(A){const k=th<0.25?eOut(th/0.25):1;cx.save();cx.globalAlpha=k;cx.textAlign='center';cx.font='900 33px "Zen Kaku Gothic New",sans-serif';const ls=wrapLines(cx,A.text,W-76),lh=48,by=H-150-(ls.length-1)*lh;
-        ls.forEach((l,i)=>glowText(cx,l,W/2,by+i*lh));cx.font='700 18px "Zen Kaku Gothic New",sans-serif';glowText(cx,A.sig,W/2,by+(ls.length-1)*lh+42);cx.restore();}
+        cx.textAlign='left';const cX=l=>Math.round((W-cx.measureText(l).width)/2);   // 端末差が出ないよう幅を測って中央に置く
+        ls.forEach((l,i)=>glowText(cx,l,cX(l),by+i*lh));cx.font='700 18px "Zen Kaku Gothic New",sans-serif';glowText(cx,A.sig,cX(A.sig),by+(ls.length-1)*lh+42);cx.restore();}
     }
     cx.textAlign='left';}
 }
