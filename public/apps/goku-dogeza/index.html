@@ -725,7 +725,7 @@ function building(w,h,d,x,z,mi){
   const m=new THREE.Mesh(g,[fm,fm,roofMat,roofMat,fm,fm]);m.position.set(x,h/2,z);m.receiveShadow=true;city.add(m);return m;
 }
 /* road */
-const roadTex=(()=>{const c=cvs(256,512),x=c.getContext('2d'),R=rng(3);x.fillStyle='#44464c';x.fillRect(0,0,256,512);
+const roadTex=(()=>{const c=cvs(256,512),x=c.getContext('2d'),R=rng(3);x.fillStyle='#4d4f56';x.fillRect(0,0,256,512);
   for(let i=0;i<5000;i++){const v=R()<.5?20:120;x.fillStyle=`rgba(${v},${v},${v+6},.10)`;x.fillRect(R()*256|0,R()*512|0,1+R()*2|0,1+R()*2|0);}
   x.fillStyle='rgba(30,31,35,.35)';for(let i=0;i<6;i++){x.fillRect(R()*240|0,R()*500|0,10+R()*30|0,4+R()*16|0);}
   x.fillStyle='#e9e7df';x.fillRect(10,0,5,512);x.fillRect(241,0,5,512);
@@ -887,9 +887,9 @@ const heavenProps=heaven.children.slice(1);
 let ENV='city';
 function setEnv(e){
   ENV=e;spaceGlow.visible=e==='earth'||e==='stars';city.visible=e==='city';space.visible=e==='earth'||e==='stars';earthG.visible=e==='earth';moonG.visible=e==='stars';heaven.visible=e==='heaven';
-  if(e==='city'){scene.fog=cityFog;scene.background=null;hemi.color.set(0xdbe7f2);hemi.groundColor.set(0x5d554b);hemi.intensity=0.56;sun.color.set(0xfff0da);sun.intensity=0.6;sun.castShadow=true;}
-  else if(e==='heaven'){scene.fog=heavenFog;scene.background=null;hemi.color.set(0xfff1dc);hemi.groundColor.set(0xd7c2a8);hemi.intensity=0.62;sun.color.set(0xffe2b0);sun.intensity=0.5;sun.castShadow=true;}
-  else{scene.fog=null;scene.background=new THREE.Color(0x05060c);hemi.color.set(0x9cb2d8);hemi.groundColor.set(0x2a3048);hemi.intensity=0.5;sun.color.set(0xfff4e0);sun.intensity=1.0;sun.castShadow=false;sun.position.set(900,260,600);sun.target.position.set(0,0,0);}
+  if(e==='city'){scene.fog=cityFog;scene.background=null;hemi.color.set(0xdbe7f2);hemi.groundColor.set(0x726a60);hemi.intensity=0.7;sun.color.set(0xfff0da);sun.intensity=0.74;sun.castShadow=true;}
+  else if(e==='heaven'){scene.fog=heavenFog;scene.background=null;hemi.color.set(0xfff1dc);hemi.groundColor.set(0xd7c2a8);hemi.intensity=0.68;sun.color.set(0xffe2b0);sun.intensity=0.56;sun.castShadow=true;}
+  else{scene.fog=null;scene.background=new THREE.Color(0x05060c);hemi.color.set(0x9cb2d8);hemi.groundColor.set(0x323a54);hemi.intensity=0.58;sun.color.set(0xfff4e0);sun.intensity=1.08;sun.castShadow=false;sun.position.set(900,260,600);sun.target.position.set(0,0,0);}
 }
 
 /* =========================================================
