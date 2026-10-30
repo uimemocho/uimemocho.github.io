@@ -1222,7 +1222,7 @@ function frame(now){
     const dr=x<1?0:(x<2?.55*(x-1)*(x-1):.55+1.1*(x-2));
     if(!endBlend){endBlend=true;bp0.copy(camPos);bv0.copy(camVel);bl0.copy(camLook);blv0.copy(lookVel);}
     const s3=sx*sx*sx,h0=1-10*s3+15*s3*sx-6*s3*sx*sx,h1=sx-6*s3+8*s3*sx-3*s3*sx*sx,h5=1-h0;
-    P.set(0,Y+118,Z_SPLIT+78-dr);L.set(0,Y,Z_SPLIT-118-dr);
+    P.set(0,Y+118,Z_SPLIT+78-dr);L.set(0,Y,Z_SPLIT-72-dr);
     P.multiplyScalar(h5).addScaledVector(bp0,h0).addScaledVector(bv0,D*h1);
     L.multiplyScalar(h5).addScaledVector(bl0,h0).addScaledVector(blv0,D*h1);
     springing=true;
