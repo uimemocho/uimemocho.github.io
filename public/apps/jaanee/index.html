@@ -1028,7 +1028,7 @@ function resetGame(){
   taxiB.hidden=true;suvB.hidden=true;$('score').textContent='0';$('combo').classList.remove('on');
 }
 function startGame(){
-  initAudio();resetGame();st.mode='play';
+  initAudio();resetGame();endBlend=false;st.mode='play';
   $('title').classList.add('gone');$('result').hidden=true;$('result').classList.remove('show');
   $('hud').hidden=false;$('hud').classList.remove('fade');$('gauge').hidden=false;$('gauge').classList.remove('fade');
   camSnap=true;$('muteBtn').classList.add('play');
@@ -1173,7 +1173,10 @@ function frame(now){
   skyMat.uniforms.time.value+=dt;
   let tDrive;
   if(st.mode==='play'||st.mode==='end'){
-    st.t+=dt;tDrive=st.t<=GAME_T?st.t:Math.min(GAME_T+(st.t-GAME_T)*0.32,GAME_T+11);
+    st.t+=dt*(st.mode==='play'?1:1);
+    if(st.mode==='play'){driveT=st.t;driveRate=1;}
+    else{driveRate+=(.32-driveRate)*Math.min(1,dt*1.6);driveT=Math.min(driveT+dt*driveRate,GAME_T+11);}
+    tDrive=driveT;
   }else{
     st.attract+=dt*.6;if(st.attract>16){st.attract=0;camSnap=true;}tDrive=st.attract;
   }
@@ -1191,19 +1194,29 @@ function frame(now){
 
   // camera
   const mx=(pT.x+pS.x)/2,sep=Math.abs(pS.x-pT.x),cz=pS.z;
-  let P=new THREE.Vector3(),L=new THREE.Vector3(),k=1-Math.exp(-dt*4);
+  let P=new THREE.Vector3(),L=new THREE.Vector3(),k=1-Math.exp(-dt*4),springing=false;
   if(st.mode==='title'||st.mode==='loading'){
     const a=st.attract*.12;
     P.set(mx+7*Math.cos(a+.6),Y+3.2+Math.sin(a)*.8,cz+9*Math.sin(a+.6)+6);L.set(mx,Y+1.1,cz-3);
-  }else if(st.mode==='play'||(st.mode==='end'&&st.t<GAME_T+.05)){
+  }else if(st.mode==='play'){
     const ex=Math.max(0,sep-3.5);
     P.set(mx+.8+ex*.05,Y+4.4+ex*.28,cz+12.8+ex*.55);L.set(mx-.4,Y+1.0,cz-7.5);
   }else{
-    const u=ease(clamp((st.t-st.endT)/3.2,0,1));
-    const pz=Math.max(0,st.t-st.endT-3.2)*1.1;const rP=new THREE.Vector3(0,Y+52,Z_SPLIT+62-pz),rL=new THREE.Vector3(0,Y-4,Z_SPLIT-95-pz);
-    P.lerpVectors(camFrom,rP,u);L.lerpVectors(lookFrom,rL,u);k=1;
+    // quintic blend: starts with the camera's current velocity and zero acceleration, lands softly, then drifts on
+    const D=3.8,x=(st.t-st.endT+dt)/D,sx=clamp(x,0,1);
+    const dr=x<1?0:(x<2?.55*(x-1)*(x-1):.55+1.1*(x-2));
+    if(!endBlend){endBlend=true;bp0.copy(camPos);bv0.copy(camVel);bl0.copy(camLook);blv0.copy(lookVel);}
+    const s3=sx*sx*sx,h0=1-10*s3+15*s3*sx-6*s3*sx*sx,h1=sx-6*s3+8*s3*sx-3*s3*sx*sx,h5=1-h0;
+    P.set(0,Y+52,Z_SPLIT+62-dr);L.set(0,Y-4,Z_SPLIT-95-dr);
+    P.multiplyScalar(h5).addScaledVector(bp0,h0).addScaledVector(bv0,D*h1);
+    L.multiplyScalar(h5).addScaledVector(bl0,h0).addScaledVector(blv0,D*h1);
+    springing=true;
   }
-  if(camSnap){camPos.copy(P);camLook.copy(L);camSnap=false;}else{camPos.lerp(P,k);camLook.lerp(L,k);}
+  if(camSnap){camPos.copy(P);camLook.copy(L);camSnap=false;camVel.set(0,0,0);lookVel.set(0,0,0);}
+  else if(springing){camPos.copy(P);camLook.copy(L);}else{
+    prevCam.copy(camPos);prevLook.copy(camLook);camPos.lerp(P,k);camLook.lerp(L,k);
+    if(dt>0){camVel.copy(camPos).sub(prevCam).divideScalar(dt);lookVel.copy(camLook).sub(prevLook).divideScalar(dt);}
+  }
   camera.position.copy(camPos);
   camera.position.y+=Math.sin(now/1000*7.3)*.012;
   camera.lookAt(camLook);
@@ -1220,7 +1233,8 @@ function frame(now){
   place(taxiB,taxi,2.15);place(suvB,suv,2.4);
   renderer.setRenderTarget(rt);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(postScene,postCam);
 }
-const camFrom=new THREE.Vector3(),lookFrom=new THREE.Vector3();
+const camFrom=new THREE.Vector3(),lookFrom=new THREE.Vector3(),camVel=new THREE.Vector3(),lookVel=new THREE.Vector3(),prevCam=new THREE.Vector3(),prevLook=new THREE.Vector3(),tmpA=new THREE.Vector3();
+let driveT=0,driveRate=1,endBlend=false;const bp0=new THREE.Vector3(),bv0=new THREE.Vector3(),bl0=new THREE.Vector3(),blv0=new THREE.Vector3();
 
 function updatePlay(dt){
   const t=st.t;
