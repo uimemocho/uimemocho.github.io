@@ -502,5 +502,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-29T07:29:13Z",
     "updatedAt": "2026-10-29"
+  },
+  {
+    "slug": "jaanee",
+    "title": "じゃーねー！",
+    "kind": "game",
+    "description": "夕暮れの高架道路で、となりのタクシーの「じゃーねー！」にタイミングよく返す30秒の3Dタイミングゲーム。ぴったりなら「じゃーねー‼︎‼︎」に進化。言いかけのフェイントに注意。映画『我々は宇宙人』の非公式ファンゲーム。E〜SSSの8段階ランクつき。音ありプレイ推奨。",
+    "url": "/apps/jaanee/",
+    "thumbnail": "/project-thumbnails/jaanee.webp",
+    "sourceFolder": "261029_じゃーねー",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-29T22:36:57Z",
+    "updatedAt": "2026-10-29"
   }
 ]
