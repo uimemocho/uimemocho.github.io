@@ -616,7 +616,7 @@ function gantry(z,boards){
 }
 gantry(-170,[{x:0,w:7.6,draw:(g,W,H)=>{g.font=`900 120px ${JP}`;g.fillText('じゃーねーJCT',W/2,H*0.4);g.font=`900 96px ${JP}`;g.fillText('400m',W/2,H*0.76);}}]);
 gantry(-415,[{x:0,w:7.6,draw:(g,W,H)=>{g.font=`900 96px ${JP}`;g.fillText('じゃーねーJCT 150m',W/2,H*0.33);
-  g.font=`900 84px ${JP}`;g.textAlign='left';g.fillText('またね',220,H*0.72);g.textAlign='right';g.fillText('あしたね',W-220,H*0.72);arrow(g,150,H*0.72,-1,.7);arrow(g,W-150,H*0.72,1,.7);}}]);
+  g.font=`900 72px ${JP}`;g.textAlign='left';g.fillText('またね',172,H*0.72);g.textAlign='right';g.fillText('あしたね',W-172,H*0.72);arrow(g,112,H*0.72,-1,.62);arrow(g,W-112,H*0.72,1,.62);}}]);
 gantry(Z_SPLIT+14,[
   {x:-2.75,w:5.2,draw:(g,W,H)=>{g.font=`900 150px ${JP}`;g.fillText('またね',W*0.58,H*0.42);g.font=`700 62px ${JP}`;g.fillText('方面',W*0.58,H*0.78);arrow(g,140,H*0.5,-1,1.1);}},
   {x:2.75,w:5.2,draw:(g,W,H)=>{g.font=`900 140px ${JP}`;g.fillText('あしたね',W*0.42,H*0.42);g.font=`700 62px ${JP}`;g.fillText('方面',W*0.42,H*0.78);arrow(g,W-140,H*0.5,1,1.1);}},
