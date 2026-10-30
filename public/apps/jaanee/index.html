@@ -592,7 +592,11 @@ const lamps=[];
 function signTex(draw,w=1024,h=420){return canvasTex(w,h,(g,W,H)=>{
   g.fillStyle='#0b6a46';g.fillRect(0,0,W,H);
   g.strokeStyle='#f4f6f2';g.lineWidth=10;const r=26;g.beginPath();g.roundRect?g.roundRect(14,14,W-28,H-28,r):g.rect(14,14,W-28,H-28);g.stroke();
-  g.fillStyle='#f4f6f2';g.textAlign='center';g.textBaseline='middle';draw(g,W,H);
+  g.fillStyle='#f4f6f2';g.textAlign='center';g.textBaseline='middle';
+  // keep a side margin: shrink any line wider than the inner panel
+  const fill=g.fillText.bind(g),MW=W-220;
+  g.fillText=(t,x,y)=>{const m=g.measureText(t).width;if(m<=MW){fill(t,x,y);return;}const f=g.font,px=parseFloat(f.match(/(\d+(?:\.\d+)?)px/)[1]);g.font=f.replace(/\d+(?:\.\d+)?px/,Math.floor(px*MW/m)+'px');fill(t,x,y);g.font=f;};
+  draw(g,W,H);
 });}
 function arrow(g,x,y,dir,s=1){g.save();g.translate(x,y);g.scale(dir*s,s);g.beginPath();g.moveTo(-60,14);g.lineTo(10,14);g.lineTo(10,44);g.lineTo(64,0);g.lineTo(10,-44);g.lineTo(10,-14);g.lineTo(-60,-14);g.closePath();g.fill();g.restore();}
 function gantry(z,boards){
@@ -611,8 +615,8 @@ function gantry(z,boards){
   world.add(grp);
 }
 gantry(-170,[{x:0,w:7.6,draw:(g,W,H)=>{g.font=`900 120px ${JP}`;g.fillText('じゃーねーJCT',W/2,H*0.4);g.font=`900 96px ${JP}`;g.fillText('400m',W/2,H*0.76);}}]);
-gantry(-415,[{x:0,w:7.6,draw:(g,W,H)=>{g.font=`900 110px ${JP}`;g.fillText('じゃーねーJCT 150m',W/2,H*0.33);
-  g.font=`900 84px ${JP}`;g.textAlign='left';g.fillText('またね',190,H*0.72);g.textAlign='right';g.fillText('あしたね',W-190,H*0.72);arrow(g,110,H*0.72,-1,.75);arrow(g,W-110,H*0.72,1,.75);}}]);
+gantry(-415,[{x:0,w:7.6,draw:(g,W,H)=>{g.font=`900 96px ${JP}`;g.fillText('じゃーねーJCT 150m',W/2,H*0.33);
+  g.font=`900 84px ${JP}`;g.textAlign='left';g.fillText('またね',220,H*0.72);g.textAlign='right';g.fillText('あしたね',W-220,H*0.72);arrow(g,150,H*0.72,-1,.7);arrow(g,W-150,H*0.72,1,.7);}}]);
 gantry(Z_SPLIT+14,[
   {x:-2.75,w:5.2,draw:(g,W,H)=>{g.font=`900 150px ${JP}`;g.fillText('またね',W*0.58,H*0.42);g.font=`700 62px ${JP}`;g.fillText('方面',W*0.58,H*0.78);arrow(g,140,H*0.5,-1,1.1);}},
   {x:2.75,w:5.2,draw:(g,W,H)=>{g.font=`900 140px ${JP}`;g.fillText('あしたね',W*0.42,H*0.42);g.font=`700 62px ${JP}`;g.fillText('方面',W*0.42,H*0.78);arrow(g,W-140,H*0.5,1,1.1);}},
@@ -1222,7 +1226,7 @@ function updatePlay(dt){
   const t=st.t;
   for(const c of st.cues){
     if(!c.shown&&t>=c.t&&c.feint){
-      c.shown=true;c.done=true;const f=FEINT[(Math.random()*FEINT.length)|0];
+      c.shown=true;c.done=true;hideBubble(suvB);const f=FEINT[(Math.random()*FEINT.length)|0];
       showBubble(taxiB,f[0],'taxi',.5);setTimeout(()=>{if(st.mode==='play')showBubble(taxiB,f[1],'taxi lv-miss',.75);},620);
       continue;
     }
