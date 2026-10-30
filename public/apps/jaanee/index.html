@@ -195,6 +195,12 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
 .r-row{display:flex;gap:10px}
 #shareX{color:var(--sun);box-shadow:inset 0 0 0 1.5px var(--sun),0 0 14px rgba(255,170,70,.25)}
 #shareX:active{background:rgba(255,183,77,.14)}
+#shareSheet{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:rgba(16,4,22,.88);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  padding:calc(env(safe-area-inset-top,0px) + 20px) max(20px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 20px) max(20px,env(safe-area-inset-left,0px))}
+.ss-in{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(100%,340px)}
+#ssImg{width:100%;max-height:56vh;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,.5);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
+.ss-note{font-size:12px;font-weight:700;letter-spacing:.06em;text-align:center;line-height:1.6}
+.ss-in .btn{width:100%}
 #copied{font-size:11px;font-weight:700;min-height:1.2em;letter-spacing:.12em}
 
 #muteBtn{position:absolute;right:max(14px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 14px);display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:64px;padding:0 10px;
@@ -261,10 +267,18 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
     <div class="r-btns">
       <button id="retryBtn" class="btn" type="button">もう一回</button>
       <div class="r-row">
-        <a id="shareX" class="btn ghost sm" href="#" target="_blank" rel="noopener">Xでシェア</a>
+        <button id="shareX" class="btn ghost sm" type="button">Xでシェア</button>
         <button id="copyBtn" class="btn ghost sm" type="button">結果をコピー</button>
       </div>
       <div id="copied"></div>
+    </div>
+  </div>
+  <div id="shareSheet" hidden>
+    <div class="ss-in">
+      <img id="ssImg" alt="リザルト画像">
+      <div class="ss-note">画像を長押しで保存して、Xの投稿に添付してください</div>
+      <a id="ssX" class="btn" href="#" target="_blank" rel="noopener">Xの投稿画面をひらく</a>
+      <button id="ssClose" class="btn ghost" type="button">とじる</button>
     </div>
   </div>
   <button id="muteBtn" type="button" aria-pressed="false">SOUND</button>
@@ -1247,6 +1261,7 @@ function frame(now){
 
   place(taxiB,taxi,2.15);place(suvB,suv,2.4);
   renderer.setRenderTarget(rt);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(postScene,postCam);
+  if(grabReq){const g=grabReq;grabReq=null;try{const c=document.createElement('canvas');c.width=canvas.width;c.height=canvas.height;c.getContext('2d').drawImage(canvas,0,0);g(c);}catch(e){g(null);}}
 }
 const camFrom=new THREE.Vector3(),lookFrom=new THREE.Vector3(),camVel=new THREE.Vector3(),lookVel=new THREE.Vector3(),prevCam=new THREE.Vector3(),prevLook=new THREE.Vector3(),tmpA=new THREE.Vector3();
 let driveT=0,driveRate=1,endBlend=false;const bp0=new THREE.Vector3(),bv0=new THREE.Vector3(),bl0=new THREE.Vector3(),blv0=new THREE.Vector3();
@@ -1296,19 +1311,115 @@ function endGame(){
   const c=st.counts;
   $('rStats').innerHTML=['perfect','great','good','miss'].map(k=>`<div><b>${c[k]}</b><span>${k.toUpperCase()}</span></div>`).join('')+`<div id="rSub">達成率 ${(ratio*100).toFixed(1)}%　／　最大 ${st.maxCombo} 連続</div>`+`<div id="rNext">${isNew?'<em>NEW RECORD</em>':''}${nextLine?`<span>${nextLine}</span>`:''}</div>`;
   const text=`夕暮れの高速で「じゃーねー！」を返した。\nじゃーねー力 ${score.toLocaleString()}（${rk[1]}ランク）\n称号：${rk[2]}\n`;
-  st.shareText=text+GAME_URL+'\n#'+HASHTAG;
-  $('shareX').href='https://x.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(GAME_URL)+'&hashtags='+encodeURIComponent(HASHTAG);
+  st.shareText=text+GAME_URL+'\n#'+HASHTAG;st.res={score,rank:rk[1],title:rk[2],ratio,c:{...c},maxCombo:st.maxCombo,isNew};st.shareImg=null;st.shareTextOnly=text;
+  st.intent='https://x.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(GAME_URL)+'&hashtags='+encodeURIComponent(HASHTAG);
   $('copied').textContent='';
+  setTimeout(()=>{if(st.mode==='end')makeShareImage();},1500);
   setTimeout(()=>{$('result').hidden=false;requestAnimationFrame(()=>$('result').classList.add('show'));},2600);
   if(rk[1]==='SSS')setTimeout(()=>{if(st.mode==='end')alienVoice();},3300);
 }
 
+
+/* ============ share image (1080x1350) ============ */
+let grabReq=null;
+function grabFrame(){return new Promise(r=>{grabReq=r;setTimeout(()=>{if(grabReq===r){grabReq=null;r(null);}},800);});}
+/* dedicated share shot: taxi and SUV side by side at dusk, rendered at 1080x1350 */
+function shotCars(){
+  try{
+    const SW=1080,SH=1350;
+    const keep=[taxi,suv].map(c=>[c.position.clone(),c.rotation.clone()]);
+    const pr=renderer.getPixelRatio(),fov=camera.fov,asp=camera.aspect,cp=camera.position.clone(),cq=camera.quaternion.clone();
+    // the moment the two cars part at the Y
+    const put=(car,side,d)=>{const p=pathAt(Z_SPLIT-d,side);car.position.set(p.x,Y,p.z);car.rotation.set(0,Math.atan2(-p.tx,-p.tz),0);};
+    put(taxi,-1,23.5);put(suv,1,22);
+    sun.target.position.set(0,Y,Z_SPLIT-24);sun.position.copy(sun.target.position).addScaledVector(SUN_DIR,90);
+    sc.left=-16;sc.right=16;sc.top=16;sc.bottom=-16;sc.updateProjectionMatrix();
+    camera.position.set(0,Y+8.5,Z_SPLIT+4);camera.lookAt(0,Y+1.4,Z_SPLIT-80);camera.fov=52;camera.aspect=SW/SH;camera.updateProjectionMatrix();
+    sky.position.copy(camera.position);
+    renderer.setPixelRatio(1);renderer.setSize(SW,SH,false);
+    const t2=new THREE.WebGLRenderTarget(SW,SH);t2.texture.encoding=THREE.sRGBEncoding;
+    post.uniforms.tDiffuse.value=t2.texture;post.uniforms.res.value.set(SW,SH);
+    renderer.setRenderTarget(t2);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(postScene,postCam);
+    const c=document.createElement('canvas');c.width=SW;c.height=SH;c.getContext('2d').drawImage(canvas,0,0);
+    t2.dispose();
+    [taxi,suv].forEach((o,i)=>{o.position.copy(keep[i][0]);o.rotation.copy(keep[i][1]);});
+    camera.position.copy(cp);camera.quaternion.copy(cq);camera.fov=fov;camera.aspect=asp;camera.updateProjectionMatrix();
+    renderer.setPixelRatio(pr);resize();makeRT();
+    return c;
+  }catch(e){try{renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));resize();makeRT();}catch(_){}return null;}
+}
+async function makeShareImage(){
+  if(st.shareImg)return st.shareImg;
+  if(st._mk)return st._mk;
+  st._mk=(async()=>{
+    const R=st.res;if(!R)return null;
+    try{await Promise.all(["400 120px 'Dela Gothic One'","600 60px 'Oswald'","900 40px 'Zen Kaku Gothic New'","700 30px 'Zen Kaku Gothic New'"].map(f=>document.fonts.load(f,'じゃーねー力我々は宇宙人0123456789SPERFCTGODMIS'+R.title)));}catch(e){}
+    const snap=shotCars();
+    const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+    g.fillStyle='#1d1224';g.fillRect(0,0,W,H);
+    if(snap){const sc=Math.max(W/snap.width,H/snap.height),dw=snap.width*sc,dh=snap.height*sc;g.drawImage(snap,(W-dw)/2,(H-dh)/2,dw,dh);}
+    let gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(16,4,22,.45)');gr.addColorStop(.55,'rgba(16,4,22,.12)');gr.addColorStop(.72,'rgba(16,4,22,0)');gr.addColorStop(.86,'rgba(16,4,22,.2)');gr.addColorStop(1,'rgba(16,4,22,.8)');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    const BONE='#f3ece2',SUN='#ffc24a';
+    const glowText=(t,x,y,font,fill,glow,blur)=>{g.font=font;g.save();g.shadowColor=glow;g.shadowBlur=blur;g.fillStyle=fill;g.fillText(t,x,y);g.restore();g.fillStyle=fill;g.fillText(t,x,y);};
+    g.textAlign='center';g.textBaseline='alphabetic';
+    // logo
+    g.save();g.translate(W/2,128);g.transform(1,0,-.14,1,0,0);glowText('じゃーねー！',0,0,"400 84px 'Dela Gothic One',sans-serif",BONE,'rgba(20,4,26,.6)',24);g.restore();
+    g.font="400 22px 'Oswald',sans-serif";g.fillStyle=BONE;g.globalAlpha=.85;g.fillText('J A A   N E E',W/2,170);g.globalAlpha=1;
+    // score
+    g.font="900 26px 'Zen Kaku Gothic New',sans-serif";g.fillStyle=BONE;g.fillText('じゃーねー力',W/2,250);
+    glowText(R.score.toLocaleString(),W/2,345,"600 100px 'Oswald',sans-serif",BONE,'rgba(20,4,26,.55)',30);
+    // rank
+    g.save();g.translate(W/2,555);g.transform(1,0,-.16,1,0,0);
+    const lowR=R.ratio<.62;glowText(R.rank,0,0,"400 220px 'Dela Gothic One',sans-serif",lowR?BONE:SUN,lowR?'rgba(255,210,180,.45)':'rgba(255,110,40,.75)',60);g.restore();
+    // title
+    g.font="900 50px 'Zen Kaku Gothic New',sans-serif";let fs=50;while(g.measureText(R.title).width>W-140&&fs>28){fs-=2;g.font=`900 ${fs}px 'Zen Kaku Gothic New',sans-serif`;}
+    glowText(R.title,W/2,645,g.font,BONE,'rgba(20,4,26,.6)',22);
+    // stats
+    const ks=['perfect','great','good','miss'];ks.forEach((k,i)=>{const x=W/2+(i-1.5)*190;
+      glowText(String(R.c[k]),x,735,"600 48px 'Oswald',sans-serif",BONE,'rgba(20,4,26,.6)',16);
+      g.font="400 20px 'Oswald',sans-serif";g.fillStyle=BONE;g.globalAlpha=.85;g.fillText(k.toUpperCase().split('').join(' '),x,765);g.globalAlpha=1;});
+    g.font="700 24px 'Zen Kaku Gothic New',sans-serif";g.fillStyle=BONE;g.fillText(`達成率 ${(R.ratio*100).toFixed(1)}%　／　最大 ${R.maxCombo} 連続`,W/2,815);
+    if(R.isNew){g.font="600 26px 'Oswald',sans-serif";g.fillStyle=SUN;g.fillText('N E W   R E C O R D',W/2,855);}
+    // footer
+    
+    g.font="700 26px 'Zen Kaku Gothic New',sans-serif";g.fillStyle=BONE;g.fillText('#我々は宇宙人',W/2,1236);
+    g.font="700 20px 'Zen Kaku Gothic New',sans-serif";g.globalAlpha=.8;g.fillText('映画『我々は宇宙人』非公式ファンゲーム',W/2,1278);
+    g.font="400 22px 'Oswald',sans-serif";g.fillText('uimemocho.github.io/apps/jaanee',W/2,1314);g.globalAlpha=1;
+    // grain
+    const gc=document.createElement('canvas');gc.width=gc.height=180;const gg=gc.getContext('2d'),id=gg.createImageData(180,180);
+    for(let i=0;i<id.data.length;i+=4){const v=Math.random()*255|0;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255;}gg.putImageData(id,0,0);
+    g.save();g.globalAlpha=.07;g.globalCompositeOperation='overlay';g.fillStyle=g.createPattern(gc,'repeat');g.fillRect(0,0,W,H);g.restore();
+    const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+    st.shareImg={blob,url:blob?URL.createObjectURL(blob):c.toDataURL('image/png')};
+    return st.shareImg;
+  })();
+  const r=await st._mk;st._mk=null;return r;
+}
+async function shareResult(){
+  const btn=$('shareX');btn.disabled=true;
+  try{
+    const im=await makeShareImage();
+    if(im&&im.blob&&navigator.canShare){
+      const file=new File([im.blob],`jaanee_${st.res.rank}.png`,{type:'image/png'});
+      if(navigator.canShare({files:[file]})){
+        try{await navigator.share({files:[file],text:st.shareText});btn.disabled=false;return;}
+        catch(e){if(e&&e.name==='AbortError'){btn.disabled=false;return;}}
+      }
+    }
+    // fallback: show the image to save + open X compose
+    if(im){$('ssImg').src=im.url;}
+    $('ssX').href=st.intent;$('shareSheet').hidden=false;
+  }finally{btn.disabled=false;}
+}
+
 /* ============ input ============ */
-const isUI=e=>e.target.closest&&e.target.closest('button,a,#how');
+const isUI=e=>e.target.closest&&e.target.closest('button,a,#how,#shareSheet');
 window.addEventListener('pointerdown',e=>{if(isUI(e))return;if(st.mode==='play'){e.preventDefault();tap();}},{passive:false});
 window.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'){if(st.mode==='play'){e.preventDefault();tap();}}});
 $('startBtn').addEventListener('click',()=>{$('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},260);});
 $('retryBtn').addEventListener('click',()=>{$('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},300);});
+$('shareX').addEventListener('click',shareResult);
+$('ssClose').addEventListener('click',()=>{$('shareSheet').hidden=true;});
 $('copyBtn').addEventListener('click',()=>{
   const done=()=>{$('copied').textContent='コピーしました';};
   try{navigator.clipboard.writeText(st.shareText).then(done,()=>fallbackCopy(done));}catch(e){fallbackCopy(done);}
