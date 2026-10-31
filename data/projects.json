@@ -514,5 +514,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-10-29T22:36:57Z",
     "updatedAt": "2026-10-29"
+  },
+  {
+    "slug": "shuriken",
+    "title": "しゅりけん",
+    "kind": "game",
+    "description": "青と金の折り紙手裏剣を投げて、住宅街・学校の廊下・雨の神社・夜の雨・夕暮れの高速道路と、思い出の場所をワープしながら飛距離を競う3Dゲーム。上スワイプで加速、加速しすぎるとバランスをくずす。落ちた手裏剣をひらくと手紙に結果が書いてある。映画『我々は宇宙人』の非公式ファンゲーム第2弾。E〜SSSの8段階ランクつき。音ありプレイ推奨。",
+    "url": "/apps/shuriken/",
+    "thumbnail": "/project-thumbnails/shuriken.webp",
+    "sourceFolder": "261031_しゅりけん",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-10-31T06:00:00Z",
+    "updatedAt": "2026-10-31"
   }
 ]
