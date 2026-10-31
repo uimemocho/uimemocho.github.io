@@ -156,6 +156,28 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
 #loading{font-family:var(--f-num);font-size:12px;letter-spacing:.5em;text-indent:.5em;opacity:.8;height:52px;display:flex;align-items:center}
 
 /* how to play */
+#coop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,4,22,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:5;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) max(24px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(24px,env(safe-area-inset-left,0px));overflow-y:auto}
+.co-in{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:center;gap:18px;margin:auto}
+.co-col{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.co-col .btn{width:100%}
+.co-lab{font-size:11px;font-weight:900;letter-spacing:.24em;text-indent:.24em;opacity:.9}
+.co-name{width:100%;box-sizing:border-box;height:52px;padding:0 14px;font:900 18px var(--f-body);text-align:center;color:var(--ink);background:var(--bone);border:0;border-radius:0;outline:none;-webkit-user-select:text;user-select:text}
+.co-name:focus-visible,.co-code input:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+.co-hint{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--sun);margin-top:-4px}
+.co-or{font-size:11px;font-weight:700;letter-spacing:.12em;opacity:.8;margin-top:6px;display:flex;align-items:center;gap:10px;width:100%}
+.co-or::before,.co-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.co-code{display:flex;gap:10px;justify-content:center}
+.co-code input{width:52px;height:60px;box-sizing:border-box;font:600 30px var(--f-num);text-align:center;color:var(--bone);background:rgba(243,236,226,.08);border:0;box-shadow:inset 0 0 0 1.5px var(--line);border-radius:0;-webkit-user-select:text;user-select:text}
+.co-status{font-size:12px;font-weight:700;letter-spacing:.06em;min-height:1.4em;text-align:center;line-height:1.6}
+.co-room{font-family:var(--f-num);font-weight:600;font-size:56px;letter-spacing:.24em;text-indent:.24em;line-height:1;color:var(--sun)}
+.co-seats{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.co-seat{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;box-shadow:inset 0 0 0 1.5px var(--line)}
+.co-seat span{font-size:10px;font-weight:900;letter-spacing:.24em;text-indent:.24em;opacity:.85}
+.co-seat b{font-size:16px;font-weight:900;min-height:1.3em;word-break:break-all;text-align:center}
+.co-seat.taxi b{color:#ffd77a}.co-seat.suv b{color:#bfe0ff}
+.btn.sm2{height:40px;font-size:13px}
+#coTag{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);text-align:center;font-size:11px;font-weight:900;letter-spacing:.14em;pointer-events:none;opacity:.95}
 #how{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,4,22,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:5;
   padding:0 max(24px,env(safe-area-inset-right,0px)) 0 max(24px,env(safe-area-inset-left,0px))}
 .how-in{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:center;gap:22px}
@@ -224,6 +246,7 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
     <div class="hud-r"><div class="lab">のこり</div><div id="time">30.0</div></div>
   </div>
   <div id="combo" class="sh"></div>
+  <div id="coTag" class="sh" hidden></div>
   <div id="judge" class="sh"></div>
   <div id="gauge" hidden>
     <div id="gHalo"></div>
@@ -241,8 +264,36 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
     <div class="t-btns">
       <div id="bestLine" class="best" hidden></div>
       <div id="loading">LOADING</div>
-      <button id="startBtn" class="btn" type="button" hidden>はじめる</button>
+      <button id="startBtn" class="btn" type="button" hidden>ひとりで</button>
+      <button id="coopBtn" class="btn ghost" type="button" hidden>ふたりで</button>
       <button id="howBtn" class="btn ghost" type="button" hidden>遊び方</button>
+    </div>
+  </div>
+  <div id="coop" class="sh" hidden>
+    <div class="co-in">
+      <div class="how-ttl">TWO PLAYERS</div>
+      <div id="coEntry" class="co-col">
+        <label class="co-lab" for="coName">なまえ（10文字まで）</label>
+        <input id="coName" class="co-name" type="text" maxlength="10" autocomplete="off" placeholder="なまえ">
+        <button id="coCreate" class="btn" type="button">部屋をつくる</button>
+        <div class="co-hint">つくった人がタクシー側になります</div>
+        <div class="co-or">または部屋番号で入る</div>
+        <div class="co-code"><input id="c0" inputmode="numeric" maxlength="1" aria-label="部屋番号1桁目"><input id="c1" inputmode="numeric" maxlength="1" aria-label="2桁目"><input id="c2" inputmode="numeric" maxlength="1" aria-label="3桁目"><input id="c3" inputmode="numeric" maxlength="1" aria-label="4桁目"></div>
+        <button id="coJoin" class="btn ghost" type="button">入室する（青い車側）</button>
+        <div id="coStatus" class="co-status"></div>
+        <button id="coBack" class="btn ghost sm2" type="button">もどる</button>
+      </div>
+      <div id="coLobby" class="co-col" hidden>
+        <div class="co-lab">部屋番号</div>
+        <div id="coRoomNo" class="co-room">0000</div>
+        <div class="co-seats">
+          <div class="co-seat taxi"><span>タクシー</span><b id="seatTaxi">—</b></div>
+          <div class="co-seat suv"><span>青い車</span><b id="seatSuv">—</b></div>
+        </div>
+        <div id="coLobbyStatus" class="co-status"></div>
+        <button id="coGo" class="btn" type="button" hidden>はじめる</button>
+        <button id="coLeave" class="btn ghost sm2" type="button">退室する</button>
+      </div>
     </div>
   </div>
   <div id="how" class="sh" hidden>
@@ -254,7 +305,7 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
         <li>ぴったりなら「じゃーねー‼︎‼︎」に進化。JUSTで満点</li>
         <li>言いかけの「じゃ…」にはつられないこと</li>
       </ol>
-      <div class="how-note">分かれ道の最後のじゃーねーはスコア3倍<br>音ありプレイ推奨</div>
+      <div class="how-note">分かれ道の最後のじゃーねーはスコア3倍<br>ふたりで：タクシー側が言って、青い車側が返す。スコアは合算<br>音ありプレイ推奨</div>
       <div class="how-fan">映画『我々は宇宙人』非公式ファンゲーム</div>
       <button id="howClose" class="btn" type="button">とじる</button>
     </div>
@@ -1047,13 +1098,27 @@ const FEINT=[['じゃ…','…なんでもない'],['じゃー…','…やっぱ
 const CUE_TEXT={normal:'じゃーねー！',quick:'じゃねっ！',long:'じゃーーーねーーー！',final:'じゃーねーーーっ！！'};
 const RANKS=[[.975,'SSS','我々は宇宙人'],[.93,'SS','宇宙へ帰還します'],[.86,'S','夕暮れの帰り道で、じゃーねー'],[.76,'A','遊びつかれて、じゃーねー'],[.62,'B','意味のない会話と、じゃーねー'],[.46,'C','置き傘ぶら下げて、じゃーねー'],[.28,'D','小さな声のじゃーねー'],[0,'E','言えなかったじゃーねー']];
 
+function buildCoopCues(){
+  // same sequence on both devices (seeded by the host). taxi side calls, SUV side answers 0.85s later
+  const call=[],ans=[];let t=2.2;
+  while(true){const p=t/26,r=rnd();let type='normal';if(p>.25&&r<.3)type='quick';else if(r>.8)type='long';
+    const lead={normal:.9,quick:.68,long:1.2}[type];if(t+lead+.85>26.6)break;
+    call.push({t,lead,target:t+lead,type,done:false,shown:false});
+    ans.push({t:t+lead,lead:.85,target:t+lead+.85,type,done:false,shown:false});
+    t+=lead+.85+lerp(1.5,.95,clamp(p,0,1))+R(-.1,.2);}
+  call.push({t:26.5,lead:1.0,target:27.5,type:'final',done:false,shown:false});
+  ans.push({t:27.5,lead:1.0,target:28.5,type:'final',done:false,shown:false});
+  call.forEach((c,i)=>c.k=i);ans.forEach((c,i)=>c.k=i);
+  return {call,ans};
+}
 function calcMax(cues){let k=0,m=0;for(const c of cues){if(c.feint)continue;k++;m+=Math.round(1000*Math.min(3,1+k*.1)*(c.type==='final'?3:1)/10)*10;}return m;}
 const BEST_KEY='jaanee.best.v2';
 const loadBest=()=>{try{return JSON.parse(localStorage.getItem(BEST_KEY)||'null');}catch(e){return null;}};
 const saveBest=b=>{try{localStorage.setItem(BEST_KEY,JSON.stringify(b));}catch(e){}};
 function showBest(){const b=loadBest(),el=$('bestLine');if(!el)return;if(b){el.innerHTML=`BEST <b>${b.score.toLocaleString()}</b> <i>${b.rank}</i>`;el.hidden=false;}else el.hidden=true;}
 function resetGame(){
-  st.t=0;st.score=0;st.shown=0;st.combo=0;st.maxCombo=0;st.counts={perfect:0,great:0,good:0,miss:0};st.cues=buildCues();st.maxScore=calcMax(st.cues);st.active=null;st.finalJudge='—';st.awkward=0;
+  st.t=0;st.score=0;st.shown=0;st.combo=0;st.maxCombo=0;st.counts={perfect:0,great:0,good:0,miss:0};if(CO.on){seed=CO.seed;const cc=buildCoopCues();st.cues=CO.role==='taxi'?cc.call:cc.ans;st.partnerCues=CO.role==='taxi'?cc.ans:cc.call;st.maxScore=calcMax(cc.call)+calcMax(cc.ans);}else{st.cues=buildCues();st.maxScore=calcMax(st.cues);}
+  CO.pScore=0;CO.pSeen=0;CO.pFinal=null;CO.hits=[];st.active=null;st.finalJudge='—';st.awkward=0;
   taxiB.hidden=true;suvB.hidden=true;$('score').textContent='0';$('combo').classList.remove('on');
 }
 function startGame(){
@@ -1072,11 +1137,12 @@ function resolve(cue,j,why,dt){
   cue.done=true;st.active=null;
   const isFinal=cue.type==='final';
   st.counts[j]++;
-  const sp=screenOf(suv,2.35);
+  const asTaxi=CO.on&&CO.role==='taxi',myB=asTaxi?taxiB:suvB,myCar=asTaxi?taxi:suv;
+  const sp=screenOf(myCar,2.35);
   if(j==='miss'){
     st.combo=0;
-    showBubble(suvB,why==='early'?'じゃ…っ？':'…あっ',`lv-miss`,1.0);
-    showBubble(taxiB,'……','taxi',.9);
+    showBubble(myB,why==='early'?'じゃ…っ？':'…あっ',`lv-miss${asTaxi?' taxi':''}`,1.0);
+    if(!CO.on)showBubble(taxiB,'……','taxi',.9);
     sfx.miss();
   }else{
     st.combo++;st.maxCombo=Math.max(st.maxCombo,st.combo);
@@ -1084,17 +1150,18 @@ function resolve(cue,j,why,dt){
     const base=j==='perfect'?(just?1000:Math.round(1000-200*(ad-WIN.just)/(WIN.perfect-WIN.just))):{great:550,good:250}[j];
     const mult=Math.min(3,1+st.combo*.1)*(isFinal?3:1);
     const gain=Math.round(base*mult/10)*10;st.score+=gain;
-    hideBubble(taxiB);
+    if(!asTaxi)hideBubble(taxiB);
     const text={perfect:'じゃーねー'+EX+EX,great:'じゃーねー'+EX,good:'じゃーねー！'}[j];
-    showBubble(suvB,isFinal&&j==='perfect'?'じゃーねーーー'+EX+EX:text,`lv-${j}${isFinal?' big':''}`,isFinal?2.2:1.1);
-    if(j==='perfect'){rays(suvB,isFinal?18:12);sfx.perfect();}
+    showBubble(myB,isFinal&&j==='perfect'?'じゃーねーーー'+EX+EX:text,`lv-${j}${isFinal?' big':''}${asTaxi?' taxi':''}`,isFinal?2.2:1.1);
+    if(j==='perfect'){rays(myB,isFinal?18:12);sfx.perfect();}
     else if(j==='great')sfx.great();else sfx.good();
-    voice({base:j==='perfect'?252:225,dur:isFinal?1.2:.88,gain:.5,stretch:1,excite:j==='perfect'?(isFinal?3:2):(j==='great'?1:0)});
+    voice({base:asTaxi?(j==='perfect'?190:170):(j==='perfect'?252:225),dur:isFinal?1.2:.88,gain:.5,stretch:1,excite:j==='perfect'?(isFinal?3:2):(j==='great'?1:0)});
     if(j!=='good')hazardUntil=st.t+1.4;
     floatText((just?'JUST  +':'+')+gain.toLocaleString(),sp.x,sp.y-70,j==='perfect'?'#ffd35a':'#fff8ef');
     armWave(suv,1.3);
   }
   gaugeFx(j,isFinal);
+  if(CO.on){CO.hits.push([cue.k,j[0]]);coPush({hits:CO.hits,score:st.score});}
   if(isFinal)st.finalJudge=j.toUpperCase();
   const jd=$('judge');jd.textContent=j.toUpperCase();jd.className='sh j-'+j;void jd.offsetWidth;jd.classList.add('show');
   const cb=$('combo');
@@ -1111,7 +1178,7 @@ function tap(){
   }else{
     if(st.t-st.awkward<.4)return;st.awkward=st.t;
     st.combo=0;$('combo').classList.remove('on');
-    showBubble(suvB,'じゃ…？','lv-miss',.7);gaugeFx('tap');
+    showBubble(CO.on&&CO.role==='taxi'?taxiB:suvB,'じゃ…？','lv-miss',.7);gaugeFx('tap');
   }
 }
 function armWave(){}
@@ -1274,6 +1341,7 @@ function updatePlay(dt){
       showBubble(taxiB,f[0],'taxi',.5);setTimeout(()=>{if(st.mode==='play')showBubble(taxiB,f[1],'taxi lv-miss',.75);},620);
       continue;
     }
+    if(!c.shown&&t>=c.t&&CO.on){c.shown=true;st.active=c;continue;}
     if(!c.shown&&t>=c.t){
       c.shown=true;st.active=c;
       showBubble(taxiB,CUE_TEXT[c.type],'taxi'+(c.type==='final'?' final':''),c.lead+.55);
@@ -1293,7 +1361,8 @@ function updatePlay(dt){
     const pr=clamp(1-Math.abs(rem)*1.15,0,1);gHalo.style.opacity=(.25+pr*.75).toFixed(3);gGlow.style.opacity=pr.toFixed(3);
   }else{ring.style.opacity=0;gHalo.style.opacity='.25';gGlow.style.opacity='0';}
   // HUD
-  st.shown+= (st.score-st.shown)*Math.min(1,dt*10);if(Math.abs(st.score-st.shown)<5)st.shown=st.score;
+  const tot=st.score+(CO.on?CO.pScore:0);
+  st.shown+= (tot-st.shown)*Math.min(1,dt*10);if(Math.abs(tot-st.shown)<5)st.shown=tot;if(Math.abs(st.score-st.shown)<5)st.shown=st.score;
   $('score').textContent=Math.round(st.shown).toLocaleString();
   const rem=Math.max(0,GAME_T-t);const te=$('time');te.textContent=rem.toFixed(1);te.classList.toggle('low',rem<5);
   if(t>=GAME_T)endGame();
@@ -1302,21 +1371,29 @@ function endGame(){
   st.mode='end';st.endT=st.t;camFrom.copy(camPos);lookFrom.copy(camLook);
   $('hud').classList.add('fade');$('gauge').classList.add('fade');$('combo').classList.remove('on');
   sfx.end();$('muteBtn').classList.remove('play');
-  const score=st.score,ratio=st.maxScore?score/st.maxScore:0;const ri=RANKS.findIndex(r=>ratio>=r[0]-1e-9),rk=RANKS[ri];
-  const prev=loadBest(),isNew=!prev||score>prev.score;if(isNew)saveBest({score,rank:rk[1]});
+  $('coTag').hidden=true;
+  if(CO.on){coPush({fin:{score:st.score}});setTimeout(()=>{if(st.mode==='end')finishResult();},2300);return;}
+  finishResult();
+}
+function finishResult(){
+  const score=st.score+(CO.on?(CO.pFinal!=null?CO.pFinal:CO.pScore):0),ratio=st.maxScore?Math.min(1,score/st.maxScore):0;const ri=RANKS.findIndex(r=>ratio>=r[0]-1e-9),rk=RANKS[ri];
+  const prev=loadBest(),isNew=!CO.on&&(!prev||score>prev.score);if(isNew)saveBest({score,rank:rk[1]});
   let nextLine='';if(ri>0){const nx=RANKS[ri-1],need=Math.max(10,Math.ceil((nx[0]*st.maxScore-score)/10)*10);nextLine=`${nx[1]} まで あと ${need.toLocaleString()}`;}
   $('rScore').textContent=$('rScoreG').textContent=score.toLocaleString();
   const rr=$('rRank'),rg=$('rRankG');rr.textContent=rg.textContent=rk[1];rr.classList.toggle('low',ratio<.62);rg.classList.toggle('low',ratio<.62);
   $('rTitle').textContent=rk[2];
   const c=st.counts;
   $('rStats').innerHTML=['perfect','great','good','miss'].map(k=>`<div><b>${c[k]}</b><span>${k.toUpperCase()}</span></div>`).join('')+`<div id="rSub">達成率 ${(ratio*100).toFixed(1)}%　／　最大 ${st.maxCombo} 連続</div>`+`<div id="rNext">${isNew?'<em>NEW RECORD</em>':''}${nextLine?`<span>${nextLine}</span>`:''}</div>`;
-  const text=`夕暮れの高速で「じゃーねー！」を返した。\nじゃーねー力 ${score.toLocaleString()}（${rk[1]}ランク）\n称号：${rk[2]}\n`;
+  const pn=CO.on&&CO.pName?CO.pName:'';
+  if(CO.on)$('rSub').textContent=`ふたりの合算（自分 ${st.score.toLocaleString()} ＋ ${pn||'相手'} ${(score-st.score).toLocaleString()}）`;
+  const text=(pn?`${pn}さんとじゃーねー！\n`:'')+`夕暮れの高速で「じゃーねー！」を返した。\nじゃーねー力 ${score.toLocaleString()}（${rk[1]}ランク）\n称号：${rk[2]}\n`;
   st.shareText=text+GAME_URL+'\n#'+HASHTAG;st.res={score,rank:rk[1],title:rk[2],ratio,c:{...c},maxCombo:st.maxCombo,isNew};st.shareImg=null;st.shareTextOnly=text;
   st.intent='https://x.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(GAME_URL)+'&hashtags='+encodeURIComponent(HASHTAG);
   $('copied').textContent='';
-  setTimeout(()=>{if(st.mode==='end')makeShareImage();},1500);
-  setTimeout(()=>{$('result').hidden=false;requestAnimationFrame(()=>$('result').classList.add('show'));},2600);
-  if(rk[1]==='SSS')setTimeout(()=>{if(st.mode==='end')alienVoice();},3300);
+  const dl=CO.on?300:2600;
+  setTimeout(()=>{if(st.mode==='end')makeShareImage();},CO.on?200:1500);
+  setTimeout(()=>{$('result').hidden=false;requestAnimationFrame(()=>$('result').classList.add('show'));},dl);
+  if(rk[1]==='SSS')setTimeout(()=>{if(st.mode==='end')alienVoice();},dl+700);
 }
 
 
@@ -1412,12 +1489,129 @@ async function shareResult(){
   }finally{btn.disabled=false;}
 }
 
+
+/* ============ two players (room number, public MQTT like the 紙 series) ============ */
+const CO={on:false,role:'taxi',room:null,code:'',name:'',pName:'',seed:1,go:0,lastGo:0,pScore:0,pSeen:0,pFinal:null,hits:[],offs:[],mine:{}};
+const MQ_BROKERS=['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081'];
+class MiniMQTT{constructor(url){this.url=url;this.ws=null;this.buf=new Uint8Array(0);this.onmessage=null;this.onclose=null;this.ping=null;this.byUs=false;}
+ static str(s){const b=new TextEncoder().encode(s),o=new Uint8Array(b.length+2);o[0]=b.length>>8;o[1]=b.length&255;o.set(b,2);return o;}
+ static vl(n){const o=[];do{let d=n%128;n=Math.floor(n/128);if(n>0)d|=128;o.push(d);}while(n>0);return new Uint8Array(o);}
+ static cat(a){const L=a.reduce((x,y)=>x+y.length,0),o=new Uint8Array(L);let k=0;a.forEach(x=>{o.set(x,k);k+=x.length;});return o;}
+ static pkt(type,...parts){const b=MiniMQTT.cat(parts),r=MiniMQTT.vl(b.length),o=new Uint8Array(1+r.length+b.length);o[0]=type;o.set(r,1);o.set(b,1+r.length);return o;}
+ connect(id,willTopic,willPayload,ms){return new Promise((res,rej)=>{let done=false;const fail=e=>{if(!done){done=true;try{this.ws.close()}catch(_){}rej(e);}};const tm=setTimeout(()=>fail(new Error('timeout')),ms||6000);
+  let ws;try{ws=new WebSocket(this.url,'mqtt');}catch(e){clearTimeout(tm);rej(e);return;}this.ws=ws;ws.binaryType='arraybuffer';
+  ws.onerror=()=>fail(new Error('ws'));ws.onclose=()=>{clearInterval(this.ping);if(!done)fail(new Error('closed'));else if(!this.byUs&&this.onclose)this.onclose();};
+  ws.onopen=()=>{const w=MiniMQTT.str(willPayload);ws.send(MiniMQTT.pkt(0x10,MiniMQTT.str('MQTT'),Uint8Array.of(4),Uint8Array.of(0x06),Uint8Array.of(0,60),MiniMQTT.str(id),MiniMQTT.str(willTopic),w));};
+  ws.onmessage=ev=>{this.buf=MiniMQTT.cat([this.buf,new Uint8Array(ev.data)]);let p;while((p=this.read())!==null){const t=p[0]>>4;
+   if(t===2){if(p[3]===0){if(!done){done=true;clearTimeout(tm);this.ping=setInterval(()=>{try{this.ws.send(Uint8Array.of(0xC0,0))}catch(_){}},25000);res();}}else fail(new Error('connack'));}
+   else if(t===3)this.pub(p);}};});}
+ read(){if(this.buf.length<2)return null;let rl=0,m=1,i=1;for(;;){if(i>=this.buf.length)return null;const d=this.buf[i];rl+=(d&127)*m;m*=128;i++;if(!(d&128))break;if(i>5){this.buf=new Uint8Array(0);return null;}}
+  const tot=i+rl;if(this.buf.length<tot)return null;const p=this.buf.slice(0,tot);this.buf=this.buf.slice(tot);return p;}
+ pub(p){let i=1;while(p[i]&128)i++;i++;const tl=(p[i]<<8)|p[i+1];i+=2;const topic=new TextDecoder().decode(p.slice(i,i+tl));i+=tl;if((p[0]>>1)&3)i+=2;if(this.onmessage)this.onmessage(topic,new TextDecoder().decode(p.slice(i)));}
+ sub(t){this.ws.send(MiniMQTT.pkt(0x82,Uint8Array.of(0,1),MiniMQTT.str(t),Uint8Array.of(0)));}
+ send(t,s){this.ws.send(MiniMQTT.pkt(0x30,MiniMQTT.str(t),new TextEncoder().encode(s)));}
+ close(){this.byUs=true;clearInterval(this.ping);try{this.ws.send(Uint8Array.of(0xE0,0))}catch(_){}try{this.ws.close()}catch(_){}}}
+async function mqttRoom(code){const d=parseInt(code[0],10);const bi=((isNaN(d)?1:d)+MQ_BROKERS.length-1)%MQ_BROKERS.length;
+ const id='j'+Math.random().toString(36).slice(2,10),topic='jaanee/1/'+code;
+ const mq=new MiniMQTT(MQ_BROKERS[bi]);await mq.connect('jaanee-'+id,topic,JSON.stringify({i:id,t:'leave'}),6000);mq.sub(topic);
+ let mine={},others=new Map(),subs=[],closed=false;
+ const list=()=>[{peer:id,me:true,p:mine},...[...others].map(([k,v])=>({peer:k,me:false,p:v.p}))];
+ const notify=()=>{const l=list();subs.forEach(f=>{try{f(l)}catch(_){}});};
+ const say=()=>{if(!closed)try{mq.send(topic,JSON.stringify({i:id,t:'p',p:mine}));}catch(_){}};
+ mq.onmessage=(t,raw)=>{let m;try{m=JSON.parse(raw);}catch(_){return;}if(!m||m.i===id||typeof m.i!=='string')return;
+  if(m.t==='leave'){if(others.delete(m.i))notify();return;}
+  if(m.t==='p'&&m.p&&typeof m.p==='object'){const fresh=!others.has(m.i);others.set(m.i,{p:m.p,at:Date.now()});if(fresh)say();notify();}};
+ mq.onclose=()=>{closed=true;others.clear();notify();};
+ const hb=setInterval(()=>{say();let ch=false;const now=Date.now();for(const [k,v] of others)if(now-v.at>9000){others.delete(k);ch=true;}if(ch)notify();},2000);
+ return {set(patch){Object.assign(mine,patch);say();},peers:list,onPeers(f){subs.push(f);return ()=>{subs=subs.filter(x=>x!==f);};},
+  leave(){if(closed)return;try{mq.send(topic,JSON.stringify({i:id,t:'leave'}));}catch(_){}closed=true;clearInterval(hb);mq.close();}};}
+
+const NAME_KEY='jaanee.name';
+const coInputs=[0,1,2,3].map(i=>$('c'+i));
+coInputs.forEach((inp,i)=>{
+  inp.addEventListener('input',()=>{inp.value=inp.value.replace(/\D/g,'').slice(-1);if(inp.value&&i<3)coInputs[i+1].focus();});
+  inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!inp.value&&i>0)coInputs[i-1].focus();if(e.key==='Enter')$('coJoin').click();});
+  inp.addEventListener('paste',e=>{const t=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,4);if(t){e.preventDefault();t.split('').forEach((ch,k)=>coInputs[k].value=ch);coInputs[Math.min(3,t.length)].focus();}});
+});
+const coStatus=m=>{$('coStatus').textContent=m||'';};
+const cleanName=v=>(v||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,10);
+function coPush(patch){if(CO.room)CO.room.set(patch);}
+function coPartner(){if(!CO.room)return null;return CO.room.peers().filter(x=>!x.me&&x.p&&x.p.role).sort((a,b)=>a.peer<b.peer?-1:1)[0]||null;}
+function openCoop(){
+  try{$('coName').value=localStorage.getItem(NAME_KEY)||'';}catch(e){}
+  $('coop').hidden=false;$('coEntry').hidden=false;$('coLobby').hidden=true;coStatus('');
+}
+function closeCoop(){coLeave();$('coop').hidden=true;}
+async function coJoin(code,creating){
+  const nm=cleanName($('coName').value);if(!nm){coStatus('なまえを入力してください');$('coName').focus();return;}
+  try{localStorage.setItem(NAME_KEY,nm);}catch(e){}
+  coStatus('接続しています');$('coCreate').disabled=$('coJoin').disabled=true;initAudio();
+  let room=null;const tries=creating?MQ_BROKERS.length:1;
+  for(let k=0;k<tries&&!room;k++){const c2=k?String(((parseInt(code[0],10)-1+k)%MQ_BROKERS.length)+1)+code.slice(1):code;try{room=await mqttRoom(c2);code=c2;}catch(e){room=null;}}
+  $('coCreate').disabled=$('coJoin').disabled=false;
+  if(!room){coStatus('接続できませんでした。通信環境を確かめて、もう一度試してください。');return;}
+  coLeave();CO.room=room;CO.code=code;CO.name=nm;CO.role=creating?'taxi':'suv';CO.go=0;CO.lastGo=0;
+  CO.offs.push(room.onPeers(()=>coChange()));
+  coPush({role:CO.role,name:nm,st:'lobby',go:0,hits:[],score:0,fin:null});
+  $('coEntry').hidden=true;$('coLobby').hidden=false;$('coRoomNo').textContent=code;coStatus('');coRender();
+}
+function coLeave(){CO.offs.forEach(f=>{try{f()}catch(e){}});CO.offs=[];if(CO.room){try{CO.room.leave()}catch(e){}}CO.room=null;}
+function coRender(){
+  if($('coLobby').hidden)return;const p=coPartner(),pn=p?cleanName(p.p.name):'';
+  const clash=p&&p.p.role===CO.role;
+  const tName=CO.role==='taxi'?CO.name:pn,sName=CO.role==='suv'?CO.name:pn;
+  $('seatTaxi').textContent=tName||'空席';$('seatSuv').textContent=sName||'空席';
+  const peers=CO.room?CO.room.peers().filter(x=>!x.me&&x.p&&x.p.role).length:0;
+  $('coLobbyStatus').textContent=peers>1?'この部屋は満員です':clash?'同じ側の人がいます。部屋をつくり直してください。':!p?(CO.role==='taxi'?'相手を待っています。部屋番号を伝えてください。':'タクシー側の人を待っています'):(CO.role==='taxi'?'そろいました。「はじめる」で出発':'そろいました。タクシー側の出発を待っています');
+  $('coGo').hidden=!(CO.role==='taxi'&&p&&!clash&&peers===1);
+}
+function coChange(){
+  const p=coPartner();
+  if(p){CO.pName=cleanName(p.p.name);
+    const h=Array.isArray(p.p.hits)?p.p.hits:[];
+    if(st.mode==='play'&&CO.on){for(let i=CO.pSeen;i<h.length;i++)partnerHit(h[i]);CO.pSeen=Math.max(CO.pSeen,h.length);
+      if(typeof p.p.score==='number')CO.pScore=p.p.score;}
+    if(p.p.fin&&typeof p.p.fin.score==='number'&&(st.mode==='play'||st.mode==='end'))CO.pFinal=p.p.fin.score;
+    if(CO.role==='suv'&&p.p.st==='go'&&(p.p.go|0)>CO.lastGo&&!$('coLobby').hidden){CO.lastGo=p.p.go|0;CO.seed=p.p.seed|0;coStart();}
+  }else if(CO.on&&st.mode==='play'){$('coTag').textContent='相手との接続が切れました';}
+  coRender();
+}
+function partnerHit(hk){
+  const [k,jc]=hk,j={p:'perfect',g:'great',o:'good',m:'miss'}[jc]||'good';
+  const asTaxi=CO.role==='suv',B=asTaxi?taxiB:suvB,cue=(st.partnerCues||[])[k],isFinal=cue&&cue.type==='final';
+  if(j==='miss'){showBubble(B,'…あっ',`lv-miss${asTaxi?' taxi':''}`,.9);return;}
+  if(asTaxi)hideBubble(suvB);
+  const text={perfect:'じゃーねー'+EX+EX,great:'じゃーねー'+EX,good:'じゃーねー！'}[j];
+  showBubble(B,isFinal&&j==='perfect'?'じゃーねーーー'+EX+EX:text,`lv-${j}${isFinal?' big':''}${asTaxi?' taxi':''}`,isFinal?2.0:1.0);
+  if(j==='perfect')rays(B,10);
+  voice({base:asTaxi?(j==='perfect'?190:170):(j==='perfect'?252:225),dur:isFinal?1.2:.88,gain:.42,stretch:1,excite:j==='perfect'?2:(j==='great'?1:0)});
+  if(asTaxi&&j!=='good')hazardUntil=st.t+1.4;
+}
+function coStart(){
+  CO.on=true;$('coop').hidden=true;$('title').classList.add('gone');
+  coPush({st:'play',hits:[],score:0,fin:null});
+  const tag=$('coTag');tag.hidden=false;tag.textContent=CO.role==='taxi'?`あなたはタクシー側　相手：${CO.pName||'—'}`:`あなたは青い車側　相手：${CO.pName||'—'}`;
+  $('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},260);
+}
+function coBackToLobby(){
+  st.mode='title';$('result').hidden=true;$('result').classList.remove('show');$('coTag').hidden=true;CO.on=false;
+  $('hud').hidden=true;$('gauge').hidden=true;$('title').classList.remove('gone');camSnap=true;
+  if(!CO.room){openCoop();return;}
+  $('coop').hidden=false;$('coEntry').hidden=true;$('coLobby').hidden=false;coPush({st:'lobby',hits:[],score:0,fin:null});coRender();
+}
+$('coopBtn').addEventListener('click',openCoop);
+$('coBack').addEventListener('click',closeCoop);
+$('coCreate').addEventListener('click',()=>{const c=String(1+Math.floor(Math.random()*MQ_BROKERS.length))+String(Math.floor(Math.random()*1000)).padStart(3,'0');coJoin(c,true);});
+$('coJoin').addEventListener('click',()=>{const c=coInputs.map(i=>i.value).join('');if(!/^\d{4}$/.test(c)){coStatus('4桁の部屋番号を入力してください');return;}coJoin(c,false);});
+$('coLeave').addEventListener('click',()=>{coLeave();CO.on=false;$('coEntry').hidden=false;$('coLobby').hidden=true;coStatus('');});
+$('coGo').addEventListener('click',()=>{const p=coPartner();if(!p)return;CO.go=Math.max(CO.go,CO.lastGo)+1;CO.lastGo=CO.go;CO.seed=(Math.random()*1e9)|0;coPush({st:'go',go:CO.go,seed:CO.seed});setTimeout(coStart,450);});
+
 /* ============ input ============ */
-const isUI=e=>e.target.closest&&e.target.closest('button,a,#how,#shareSheet');
+const isUI=e=>e.target.closest&&e.target.closest('button,a,input,#how,#shareSheet,#coop');
 window.addEventListener('pointerdown',e=>{if(isUI(e))return;if(st.mode==='play'){e.preventDefault();tap();}},{passive:false});
 window.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'){if(st.mode==='play'){e.preventDefault();tap();}}});
-$('startBtn').addEventListener('click',()=>{$('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},260);});
-$('retryBtn').addEventListener('click',()=>{$('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},300);});
+$('startBtn').addEventListener('click',()=>{CO.on=false;$('coTag').hidden=true;$('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},260);});
+$('retryBtn').addEventListener('click',()=>{if(CO.on){coBackToLobby();return;}$('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},300);});
 $('shareX').addEventListener('click',shareResult);
 $('ssClose').addEventListener('click',()=>{$('shareSheet').hidden=true;});
 $('copyBtn').addEventListener('click',()=>{
@@ -1431,7 +1625,7 @@ $('how').addEventListener('click',e=>{if(e.target.id==='how')$('how').hidden=tru
 $('muteBtn').addEventListener('click',()=>{muted=!muted;$('muteBtn').textContent=muted?'MUTE':'SOUND';$('muteBtn').setAttribute('aria-pressed',String(muted));if(master)master.gain.value=muted?0:.75;});
 
 /* go */
-st.mode='title';$('loading').hidden=true;$('startBtn').hidden=false;$('howBtn').hidden=false;showBest();
+st.mode='title';$('loading').hidden=true;$('startBtn').hidden=false;$('coopBtn').hidden=false;$('howBtn').hidden=false;showBest();
 requestAnimationFrame(frame);
 })();
 </script>
