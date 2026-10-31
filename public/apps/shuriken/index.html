@@ -1037,7 +1037,7 @@ function pose(M){
   FOLDS.forEach((F,k)=>{_fa.set(F.D[0],F.D[1],0);_fq[k].setFromAxisAngle(_fa,M.ang[k]*F.sg);});
   const pos=M.g.attributes.position.array;
   for(let i=0;i<M.n;i++){_fv.set(M.flat[i*2],M.flat[i*2+1],0);const m=M.mask[i];
-    for(let k=0;k<FOLDS.length;k++)if(m&(1<<k)&&M.ang[k]!==0){const F=FOLDS[k];_fp.set(F.P[0],F.P[1],F.h);_fv.sub(_fp).applyQuaternion(_fq[k]).add(_fp);}
+    for(let k=0;k<FOLDS.length;k++)if(m&(1<<k)&&M.ang[k]!==0){const F=FOLDS[k],a=M.ang[k]/Math.PI;_fp.set(F.P[0],F.P[1],F.h*a*a*a);_fv.sub(_fp).applyQuaternion(_fq[k]).add(_fp);}
     pos[i*3]=_fv.x;pos[i*3+1]=_fv.y;pos[i*3+2]=_fv.z;}
   M.g.attributes.position.needsUpdate=true;M.g.computeVertexNormals();M.g.computeBoundingSphere();
 }
