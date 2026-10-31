@@ -376,6 +376,9 @@ T.field=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#6d5638';g.fillRect(0,0,w,h);
   speckle(g,w,h,22);}));
 T.stone=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#3a3d3b';g.fillRect(0,0,w,h);
   for(let r=0;r<4;r++){const off=(r%2)*48;for(let c=-1;c<3;c++){const v=105+R0()*35|0;g.fillStyle=`rgb(${v},${v+4},${v+2})`;g.fillRect(c*96+off+3,r*64+3,90,58);}}speckle(g,w,h,36,16,'rgba(40,60,40,.15)');}));
+T.mud=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#5a4a3a';g.fillRect(0,0,w,h);speckle(g,w,h,34,60,'rgba(30,22,14,.18)');
+  for(let i=0;i<260;i++){const v=90+R0()*60|0;g.fillStyle=`rgba(${v},${v-8},${v-20},.5)`;g.beginPath();g.arc(R0()*w,R0()*h,.6+R0()*1.8,0,7);g.fill();}
+  for(let i=0;i<40;i++){g.strokeStyle='rgba(70,90,50,.25)';g.lineWidth=1;const x=R0()*w,y=R0()*h;g.beginPath();g.moveTo(x,y);g.lineTo(x+(R0()-.5)*6,y-4-R0()*6);g.stroke();}}));
 T.floor=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#4f6e36';g.fillRect(0,0,w,h);speckle(g,w,h,16,8,'rgba(255,255,255,.05)');
   g.fillStyle='rgba(0,0,0,.12)';g.fillRect(0,0,w,1);g.fillRect(0,0,1,h);}));
 T.soil=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#4f5a2e';g.fillRect(0,0,w,h);speckle(g,w,h,40,40,'rgba(60,40,20,.2)');}));
@@ -426,6 +429,7 @@ const TPL={
   sph:nonIdx(new THREE.IcosahedronGeometry(.5,0)),
   sph1:nonIdx(new THREE.IcosahedronGeometry(.5,1)),
   quad:nonIdx(new THREE.PlaneGeometry(1,1)),
+  disc:nonIdx(new THREE.CircleGeometry(.5,18).rotateX(-Math.PI/2)),
   // jizo: robed body, round shaved head (lathe profile, height 1)
   jizo:nonIdx(new THREE.LatheGeometry([[0,0],[.3,0],[.32,.06],[.31,.3],[.27,.48],[.2,.56],[.12,.6],[.14,.63],[.2,.7],[.22,.79],[.2,.89],[.14,.96],[0,1]].map(p=>new THREE.Vector2(p[0],p[1])),10)),
   bib:nonIdx(new THREE.CylinderGeometry(.3,.62,1,10,1,true,-Math.PI*.55,Math.PI*1.1).translate(0,.5,0)),
@@ -613,7 +617,7 @@ const SC=[
 {ja:'畑の田舎道',en:'FARM ROAD',
  sky:{top:'#3d84d6',hor:'#d3e8f2',bot:'#7a8a55',sun:[.25,.8,.55],sunCol:'#fff6dc',pow:80,glow:.3,disc:.9995,discI:2},
  fog:['#cfe2ea',70,420],hemi:['#d0e4f8','#6d7a40',0.56],dir:['#fff6e0',1.44],exp:0.83,far:400,ceil:3.6,amb:{cicada:.03,wind:.014},clouds:1,mount:'#8ea6b8',glints:8,
- mats:()=>({std:stdM(),dirt:stdM({map:T.dirt}),grass:stdM({map:T.grass}),field:stdM({map:T.field}),wire:emitM()}),
+ mats:()=>({std:stdM(),gloss:stdM({roughness:.25,metalness:.2}),emit:emitM(),add:addM(T.soft),dirt:stdM({map:T.dirt}),grass:stdM({map:T.grass}),field:stdM({map:T.field}),wire:emitM()}),
  chunk(c,k,zA,zB,r){
    c.flat('dirt',-1.8,1.8,zA,zB,0,0,WHITE,4);c.flat('grass',-.22,.22,zA,zB,.01,.01,WHITE,3);
    for(const s of[-1,1]){
@@ -625,6 +629,17 @@ const SC=[
      if(r()<.3){const x=s*(30+r()*60),z=zA-r()*CH;for(let i=0;i<5;i++)tree(c,r,x+(r()-.5)*10,z+(r()-.5)*10,0,1.6+r());}
    }
    pole(c,r,-2.6,zA-3,0,8,true);wires(c,-2.6,zA,zB,0,0,[7.5,7.1]);
+   // one red vending machine standing alone on the left
+   if(k===3){const z=zA-11,x=-2.75;
+     c.put('std',TPL.box,M(x,-.08,z,.95,.12,1.3),col('#8e8c84'));
+     c.put('gloss',TPL.box,M(x,.04,z,.78,1.84,1.06),col('#c8202a'));
+     c.put('std',TPL.box,M(x,1.86,z,.82,.08,1.1),col('#a8181f'));
+     c.put('emit',TPL.quad,M(x+.395,1.32,z,.9,.5,1,Math.PI/2),new THREE.Color(1.15,1.12,1.0));
+     for(let i=0;i<6;i++)c.put('std',TPL.box,M(x+.4,1.2+(i>2?.22:0),z-.33+(i%3)*.33,.02,.16,.08),pick(['#2f6ec8','#e8e2d0','#3a9a52','#e88a2a','#7a3a2a'].map(col),r));
+     c.put('std',TPL.box,M(x+.4,.98,z,.02,.08,.9),col('#f2f0ea'));
+     c.put('std',TPL.box,M(x+.4,.25,z+.08,.03,.22,.6),col('#1c1c1e'));
+     c.put('std',TPL.box,M(x+.4,.72,z+.38,.03,.2,.12),col('#d8d8d4'));
+     c.put('add',TPL.quad,M(x+1.2,.02,z,2.2,2.6,1,Math.PI/2,-Math.PI/2),new THREE.Color(.08,.08,.07));}
  }},
 {ja:'学校の廊下',en:'SCHOOL HALLWAY',
  sky:{top:'#f4f7f8',hor:'#f6f8f6',bot:'#c8d0b8',sun:[-.9,.4,.1],sunCol:'#fffbe8',pow:6,glow:1.2,disc:2,discI:0},
@@ -645,6 +660,17 @@ const SC=[
      c.poly('add',[-W,.002,z0-.3],[ .25,.002,z0-1.4],[.25,.002,z1-1.4],[-W,.002,z1-.3],new THREE.Color(.13,.11,.07),[0,0],[1,0],[1,1],[0,1]);
    }
    c.put('std',TPL.box,M(-W+.15,.88,(zA+zB)/2,.3,.06,CH),col('#d9dbd6'));
+   // washing station: stainless trough with a row of taps under the windows
+   if(k%2===0){const zc=zA-13.5,L=3.4;
+     c.put('std',TPL.box,M(-W+.3,0,zc,.5,.62,L),col('#c9ccc8'));
+     c.put('gloss',TPL.box,M(-W+.32,.62,zc,.56,.2,L+.06),col('#b4b9bc'));
+     c.put('std',TPL.box,M(-W+.34,.7,zc,.42,.08,L-.1),col('#6e767a'));
+     c.put('std',TPL.box,M(-W+.04,.82,zc,.06,.42,L+.06),col('#e6ece8'));
+     for(let i=0;i<5;i++){const z=zc-L/2+.34+i*(L-.68)/4;
+       c.put('gloss',TPL.cylC,M(-W+.1,1.08,z,.05,.16,.05,0,0,Math.PI/2),col('#d6dadc'));
+       c.put('gloss',TPL.cylC,M(-W+.18,1.03,z,.035,.1,.035),col('#d6dadc'));
+       c.put('gloss',TPL.box,M(-W+.08,1.16,z,.08,.03,.03),col('#d6dadc'));
+       if(r()<.5)c.put('std',TPL.box,M(-W+.06,.86,z+.08,.05,.18,.1),pick(['#f2c84a','#7cc6e8','#f08fa0'].map(col),r));}}
    // right: doors, boards
    c.wall('std',W,zA,zB,0,.12,-1,col('#56685a'));c.wall('std',W,zA,zB,.12,H,-1,col('#efede7'));
    for(const dz of[3,15]){const z=zA-dz;
@@ -681,13 +707,14 @@ const SC=[
  }},
 {ja:'雨の神社',en:'SHRINE IN THE RAIN',
  sky:{top:'#4f6a68',hor:'#8ba59f',bot:'#3a4844',sun:[0,.9,.3],sunCol:'#dfeee8',pow:3,glow:.25,disc:2,discI:0},
- fog:['#7b948f',4,95],hemi:['#b8d2cc','#3a4a40',0.72],dir:['#d8e8e4',0.34],exp:0.86,far:105,ceil:3.0,rain:1,amb:{rain:.1},glints:6,key:.6,
- mats:()=>({std:stdM(),stone:stdM({map:T.stone,roughness:.22,envMapIntensity:1.1}),ground:stdM({map:T.soil,roughness:.95}),emit:emitM(),add:addM(T.glow)}),
+ fog:['#7b948f',6,135],hemi:['#b8d2cc','#3a4a40',0.72],dir:['#d8e8e4',0.34],exp:0.86,far:80,ceil:3.0,rain:1,amb:{rain:.1},glints:6,key:.6,
+ mats:()=>({std:stdM(),mud:stdM({map:T.mud,roughness:.55,envMapIntensity:.6}),puddle:stdM({color:0x0e1416,roughness:.02,metalness:.85,envMapIntensity:1.2,polygonOffset:true,polygonOffsetFactor:-1}),ground:stdM({map:T.soil,roughness:.95}),emit:emitM(),add:addM(T.glow)}),
  chunk(c,k,zA,zB,r){
-   c.flat('stone',-1.5,1.5,zA,zB,0,0,WHITE,2.2);
+   c.flat('mud',-1.5,1.5,zA,zB,0,0,WHITE,2.2);
+   for(let i=0;i<3+Math.floor(r()*3);i++){const px=(r()-.5)*2.2,pz=zA-r()*CH,sx=.35+r()*.9,sz=.3+r()*.8;
+     c.put('puddle',TPL.disc,M(px,.004,pz,sx,1,sz,r()*3),WHITE);c.put('puddle',TPL.disc,M(px+(r()-.5)*sx*.4,.004,pz+(r()-.5)*sz*.4,sx*.6,1,sz*.7,r()*3),WHITE);}
    for(const s of[-1,1]){
      c.flat('ground',s>0?1.5:-60,s>0?60:-1.5,zA,zB,-.02,-.02,col('#5d6a52'),4);
-     c.put('std',TPL.box,M(s*1.58,-.05,(zA+zB)/2,.16,.17,CH),col('#7d827c'));
      // low stone ledge with a row of jizo facing the path, red bibs, some with knitted caps
      c.put('std',TPL.box,M(s*2.05,0,(zA+zB)/2,.62,.26,CH),vary(col('#6c716b'),r,.05));
      for(let z=zA-.3;z>zB;z-=.6){const x=s*(2.05+(r()-.5)*.05),sc=.62+r()*.16,st=vary(pick(['#8d928b','#7f857e','#979b92','#7a8076'].map(col),r),r,.08);
@@ -700,7 +727,7 @@ const SC=[
        c.put('std',TPL.sph,M(x,h,z,1.1,.9,1.1,r()*3),vary(col('#3f5a36'),r,.15));
        const fc=pick(['#7d6bbd','#5d7fd0','#c58ab8','#9aa6e2','#6b62a8'].map(col),r);
        for(let i=0;i<3;i++)c.put('std',TPL.sph,M(x+(r()-.5)*.8,h+.3+r()*.45,z+(r()-.5)*.8,.42+r()*.2,.38+r()*.2,.42+r()*.2,r()*3),vary(fc,r,.15));}
-     for(let i=0;i<4;i++){const x=s*(5+r()*12),z=zA-r()*CH,rr=.6+r()*.5;c.put('std',TPL.cyl,M(x,-.1,z,rr,30,rr),vary(col('#3d3128'),r,.15));
+     for(let i=0;i<4;i++){const x=s*(9.5+r()*12),z=zA-r()*CH,rr=.6+r()*.5;c.put('std',TPL.cyl,M(x,-.1,z,rr,30,rr),vary(col('#3d3128'),r,.15));
        c.put('std',TPL.cone,M(x,12+r()*4,z,5+r()*3,20,5+r()*3),vary(col('#22352b'),r,.15));}
    }
    for(const s of[-1,1]){const z=zA-6-(s>0?6:0);
@@ -709,7 +736,8 @@ const SC=[
      c.put('emit',TPL.box,M(s*2.55,2.6,z,.3,.45,.3),new THREE.Color(1.7,1.25,.75));
      c.put('add',TPL.quad,M(s*2.55,2.8,z,2.6,2.6,1),new THREE.Color(.35,.24,.12));}
  },
- once(c){ // shrine hall at the vanishing point
+ once(c){ // shrine hall far down the approach, past where the trees end
+   c.flat('ground',-60,60,40,-40,-.02,-.02,col('#5d6a52'),4);c.flat('mud',-1.5,1.5,40,4,0,0,WHITE,2.2);
    c.put('std',TPL.box,M(0,0,0,14,.5,7),col('#6f746e'));
    for(let i=0;i<4;i++)c.put('std',TPL.box,M(0,-.6+i*.15,4.2+i*.5,6,.15,.5),col('#7a7f78'));
    c.put('std',TPL.box,M(0,.5,0,9,3.4,5.5),col('#3f3026'));
@@ -718,7 +746,7 @@ const SC=[
    c.put('std',TPL.roof,M(0,3.9,0,8.5,3.6,14.5,Math.PI/2),col('#2c3936'));
    c.put('std',TPL.box,M(0,7.4,0,15,.35,.6),col('#26302e'));
    c.put('emit',TPL.box,M(-2,2.6,3,.5,.7,.5),new THREE.Color(1.4,1.0,.6));c.put('emit',TPL.box,M(2,2.6,3,.5,.7,.5),new THREE.Color(1.4,1.0,.6));
- },follow:50},
+ },follow:100},
 {ja:'坂の上',en:'TOP OF THE HILL',
  sky:{top:'#33397a',hor:'#ff9862',bot:'#4a3040',sun:[0,.035,-1],sunCol:'#ffb27a',pow:9,glow:1.6,disc:.9988,discI:7},
  fog:['#e38a68',140,1100],hemi:['#8a7ab8','#4a2e2e',0.58],dir:['#ffb27a',1.10],dirVec:[0,.18,-1],exp:0.90,far:300,ceil:3.6,amb:{wind:.016},glints:12,
@@ -813,18 +841,22 @@ const SC=[
 {ja:'ひまわり畑',en:'SUNFLOWER FIELD',
  sky:{top:'#2c7ae8',hor:'#ffcfa6',bot:'#8a8a52',sun:[.42,.26,.87],sunCol:'#ffd2a0',pow:6,glow:.35,disc:.9995,discI:0},
  fog:['#f2cfb4',90,380],hemi:['#a9c8ff','#c4a682',0.95],dir:['#ffc98a',1.25],dirVec:[.42,.3,.86],exp:0.8,far:240,ceil:3.6,amb:{cicada:.036,wind:.02},clouds:2,cloudTint:'#ffe0cc',mount:'#9a8fbf',glints:10,
- mats:()=>({std:stdM(),dirt:stdM({map:T.dirt}),soil:stdM({map:T.soil}),far:stdM({map:T.sunfar}),head:stdM({map:T.head,alphaTest:.5,side:THREE.DoubleSide,roughness:.75,emissive:0x2a1400})}),
+ mats:()=>({std:stdM(),grass:stdM({map:T.grass}),far:stdM({map:T.sunfar}),head:stdM({map:T.head,alphaTest:.5,side:THREE.DoubleSide,roughness:.75,emissive:0x2a1400})}),
  chunk(c,k,zA,zB,r){
-   c.flat('dirt',-.9,.9,zA,zB,0,0,WHITE,3);
-   for(const s of[-1,1]){
-     c.flat('soil',s>0?.9:-12,s>0?12:-.9,zA,zB,-.01,-.01,WHITE,4);
-     c.flat('far',s>0?12:-260,s>0?260:-12,zA,zB,.6,.6,WHITE,9);
-     for(let z=zA-.3;z>zB;z-=.92)for(let x=1.25;x<12;x+=.9){
-       const xx=s*(x+(r()-.5)*.35),zz=z+(r()-.5)*.4,h=(1.45+r()*.75)*(x<2?.86:1),sz=.42+r()*.24;
-       c.put('std',TPL.quad,M(xx,h/2,zz,.07,h,1,(r()-.5)*.8),col('#4c7a2a'));
-       c.put('std',TPL.quad,M(xx+(r()<.5?-.14:.14),h*(.35+r()*.3),zz,.3,.18,1,(r()-.5)*1.2,-1.0),vary(col('#3f6e22'),r,.15));
-       c.put('head',TPL.quad,M(xx,h,zz+.04,sz,sz,1,(r()-.5)*.7,-.2+(r()-.5)*.3),vary(WHITE,r,.1));}
-   }
+   c.flat('grass',-12,12,zA,zB,0,0,col('#9ab070'),3);
+   for(const s of[-1,1])c.flat('far',s>0?12:-260,s>0?260:-12,zA,zB,.6,.6,WHITE,9);
+   // a jittered field; only a narrow, wandering gap is left where the shuriken flies, so it reads as the space between plants, not a path
+   for(let z=zA-.3;z>zB;z-=.62)for(let x=-11.6;x<12;x+=.62){
+     const xx=x+(r()-.5)*.4,zz=z+(r()-.5)*.36,gap=.47+r()*.42+.1*(1+Math.sin(zz*.37));
+     if(Math.abs(xx)<gap){ // low leaves and young plants fill the gap, kept clear of the landing line
+       if(Math.abs(xx)>.32&&r()<.5){const lh=.18+r()*.2;c.put('std',TPL.quad,M(xx,lh/2,zz,.05,lh,1,r()*3),col('#4c7a2a'));c.put('std',TPL.quad,M(xx,lh,zz,.26,.16,1,r()*3,-1.1),vary(col('#4a7a28'),r,.2));}
+       continue;}
+     const near=Math.abs(xx)<1.6,h=(1.45+r()*.75)*(near?.9:1),sz=.42+r()*.24,ry=(r()-.5)*.8;
+     c.put('std',TPL.quad,M(xx,h/2,zz,.07,h,1,ry),col('#4c7a2a'));
+     c.put('std',TPL.quad,M(xx+(r()<.5?-.14:.14),h*(.35+r()*.3),zz,.3,.18,1,(r()-.5)*1.2,-1.0),vary(col('#3f6e22'),r,.15));
+     // heads near the gap lean away from it so nothing pokes into the flight line
+     const lean=near?Math.sign(xx)*.14:0;
+     c.put('head',TPL.quad,M(xx+lean,h,zz+.04,sz,sz,1,(r()-.5)*.7,-.2+(r()-.5)*.3),vary(WHITE,r,.1));}
  }},
 ];
 const SCN=SC.length;
@@ -1404,7 +1436,7 @@ function update(dt,nowS){
       else{ring.style.opacity=0;$('gGlow').style.opacity=0;$('gHalo').style.opacity=.25;}}
   }else if(m==='fly'||m==='tumble'){
     if(m==='fly')flyStep(dt);else tumbleStep(dt);
-    const sway=Math.sin(tt*1.7)*.18+Math.sin(tt*.63)*.25;st.x=lerp(st.x,sway*(S.hall?.4:1),dt*2);
+    const sway=Math.sin(tt*1.7)*.18+Math.sin(tt*.63)*.25;st.x=lerp(st.x,st.ending?0:sway*(S.hall?.4:1),dt*2);
     const gy=G(st.z);shk.position.set(st.x,gy+st.h+.05,st.z);
     st.spinW=lerp(st.spinW,Math.min(26,6+st.v*.75),dt*3);st.spinA+=st.spinW*dt;spin.rotation.z=st.spinA;
     const wob=.04+st.bal*st.bal*.5+(m==='tumble'?1.2:0);
