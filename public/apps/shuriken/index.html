@@ -706,8 +706,8 @@ const SC=[
      for(const s of[-1,1])c.put('std',TPL.box,M(0,9.3,z+s*3.4,70,.7,.12),col('#6d7a84'));}
  }},
 {ja:'雨の神社',en:'SHRINE IN THE RAIN',
- sky:{top:'#4f6a68',hor:'#8ba59f',bot:'#3a4844',sun:[0,.9,.3],sunCol:'#dfeee8',pow:3,glow:.25,disc:2,discI:0},
- fog:['#7b948f',6,135],hemi:['#b8d2cc','#3a4a40',0.72],dir:['#d8e8e4',0.34],exp:0.86,far:80,ceil:3.0,rain:1,amb:{rain:.1},glints:6,key:.6,
+ sky:{top:'#8c9a98',hor:'#b4bfbc',bot:'#7e8a86',sun:[0,.9,.3],sunCol:'#e6ecea',pow:2,glow:.12,disc:2,discI:0},
+ fog:['#a7b2af',2,80],hemi:['#c8d2cf','#4a554e',0.78],dir:['#dfe6e4',0.22],exp:0.86,far:50,ceil:3.0,rain:1,amb:{rain:.1},glints:6,key:.6,
  mats:()=>({std:stdM(),mud:stdM({map:T.mud,roughness:.55,envMapIntensity:.6}),puddle:stdM({color:0x0e1416,roughness:.02,metalness:.85,envMapIntensity:1.2,polygonOffset:true,polygonOffsetFactor:-1}),ground:stdM({map:T.soil,roughness:.95}),emit:emitM(),add:addM(T.glow)}),
  chunk(c,k,zA,zB,r){
    c.flat('mud',-1.5,1.5,zA,zB,0,0,WHITE,2.2);
@@ -733,11 +733,10 @@ const SC=[
    for(const s of[-1,1]){const z=zA-6-(s>0?6:0);
      c.put('std',TPL.box,M(s*2.55,0,z,.1,3.1,.1),col('#2a302d'));
      c.put('std',TPL.box,M(s*2.55,3.05,z,.42,.08,.42),col('#2a302d'));
-     c.put('emit',TPL.box,M(s*2.55,2.6,z,.3,.45,.3),new THREE.Color(1.7,1.25,.75));
-     c.put('add',TPL.quad,M(s*2.55,2.8,z,2.6,2.6,1),new THREE.Color(.35,.24,.12));}
+     c.put('std',TPL.box,M(s*2.55,2.6,z,.3,.45,.3),col('#4a504c'));}
  },
  once(c){ // shrine hall far down the approach, past where the trees end
-   c.flat('ground',-60,60,40,-40,-.02,-.02,col('#5d6a52'),4);c.flat('mud',-1.5,1.5,40,4,0,0,WHITE,2.2);
+   c.flat('ground',-60,60,14,-40,-.02,-.02,col('#5d6a52'),4);c.flat('mud',-1.5,1.5,14,4,0,0,WHITE,2.2);
    c.put('std',TPL.box,M(0,0,0,14,.5,7),col('#6f746e'));
    for(let i=0;i<4;i++)c.put('std',TPL.box,M(0,-.6+i*.15,4.2+i*.5,6,.15,.5),col('#7a7f78'));
    c.put('std',TPL.box,M(0,.5,0,9,3.4,5.5),col('#3f3026'));
@@ -745,8 +744,8 @@ const SC=[
    for(const x of[-4.3,-1.5,1.5,4.3])c.put('std',TPL.cyl,M(x,.5,2.9,.45,3.5,.45),col('#4a3a2e'));
    c.put('std',TPL.roof,M(0,3.9,0,8.5,3.6,14.5,Math.PI/2),col('#2c3936'));
    c.put('std',TPL.box,M(0,7.4,0,15,.35,.6),col('#26302e'));
-   c.put('emit',TPL.box,M(-2,2.6,3,.5,.7,.5),new THREE.Color(1.4,1.0,.6));c.put('emit',TPL.box,M(2,2.6,3,.5,.7,.5),new THREE.Color(1.4,1.0,.6));
- },follow:100},
+   c.put('std',TPL.box,M(-2,2.6,3,.5,.7,.5),col('#3a2e26'));c.put('std',TPL.box,M(2,2.6,3,.5,.7,.5),col('#3a2e26'));
+ },follow:62},
 {ja:'坂の上',en:'TOP OF THE HILL',
  sky:{top:'#33397a',hor:'#ff9862',bot:'#4a3040',sun:[0,.035,-1],sunCol:'#ffb27a',pow:9,glow:1.6,disc:.9988,discI:7},
  fog:['#e38a68',140,1100],hemi:['#8a7ab8','#4a2e2e',0.58],dir:['#ffb27a',1.10],dirVec:[0,.18,-1],exp:0.90,far:300,ceil:3.6,amb:{wind:.016},glints:12,
