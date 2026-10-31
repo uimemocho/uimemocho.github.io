@@ -1161,7 +1161,7 @@ function resolve(cue,j,why,dt){
     armWave(suv,1.3);
   }
   gaugeFx(j,isFinal);
-  if(CO.on){CO.hits.push([cue.k,j[0]]);coPush({hits:CO.hits,score:st.score});}
+  if(CO.on){CO.hits.push([cue.k,j[0]]);coPush({hits:CO.hits,score:st.score,hr:CO.round});}
   if(isFinal)st.finalJudge=j.toUpperCase();
   const jd=$('judge');jd.textContent=j.toUpperCase();jd.className='sh j-'+j;void jd.offsetWidth;jd.classList.add('show');
   const cb=$('combo');
@@ -1372,10 +1372,17 @@ function endGame(){
   $('hud').classList.add('fade');$('gauge').classList.add('fade');$('combo').classList.remove('on');
   sfx.end();$('muteBtn').classList.remove('play');
   $('coTag').hidden=true;
-  if(CO.on){coPush({fin:{score:st.score}});setTimeout(()=>{if(st.mode==='end')finishResult();},2300);return;}
+  CO.resultShown=false;
+  if(CO.on){coPush({fin:{score:st.score},score:st.score,hr:CO.round});
+    const t0=performance.now(),cb=$('combo');
+    const wait=()=>{if(st.mode!=='end')return;const gone=!coPartner();
+      if(CO.pFinal!=null||gone||performance.now()-t0>12000){cb.classList.remove('on');finishResult();return;}
+      if(performance.now()-t0>2300){cb.innerHTML='<small>相手の結果を待っています</small>';cb.classList.add('on');}
+      setTimeout(wait,150);};
+    setTimeout(wait,600);return;}
   finishResult();
 }
-function finishResult(){
+function finishResult(update){
   const score=st.score+(CO.on?(CO.pFinal!=null?CO.pFinal:CO.pScore):0),ratio=st.maxScore?Math.min(1,score/st.maxScore):0;const ri=RANKS.findIndex(r=>ratio>=r[0]-1e-9),rk=RANKS[ri];
   const prev=loadBest(),isNew=!CO.on&&(!prev||score>prev.score);if(isNew)saveBest({score,rank:rk[1]});
   let nextLine='';if(ri>0){const nx=RANKS[ri-1],need=Math.max(10,Math.ceil((nx[0]*st.maxScore-score)/10)*10);nextLine=`${nx[1]} まで あと ${need.toLocaleString()}`;}
@@ -1390,6 +1397,7 @@ function finishResult(){
   st.shareText=text+GAME_URL+'\n#'+HASHTAG;st.res={score,rank:rk[1],title:rk[2],ratio,c:{...c},maxCombo:st.maxCombo,isNew};st.shareImg=null;st.shareTextOnly=text;
   st.intent='https://x.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(GAME_URL)+'&hashtags='+encodeURIComponent(HASHTAG);
   $('copied').textContent='';
+  st.shareImg=null;if(update)return;CO.resultShown=true;
   const dl=CO.on?300:2600;
   setTimeout(()=>{if(st.mode==='end')makeShareImage();},CO.on?200:1500);
   setTimeout(()=>{$('result').hidden=false;requestAnimationFrame(()=>$('result').classList.add('show'));},dl);
@@ -1568,12 +1576,13 @@ function coRender(){
 function coChange(){
   const p=coPartner();
   if(p){CO.pName=cleanName(p.p.name);
-    const h=Array.isArray(p.p.hits)?p.p.hits:[];
-    if(st.mode==='play'&&CO.on){for(let i=CO.pSeen;i<h.length;i++)partnerHit(h[i]);CO.pSeen=Math.max(CO.pSeen,h.length);
-      if(typeof p.p.score==='number')CO.pScore=p.p.score;}
-    if(p.p.fin&&typeof p.p.fin.score==='number'&&(st.mode==='play'||st.mode==='end'))CO.pFinal=p.p.fin.score;
+    const same=CO.on&&p.p.hr===CO.round;
+    const h=same&&Array.isArray(p.p.hits)?p.p.hits:[];
+    if(same&&st.mode==='play'){for(let i=CO.pSeen;i<h.length;i++)partnerHit(h[i]);CO.pSeen=Math.max(CO.pSeen,h.length);}
+    if(same&&typeof p.p.score==='number'&&(st.mode==='play'||st.mode==='end'))CO.pScore=p.p.score;
+    if(same&&p.p.fin&&typeof p.p.fin.score==='number'&&(st.mode==='play'||st.mode==='end')){const was=CO.pFinal;CO.pFinal=p.p.fin.score;if(was!==CO.pFinal&&CO.resultShown)finishResult(true);}
     if(CO.role==='suv'&&p.p.st==='go'&&(p.p.go|0)>CO.lastGo&&!$('coLobby').hidden){CO.lastGo=p.p.go|0;CO.seed=p.p.seed|0;coStart();}
-  }else if(CO.on&&st.mode==='play'){$('coTag').textContent='相手との接続が切れました';}
+  }
   coRender();
 }
 function partnerHit(hk){
@@ -1588,9 +1597,8 @@ function partnerHit(hk){
   if(asTaxi&&j!=='good')hazardUntil=st.t+1.4;
 }
 function coStart(){
-  CO.on=true;$('coop').hidden=true;$('title').classList.add('gone');
-  coPush({st:'play',hits:[],score:0,fin:null});
-  const tag=$('coTag');tag.hidden=false;tag.textContent=CO.role==='taxi'?`あなたはタクシー側　相手：${CO.pName||'—'}`:`あなたは青い車側　相手：${CO.pName||'—'}`;
+  CO.on=true;CO.round=CO.role==='taxi'?CO.go:CO.lastGo;$('coop').hidden=true;$('title').classList.add('gone');
+  coPush({st:'play',hits:[],score:0,fin:null,hr:CO.round});
   $('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},260);
 }
 function coBackToLobby(){
