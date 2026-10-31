@@ -371,9 +371,9 @@ T.grass=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#5f7a3a';g.fillRect(0,0,w,h);
   for(let i=0;i<1800;i++){const x=R0()*w,y=R0()*h,l=3+R0()*7;g.strokeStyle=`hsl(${80+R0()*30},${35+R0()*25}%,${22+R0()*26}%)`;g.lineWidth=1;g.beginPath();g.moveTo(x,y);g.lineTo(x+(R0()-.5)*3,y-l);g.stroke();}speckle(g,w,h,20);}));
 T.dirt=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#9a8466';g.fillRect(0,0,w,h);speckle(g,w,h,40,40,'rgba(60,40,20,.1)');
   for(let i=0;i<220;i++){const v=120+R0()*80|0;g.fillStyle=`rgb(${v},${v-10},${v-25})`;g.beginPath();g.arc(R0()*w,R0()*h,.6+R0()*1.6,0,7);g.fill();}}));
-T.field=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#6d5638';g.fillRect(0,0,w,h);
-  for(let x=0;x<w;x+=32){for(let i=0;i<260;i++){const px=x+8+R0()*18,py=R0()*h;g.fillStyle=`hsl(${85+R0()*25},${40+R0()*20}%,${24+R0()*22}%)`;g.beginPath();g.ellipse(px,py,2+R0()*3,1.5+R0()*2,R0()*3,0,7);g.fill();}}
-  speckle(g,w,h,22);}));
+T.field=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#7a5a3c';g.fillRect(0,0,w,h);
+  for(let x=0;x<w;x+=16){const gr=g.createLinearGradient(x,0,x+16,0);gr.addColorStop(0,'rgba(60,40,24,.35)');gr.addColorStop(.45,'rgba(150,115,80,.25)');gr.addColorStop(1,'rgba(60,40,24,.35)');g.fillStyle=gr;g.fillRect(x,0,16,h);}
+  speckle(g,w,h,30,30,'rgba(50,32,18,.12)');}));
 T.stone=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#3a3d3b';g.fillRect(0,0,w,h);
   for(let r=0;r<4;r++){const off=(r%2)*48;for(let c=-1;c<3;c++){const v=105+R0()*35|0;g.fillStyle=`rgb(${v},${v+4},${v+2})`;g.fillRect(c*96+off+3,r*64+3,90,58);}}speckle(g,w,h,36,16,'rgba(40,60,40,.15)');}));
 T.mud=tex(cvs(256,256,(g,w,h)=>{g.fillStyle='#5a4a3a';g.fillRect(0,0,w,h);speckle(g,w,h,34,60,'rgba(30,22,14,.18)');
@@ -624,7 +624,7 @@ const SC=[
      c.flat('grass',s>0?1.8:-3.2,s>0?3.2:-1.8,zA,zB,.005,.005,WHITE,3);
      c.flat('std',s>0?3.2:-3.5,s>0?3.5:-3.2,zA,zB,-.06,-.06,col('#8e8c84'),2);
      c.flat('field',s>0?3.5:-120,s>0?120:-3.5,zA,zB,-.08,-.08,WHITE,8);
-     for(let x=4;x<14;x+=1.05)c.put('std',TPL.box,M(s*x,-.08,(zA+zB)/2,.42,.32+r()*.12,CH),vary(col('#4f7a2c'),r,.15));
+     for(let x=4;x<14;x+=1.05)c.put('std',TPL.box,M(s*x,-.08,(zA+zB)/2,.4,.14,CH),vary(col('#7a5838'),r,.08));
      if(r()<.18){const x=s*(16+r()*24),z=zA-r()*CH;c.put('std',TPL.box,M(x,0,z,5,2.6,4),col('#8c9aa6'));c.put('std',TPL.roof,M(x,2.6,z,5.4,.9,4.4),col('#6a7480'));}
      if(r()<.3){const x=s*(30+r()*60),z=zA-r()*CH;for(let i=0;i<5;i++)tree(c,r,x+(r()-.5)*10,z+(r()-.5)*10,0,1.6+r());}
    }
@@ -881,7 +881,7 @@ const clouds=new THREE.Group();scene.add(clouds);
 for(let i=0;i<12;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:T.cloud,fog:false,transparent:true,depthWrite:false,opacity:.95}));
   sp.userData={a:(i/12-.5)*1.6+Math.random()*.1,d:900+Math.random()*250,y:90+Math.random()*180,s:260+Math.random()*320};sp.renderOrder=-9;clouds.add(sp);}
 const mountMat=new THREE.MeshBasicMaterial({map:T.mount,transparent:true,fog:false,side:THREE.BackSide,depthWrite:false});
-T.mount.repeat.set(5,1);
+T.mount.repeat.set(5,1);T.mount.wrapT=THREE.ClampToEdgeWrapping;T.mount.needsUpdate=true;
 const mount=new THREE.Mesh(new THREE.CylinderGeometry(1200,1200,240,64,1,true),mountMat);mount.renderOrder=-8;scene.add(mount);
 
 /* rain */
@@ -1053,7 +1053,7 @@ T.wrinkle=tex(WRK,false,false);
 /* materials: coloured face outside, white inside (the blue sheet's inside carries the letter) */
 const LET=cvs(1024,1024,()=>{});const letTex=tex(LET,true,false);letTex.anisotropy=Math.min(8,maxAniso);
 const PAPER_B=new THREE.MeshStandardMaterial({color:C('#2c7cf0'),roughness:.62,metalness:0,bumpMap:T.wrinkle,bumpScale:.0022,side:THREE.BackSide,envMapIntensity:.25,emissive:C('#0a2a6e'),emissiveIntensity:.55,transparent:true});
-const FOIL_G=new THREE.MeshStandardMaterial({color:C('#ffbe2e'),roughness:.3,metalness:.72,roughnessMap:T.foil,bumpMap:T.foil,bumpScale:.0016,side:THREE.BackSide,envMapIntensity:1.1,emissive:C('#6a4206'),emissiveIntensity:.8,transparent:true});
+const FOIL_G=new THREE.MeshStandardMaterial({color:C('#ffbe2e'),roughness:.28,metalness:.72,side:THREE.BackSide,envMapIntensity:1.1,emissive:C('#6a4206'),emissiveIntensity:.8,transparent:true});
 const INSIDE_A=new THREE.MeshStandardMaterial({color:0xd6d0c6,map:letTex,bumpMap:T.wrinkle,bumpScale:.0022,emissiveMap:letTex,emissive:0x262626,roughness:1,envMapIntensity:.2,side:THREE.FrontSide,transparent:true});
 const INSIDE_B=new THREE.MeshStandardMaterial({color:0xf2efe8,roughness:.92,bumpMap:T.wrinkle,bumpScale:.0022,side:THREE.FrontSide,transparent:true});
 [T.paper,T.foil].forEach(t=>t.repeat.set(3,3));
