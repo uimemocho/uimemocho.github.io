@@ -272,16 +272,23 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
   <div id="coop" class="sh" hidden>
     <div class="co-in">
       <div class="how-ttl">TWO PLAYERS</div>
-      <div id="coEntry" class="co-col">
+      <div id="coPick" class="co-col">
+        <button id="coPickCreate" class="btn" type="button">部屋をつくる</button>
+        <button id="coPickJoin" class="btn ghost" type="button">入室する</button>
+        <button id="coBack" class="btn ghost sm2" type="button">もどる</button>
+      </div>
+      <div id="coEntry" class="co-col" hidden>
+        <div id="coRole" class="co-hint"></div>
         <label class="co-lab" for="coName">なまえ（10文字まで）</label>
         <input id="coName" class="co-name" type="text" maxlength="10" autocomplete="off" placeholder="なまえ">
+        <div id="coJoinBox" class="co-col" hidden>
+          <div class="co-lab">部屋番号</div>
+          <div class="co-code"><input id="c0" inputmode="numeric" maxlength="1" aria-label="部屋番号1桁目"><input id="c1" inputmode="numeric" maxlength="1" aria-label="2桁目"><input id="c2" inputmode="numeric" maxlength="1" aria-label="3桁目"><input id="c3" inputmode="numeric" maxlength="1" aria-label="4桁目"></div>
+        </div>
         <button id="coCreate" class="btn" type="button">部屋をつくる</button>
-        <div class="co-hint">つくった人がタクシー側になります</div>
-        <div class="co-or">または部屋番号で入る</div>
-        <div class="co-code"><input id="c0" inputmode="numeric" maxlength="1" aria-label="部屋番号1桁目"><input id="c1" inputmode="numeric" maxlength="1" aria-label="2桁目"><input id="c2" inputmode="numeric" maxlength="1" aria-label="3桁目"><input id="c3" inputmode="numeric" maxlength="1" aria-label="4桁目"></div>
-        <button id="coJoin" class="btn ghost" type="button">入室する（青い車側）</button>
+        <button id="coJoin" class="btn" type="button" hidden>入室する</button>
         <div id="coStatus" class="co-status"></div>
-        <button id="coBack" class="btn ghost sm2" type="button">もどる</button>
+        <button id="coEntryBack" class="btn ghost sm2" type="button">もどる</button>
       </div>
       <div id="coLobby" class="co-col" hidden>
         <div class="co-lab">部屋番号</div>
@@ -1545,9 +1552,16 @@ const coStatus=m=>{$('coStatus').textContent=m||'';};
 const cleanName=v=>(v||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,10);
 function coPush(patch){if(CO.room)CO.room.set(patch);}
 function coPartner(){if(!CO.room)return null;return CO.room.peers().filter(x=>!x.me&&x.p&&x.p.role).sort((a,b)=>a.peer<b.peer?-1:1)[0]||null;}
+function coShow(step){['coPick','coEntry','coLobby'].forEach(id=>$(id).hidden=id!==step);coStatus('');}
 function openCoop(){
   try{$('coName').value=localStorage.getItem(NAME_KEY)||'';}catch(e){}
-  $('coop').hidden=false;$('coEntry').hidden=false;$('coLobby').hidden=true;coStatus('');
+  $('coop').hidden=false;coShow('coPick');
+}
+function coEntryFor(mode){
+  coShow('coEntry');const join=mode==='join';
+  $('coJoinBox').hidden=!join;$('coJoin').hidden=!join;$('coCreate').hidden=join;
+  $('coRole').textContent=join?'入室した人は青い車側になります':'部屋をつくった人はタクシー側になります';
+  setTimeout(()=>{(join&&$('coName').value?coInputs[0]:$('coName')).focus();},50);
 }
 function closeCoop(){coLeave();$('coop').hidden=true;}
 async function coJoin(code,creating){
@@ -1561,7 +1575,7 @@ async function coJoin(code,creating){
   coLeave();CO.room=room;CO.code=code;CO.name=nm;CO.role=creating?'taxi':'suv';CO.go=0;CO.lastGo=0;
   CO.offs.push(room.onPeers(()=>coChange()));
   coPush({role:CO.role,name:nm,st:'lobby',go:0,hits:[],score:0,fin:null});
-  $('coEntry').hidden=true;$('coLobby').hidden=false;$('coRoomNo').textContent=code;coStatus('');coRender();
+  coShow('coLobby');$('coRoomNo').textContent=code;coRender();
 }
 function coLeave(){CO.offs.forEach(f=>{try{f()}catch(e){}});CO.offs=[];if(CO.room){try{CO.room.leave()}catch(e){}}CO.room=null;}
 function coRender(){
@@ -1605,13 +1619,16 @@ function coBackToLobby(){
   st.mode='title';$('result').hidden=true;$('result').classList.remove('show');$('coTag').hidden=true;CO.on=false;
   $('hud').hidden=true;$('gauge').hidden=true;$('title').classList.remove('gone');camSnap=true;
   if(!CO.room){openCoop();return;}
-  $('coop').hidden=false;$('coEntry').hidden=true;$('coLobby').hidden=false;coPush({st:'lobby',hits:[],score:0,fin:null});coRender();
+  $('coop').hidden=false;coShow('coLobby');coPush({st:'lobby',hits:[],score:0,fin:null});coRender();
 }
 $('coopBtn').addEventListener('click',openCoop);
 $('coBack').addEventListener('click',closeCoop);
 $('coCreate').addEventListener('click',()=>{const c=String(1+Math.floor(Math.random()*MQ_BROKERS.length))+String(Math.floor(Math.random()*1000)).padStart(3,'0');coJoin(c,true);});
 $('coJoin').addEventListener('click',()=>{const c=coInputs.map(i=>i.value).join('');if(!/^\d{4}$/.test(c)){coStatus('4桁の部屋番号を入力してください');return;}coJoin(c,false);});
-$('coLeave').addEventListener('click',()=>{coLeave();CO.on=false;$('coEntry').hidden=false;$('coLobby').hidden=true;coStatus('');});
+$('coLeave').addEventListener('click',()=>{coLeave();CO.on=false;coShow('coPick');});
+$('coPickCreate').addEventListener('click',()=>coEntryFor('create'));
+$('coPickJoin').addEventListener('click',()=>coEntryFor('join'));
+$('coEntryBack').addEventListener('click',()=>coShow('coPick'));
 $('coGo').addEventListener('click',()=>{const p=coPartner();if(!p)return;CO.go=Math.max(CO.go,CO.lastGo)+1;CO.lastGo=CO.go;CO.seed=(Math.random()*1e9)|0;coPush({st:'go',go:CO.go,seed:CO.seed});setTimeout(coStart,450);});
 
 /* ============ input ============ */
