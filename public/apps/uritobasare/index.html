@@ -165,6 +165,22 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
 .dbtn:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 @media (hover:hover){.dbtn:hover{border-color:var(--acc)}}
 #dClose{margin-top:14px;align-self:center}
+#slots{background:rgba(11,9,16,.92)}
+.slotbox{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:stretch;gap:12px}
+.slotbox h2{font:700 20px var(--px);letter-spacing:.14em;margin:0;color:var(--acc);text-align:center}
+#slNote{margin:0 0 4px;font-size:14px;line-height:1.6;color:var(--dim);text-align:center}
+#slList{display:flex;flex-direction:column;gap:10px}
+.slot{font:16px/1.5 var(--jp);color:var(--line);background:rgba(12,10,20,.75);border:2px solid var(--line);padding:12px 16px;display:grid;grid-template-columns:auto 1fr;gap:2px 16px;align-items:center;text-align:left;cursor:pointer;width:100%}
+.slot .no{font:700 14px var(--px);color:var(--ice);grid-row:span 2;letter-spacing:.08em}
+.slot .main{font-size:18px}
+.slot .sub{font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+.slot.empty .main{color:var(--dim);grid-row:span 2}
+.slot.empty .sub{display:none}
+.slot.warn{border-color:var(--acc)}.slot.warn .main{color:var(--acc)}
+.slot:disabled{cursor:default;opacity:.55}
+.slot:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+@media (hover:hover){.slot:not(:disabled):hover{border-color:var(--acc)}}
+#slClose{align-self:center;margin-top:6px}
 @media (prefers-reduced-motion:reduce){#logo .pink{animation:none}#msgNext{animation:none}}
 </style>
 
@@ -198,6 +214,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
     <div class="btns">
       <button id="bCont" class="btn pri" type="button" hidden>つづきから</button>
       <button id="bNew" class="btn" type="button">はじめから</button>
+      <button id="bLoadT" class="btn" type="button">ロード</button>
       <button id="bHow" class="btn" type="button">あそびかた</button>
     </div>
   </div>
@@ -253,6 +270,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
       </div>
       <div class="btns">
         <button id="bNext" class="btn pri" type="button">翌日へ</button>
+        <button id="bSaveC" class="btn" type="button">セーブ</button>
         <button id="bTitleC" class="btn" type="button">タイトルへ</button>
       </div>
     </div>
@@ -266,6 +284,15 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
   <div id="cc" class="ov" hidden>
     <canvas id="ccCv" class="cine" width="160" height="120"></canvas>
     <div id="ccText"></div>
+  </div>
+
+  <div id="slots" class="ov" hidden>
+    <div class="slotbox">
+      <h2 id="slTitle">SAVE</h2>
+      <p id="slNote"></p>
+      <div id="slList"></div>
+      <button id="slClose" class="btn" type="button">もどる</button>
+    </div>
   </div>
 
   <div id="debug" class="ov" hidden>
@@ -315,6 +342,8 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
     <h2>PAUSE</h2>
     <div class="btns">
       <button id="bResume" class="btn pri" type="button">つづける</button>
+      <button id="bSaveP" class="btn" type="button">セーブ</button>
+      <button id="bLoadP" class="btn" type="button">ロード</button>
       <button id="bRestart" class="btn" type="button">この日をやりなおす</button>
       <button id="bDebugP" class="btn" type="button">デバッグ</button>
       <button id="bTitleP" class="btn" type="button">タイトルへ</button>
@@ -914,7 +943,7 @@ function beginDay(){
 }
 function newMom(x,y,alien){return {x:x+.5,y:y+.75,dir:0,anim:0,alien,state:alien?'chase':'patrol',path:null,repath:0,last:null,lostT:0,heard:0,hunt:null,target:null,spd:0,cool:0,jit:0}}
 function freeTileIn(r){for(let k=0;k<60;k++){const x=r.x+Math.floor(Math.random()*r.w),y=r.y+Math.floor(Math.random()*r.h);if(walkable(x,y,true))return [x,y]}return [house.sx,house.sy]}
-function hideAll(){['title','how','dayCard','cut','over','clear','ending','final','pause','shareM','debug','cc'].forEach(id=>$(id).hidden=true);$('msg').hidden=true;$('hint').textContent=''}
+function hideAll(){['title','how','dayCard','cut','over','clear','ending','final','pause','shareM','debug','cc','slots'].forEach(id=>$(id).hidden=true);$('msg').hidden=true;$('hint').textContent=''}
 
 function centerCam(snap){
   const mw=house.W*TS,mh=house.H*TS;
@@ -975,8 +1004,9 @@ function interact(o){
 function enterHide(o){
   P.hidden=o;SFX.hide();
   for(const m of moms){if(!m.alien)continue;const d=Math.hypot(m.x-P.x,m.y-P.y);
-    if(m.state==='chase'&&d<4.6&&los(m.x,m.y-.3,P.x,P.y-.3)){m.hunt=o;m.state='hunt'}
-    else{m.state='search';m.last=[...tileOf(P)];m.lostT=0}}
+    const sees=los(m.x,m.y-.3,P.x,P.y-.3),dv=DIRV[m.dir],dot=((P.x-m.x)*dv[0]+(P.y-m.y)*dv[1])/(d||1);
+    if(m.state==='chase'&&sees&&d<2.6&&dot>.5){m.hunt=o;m.state='hunt'}
+    else{m.state='search';if(!sees||d>4){const [tx,ty]=tileOf(P);const r=house.rooms[house.room[ty*house.W+tx]];m.last=r?freeTileIn(r):m.last}else m.last=[...tileOf(P)];m.target=null;m.lostT=0}}
 }
 function leaveHide(){P.hidden=null;SFX.hide();for(const m of moms)if(m.hunt){m.hunt=null;m.state='chase'}}
 
@@ -1119,7 +1149,7 @@ async function escape(forceCut){
   await clearCut();
   drawFront($('outCv').getContext('2d'),{mode:'dusk',door:1,kid:{x:79,y:108,dir:0,fr:0,pose:'yay'},fx:g=>sparkle(g,79,108,0)});
   $('cDay').textContent=d;$('cTime').textContent=fmt(S.dayTime);$('cTotal').textContent=fmt(run.total);
-  $('bNext').hidden=d>=8;
+  $('bNext').hidden=d>=8;$('bSaveC').hidden=d>=8;
   $('clear').hidden=false;S.mode='clear';SFX.clear();
   setTimeout(()=>($('bNext').hidden?$('bTitleC'):$('bNext')).focus(),50);
 }
@@ -1564,6 +1594,7 @@ $('bCopy').onclick=()=>{const t=$('shareM').dataset.text||'';const ok=()=>$('cop
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();$('copied').textContent=ok?'コピーしました':'コピーできませんでした。手動で選択してください。'}
 
 function toTitle(){
+  $('mapName').classList.remove('on');
   shopStop();chaseStop();ambStop();MSG=null;
   hideAll();$('hud').hidden=true;$('vig').style.opacity=0;
   house=genHouse(1,4242);moms=[];P.hasGame=false;P.hidden=null;run=run||{day:1,overs:0,total:0,times:[]};
@@ -1607,6 +1638,51 @@ const DACT={
   ['pointerup','pointerleave','pointercancel'].forEach(e=>logo.addEventListener(e,()=>clearTimeout(lp)));
   addEventListener('keydown',e=>{if(e.key==='`'&&(S.mode==='title'||S.mode==='play')&&!S.cut){$('debug').hidden?openDebug():closeDebug(false)}});
 })();
+
+/* ================= save / load (3 slots) ================= */
+const SLOT_KEY='uritobasare-slots-v1';
+function getSlots(){try{const a=JSON.parse(localStorage.getItem(SLOT_KEY));if(Array.isArray(a))return [a[0]||null,a[1]||null,a[2]||null]}catch(e){}return [null,null,null]}
+function putSlots(a){try{localStorage.setItem(SLOT_KEY,JSON.stringify(a));return true}catch(e){return false}}
+const SL={mode:'save',data:null,back:null,warn:-1};
+function pad2(n){return (n<10?'0':'')+n}
+function slotLabel(v){const d=new Date(v.at);return {main:'DAY '+v.day+'　'+DAYS[v.day-1].wd,sub:'TIME '+fmt(v.total||0)+'　売られた '+(v.overs||0)+'回　'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes())}}
+function openSlots(mode,data,back){
+  SL.mode=mode;SL.data=data;SL.back=back;SL.warn=-1;
+  $('slTitle').textContent=mode==='save'?'SAVE':'LOAD';
+  $('slNote').textContent=mode==='save'?'DAY '+data.day+' のはじめから再開できます':'えらんだ日のはじめから再開します';
+  ['title','pause','clear'].forEach(id=>$(id).hidden=true);$('slots').hidden=false;renderSlots();
+  setTimeout(()=>{const b=document.querySelector('#slList .slot:not(:disabled)');(b||$('slClose')).focus()},30);
+}
+function renderSlots(){
+  const list=$('slList'),sl=getSlots();list.innerHTML='';
+  sl.forEach((v,i)=>{const b=document.createElement('button');b.type='button';b.className='slot'+(v?'':' empty')+(SL.warn===i?' warn':'');
+    const L=v?slotLabel(v):{main:'からっぽ',sub:'　'};
+    b.innerHTML='<span class="no">SLOT '+(i+1)+'</span><span class="main"></span><span class="sub"></span>';
+    b.querySelector('.main').textContent=SL.warn===i?'上書きする？ もう一度タップ':L.main;b.querySelector('.sub').textContent=L.sub;
+    if(SL.mode==='load'&&!v)b.disabled=true;
+    b.addEventListener('click',()=>slotPick(i));list.appendChild(b)});
+}
+function slotPick(i){
+  const sl=getSlots();SFX.pick();
+  if(SL.mode==='save'){
+    if(sl[i]&&SL.warn!==i){SL.warn=i;renderSlots();return}
+    sl[i]=Object.assign({},SL.data,{at:Date.now()});
+    if(putSlots(sl)){SL.warn=-1;renderSlots();toastSlot('SLOT '+(i+1)+' にセーブしました')}else toastSlot('セーブできませんでした（ブラウザの保存領域が使えません）');
+  }else{
+    const v=sl[i];if(!v)return;
+    run={seed:v.seed,day:v.day,total:v.total||0,overs:v.overs||0,times:(v.times||[]).slice()};
+    DBG.active=false;writeSave({run:Object.assign({},run,{next:v.day,done:false})});
+    shopStop();chaseStop();ambStop();$('slots').hidden=true;S.pause=false;startDayCard(v.day);
+  }
+}
+function toastSlot(msg){$('slNote').textContent=msg}
+function closeSlots(){$('slots').hidden=true;if(SL.back)$(SL.back).hidden=false}
+function snapshotRun(day){return {seed:run.seed,day,total:(run.times||[]).slice(0,day-1).reduce((a,b)=>a+(b||0),0),overs:run.overs||0,times:(run.times||[]).slice(0,day-1)}}
+$('bSaveP').addEventListener('click',()=>openSlots('save',snapshotRun(run.day),'pause'));
+$('bLoadP').addEventListener('click',()=>openSlots('load',null,'pause'));
+$('bSaveC').addEventListener('click',()=>openSlots('save',snapshotRun(Math.min(8,run.day+1)),'clear'));
+$('bLoadT').addEventListener('click',()=>{actx();openSlots('load',null,'title')});
+$('slClose').addEventListener('click',closeSlots);
 
 /* ================= loop ================= */
 let last=performance.now();
