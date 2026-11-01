@@ -271,6 +271,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
       </div>
       <div class="btns">
         <button id="bNext" class="btn pri" type="button">翌日へ</button>
+        <button id="bShareC" class="btn" type="button">Xでシェア</button>
         <button id="bSaveC" class="btn" type="button">セーブ</button>
         <button id="bTitleC" class="btn" type="button">タイトルへ</button>
       </div>
@@ -1126,6 +1127,7 @@ async function escape(forceCut){
   drawFront($('outCv').getContext('2d'),{mode:'dusk',door:1,kid:{x:79,y:108,dir:0,fr:0,pose:'yay'},fx:g=>sparkle(g,79,108,0)});
   $('cDay').textContent=d;$('cTime').textContent=fmt(S.dayTime);$('cTotal').textContent=fmt(run.total);
   $('bNext').hidden=d>=8;$('bSaveC').hidden=d>=8;
+  CLR={day:d,time:S.dayTime,total:run.total};setTimeout(()=>prepareShare('clear'),0);
   $('clear').hidden=false;S.mode='clear';SFX.clear();
   setTimeout(()=>($('bNext').hidden?$('bTitleC'):$('bNext')).focus(),50);
 }
@@ -1294,6 +1296,7 @@ async function makeShareImage(kind){
   g.textAlign='center';g.textBaseline='alphabetic';
   const JP='"DotGothic16",sans-serif',PX='"Silkscreen",monospace';
   if(kind==='over'){T('お母さんにゲーム',540,108,'60px '+JP,'#efeaff');T('売り飛ばされた',540,204,'84px '+JP,'#ffd23f')}
+  else if(kind==='clear'){T('DAY '+CLR.day+' ／ 8',540,108,'60px '+JP,'#efeaff');T('玄関から逃げきった！',540,204,'78px '+JP,'#9fd8f0')}
   else{T('お母さんから',540,108,'60px '+JP,'#efeaff');T('ゲームを取りかえした！',540,204,'78px '+JP,'#9fd8f0')}
   // scene 800x600 at (140,250)
   g.drawImage(sc,140,250,800,600);g.strokeStyle='#efeaff';g.lineWidth=6;g.strokeRect(137,247,806,606);
@@ -1302,6 +1305,11 @@ async function makeShareImage(kind){
     T('中古',0,25,'24px '+JP,'#ffffff');T('¥3,000',0,74,'44px '+JP,'#1b1310');g.restore();
     T('GAME OVER',540,1010,'700 76px '+PX,'#ff2a3d');
     T('DAY '+run.day+' で捕まって、中古で売られた',540,1092,'40px '+JP,'#efeaff');
+  }else if(kind==='clear'){
+    const cols=[[300,'DAY',CLR.day+' / 8'],[540,'TIME',fmt(CLR.time)],[780,'TOTAL',fmt(CLR.total)]];
+    for(const [x,l,v] of cols){T(l,x,916,'24px '+PX,'#8f89a8');T(v,x,968,'40px '+JP,'#efeaff')}
+    T('ESCAPED',540,1092,'700 96px '+PX,'#9fd8f0');
+    T(CLR.day<8?'のこり '+(8-CLR.day)+'日。お母さんは、まだあきらめない。':'8日間、逃げきった。',540,1172,'36px '+JP,'#efeaff');
   }else{
     const [r,ti]=rankOf();
     const cols=[[300,'DAYS','8日間'],[540,'TIME',fmt(run.total)],[780,'SOLD',run.overs+'回']];
@@ -1315,11 +1323,12 @@ async function makeShareImage(kind){
   return c;
 }
 function shareText(kind){
+  if(kind==='clear')return 'DAY'+CLR.day+'、お母さんからゲームを取りかえして玄関から逃げきった！\nTIME '+fmt(CLR.time)+'（のこり'+(8-CLR.day)+'日）\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
   if(kind==='over')return 'DAY'+run.day+'でお母さんに捕まって、ゲームを中古¥3,000で売り飛ばされた……\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
   const [r,ti]=rankOf();return 'お母さんからゲームを取りかえした！\nランク'+r+'「'+ti+'」\nTIME '+fmt(run.total)+'／売られた回数 '+run.overs+'\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
 }
 /* share: pre-render on result screens so the share sheet opens inside the tap (keeps the image attached) */
-const SHR={kind:null,cvs:null,file:null,text:''};
+const SHR={kind:null,cvs:null,file:null,text:''};let CLR={day:1,time:0,total:0};
 async function prepareShare(kind){
   SHR.kind=kind;SHR.file=null;SHR.text=shareText(kind);
   const cvs=await makeShareImage(kind);if(SHR.kind!==kind)return;SHR.cvs=cvs;
@@ -1563,6 +1572,7 @@ $('bTitleO').onclick=()=>toTitle();
 $('bNext').onclick=()=>{SFX.pick();startDayCard(run.day+1)};
 $('bTitleC').onclick=()=>toTitle();
 $('bShareF').onclick=()=>share('final');
+$('bShareC').onclick=()=>share('clear');
 $('bTitleF').onclick=()=>toTitle();
 $('bShareClose').onclick=()=>{$('shareM').hidden=true};
 $('bCopy').onclick=()=>{const t=$('shareM').dataset.text||'';const ok=()=>$('copied').textContent='コピーしました';
