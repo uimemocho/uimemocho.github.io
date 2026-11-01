@@ -1514,7 +1514,7 @@ function render(tm){
       G.save();G.translate(Math.round(ix),Math.round(iy));G.rotate(ang);G.fillStyle='#ffd23f';G.beginPath();G.moveTo(7,0);G.lineTo(-4,-5);G.lineTo(-4,5);G.closePath();G.fill();G.restore();
       G.font='8px "Silkscreen",monospace';G.textAlign='center';G.fillStyle='#ffd23f';G.fillText('EXIT',Math.round(ix),Math.round(iy)+(iy>VH/2?-9:15))}}
   // hide peek
-  if(P.hidden){const py=Math.round((P.y-.6)*TS-cy);G.fillStyle='rgba(0,0,0,.86)';G.fillRect(0,0,VW,py-12);G.fillRect(0,py+10,VW,VH-py-10);G.fillStyle='rgba(0,0,0,.35)';G.fillRect(0,py-12,VW,22);G.fillStyle='rgba(0,0,0,.3)';for(let y=py-12;y<py+10;y+=4)G.fillRect(0,y,VW,1)}
+  if(P.hidden){G.fillStyle='rgba(0,0,0,.86)';G.fillRect(0,0,VW,VH)}
 }
 
 /* ================= input ================= */
