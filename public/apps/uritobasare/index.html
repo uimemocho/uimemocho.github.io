@@ -34,13 +34,14 @@
   color-scheme:dark;
 }
 [hidden]{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
 html,body{height:100%;background:var(--ink);color:var(--line);overflow:hidden;overscroll-behavior:none}
 body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;-webkit-tap-highlight-color:transparent}
 #app{position:fixed;inset:0;overflow:hidden;background:var(--ink)}
 #cv{position:absolute;left:0;top:0;image-rendering:pixelated;image-rendering:crisp-edges}
 #touch{position:absolute;inset:0}
 .px{font-family:var(--px);letter-spacing:.06em}
-.pnl{background:var(--panel);border:2px solid var(--line);clip-path:polygon(0 4px,4px 4px,4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px))}
+.pnl{background:var(--panel);border:0;margin:2px;box-shadow:0 -2px 0 0 var(--line),0 2px 0 0 var(--line),-2px 0 0 0 var(--line),2px 0 0 0 var(--line)}
 #vig{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(160,0,24,.55) 85%,rgba(90,0,12,.9) 100%)}
 #flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:#fff}
 #fade{position:absolute;inset:0;pointer-events:none;opacity:0;background:#000;transition:opacity .35s}
@@ -102,6 +103,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
 #dcNum span{color:var(--ice)}
 #dcWd{font-size:16px;margin-top:10px;color:var(--dim);letter-spacing:.3em;text-indent:.3em}
 #dcSub{margin-top:18px;display:inline-block;padding:6px 14px;border:2px solid var(--ice);color:var(--ice);font-size:16px;letter-spacing:.2em;text-indent:.2em}
+#dcLine,#dcHint,.r-line,#endText,.how-box p{text-wrap:pretty;word-break:auto-phrase}
 #dcLine{margin-top:22px;font-size:clamp(16px,4.6vw,22px);color:var(--acc);line-height:1.6;max-width:22em}
 #dcHint{margin-top:16px;font-size:16px;line-height:1.7;max-width:24em;color:var(--line)}
 #dcGo{margin-top:26px}
@@ -203,11 +205,12 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
   <div id="how" class="ov" hidden>
     <div class="how-box pnl">
       <h2>HOW TO PLAY</h2>
-      <p><b>ドラッグ</b>で移動。画面のどこからでも動かせる。</p>
-      <p><b>タップ</b>で目の前のものを調べる。米袋、タンス、押し入れ。</p>
-      <p>米袋からゲームを見つけると、お母さんがあらわれる。<b>玄関</b>から外に出られたら、その日はセーフ。</p>
-      <p>つかまると、ゲームは中古で売られる。</p>
-      <p>右上の PAD でスティックの表示・非表示を切りかえ。キーボードは矢印キーとスペース。</p>
+      <p><b>ドラッグ</b>で移動。<br>画面のどこからでも動かせる。</p>
+      <p><b>タップ</b>で目の前のものを調べる。<br>米袋・タンス・押し入れ。</p>
+      <p>米袋からゲームを見つけると、<br>お母さんがあらわれる。</p>
+      <p><b>玄関</b>から外に出られたら、<br>その日はセーフ。</p>
+      <p>つかまると、<br>ゲームは中古で売られる。</p>
+      <p>スティックは右上の PAD で<br>表示・非表示を切りかえ。</p>
     </div>
     <div class="btns" style="margin-top:16px"><button id="bHowClose" class="btn pri" type="button">とじる</button></div>
   </div>
@@ -345,12 +348,12 @@ const GAME_URL=/github\.io$/.test(location.hostname)?location.origin+location.pa
 
 /* ================= stage design ================= */
 const DAYS=[
- {cols:2,rows:2,bags:1,spd:2.9,wd:'月曜日',sub:'はじまり',line:'「ゲームは隠したからね。宿題が終わるまで。」',hint:'ドラッグで移動、タップで調べる。<br>米袋からゲームを取りかえして、玄関から逃げろ。'},
- {cols:3,rows:2,bags:3,spd:3.2,wd:'火曜日',sub:'ハズレ',line:'「米袋、ふやしておいたから。」',hint:'米袋はひとつじゃない。中身はお米だけのことも。'},
+ {cols:2,rows:2,bags:1,spd:2.9,wd:'月曜日',sub:'はじまり',line:'「ゲームは隠したからね。宿題が終わるまで。」',hint:'ドラッグで移動、タップで調べる。<br>米袋からゲームを取りかえして、<br>玄関から逃げろ。'},
+ {cols:3,rows:2,bags:3,spd:3.2,wd:'火曜日',sub:'ハズレ',line:'「米袋、ふやしておいたから。」',hint:'米袋はひとつじゃない。<br>中身はお米だけのことも。'},
  {cols:3,rows:2,bags:3,spd:3.25,dark:true,wd:'水曜日',sub:'停電',line:'「今日は、電気がつかないかもね。」',hint:'ゲームを取ると、家の電気が消える。'},
  {cols:3,rows:3,bags:4,spd:3.9,hide:true,wd:'木曜日',sub:'押し入れ',line:'「隠れても、ちゃんとわかるよ。」',hint:'押し入れをタップすると隠れられる。<br>見られている前で隠れると、バレる。'},
  {cols:3,rows:3,bags:4,spd:3.5,hide:true,key:true,wd:'金曜日',sub:'チェーン',line:'「玄関のカギ、どこにしまったっけ。」',hint:'お母さんが来ると、玄関にチェーンがかかる。<br>タンスからカギを探せ。'},
- {cols:3,rows:3,bags:4,spd:3.6,hide:true,patrol:true,wd:'土曜日',sub:'見張り',line:'「今日はお母さん、ずっと家にいるからね。」',hint:'お母さんが家を見回っている。<br>見つかると、部屋に戻される。'},
+ {cols:3,rows:3,bags:4,spd:3.6,hide:true,patrol:true,wd:'土曜日',sub:'見張り',line:'「今日はお母さん、<br>ずっと家にいるからね。」',hint:'お母さんが家を見回っている。<br>見つかると、部屋に戻される。'},
  {cols:4,rows:3,bags:5,spd:3.75,hide:true,dark:true,creak:true,warp:true,wd:'日曜日',sub:'ギシギシ',line:'「床が、鳴いてるよ。」',hint:'傷んだ床を踏むと、音でお母さんが来る。<br>お母さんは、壁の向こうにもあらわれる。'},
  {cols:4,rows:3,bags:6,spd:3.4,hide:true,dark:true,key:true,creak:true,warp:true,patrol:true,moms:2,wd:'月曜日',sub:'ふたり',line:'「つばさ。お母さん、もうひとりいるの。」',hint:'これまでの、ぜんぶ。'},
 ];
@@ -895,7 +898,7 @@ function startDayCard(d){
   run.day=d;house=genHouse(d,run.seed+d*7919);
   P.x=house.sx+.5;P.y=house.sy+.75;P.dir=0;
   const c=DAYS[d-1];
-  $('dcNum').innerHTML='DAY <span>'+d+'</span>';$('dcWd').textContent=c.wd;$('dcSub').textContent=c.sub;$('dcLine').textContent=c.line;$('dcHint').innerHTML=c.hint;
+  $('dcNum').innerHTML='DAY <span>'+d+'</span>';$('dcWd').textContent=c.wd;$('dcSub').textContent=c.sub;$('dcLine').innerHTML=c.line.replace(/。(?=[^」])/g,'。<br>');$('dcHint').innerHTML=c.hint;
   hideAll();$('dayCard').hidden=false;S.mode='card';centerCam(true);
   setTimeout(()=>$('dcGo').focus(),50);
 }
