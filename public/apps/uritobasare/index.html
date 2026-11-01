@@ -522,9 +522,37 @@ const SFX={
   warp(){const t=now();osc('sine',140,t,.7,.09,1900);nz(t,.5,.12,4000,'highpass')},
   spot(){const t=now();osc('square',660,t,.1,.07);osc('square',880,t+.1,.16,.07)},
 };
-function ambStart(){const c=actx();if(!c||AU.amb)return;const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=55;g.gain.value=.025;o.connect(g).connect(AU.master);o.start();AU.amb={o,g};
+/* ---- ominous BGM (same as the promo): detuned drone, heartbeat, dissonant shimmer, out-of-tune music box ---- */
+const BGM={on:false,nodes:[],g:null,timer:null};
+const MBOX=[[0.4,659.3],[1.6,622.3],[2.8,587.3],[4.0,523.3],[5.2,493.9],[6.4,466.2],[7.6,440.0],[8.8,415.3],[10.0,659.3],[11.2,698.5],[12.4,622.3],[13.6,311.1]];
+function bgmStart(){
+  const c=actx();if(!c||BGM.on)return;BGM.on=true;
+  const g=c.createGain();g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(1,c.currentTime+1.5);g.connect(AU.master);BGM.g=g;
+  const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=420;const dg=c.createGain();dg.gain.value=.05;lp.connect(dg).connect(g);
+  const lfo=c.createOscillator();lfo.frequency.value=1/7.5;const lg=c.createGain();lg.gain.value=.035;lfo.connect(lg).connect(dg.gain);lfo.start();BGM.nodes.push(lfo);
+  for(const [f,v] of [[55,1],[55.6,1],[77.8,.7],[82.65,.5]]){const o=c.createOscillator();o.type='sawtooth';o.frequency.value=f;const og=c.createGain();og.gain.value=v*.5;o.connect(og).connect(lp);o.start();BGM.nodes.push(o)}
+  const sg=c.createGain();sg.gain.value=.006;sg.connect(g);let last=null;
+  for(const f of [880,1244.5]){const o=c.createOscillator();o.frequency.value=f;o.connect(sg);o.start();BGM.nodes.push(o);last=o}
+  const vib=c.createOscillator();vib.frequency.value=.3;const vg=c.createGain();vg.gain.value=6;vib.connect(vg).connect(last.frequency);vib.start();BGM.nodes.push(vib);
+  const dl=c.createDelay(1);dl.delayTime.value=.33;const fb=c.createGain();fb.gain.value=.42;const mb=c.createGain();mb.gain.value=1;mb.connect(g);mb.connect(dl);dl.connect(fb).connect(dl);dl.connect(g);BGM.mb=mb;
+  BGM.t0=c.currentTime+.2;BGM.beat=BGM.t0+.6;BGM.note=0;BGM.loop=0;
+  BGM.timer=setInterval(bgmSched,100);bgmSched();
+}
+function bgmSched(){
+  const c=AU.ctx;if(!c||!BGM.on)return;const ahead=c.currentTime+.4;
+  if(BGM.beat<c.currentTime-1){BGM.beat=c.currentTime+.1}
+  while(BGM.beat<ahead){const t=BGM.beat;const o=c.createOscillator(),e=c.createGain();o.frequency.setValueAtTime(48,t);o.frequency.exponentialRampToValueAtTime(36,t+.18);e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(.28,t+.01);e.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(e).connect(BGM.g);o.start(t);o.stop(t+.25);BGM.beat+=1.25}
+  if(BGM.t0+BGM.loop*15<c.currentTime-15){BGM.loop=Math.floor((c.currentTime-BGM.t0)/15);BGM.note=0}
+  for(;;){const [off,f]=MBOX[BGM.note];const t=BGM.t0+BGM.loop*15+off;if(t>=ahead)break;
+    if(t>c.currentTime-.05)for(const [m,v] of [[1,.07],[2.01,.025]]){const o=c.createOscillator(),e=c.createGain();o.frequency.value=f*m;e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(v,t+.005);e.gain.exponentialRampToValueAtTime(.0001,t+1.6);o.connect(e).connect(BGM.mb);o.start(t);o.stop(t+1.7)}
+    BGM.note++;if(BGM.note>=MBOX.length){BGM.note=0;BGM.loop++}}
+}
+function bgmLevel(v){if(BGM.g&&AU.ctx){BGM.g.gain.cancelScheduledValues(AU.ctx.currentTime);BGM.g.gain.setTargetAtTime(v,AU.ctx.currentTime,.3)}}
+function bgmStop(){if(!BGM.on)return;BGM.on=false;clearInterval(BGM.timer);const c=AU.ctx,g=BGM.g,ns=BGM.nodes;BGM.nodes=[];
+  if(c&&g){g.gain.cancelScheduledValues(c.currentTime);g.gain.setTargetAtTime(0,c.currentTime,.15);setTimeout(()=>{ns.forEach(n=>{try{n.stop()}catch(e){}});try{g.disconnect()}catch(e){}},900)}}
+function ambStart(){const c=actx();if(!c||AU.amb)return;bgmStart();bgmLevel(1);AU.amb={o:{stop(){}}};
   AU.tick=setInterval(()=>{if(AU.ctx&&!S.pause)nz(now(),.03,.03,4200,'highpass')},1000)}
-function ambStop(){if(AU.amb){try{AU.amb.o.stop()}catch(e){}AU.amb=null}clearInterval(AU.tick);AU.tick=null}
+function ambStop(){if(AU.amb){AU.amb=null;bgmLevel(.55)}clearInterval(AU.tick);AU.tick=null}
 function chaseStart(){const c=actx();if(!c||AU.chase)return;const o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain(),l=c.createOscillator(),lg=c.createGain();
   o.type='sawtooth';o.frequency.value=41;f.type='lowpass';f.frequency.value=220;l.frequency.value=.35;lg.gain.value=120;l.connect(lg).connect(f.frequency);g.gain.value=.05;o.connect(f).connect(g).connect(AU.master);o.start();l.start();AU.chase={o,l,g}}
 function chaseStop(){if(AU.chase){try{AU.chase.o.stop();AU.chase.l.stop()}catch(e){}AU.chase=null}}
@@ -863,6 +891,7 @@ function nextToward(m,tx,ty){const [mx,my]=tileOf(m);if(mx===tx&&my===ty)return 
 
 /* ================= game flow ================= */
 function startDayCard(d){
+  bgmStart();bgmLevel(.8);
   run.day=d;house=genHouse(d,run.seed+d*7919);
   P.x=house.sx+.5;P.y=house.sy+.75;P.dir=0;
   const c=DAYS[d-1];
@@ -1069,11 +1098,11 @@ function showOver(){
   setTimeout(()=>prepareShare('over'),0);
   drawShop($('shopCv').getContext('2d'));
   $('overLine').innerHTML='DAY '+run.day+' でつかまった。<br>ゲームは<b>中古</b>で売られた。';
-  hideAll();$('hud').hidden=true;$('vig').style.opacity=0;$('over').hidden=false;S.mode='over';shopStart();
+  hideAll();$('hud').hidden=true;$('vig').style.opacity=0;$('over').hidden=false;S.mode='over';bgmStart();bgmLevel(1);
   setTimeout(()=>$('bRetry').focus(),50);
 }
 async function escape(forceCut){
-  if(S.over)return;S.over=true;S.cut=true;chaseStop();ambStop();SFX.door();
+  if(S.over)return;S.over=true;S.cut=true;chaseStop();ambStop();bgmStop();SFX.door();
   const fl=$('flash');fl.style.background='#fff';fl.style.transition='opacity .5s';fl.style.opacity=1;
   await sleep(520);
   run.times[run.day-1]=S.dayTime;run.total=run.times.reduce((a,b)=>a+(b||0),0);
@@ -1094,6 +1123,7 @@ async function escape(forceCut){
 const RANKS=[['SSS','我々は宇宙人'],['SS','地球の少年'],['S','米袋の目利き'],['A','玄関ダッシュ名人'],['B','ゲームは1日1時間'],['C','宿題は終わった？'],['D','中古で買い戻し'],['E','¥3,000']];
 function rankOf(){const s=run.total+run.overs*25;const th=[260,330,420,540,680,850,1100];let i=0;while(i<th.length&&s>th[i])i++;if(i===0&&run.overs>0)i=1;return RANKS[i]}
 async function ending(){
+  bgmStart();bgmLevel(.8);
   S.mode='ending';$('ending').hidden=false;const g=$('endScene').getContext('2d');
   const lines=['9日目の朝。','米袋の中には、お米しか入っていなかった。','「つばさ、ごはんよ」','いつもの、お母さんの声だった。','……たぶん。'];
   let li=0,alive=true;
