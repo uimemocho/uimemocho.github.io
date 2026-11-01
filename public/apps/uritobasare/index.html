@@ -296,31 +296,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
     </div>
   </div>
 
-  <div id="debug" class="ov" hidden>
-    <div class="dbg pnl">
-      <h2>DEBUG</h2>
-      <div class="dlab">STAGE</div>
-      <div id="dDays" class="dgrid"></div>
-      <div class="dlab">SWITCH</div>
-      <div class="dgrid two">
-        <button id="dInv" class="dbtn" type="button" aria-pressed="false">無敵<span>OFF</span></button>
-        <button id="dBag" class="dbtn" type="button" aria-pressed="false">本物の米袋を表示<span>OFF</span></button>
-        <button id="dFreeze" class="dbtn" type="button" aria-pressed="false">お母さん停止<span>OFF</span></button>
-      </div>
-      <div class="dlab">CUTSCENE</div>
-      <div class="dgrid two">
-        <button class="dbtn" type="button" data-act="transform">ゲーム入手・変身</button>
-        <button class="dbtn" type="button" data-act="caught">つかまる</button>
-        <button class="dbtn" type="button" data-act="over">中古ショップ</button>
-        <button class="dbtn" type="button" data-act="clear">脱出カット</button>
-        <button class="dbtn" type="button" data-act="spot">見回りに見つかる</button>
-        <button class="dbtn" type="button" data-act="warp">壁の向こうワープ</button>
-        <button class="dbtn" type="button" data-act="ending">エンディング</button>
-        <button class="dbtn" type="button" data-act="final">最終リザルト</button>
-      </div>
-      <button id="dClose" class="btn pri" type="button">とじる</button>
-    </div>
-  </div>
+  <div id="debug" class="ov" hidden></div>
 
   <div id="final" class="ov" hidden>
     <div class="res">
@@ -346,7 +322,6 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
       <button id="bSaveP" class="btn" type="button">セーブ</button>
       <button id="bLoadP" class="btn" type="button">ロード</button>
       <button id="bRestart" class="btn" type="button">この日をやりなおす</button>
-      <button id="bDebugP" class="btn" type="button">デバッグ</button>
       <button id="bTitleP" class="btn" type="button">タイトルへ</button>
     </div>
   </div>
@@ -1603,41 +1578,6 @@ function toTitle(){
   const hasAny=!!autoSlot()||getSlots().some(Boolean);$('bCont').classList.toggle('pri',hasAny);$('bNew').classList.toggle('pri',!hasAny);
   $('title').hidden=false;
 }
-
-/* ================= debug ================= */
-function openDebug(){
-  if(S.mode==='play'){DBG.from='play';S.pause=true}else DBG.from='title';
-  $('pause').hidden=true;$('title').hidden=true;$('debug').hidden=false;syncDbg();
-}
-function closeDebug(started){$('debug').hidden=true;if(started)return;if(DBG.from==='play'&&S.mode==='play')$('pause').hidden=false;else if(S.mode==='title')$('title').hidden=false}
-function syncDbg(){[['dInv','inv'],['dBag','bag'],['dFreeze','freeze']].forEach(([id,k])=>{const b=$(id);b.setAttribute('aria-pressed',String(DBG[k]));b.classList.toggle('on',DBG[k]);b.querySelector('span').textContent=DBG[k]?'ON':'OFF'})}
-function dbgRun(){if(!run||run.seed===undefined)run={seed:Math.floor(Math.random()*1e9),day:1,total:0,overs:0,times:[]};DBG.active=true}
-function dbgPlay(){dbgRun();shopStop();if(S.mode!=='play'||S.over)beginDay();S.pause=false;$('pause').hidden=true;$('debug').hidden=true}
-function dbgChase(){if(!moms.some(m=>m.alien)){P.hasGame=true;house.objs.forEach(o=>{if(o.real)o.open=true});spawnAliens();S.chase=true;chaseStart();updHud(true)}}
-function dbgSample(){if(!run.total){run.total=318.4;run.overs=0}}
-const DACT={
-  transform(){dbgPlay();if(P.hasGame)return;const b=house.objs.find(o=>o.real);b.open=true;pickup(b)},
-  caught(){dbgPlay();dbgChase();caught(true)},
-  over(){dbgRun();closeDebug(true);if(S.mode!=='play'&&!house)house=genHouse(run.day,1);chaseStop();ambStop();showOver()},
-  clear(){dbgPlay();P.hasGame=true;escape(true)},
-  ending(){dbgRun();dbgSample();closeDebug(true);hideAll();$('hud').hidden=true;chaseStop();ambStop();shopStop();ending()},
-  final(){dbgRun();dbgSample();closeDebug(true);hideAll();$('hud').hidden=true;chaseStop();ambStop();shopStop();showFinal()},
-  warp(){dbgPlay();dbgChase();warpMom(moms.find(m=>m.alien))},
-  spot(){dbgPlay();if(P.hasGame)return;let m=moms.find(m=>!m.alien);if(!m){const sp=freeTileIn(house.rooms[house.room[P.lastTile]]||house.kids);m=newMom(sp[0],sp[1],false);moms.push(m)}spotted(m)},
-};
-(function(){
-  const dg=$('dDays');
-  for(let d=1;d<=8;d++){const b=document.createElement('button');b.type='button';b.className='dbtn';b.textContent='DAY '+d;
-    b.addEventListener('click',()=>{dbgRun();shopStop();chaseStop();closeDebug(true);startDayCard(d)});dg.appendChild(b)}
-  [['dInv','inv'],['dBag','bag'],['dFreeze','freeze']].forEach(([id,k])=>$(id).addEventListener('click',()=>{DBG[k]=!DBG[k];syncDbg();SFX.pick()}));
-  document.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',()=>{actx();DACT[b.dataset.act]()}));
-  $('dClose').addEventListener('click',()=>closeDebug(false));
-  $('bDebugP').addEventListener('click',()=>openDebug());
-  let lp=0;const logo=$('logo');
-  logo.addEventListener('pointerdown',()=>{clearTimeout(lp);lp=setTimeout(()=>{if(S.mode==='title'&&$('debug').hidden){SFX.pick();openDebug()}},700)});
-  ['pointerup','pointerleave','pointercancel'].forEach(e=>logo.addEventListener(e,()=>clearTimeout(lp)));
-  addEventListener('keydown',e=>{if(e.key==='`'&&(S.mode==='title'||S.mode==='play')&&!S.cut){$('debug').hidden?openDebug():closeDebug(false)}});
-})();
 
 /* ================= save / load (3 slots) ================= */
 const SLOT_KEY='uritobasare-slots-v1';
