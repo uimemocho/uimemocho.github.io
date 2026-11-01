@@ -181,6 +181,8 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
 .slot:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
 @media (hover:hover){.slot:not(:disabled):hover{border-color:var(--acc)}}
 #slClose{align-self:center;margin-top:6px}
+.slot.auto .no{color:var(--acc)}
+.slsep{font:700 12px var(--px);color:var(--dim);letter-spacing:.14em;margin:8px 0 -2px;padding-top:12px;border-top:1px solid rgba(239,234,255,.18)}
 @media (prefers-reduced-motion:reduce){#logo .pink{animation:none}#msgNext{animation:none}}
 </style>
 
@@ -212,9 +214,8 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
   <div id="title" class="ov">
     <h1 id="logo"><span>お母さんに</span><span>ゲーム</span><span class="pink">売り飛ばされた</span></h1>
     <div class="btns">
-      <button id="bCont" class="btn pri" type="button" hidden>つづきから</button>
       <button id="bNew" class="btn" type="button">はじめから</button>
-      <button id="bLoadT" class="btn" type="button">ロード</button>
+      <button id="bCont" class="btn" type="button">つづきから</button>
       <button id="bHow" class="btn" type="button">あそびかた</button>
     </div>
   </div>
@@ -902,7 +903,7 @@ const SET={pad:true,sound:true};
 const DBG={active:false,inv:false,bag:false,freeze:false,from:null};
 const SAVE_KEY='uritobasare-v1';
 function loadSave(){try{return JSON.parse(localStorage.getItem(SAVE_KEY))||{}}catch(e){return {}}}
-function writeSave(o,force){if(DBG.active&&!force)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(Object.assign(loadSave(),o)))}catch(e){}}
+function writeSave(o,force){if(DBG.active&&!force)return;if(o.run)o.run.at=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(Object.assign(loadSave(),o)))}catch(e){}}
 function saveSettings(){writeSave({set:{pad:SET.pad,sound:AU.on}},true)}
 (function(){const s=loadSave();if(s.set){SET.pad=s.set.pad!==false;AU.on=s.set.sound!==false}})();
 
@@ -1577,7 +1578,7 @@ $('bResume').onclick=()=>togglePause();
 $('bRestart').onclick=()=>{S.pause=false;beginDay()};
 $('bTitleP').onclick=()=>toTitle();
 $('bNew').onclick=()=>{actx();DBG.active=false;SFX.pick();run={seed:Math.floor(Math.random()*1e9),day:1,total:0,overs:0,times:[]};writeSave({run});startDayCard(1)};
-$('bCont').onclick=()=>{actx();DBG.active=false;SFX.pick();const s=loadSave();run=s.run;startDayCard(run.next||run.day)};
+$('bCont').onclick=()=>{actx();SFX.pick();openSlots('load',null,'title')};
 $('bHow').onclick=()=>{SFX.pick();$('how').hidden=false;$('title').hidden=true;$('bHowClose').focus()};
 $('bHowClose').onclick=()=>{$('how').hidden=true;$('title').hidden=false};
 $('dcGo').onclick=()=>{actx();SFX.pick();beginDay()};
@@ -1599,8 +1600,7 @@ function toTitle(){
   hideAll();$('hud').hidden=true;$('vig').style.opacity=0;
   house=genHouse(1,4242);moms=[];P.hasGame=false;P.hidden=null;run=run||{day:1,overs:0,total:0,times:[]};
   S.mode='title';S.pause=false;S.cut=false;
-  const s=loadSave();const b=$('bCont');
-  if(s.run&&!s.run.done&&(s.run.next||s.run.day)){b.hidden=false;b.textContent='つづきから　DAY '+(s.run.next||s.run.day)}else b.hidden=true;
+  const hasAny=!!autoSlot()||getSlots().some(Boolean);$('bCont').classList.toggle('pri',hasAny);$('bNew').classList.toggle('pri',!hasAny);
   $('title').hidden=false;
 }
 
@@ -1645,16 +1645,22 @@ function getSlots(){try{const a=JSON.parse(localStorage.getItem(SLOT_KEY));if(Ar
 function putSlots(a){try{localStorage.setItem(SLOT_KEY,JSON.stringify(a));return true}catch(e){return false}}
 const SL={mode:'save',data:null,back:null,warn:-1};
 function pad2(n){return (n<10?'0':'')+n}
-function slotLabel(v){const d=new Date(v.at);return {main:'DAY '+v.day+'　'+DAYS[v.day-1].wd,sub:'TIME '+fmt(v.total||0)+'　売られた '+(v.overs||0)+'回　'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes())}}
+function slotLabel(v){const d=v.at?new Date(v.at):null;return {main:'DAY '+v.day+'　'+DAYS[v.day-1].wd,sub:'TIME '+fmt(v.total||0)+'　売られた '+(v.overs||0)+'回'+(d?'　'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes()):'')}}
 function openSlots(mode,data,back){
   SL.mode=mode;SL.data=data;SL.back=back;SL.warn=-1;
   $('slTitle').textContent=mode==='save'?'SAVE':'LOAD';
-  $('slNote').textContent=mode==='save'?'DAY '+data.day+' のはじめから再開できます':'えらんだ日のはじめから再開します';
+  $('slNote').textContent=mode==='save'?'DAY '+data.day+' のはじめから再開できます':'えらんだ日のはじめから再開します';$('slTitle').textContent=mode==='save'?'SAVE':(back==='title'?'つづきから':'LOAD');$('slTitle').style.fontFamily=(mode==='load'&&back==='title')?'var(--jp)':'';
   ['title','pause','clear'].forEach(id=>$(id).hidden=true);$('slots').hidden=false;renderSlots();
   setTimeout(()=>{const b=document.querySelector('#slList .slot:not(:disabled)');(b||$('slClose')).focus()},30);
 }
+function autoSlot(){const r=loadSave().run;if(!r||r.done||r.seed===undefined)return null;const day=r.next||r.day;if(!day)return null;return {seed:r.seed,day,total:(r.times||[]).slice(0,day-1).reduce((a,b)=>a+(b||0),0),overs:r.overs||0,times:(r.times||[]).slice(0,day-1),at:r.at||null}}
 function renderSlots(){
   const list=$('slList'),sl=getSlots();list.innerHTML='';
+  if(SL.mode==='load'){const v=autoSlot();const b=document.createElement('button');b.type='button';b.className='slot auto'+(v?'':' empty');
+    b.innerHTML='<span class="no">AUTO</span><span class="main"></span><span class="sub"></span>';
+    const L=v?slotLabel(v):{main:'からっぽ',sub:''};b.querySelector('.main').textContent=L.main;b.querySelector('.sub').textContent=L.sub;
+    if(!v)b.disabled=true;b.addEventListener('click',()=>slotLoad(v));list.appendChild(b);
+    const sep=document.createElement('div');sep.className='slsep';sep.textContent='SAVE';list.appendChild(sep)}
   sl.forEach((v,i)=>{const b=document.createElement('button');b.type='button';b.className='slot'+(v?'':' empty')+(SL.warn===i?' warn':'');
     const L=v?slotLabel(v):{main:'からっぽ',sub:'　'};
     b.innerHTML='<span class="no">SLOT '+(i+1)+'</span><span class="main"></span><span class="sub"></span>';
@@ -1669,11 +1675,14 @@ function slotPick(i){
     sl[i]=Object.assign({},SL.data,{at:Date.now()});
     if(putSlots(sl)){SL.warn=-1;renderSlots();toastSlot('SLOT '+(i+1)+' にセーブしました')}else toastSlot('セーブできませんでした（ブラウザの保存領域が使えません）');
   }else{
-    const v=sl[i];if(!v)return;
+    slotLoad(sl[i]);
+  }
+}
+function slotLoad(v){
+    if(!v)return;SFX.pick();
     run={seed:v.seed,day:v.day,total:v.total||0,overs:v.overs||0,times:(v.times||[]).slice()};
     DBG.active=false;writeSave({run:Object.assign({},run,{next:v.day,done:false})});
     shopStop();chaseStop();ambStop();$('slots').hidden=true;S.pause=false;startDayCard(v.day);
-  }
 }
 function toastSlot(msg){$('slNote').textContent=msg}
 function closeSlots(){$('slots').hidden=true;if(SL.back)$(SL.back).hidden=false}
@@ -1681,7 +1690,6 @@ function snapshotRun(day){return {seed:run.seed,day,total:(run.times||[]).slice(
 $('bSaveP').addEventListener('click',()=>openSlots('save',snapshotRun(run.day),'pause'));
 $('bLoadP').addEventListener('click',()=>openSlots('load',null,'pause'));
 $('bSaveC').addEventListener('click',()=>openSlots('save',snapshotRun(Math.min(8,run.day+1)),'clear'));
-$('bLoadT').addEventListener('click',()=>{actx();openSlots('load',null,'title')});
 $('slClose').addEventListener('click',closeSlots);
 
 /* ================= loop ================= */
