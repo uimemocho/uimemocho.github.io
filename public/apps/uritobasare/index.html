@@ -539,7 +539,9 @@ function unlockTTS(){if(ttsUnlocked)return;ttsUnlocked=true;try{const u=new Spee
 function say(text,opt){try{const s=window.speechSynthesis;if(!s||!AU.on)return;s.cancel();if(!VOICE)pickVoice();const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';if(VOICE)u.voice=VOICE;u.rate=(opt&&opt.rate)||1;u.pitch=(opt&&opt.pitch)||1.1;u.volume=1;s.speak(u)}catch(e){}}
 function hush(){try{speechSynthesis.cancel()}catch(e){}}
 const KANA={'つ':['ts','u'],'ば':['b','a'],'さ':['s','a'],'こ':['k','o'],'れ':['r','e'],'な':['n','a'],'に':['n','i']};
-const VFORM={u:[[320,1],[850,.55],[2300,.2]],a:[[780,1],[1250,.7],[2600,.25]],i:[[300,1],[2200,.6],[3000,.3]],e:[[500,1],[1800,.6],[2500,.3]],o:[[520,1],[880,.65],[2400,.2]]};
+const VFORM={u:[[340,1],[1300,.6],[2400,.22]],a:[[780,1],[1250,.7],[2600,.25]],i:[[300,1],[2250,.6],[3000,.3]],e:[[480,1],[1900,.62],[2550,.3]],o:[[500,1],[860,.65],[2400,.2]]};
+// formant start points for consonant transitions
+const CFROM={b:[.75,.7],n:[.8,.85],r:[.6,.68],k:[1,1.15],s:[1,1.05],ts:[1,1.1]};
 function alienSpeak(text,step,dur){
   const c=actx();if(!c||!AU.on)return;step=step||.56;dur=dur||.36;const t0=c.currentTime+.05;
   const chars=[...text];const total=chars.length*step+1;
@@ -551,17 +553,22 @@ function alienSpeak(text,step,dur){
   let t=t0;const q=text.endsWith('？');const n=chars.filter(ch=>KANA[ch]).length;let k=0;
   for(const ch of chars){
     const sy=KANA[ch];if(!sy){t+=ch==='、'?step*.8:0;continue}
-    const [cons,vow]=sy,vs=t+(cons==='b'||cons==='n'||cons==='r'?.03:.08);
-    if(cons==='b')osc('sine',110,t,.06,.35,60);
-    else if(cons==='n')osc('sine',190,t,.07,.25,160);
-    else if(cons==='r')osc('triangle',260,t,.03,.2,200);
-    else if(cons==='k')nz(t,.035,.45,2200,'bandpass',2);
-    else nz(t,cons==='s'?.1:.06,cons==='s'?.32:.42,cons==='s'?6200:4200,'highpass');
+    const [cons,vow]=sy;let vs=t;
+    if(cons==='b'){osc('sine',110,t,.05,.35,60);vs=t+.035}
+    else if(cons==='n'){osc('sine',210,t,.075,.3,180);osc('sine',420,t,.06,.08,380);vs=t+.06}
+    else if(cons==='r'){vs=t}
+    else if(cons==='k'){nz(t,.025,.5,1900,'bandpass',3);vs=t+.045}
+    else if(cons==='ts'){nz(t,.008,.9,3500,'highpass');nz(t+.012,.075,.45,5200,'bandpass',1.2);vs=t+.09}
+    else{nz(t,.11,.32,6200,'highpass');vs=t+.1}
     const last=k===n-1;const f0=78-k*3;
     const src=c.createOscillator();src.type='sawtooth';src.frequency.setValueAtTime(f0*1.1,vs);src.frequency.exponentialRampToValueAtTime(last&&q?f0*1.6:f0*.84,vs+dur);
     const sub=c.createOscillator();sub.type='square';sub.frequency.setValueAtTime(f0*.5,vs);const sg=c.createGain();sg.gain.value=.25;sub.connect(sg);
-    const env=c.createGain();env.gain.setValueAtTime(0,vs);env.gain.linearRampToValueAtTime(1,vs+.03);env.gain.setValueAtTime(1,vs+dur-.07);env.gain.linearRampToValueAtTime(0,vs+dur);
-    for(const [fq,amp] of VFORM[vow]){const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=fq;bp.Q.value=9;const g=c.createGain();g.gain.value=amp*.9;src.connect(bp);sg.connect(bp);bp.connect(g).connect(env)}
+    const env=c.createGain();env.gain.setValueAtTime(0,vs);
+    if(cons==='r'){env.gain.linearRampToValueAtTime(.7,vs+.012);env.gain.linearRampToValueAtTime(.08,vs+.032);env.gain.linearRampToValueAtTime(1,vs+.06)}
+    else env.gain.linearRampToValueAtTime(1,vs+.03);
+    env.gain.setValueAtTime(1,vs+dur-.07);env.gain.linearRampToValueAtTime(0,vs+dur);
+    const cf=CFROM[cons]||[1,1];
+    for(const [fq,amp,] of VFORM[vow]){const bp=c.createBiquadFilter();bp.type='bandpass';const ii=VFORM[vow].findIndex(v=>v[0]===fq);const st=ii===0?cf[0]:ii===1?cf[1]:1;bp.frequency.setValueAtTime(fq*st,vs);bp.frequency.linearRampToValueAtTime(fq,vs+(cons==='r'?.07:.05));bp.Q.value=9;const g=c.createGain();g.gain.value=amp*.9;src.connect(bp);sg.connect(bp);bp.connect(g).connect(env)}
     env.connect(ring);env.connect(dry);
     src.start(vs);src.stop(vs+dur+.05);sub.start(vs);sub.stop(vs+dur+.05);
     t+=step;k++;
