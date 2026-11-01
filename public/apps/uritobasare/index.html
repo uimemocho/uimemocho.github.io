@@ -53,13 +53,13 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
 .hud-l{display:flex;flex-direction:column;gap:4px;min-width:0}
 #hDay{font-size:16px;color:var(--ice)}
 #hDay b{color:var(--line);font-weight:400}
-#hObj{font-size:16px;line-height:1.3}
+#hObj{font-size:16px;line-height:1.3;white-space:nowrap}
 #hObj.chase{color:var(--acc)}
 .hud-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 #hTime{font-size:16px;font-variant-numeric:tabular-nums}
 .hud-btns{display:flex;gap:6px;pointer-events:auto}
 .mini{font:12px/1 var(--px);letter-spacing:.06em;color:var(--line);background:rgba(12,10,20,.75);border:2px solid var(--line);padding:6px 7px;cursor:pointer}
-.mini.off{color:var(--dim);border-color:var(--dim)}
+.mini.off{color:var(--dim);border-color:var(--dim);text-decoration:line-through}
 .mini:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #mapName{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 74px);transform:translateX(-50%);padding:6px 16px;font-size:16px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 #mapName.on{opacity:1}
@@ -1514,7 +1514,7 @@ function render(tm){
       G.save();G.translate(Math.round(ix),Math.round(iy));G.rotate(ang);G.fillStyle='#ffd23f';G.beginPath();G.moveTo(7,0);G.lineTo(-4,-5);G.lineTo(-4,5);G.closePath();G.fill();G.restore();
       G.font='8px "Silkscreen",monospace';G.textAlign='center';G.fillStyle='#ffd23f';G.fillText('EXIT',Math.round(ix),Math.round(iy)+(iy>VH/2?-9:15))}}
   // hide peek
-  if(P.hidden){const py=Math.round((P.y-.6)*TS-cy);G.fillStyle='rgba(0,0,0,.58)';G.fillRect(0,0,VW,py-12);G.fillRect(0,py+10,VW,VH-py-10);G.fillStyle='rgba(0,0,0,.18)';G.fillRect(0,py-12,VW,22);G.fillStyle='rgba(0,0,0,.3)';for(let y=py-12;y<py+10;y+=4)G.fillRect(0,y,VW,1)}
+  if(P.hidden){const py=Math.round((P.y-.6)*TS-cy);G.fillStyle='rgba(0,0,0,.86)';G.fillRect(0,0,VW,py-12);G.fillRect(0,py+10,VW,VH-py-10);G.fillStyle='rgba(0,0,0,.35)';G.fillRect(0,py-12,VW,22);G.fillStyle='rgba(0,0,0,.3)';for(let y=py-12;y<py+10;y+=4)G.fillRect(0,y,VW,1)}
 }
 
 /* ================= input ================= */
@@ -1539,7 +1539,7 @@ addEventListener('blur',()=>{IN.keys={}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='play'&&!S.pause&&!S.cut)togglePause()});
 
 function togglePause(){S.pause=!S.pause;$('pause').hidden=!S.pause;if(S.pause)setTimeout(()=>$('bResume').focus(),30)}
-function setPad(on){SET.pad=on;$('bPad').classList.toggle('off',!on);$('bPad').textContent=on?'PAD':'PAD OFF';saveSettings()}
+function setPad(on){SET.pad=on;$('bPad').classList.toggle('off',!on);$('bPad').textContent='PAD';$('bPad').setAttribute('aria-pressed',String(on));saveSettings()}
 $('bPad').onclick=()=>{setPad(!SET.pad);SFX.pick()};
 $('bSnd').onclick=()=>{actx();setSound(!AU.on);SFX.pick()};
 $('bMenu').onclick=()=>{if(!S.cut&&!MSG)togglePause()};
