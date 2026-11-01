@@ -132,7 +132,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
 .r-stats span{font-variant-numeric:tabular-nums}
 .r-title{display:flex;flex-direction:column;align-items:center;gap:6px;line-height:1.3;text-shadow:3px 3px 0 #000}
 .r-title span:first-child{font-size:clamp(18px,5vw,24px)}
-.r-title span:last-child{font-size:clamp(28px,8.5vw,42px);color:var(--ice)}
+.r-title span:last-child{font-size:clamp(24px,7.4vw,40px);color:var(--ice)}
 #final .res{gap:20px}
 #over,#clear,#final{background:rgba(11,9,16,.9)}
 .r-stats{gap:32px}
@@ -296,7 +296,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
 
   <div id="final" class="ov" hidden>
     <div class="res">
-      <div class="r-title"><span>お母さんから</span><span>ゲーム奪い返した</span></div>
+      <div class="r-title"><span>お母さんから</span><span>ゲームを取りかえした！</span></div>
       <div id="fRank">S</div>
       <div id="fTitle"></div>
       <div class="r-stats">
@@ -1288,7 +1288,7 @@ async function makeShareImage(kind){
   g.textAlign='center';g.textBaseline='alphabetic';
   const JP='"DotGothic16",sans-serif',PX='"Silkscreen",monospace';
   if(kind==='over'){T('お母さんにゲーム',540,108,'60px '+JP,'#efeaff');T('売り飛ばされた',540,204,'84px '+JP,'#ffd23f')}
-  else{T('お母さんから',540,108,'60px '+JP,'#efeaff');T('ゲーム奪い返した',540,204,'84px '+JP,'#9fd8f0')}
+  else{T('お母さんから',540,108,'60px '+JP,'#efeaff');T('ゲームを取りかえした！',540,204,'78px '+JP,'#9fd8f0')}
   // scene 800x600 at (140,250)
   g.drawImage(sc,140,250,800,600);g.strokeStyle='#efeaff';g.lineWidth=6;g.strokeRect(137,247,806,606);
   if(kind==='over'){
@@ -1310,7 +1310,7 @@ async function makeShareImage(kind){
 }
 function shareText(kind){
   if(kind==='over')return 'DAY'+run.day+'でお母さんに捕まって、ゲームを中古¥3,000で売り飛ばされた……\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
-  const [r,ti]=rankOf();return 'お母さんからゲームを奪い返した！\nランク'+r+'「'+ti+'」\nTIME '+fmt(run.total)+'／売られた回数 '+run.overs+'\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
+  const [r,ti]=rankOf();return 'お母さんからゲームを取りかえした！\nランク'+r+'「'+ti+'」\nTIME '+fmt(run.total)+'／売られた回数 '+run.overs+'\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
 }
 /* share: pre-render on result screens so the share sheet opens inside the tap (keeps the image attached) */
 const SHR={kind:null,cvs:null,file:null,text:''};
