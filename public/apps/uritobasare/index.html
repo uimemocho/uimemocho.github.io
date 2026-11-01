@@ -53,7 +53,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
 .hud-l{display:flex;flex-direction:column;gap:4px;min-width:0}
 #hDay{font-size:16px;color:var(--ice)}
 #hDay b{color:var(--line);font-weight:400}
-#hObj{font-size:16px;line-height:1.3;white-space:nowrap}
+#hObj{font-size:16px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 #hObj.chase{color:var(--acc)}
 .hud-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 #hTime{font-size:16px;font-variant-numeric:tabular-nums}
@@ -183,6 +183,14 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
 #slClose{align-self:center;margin-top:6px}
 .slot.auto .no{color:var(--acc)}
 .slsep{font:700 12px var(--px);color:var(--dim);letter-spacing:.14em;margin:8px 0 -2px;padding-top:12px;border-top:1px solid rgba(239,234,255,.18)}
+#langPop{background:rgba(11,9,16,.86);z-index:30}
+.lpbox{width:min(320px,100%);padding:22px 20px;display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.lpbox h2{margin:0;text-align:center;font-size:18px;font-weight:400;letter-spacing:.12em;color:var(--acc)}
+#lpList{display:flex;flex-direction:column;gap:10px}
+#lpList .btn{min-width:0;width:100%;letter-spacing:.04em;text-indent:0}
+#lpList .btn.cur{background:var(--line);color:var(--ink)}
+#lpClose{min-width:0;width:100%}
+.langbtn{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:max(14px,env(safe-area-inset-right,0px));font-family:var(--jp);font-size:13px;letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){#logo .pink{animation:none}#msgNext{animation:none}}
 </style>
 
@@ -212,6 +220,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
   <div id="flash"></div>
 
   <div id="title" class="ov">
+    <button id="bLangT" class="mini langbtn" type="button">言語</button>
     <h1 id="logo"><span>お母さんに</span><span>ゲーム</span><span class="pink">売り飛ばされた</span></h1>
     <div class="btns">
       <button id="bNew" class="btn" type="button">はじめから</button>
@@ -288,6 +297,14 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
     <div id="ccText"></div>
   </div>
 
+  <div id="langPop" class="ov" hidden>
+    <div class="lpbox pnl">
+      <h2 id="lpTitle">言語</h2>
+      <div id="lpList"></div>
+      <button id="lpClose" class="btn" type="button">とじる</button>
+    </div>
+  </div>
+
   <div id="slots" class="ov" hidden>
     <div class="slotbox">
       <h2 id="slTitle">SAVE</h2>
@@ -305,7 +322,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
       <div id="fRank">S</div>
       <div id="fTitle"></div>
       <div class="r-stats">
-        <div><small>DAYS</small><span>8日間</span></div>
+        <div><small>DAYS</small><span id="fDays">8日間</span></div>
         <div><small>TIME</small><span id="fTime">0:00.00</span></div>
         <div><small>SOLD</small><span id="fOvers">0</span></div>
       </div>
@@ -323,6 +340,7 @@ body{font-family:var(--jp);-webkit-user-select:none;user-select:none;-webkit-tou
       <button id="bSaveP" class="btn" type="button">セーブ</button>
       <button id="bLoadP" class="btn" type="button">ロード</button>
       <button id="bRestart" class="btn" type="button">この日をやりなおす</button>
+      <button id="bLangP" class="btn" type="button">言語</button>
       <button id="bTitleP" class="btn" type="button">タイトルへ</button>
     </div>
   </div>
@@ -351,6 +369,202 @@ const pick=(R,a)=>a[Math.floor(R()*a.length)];
 function shuffle(R,a){for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const fmt=s=>{const m=Math.floor(s/60),r=s-m*60;return m+':'+(r<10?'0':'')+r.toFixed(2)};
 const GAME_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:'https://uimemocho.github.io/apps/uritobasare/';
+/* ================= i18n ================= */
+const LANGS=[['ja','日本語'],['en','English'],['zh','简体中文'],['ko','한국어'],['fr','Français']];
+const FONTS={
+  ja:'"DotGothic16","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif',
+  en:'"DotGothic16","Noto Sans",system-ui,sans-serif',
+  fr:'"DotGothic16","Noto Sans",system-ui,sans-serif',
+  zh:'"PingFang SC","Noto Sans SC","Microsoft YaHei","Hiragino Sans GB",sans-serif',
+  ko:'"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif'};
+const I18N={
+ja:{
+  logo:[['お母さんに',0],['ゲーム',0],['売り飛ばされた',1]],
+  new:'はじめから',cont:'つづきから',how:'あそびかた',close:'とじる',lang:'言語',langTitle:'言語',
+  howP:['<b>ドラッグ</b>で移動。<br>画面のどこからでも動かせる。','<b>タップ</b>で目の前のものを調べる。<br>米袋・タンス・押し入れ。','米袋からゲームを見つけると、<br>お母さんがあらわれる。','<b>玄関</b>から外に出られたら、<br>その日はセーフ。','つかまると、<br>ゲームは中古で売られる。','スティックは右上の PAD で<br>表示・非表示を切りかえ。'],
+  dcGo:'家に入る',retry:'もう一回',share:'Xでシェア',toTitle:'タイトルへ',next:'翌日へ',save:'セーブ',load:'ロード',back:'もどる',
+  resume:'つづける',restart:'この日をやりなおす',debug:'デバッグ',openX:'Xの投稿画面をひらく',copyPost:'投稿文をコピー',copied:'コピーしました',copyFail:'コピーできませんでした。手動で選択してください。',shareAlt:'シェア用の結果画像',
+  used:'中古',winT:['お母さんから','ゲームを取りかえした！'],days8:'8日間',times:n=>n+'回',
+  days:[
+    {wd:'月曜日',sub:'はじまり',line:'「ゲームは隠したからね。<br>宿題が終わるまで。」',hint:'ドラッグで移動、タップで調べる。<br>米袋からゲームを取りかえして、<br>玄関から逃げろ。'},
+    {wd:'火曜日',sub:'ハズレ',line:'「米袋、ふやしておいたから。」',hint:'米袋はひとつじゃない。<br>中身はお米だけのことも。'},
+    {wd:'水曜日',sub:'停電',line:'「今日は、電気がつかないかもね。」',hint:'ゲームを取ると、家の電気が消える。'},
+    {wd:'木曜日',sub:'押し入れ',line:'「隠れても、ちゃんとわかるよ。」',hint:'押し入れをタップすると隠れられる。<br>見られている前で隠れると、バレる。'},
+    {wd:'金曜日',sub:'チェーン',line:'「玄関のカギ、どこにしまったっけ。」',hint:'お母さんが来ると、玄関にチェーンがかかる。<br>タンスからカギを探せ。'},
+    {wd:'土曜日',sub:'見張り',line:'「今日はお母さん、<br>ずっと家にいるからね。」',hint:'お母さんが家を見回っている。<br>見つかると、部屋に戻される。'},
+    {wd:'日曜日',sub:'ギシギシ',line:'「床が、鳴いてるよ。」',hint:'傷んだ床を踏むと、音でお母さんが来る。<br>お母さんは、壁の向こうにもあらわれる。'},
+    {wd:'月曜日',sub:'ふたり',line:'「つばさ。<br>お母さん、もうひとりいるの。」',hint:'これまでの、ぜんぶ。'}],
+  rooms:{genkan:'玄関',kitchen:'台所',living:'居間',washitsu:'和室',bedroom:'寝室',kids:'つばさの部屋',bath:'風呂場',toilet:'トイレ',storage:'物置',hall:'廊下',study:'書斎'},
+  flav:{fridge:['冷蔵庫にメモ。「ゲームは1日1時間」','冷蔵庫の中は、お米でいっぱいだった。','メモ。「つばさの好きなハンバーグ」'],sink:['水が一滴ずつ落ちている。'],stove:['鍋の中は、空っぽ。'],table:['テーブルにテストの答案。……見なかったことにした。','お皿がふたつ。ひとつは、つばさの。'],tv:['テレビ。何も映っていない。','テレビ。ザーーーー……砂嵐。'],sofa:['ソファの下には、何もない。'],shelf:['マンガがならんでいる。','攻略本がない。これも隠された。'],phone:['電話。受話器が外れている。'],closet:['押し入れ。布団が詰まっていて入れない。'],kotatsu:['こたつ。まだ、あたたかい。'],tansu:['服がたたんである。','つばさの靴下が入っている。'],bed:['布団。'],desk:['漢字ドリル。まだ真っ白だ。'],desk2:['お母さんの家計簿。「ゲーム　¥3,000」……？'],tub:['お湯が張ってある。冷たい。'],washer:['洗濯機がまわっている。'],toilet:['だれもいない。'],boxes:['段ボール。「つばさ　おもちゃ」'],plant:['観葉植物。土が新しい。'],shoes:['お母さんの靴が、ない。']},
+  bagMiss:['お米しか入っていない。','お米。ずっしり重い。','お米だけ。……なんでこんなに米袋が？'],bagEmpty:'空っぽの米袋。お米がこぼれている。',memoMiss:'中にメモ。「ハズレ」',
+  seen:'ここは見た。',keyFound:'<b style="color:#9fd8f0">玄関のカギ</b>を見つけた！',noKey:'カギはない。',shoesHere:'お母さんの靴が、ある。',
+  gotGame:'ゲームを取りかえした！',chain:'玄関にチェーンがかかった！',chainLocked:'チェーンがかかっている！<br>タンスからカギを探せ。',notYet:'まだゲームを取りかえしてない。',creak:'ギシッ',
+  spotted:['「つばさ？　宿題は終わったの？」','……部屋に戻された。'],plus10:'+10秒',
+  tsuQ:'……つばさ？',alienName:'ツ　バ　サ',caughtLine:'「つばさ、これ何？」',yay:'やったー！',
+  overLine:d=>'DAY '+d+' でつかまった。<br>ゲームは<b>中古</b>で売られた。',
+  ranks:['我々は宇宙人','地球の少年','米袋の目利き','玄関ダッシュ名人','ゲームは1日1時間','宿題は終わった？','中古で買い戻し','¥3,000'],
+  ending:['9日目の朝。','米袋の中には、お米しか入っていなかった。','「つばさ、ごはんよ」','いつもの、お母さんの声だった。','……たぶん。'],
+  objFind:n=>'米袋をさがせ　のこり'+n,objKey:'タンスからカギをさがせ',objRun:'玄関から逃げろ！',
+  hintHide:'息をひそめている　<b>タップ</b>で出る',hintBusy:'ゴソゴソ……',hintHideIn:'<b>タップ</b>　押し入れに隠れる',hintCheck:nm=>'<b>タップ</b>　'+nm+'を調べる',
+  names:{bag:'米袋',tansu:'タンス',closet:'押し入れ',fridge:'冷蔵庫',tv:'テレビ',desk:'机',desk2:'机',shelf:'本棚',phone:'電話',kotatsu:'こたつ',bed:'布団',sofa:'ソファ',sink:'流し',stove:'コンロ',table:'テーブル',tub:'お風呂',washer:'洗濯機',toilet:'トイレ',boxes:'段ボール',plant:'植物',shoes:'靴箱'},
+  slSaveNote:d=>'DAY '+d+' のはじめから再開できます',slLoadNote:'えらんだ日のはじめから再開します',slEmpty:'からっぽ',slOver:'上書きする？ もう一度タップ',slSaved:i=>'SLOT '+i+' にセーブしました',slFail:'セーブできませんでした（ブラウザの保存領域が使えません）',slSub:(tt,o)=>'TIME '+tt+'　売られた '+o+'回',
+  img:{overT:['お母さんにゲーム','売り飛ばされた'],clearT:d=>['DAY '+d+' ／ 8','玄関から逃げきった！'],overLine:d=>'DAY '+d+' で捕まって、中古で売られた',clearLine:r=>r>0?'のこり '+r+'日。お母さんは、まだあきらめない。':'8日間、逃げきった。',fan:'非公式ファンゲーム'},
+  post:{clear:(d,tt,r)=>'DAY'+d+'、お母さんからゲームを取りかえして玄関から逃げきった！\nTIME '+tt+'（のこり'+r+'日）',over:d=>'DAY'+d+'でお母さんに捕まって、ゲームを中古¥3,000で売り飛ばされた……',fin:(r,ti,tt,o)=>'お母さんからゲームを取りかえした！\nランク'+r+'「'+ti+'」\nTIME '+tt+'／売られた回数 '+o,title:'『お母さんにゲーム売り飛ばされた』'},
+  q:['「','」']},
+en:{
+  logo:[['My mom',0],['SOLD',1],['my game',0]],
+  new:'New Game',cont:'Continue',how:'How to Play',close:'Close',lang:'Language',langTitle:'Language',
+  howP:['<b>Drag</b> anywhere to move.','<b>Tap</b> to search what is in front of you: rice bags, dressers, closets.','Find the game in a rice bag and Mom will appear.','Get out through the <b>front door</b> and you are safe for the day.','If she catches you, your game gets sold to a used shop.','Show or hide the stick with PAD in the top right.'],
+  dcGo:'Go inside',retry:'Try Again',share:'Share on X',toTitle:'Title',next:'Next Day',save:'Save',load:'Load',back:'Back',
+  resume:'Resume',restart:'Restart Day',debug:'Debug',openX:'Open X post',copyPost:'Copy text',copied:'Copied',copyFail:'Could not copy. Please select it manually.',shareAlt:'Result image for sharing',
+  used:'USED',winT:['From Mom,','I took my game back!'],days8:'8 days',times:n=>n+'x',
+  days:[
+    {wd:'Monday',sub:'The Start',line:'"I hid your game.<br>Not until your homework is done."',hint:'Drag to move, tap to search.<br>Take your game back from the rice bag<br>and escape through the front door.'},
+    {wd:'Tuesday',sub:'Decoys',line:'"I bought a few more rice bags."',hint:'There is more than one rice bag.<br>Some only have rice in them.'},
+    {wd:'Wednesday',sub:'Blackout',line:'"The lights might not work today."',hint:'Once you take the game, the lights go out.'},
+    {wd:'Thursday',sub:'Closets',line:'"Even if you hide, I will know."',hint:'Tap a closet to hide.<br>Hide while she is watching, and she will know.'},
+    {wd:'Friday',sub:'The Chain',line:'"Now where did I put the door key?"',hint:'When Mom comes, the front door gets chained.<br>Find the key in a dresser.'},
+    {wd:'Saturday',sub:'On Patrol',line:'"Mom is staying home<br>all day today."',hint:'Mom is walking around the house.<br>If she sees you, back to your room.'},
+    {wd:'Sunday',sub:'Creaks',line:'"The floor is crying."',hint:'Step on a worn board and Mom will hear it.<br>She can appear behind walls, too.'},
+    {wd:'Monday',sub:'Two',line:'"Tsubasa.<br>There is another Mom."',hint:'Everything, all at once.'}],
+  rooms:{genkan:'Entrance',kitchen:'Kitchen',living:'Living Room',washitsu:'Tatami Room',bedroom:'Bedroom',kids:'Tsubasa\'s Room',bath:'Bathroom',toilet:'Toilet',storage:'Storage',hall:'Hallway',study:'Study'},
+  flav:{fridge:['A note on the fridge: "Games: 1 hour a day."','The fridge is full of rice.','A note: "Tsubasa\'s favorite: hamburg steak."'],sink:['Water drips, one drop at a time.'],stove:['The pot is empty.'],table:['A test paper on the table... Better not look.','Two plates. One is Tsubasa\'s.'],tv:['The TV. Nothing on.','The TV. Shhhhhh... static.'],sofa:['Nothing under the sofa.'],shelf:['A row of manga.','The strategy guide is gone. Hidden too.'],phone:['The phone. It is off the hook.'],closet:['A closet, stuffed with futons. No room.'],kotatsu:['The kotatsu. Still warm.'],tansu:['Folded clothes.','Tsubasa\'s socks.'],bed:['A futon.'],desk:['Kanji homework. Still blank.'],desk2:['Mom\'s budget book: "Game ¥3,000"...?'],tub:['The bath is full. It is cold.'],washer:['The washing machine is running.'],toilet:['Nobody here.'],boxes:['A box: "Tsubasa - toys".'],plant:['A houseplant. The soil is fresh.'],shoes:['Mom\'s shoes are gone.']},
+  bagMiss:['Only rice inside.','Rice. Very heavy.','Just rice... Why so many rice bags?'],bagEmpty:'An empty rice bag. Rice is spilling out.',memoMiss:'A note inside: "Wrong one."',
+  seen:'Already checked.',keyFound:'Found the <b style="color:#9fd8f0">door key</b>!',noKey:'No key here.',shoesHere:'Mom\'s shoes are here.',
+  gotGame:'Got the game back!',chain:'The front door is chained!',chainLocked:'It\'s chained!<br>Find the key in a dresser.',notYet:'You haven\'t got your game back yet.',creak:'Creak',
+  spotted:['"Tsubasa? Is your homework done?"','...Sent back to your room.'],plus10:'+10 sec',
+  tsuQ:'...Tsubasa?',alienName:'TSU · BA · SA',caughtLine:'"Tsubasa, what is this?"',yay:'YES!',
+  overLine:d=>'Caught on DAY '+d+'.<br>Your game was sold <b>used</b>.',
+  ranks:['We Are Aliens','Earth Kid','Rice Bag Expert','Front Door Sprinter','One Hour a Day','Homework Done?','Bought It Back Used','¥3,000'],
+  ending:['The morning of day 9.','The rice bag held nothing but rice.','"Tsubasa, breakfast!"','It was Mom\'s usual voice.','...Probably.'],
+  objFind:n=>'Rice bags: '+n+' left',objKey:'Find the key in a dresser',objRun:'Run for the front door!',
+  hintHide:'Holding your breath. <b>Tap</b> to come out',hintBusy:'Rummaging...',hintHideIn:'<b>Tap</b> Hide in the closet',hintCheck:nm=>'<b>Tap</b> Check the '+nm,
+  names:{bag:'rice bag',tansu:'dresser',closet:'closet',fridge:'fridge',tv:'TV',desk:'desk',desk2:'desk',shelf:'bookshelf',phone:'phone',kotatsu:'kotatsu',bed:'futon',sofa:'sofa',sink:'sink',stove:'stove',table:'table',tub:'bathtub',washer:'washer',toilet:'toilet',boxes:'boxes',plant:'plant',shoes:'shoe rack'},
+  slSaveNote:d=>'You will restart from the start of DAY '+d,slLoadNote:'Restart from the start of the chosen day',slEmpty:'Empty',slOver:'Overwrite? Tap again',slSaved:i=>'Saved to SLOT '+i,slFail:'Could not save (browser storage is unavailable)',slSub:(tt,o)=>'TIME '+tt+'  Sold '+o+'x',
+  img:{overT:['My mom','SOLD my game'],clearT:d=>['DAY '+d+' / 8','Escaped through the door!'],overLine:d=>'Caught on DAY '+d+'. Sold used.',clearLine:r=>r>0?r+' days left. Mom won\'t give up.':'Escaped for all 8 days.',fan:'Unofficial fan game'},
+  post:{clear:(d,tt,r)=>'DAY '+d+': took my game back from Mom and escaped through the front door!\nTIME '+tt+' ('+r+' days left)',over:d=>'Caught by Mom on DAY '+d+'... my game got sold used for ¥3,000.',fin:(r,ti,tt,o)=>'Took my game back from Mom!\nRank '+r+' "'+ti+'"\nTIME '+tt+' / Sold '+o+'x',title:'"My Mom Sold My Game"'},
+  q:['"','"']},
+zh:{
+  logo:[['妈妈把',0],['我的游戏',0],['卖掉了',1]],
+  new:'新游戏',cont:'继续游戏',how:'玩法说明',close:'关闭',lang:'语言',langTitle:'语言',
+  howP:['<b>拖动</b>屏幕任意位置即可移动。','<b>点击</b>调查面前的东西：米袋、柜子、壁橱。','从米袋里找到游戏机后，妈妈就会出现。','从<b>玄关</b>逃到外面，这一天就安全了。','被抓住的话，游戏机会被卖到二手店。','右上角的 PAD 可以显示或隐藏摇杆。'],
+  dcGo:'进屋',retry:'再来一次',share:'分享到 X',toTitle:'返回标题',next:'下一天',save:'存档',load:'读档',back:'返回',
+  resume:'继续',restart:'重玩这一天',debug:'调试',openX:'打开 X 发帖',copyPost:'复制文案',copied:'已复制',copyFail:'无法复制，请手动选择。',shareAlt:'分享用结果图片',
+  used:'二手',winT:['从妈妈手里','把游戏抢回来了！'],days8:'8天',times:n=>n+'次',
+  days:[
+    {wd:'星期一',sub:'开始',line:'“游戏机我藏起来了。<br>作业写完之前不许玩。”',hint:'拖动移动，点击调查。<br>从米袋里拿回游戏机，<br>从玄关逃出去。'},
+    {wd:'星期二',sub:'假米袋',line:'“米袋我多买了几个。”',hint:'米袋不止一个。<br>有的里面只有米。'},
+    {wd:'星期三',sub:'停电',line:'“今天可能会停电哦。”',hint:'拿到游戏机后，家里会停电。'},
+    {wd:'星期四',sub:'壁橱',line:'“就算躲起来，我也知道。”',hint:'点击壁橱可以躲进去。<br>当着她的面躲，会被发现。'},
+    {wd:'星期五',sub:'门链',line:'“玄关的钥匙放哪儿了呢。”',hint:'妈妈出现后，玄关会挂上门链。<br>去柜子里找钥匙。'},
+    {wd:'星期六',sub:'巡逻',line:'“今天妈妈<br>一整天都在家哦。”',hint:'妈妈在家里巡逻。<br>被发现就会被送回房间。'},
+    {wd:'星期日',sub:'吱呀',line:'“地板在哭呢。”',hint:'踩到旧地板，妈妈会听见声音赶来。<br>她还会出现在墙的另一边。'},
+    {wd:'星期一',sub:'两个',line:'“翼。<br>还有另一个妈妈哦。”',hint:'之前的一切，全部来了。'}],
+  rooms:{genkan:'玄关',kitchen:'厨房',living:'客厅',washitsu:'和室',bedroom:'卧室',kids:'翼的房间',bath:'浴室',toilet:'厕所',storage:'储物间',hall:'走廊',study:'书房'},
+  flav:{fridge:['冰箱上的便条：“游戏一天一小时”','冰箱里塞满了米。','便条：“翼最爱吃的汉堡肉”'],sink:['水一滴一滴地落下。'],stove:['锅里是空的。'],table:['桌上有张考卷……还是当没看见吧。','两个盘子。其中一个是翼的。'],tv:['电视。什么也没播。','电视。沙沙沙……全是雪花。'],sofa:['沙发底下什么也没有。'],shelf:['摆着一排漫画。','攻略本不见了。也被藏起来了。'],phone:['电话。听筒没挂好。'],closet:['壁橱。塞满了被褥，进不去。'],kotatsu:['被炉。还是暖的。'],tansu:['叠好的衣服。','里面是翼的袜子。'],bed:['被褥。'],desk:['汉字练习本。还是一片空白。'],desk2:['妈妈的记账本：“游戏 ¥3,000”……？'],tub:['浴缸放满了水。是凉的。'],washer:['洗衣机在转。'],toilet:['没有人。'],boxes:['纸箱：“翼 玩具”'],plant:['盆栽。土是新换的。'],shoes:['妈妈的鞋，不见了。']},
+  bagMiss:['里面只有米。','米。沉甸甸的。','只有米……为什么有这么多米袋？'],bagEmpty:'空米袋。米撒了出来。',memoMiss:'里面有张便条：“猜错了”',
+  seen:'这里看过了。',keyFound:'找到了<b style="color:#9fd8f0">玄关钥匙</b>！',noKey:'没有钥匙。',shoesHere:'妈妈的鞋，在这里。',
+  gotGame:'把游戏机拿回来了！',chain:'玄关挂上了门链！',chainLocked:'挂着门链！<br>去柜子里找钥匙。',notYet:'还没拿回游戏机。',creak:'吱呀',
+  spotted:['“翼？作业写完了吗？”','……被送回了房间。'],plus10:'+10秒',
+  tsuQ:'……翼？',alienName:'翼——',caughtLine:'“翼，这是什么？”',yay:'太好了！',
+  overLine:d=>'第 '+d+' 天被抓住了。<br>游戏机被当成<b>二手</b>卖掉了。',
+  ranks:['我们是外星人','地球少年','米袋鉴定师','玄关冲刺王','游戏一天一小时','作业写完了吗？','二手买回来了','¥3,000'],
+  ending:['第9天的早上。','米袋里，只有米。','“翼，吃饭了。”','是妈妈平常的声音。','……大概吧。'],
+  objFind:n=>'寻找米袋 剩'+n+'个',objKey:'去柜子里找钥匙',objRun:'快从玄关逃出去！',
+  hintHide:'屏住呼吸　<b>点击</b>出来',hintBusy:'翻找中……',hintHideIn:'<b>点击</b>　躲进壁橱',hintCheck:nm=>'<b>点击</b>　调查'+nm,
+  names:{bag:'米袋',tansu:'柜子',closet:'壁橱',fridge:'冰箱',tv:'电视',desk:'书桌',desk2:'书桌',shelf:'书架',phone:'电话',kotatsu:'被炉',bed:'被褥',sofa:'沙发',sink:'水槽',stove:'灶台',table:'桌子',tub:'浴缸',washer:'洗衣机',toilet:'马桶',boxes:'纸箱',plant:'盆栽',shoes:'鞋柜'},
+  slSaveNote:d=>'可以从第 '+d+' 天开头重新开始',slLoadNote:'从所选那天的开头重新开始',slEmpty:'空',slOver:'要覆盖吗？再点一次',slSaved:i=>'已存到 SLOT '+i,slFail:'无法存档（浏览器存储不可用）',slSub:(tt,o)=>'TIME '+tt+'　被卖 '+o+'次',
+  img:{overT:['妈妈把我的游戏','卖掉了'],clearT:d=>['DAY '+d+' / 8','从玄关逃出去了！'],overLine:d=>'第 '+d+' 天被抓住，被当二手卖掉了',clearLine:r=>r>0?'还剩 '+r+' 天。妈妈还没放弃。':'8天，全部逃脱。',fan:'非官方同人游戏'},
+  post:{clear:(d,tt,r)=>'第'+d+'天，从妈妈手里抢回游戏机，从玄关逃出去了！\nTIME '+tt+'（还剩'+r+'天）',over:d=>'第'+d+'天被妈妈抓住，游戏机被当二手卖了 ¥3,000……',fin:(r,ti,tt,o)=>'从妈妈手里把游戏抢回来了！\n等级'+r+'“'+ti+'”\nTIME '+tt+'／被卖次数 '+o,title:'《妈妈把我的游戏卖掉了》'},
+  q:['“','”']},
+ko:{
+  logo:[['엄마가',0],['내 게임을',0],['팔아버렸다',1]],
+  new:'처음부터',cont:'이어하기',how:'플레이 방법',close:'닫기',lang:'언어',langTitle:'언어',
+  howP:['화면 어디서든 <b>드래그</b>해서 이동.','<b>탭</b>해서 눈앞의 물건을 조사. 쌀 포대, 서랍장, 벽장.','쌀 포대에서 게임기를 찾으면 엄마가 나타난다.','<b>현관</b>으로 나가면 그날은 세이프.','잡히면 게임기는 중고로 팔린다.','오른쪽 위 PAD로 스틱 표시를 켜고 끈다.'],
+  dcGo:'집에 들어가기',retry:'다시 하기',share:'X에 공유',toTitle:'타이틀로',next:'다음 날',save:'저장',load:'불러오기',back:'돌아가기',
+  resume:'계속하기',restart:'이날 다시 하기',debug:'디버그',openX:'X 게시 화면 열기',copyPost:'게시글 복사',copied:'복사했습니다',copyFail:'복사하지 못했습니다. 직접 선택해 주세요.',shareAlt:'공유용 결과 이미지',
+  used:'중고',winT:['엄마에게서','게임을 되찾았다!'],days8:'8일',times:n=>n+'번',
+  days:[
+    {wd:'월요일',sub:'시작',line:'"게임은 숨겨 뒀어.<br>숙제 끝날 때까지야."',hint:'드래그로 이동, 탭으로 조사.<br>쌀 포대에서 게임기를 되찾아<br>현관으로 도망쳐라.'},
+    {wd:'화요일',sub:'꽝',line:'"쌀 포대, 더 사 뒀어."',hint:'쌀 포대는 하나가 아니다.<br>쌀만 들어 있는 것도 있다.'},
+    {wd:'수요일',sub:'정전',line:'"오늘은 전기가 안 들어올지도 몰라."',hint:'게임기를 되찾으면 집 안의 불이 꺼진다.'},
+    {wd:'목요일',sub:'벽장',line:'"숨어도 다 알아."',hint:'벽장을 탭하면 숨을 수 있다.<br>보는 앞에서 숨으면 들킨다.'},
+    {wd:'금요일',sub:'체인',line:'"현관 열쇠, 어디 뒀더라."',hint:'엄마가 오면 현관에 체인이 걸린다.<br>서랍장에서 열쇠를 찾아라.'},
+    {wd:'토요일',sub:'순찰',line:'"오늘은 엄마<br>하루 종일 집에 있을 거야."',hint:'엄마가 집 안을 순찰하고 있다.<br>들키면 방으로 돌려보내진다.'},
+    {wd:'일요일',sub:'삐걱삐걱',line:'"바닥이 울고 있네."',hint:'낡은 바닥을 밟으면 소리를 듣고 엄마가 온다.<br>엄마는 벽 너머에도 나타난다.'},
+    {wd:'월요일',sub:'둘',line:'"츠바사.<br>엄마가 한 명 더 있어."',hint:'지금까지의 전부.'}],
+  rooms:{genkan:'현관',kitchen:'부엌',living:'거실',washitsu:'다다미방',bedroom:'침실',kids:'츠바사의 방',bath:'욕실',toilet:'화장실',storage:'창고',hall:'복도',study:'서재'},
+  flav:{fridge:['냉장고에 메모. "게임은 하루 1시간"','냉장고 안은 쌀로 가득했다.','메모. "츠바사가 좋아하는 햄버그"'],sink:['물이 한 방울씩 떨어지고 있다.'],stove:['냄비 안은 텅 비었다.'],table:['식탁에 시험지가... 못 본 걸로 하자.','접시가 두 개. 하나는 츠바사 것.'],tv:['텔레비전. 아무것도 안 나온다.','텔레비전. 지지직... 화면이 찌그러진다.'],sofa:['소파 밑에는 아무것도 없다.'],shelf:['만화책이 꽂혀 있다.','공략집이 없다. 이것도 숨겨졌다.'],phone:['전화. 수화기가 내려져 있다.'],closet:['벽장. 이불이 꽉 차서 들어갈 수 없다.'],kotatsu:['고타츠. 아직 따뜻하다.'],tansu:['옷이 개어져 있다.','츠바사의 양말이 들어 있다.'],bed:['이불.'],desk:['한자 드릴. 아직 새하얗다.'],desk2:['엄마의 가계부. "게임 ¥3,000"...?'],tub:['욕조에 물이 받아져 있다. 차갑다.'],washer:['세탁기가 돌아가고 있다.'],toilet:['아무도 없다.'],boxes:['상자. "츠바사 장난감"'],plant:['화분. 흙이 새것이다.'],shoes:['엄마 신발이, 없다.']},
+  bagMiss:['쌀만 들어 있다.','쌀. 묵직하다.','쌀뿐... 왜 이렇게 쌀 포대가 많지?'],bagEmpty:'빈 쌀 포대. 쌀이 쏟아져 있다.',memoMiss:'안에 메모. "꽝"',
+  seen:'여긴 봤다.',keyFound:'<b style="color:#9fd8f0">현관 열쇠</b>를 찾았다!',noKey:'열쇠는 없다.',shoesHere:'엄마 신발이, 있다.',
+  gotGame:'게임기를 되찾았다!',chain:'현관에 체인이 걸렸다!',chainLocked:'체인이 걸려 있다!<br>서랍장에서 열쇠를 찾아라.',notYet:'아직 게임기를 되찾지 못했다.',creak:'삐걱',
+  spotted:['"츠바사? 숙제는 다 했어?"','...방으로 돌려보내졌다.'],plus10:'+10초',
+  tsuQ:'...츠바사?',alienName:'츠　바　사',caughtLine:'"츠바사, 이게 뭐야?"',yay:'해냈다!',
+  overLine:d=>'DAY '+d+'에 잡혔다.<br>게임기는 <b>중고</b>로 팔렸다.',
+  ranks:['우리는 외계인','지구 소년','쌀 포대 감정사','현관 대시 달인','게임은 하루 1시간','숙제는 다 했어?','중고로 되사기','¥3,000'],
+  ending:['9일째 아침.','쌀 포대 안에는 쌀밖에 없었다.','"츠바사, 밥 먹어."','평소의 엄마 목소리였다.','...아마도.'],
+  objFind:n=>'쌀 포대 찾기 남은 '+n+'개',objKey:'서랍장에서 열쇠 찾기',objRun:'현관으로 도망쳐!',
+  hintHide:'숨죽이는 중　<b>탭</b>해서 나가기',hintBusy:'뒤적뒤적...',hintHideIn:'<b>탭</b>　벽장에 숨기',hintCheck:nm=>'<b>탭</b>　'+nm+' 조사',
+  names:{bag:'쌀 포대',tansu:'서랍장',closet:'벽장',fridge:'냉장고',tv:'텔레비전',desk:'책상',desk2:'책상',shelf:'책장',phone:'전화',kotatsu:'고타츠',bed:'이불',sofa:'소파',sink:'싱크대',stove:'가스레인지',table:'식탁',tub:'욕조',washer:'세탁기',toilet:'변기',boxes:'상자',plant:'화분',shoes:'신발장'},
+  slSaveNote:d=>'DAY '+d+' 처음부터 다시 시작할 수 있습니다',slLoadNote:'고른 날의 처음부터 다시 시작합니다',slEmpty:'비어 있음',slOver:'덮어쓸까요? 한 번 더 탭',slSaved:i=>'SLOT '+i+'에 저장했습니다',slFail:'저장하지 못했습니다 (브라우저 저장소를 쓸 수 없습니다)',slSub:(tt,o)=>'TIME '+tt+'　팔린 횟수 '+o,
+  img:{overT:['엄마가 내 게임을','팔아버렸다'],clearT:d=>['DAY '+d+' / 8','현관으로 도망쳤다!'],overLine:d=>'DAY '+d+'에 잡혀서 중고로 팔렸다',clearLine:r=>r>0?'남은 '+r+'일. 엄마는 아직 포기하지 않았다.':'8일 동안 도망쳤다.',fan:'비공식 팬 게임'},
+  post:{clear:(d,tt,r)=>'DAY'+d+', 엄마에게서 게임기를 되찾아 현관으로 도망쳤다!\nTIME '+tt+' (남은 '+r+'일)',over:d=>'DAY'+d+'에 엄마에게 잡혀서 게임기가 중고 ¥3,000에 팔려버렸다...',fin:(r,ti,tt,o)=>'엄마에게서 게임을 되찾았다!\n랭크 '+r+' "'+ti+'"\nTIME '+tt+' / 팔린 횟수 '+o,title:'『엄마가 내 게임을 팔아버렸다』'},
+  q:['"','"']},
+fr:{
+  logo:[['Maman a',0],['VENDU',1],['mon jeu',0]],
+  new:'Nouvelle partie',cont:'Continuer',how:'Comment jouer',close:'Fermer',lang:'Langue',langTitle:'Langue',
+  howP:['<b>Glissez</b> n\'importe où pour bouger.','<b>Touchez</b> pour fouiller devant vous : sacs de riz, commodes, placards.','Trouvez la console dans un sac de riz et Maman apparaît.','Sortez par la <b>porte d\'entrée</b> et la journée est sauvée.','Si elle vous attrape, la console est vendue d\'occasion.','Affichez ou masquez le joystick avec PAD en haut à droite.'],
+  dcGo:'Entrer',retry:'Rejouer',share:'Partager sur X',toTitle:'Titre',next:'Jour suivant',save:'Sauver',load:'Charger',back:'Retour',
+  resume:'Reprendre',restart:'Recommencer le jour',debug:'Débogage',openX:'Ouvrir X',copyPost:'Copier le texte',copied:'Copié',copyFail:'Copie impossible. Sélectionnez le texte à la main.',shareAlt:'Image du résultat à partager',
+  used:'OCCASION',winT:['À Maman,','j\'ai repris ma console !'],days8:'8 jours',times:n=>n+' fois',
+  days:[
+    {wd:'lundi',sub:'Le début',line:'« J\'ai caché ta console.<br>Pas avant tes devoirs. »',hint:'Glissez pour bouger, touchez pour fouiller.<br>Reprenez la console dans un sac de riz<br>et fuyez par la porte d\'entrée.'},
+    {wd:'mardi',sub:'Leurres',line:'« J\'ai acheté d\'autres sacs de riz. »',hint:'Il y a plusieurs sacs de riz.<br>Certains ne contiennent que du riz.'},
+    {wd:'mercredi',sub:'Panne',line:'« Il n\'y aura peut-être pas de courant aujourd\'hui. »',hint:'Quand vous prenez la console, les lumières s\'éteignent.'},
+    {wd:'jeudi',sub:'Placards',line:'« Même caché, je le saurai. »',hint:'Touchez un placard pour vous cacher.<br>Si elle vous voit, elle saura.'},
+    {wd:'vendredi',sub:'La chaîne',line:'« Où ai-je mis la clé de l\'entrée ? »',hint:'Quand Maman arrive, la porte est enchaînée.<br>Cherchez la clé dans une commode.'},
+    {wd:'samedi',sub:'Ronde',line:'« Aujourd\'hui, Maman<br>reste à la maison toute la journée. »',hint:'Maman fait sa ronde dans la maison.<br>Si elle vous voit, retour dans votre chambre.'},
+    {wd:'dimanche',sub:'Grincements',line:'« Le plancher pleure. »',hint:'Une latte usée grince et Maman accourt.<br>Elle peut aussi surgir derrière les murs.'},
+    {wd:'lundi',sub:'Deux',line:'« Tsubasa.<br>Il y a une autre Maman. »',hint:'Tout, en même temps.'}],
+  rooms:{genkan:'Entrée',kitchen:'Cuisine',living:'Salon',washitsu:'Pièce à tatamis',bedroom:'Chambre',kids:'Chambre de Tsubasa',bath:'Salle de bain',toilet:'Toilettes',storage:'Débarras',hall:'Couloir',study:'Bureau'},
+  flav:{fridge:['Un mot sur le frigo : « Jeux : 1 heure par jour. »','Le frigo est plein de riz.','Un mot : « Le steak haché préféré de Tsubasa. »'],sink:['L\'eau tombe goutte à goutte.'],stove:['La casserole est vide.'],table:['Une copie d\'examen sur la table... Mieux vaut ne pas regarder.','Deux assiettes. L\'une est à Tsubasa.'],tv:['La télé. Rien à l\'écran.','La télé. Chhhh... de la neige.'],sofa:['Rien sous le canapé.'],shelf:['Une rangée de mangas.','Le guide de jeu a disparu. Caché, lui aussi.'],phone:['Le téléphone. Il est décroché.'],closet:['Un placard bourré de futons. Pas de place.'],kotatsu:['Le kotatsu. Encore chaud.'],tansu:['Des vêtements pliés.','Les chaussettes de Tsubasa.'],bed:['Un futon.'],desk:['Cahier de kanji. Toujours vierge.'],desk2:['Le carnet de comptes de Maman : « Jeu ¥3 000 »... ?'],tub:['La baignoire est pleine. L\'eau est froide.'],washer:['La machine à laver tourne.'],toilet:['Personne.'],boxes:['Un carton : « Tsubasa - jouets ».'],plant:['Une plante. La terre est fraîche.'],shoes:['Les chaussures de Maman ne sont plus là.']},
+  bagMiss:['Rien que du riz.','Du riz. Très lourd.','Juste du riz... Pourquoi tant de sacs ?'],bagEmpty:'Un sac vide. Du riz se répand.',memoMiss:'Un mot dedans : « Raté. »',
+  seen:'Déjà fouillé.',keyFound:'Vous avez trouvé la <b style="color:#9fd8f0">clé de l\'entrée</b> !',noKey:'Pas de clé ici.',shoesHere:'Les chaussures de Maman sont là.',
+  gotGame:'Console récupérée !',chain:'La porte d\'entrée est enchaînée !',chainLocked:'C\'est enchaîné !<br>Cherchez la clé dans une commode.',notYet:'Vous n\'avez pas encore récupéré la console.',creak:'Crrr',
+  spotted:['« Tsubasa ? Tes devoirs sont finis ? »','...Renvoyé dans votre chambre.'],plus10:'+10 s',
+  tsuQ:'...Tsubasa ?',alienName:'TSU · BA · SA',caughtLine:'« Tsubasa, c\'est quoi, ça ? »',yay:'OUAIS !',
+  overLine:d=>'Attrapé le JOUR '+d+'.<br>La console a été vendue <b>d\'occasion</b>.',
+  ranks:['Nous sommes des aliens','Enfant de la Terre','Expert en sacs de riz','Sprinteur de l\'entrée','Une heure par jour','Tes devoirs ?','Racheté d\'occasion','¥3 000'],
+  ending:['Le matin du 9e jour.','Le sac ne contenait que du riz.','« Tsubasa, à table ! »','C\'était la voix habituelle de Maman.','...Sans doute.'],
+  objFind:n=>'Sacs de riz : '+n,objKey:'Clé dans une commode',objRun:'Fuyez par l\'entrée !',
+  hintHide:'Vous retenez votre souffle. <b>Touchez</b> pour sortir',hintBusy:'Fouille...',hintHideIn:'<b>Touchez</b> Se cacher',hintCheck:nm=>'<b>Touchez</b> Fouiller : '+nm,
+  names:{bag:'sac de riz',tansu:'commode',closet:'placard',fridge:'frigo',tv:'télé',desk:'bureau',desk2:'bureau',shelf:'étagère',phone:'téléphone',kotatsu:'kotatsu',bed:'futon',sofa:'canapé',sink:'évier',stove:'cuisinière',table:'table',tub:'baignoire',washer:'machine à laver',toilet:'toilettes',boxes:'cartons',plant:'plante',shoes:'meuble à chaussures'},
+  slSaveNote:d=>'Reprise au début du JOUR '+d,slLoadNote:'Reprise au début du jour choisi',slEmpty:'Vide',slOver:'Écraser ? Touchez encore',slSaved:i=>'Sauvé dans SLOT '+i,slFail:'Sauvegarde impossible (stockage du navigateur indisponible)',slSub:(tt,o)=>'TIME '+tt+'  Vendue '+o+' fois',
+  img:{overT:['Maman a vendu','mon jeu'],clearT:d=>['JOUR '+d+' / 8','Évadé par l\'entrée !'],overLine:d=>'Attrapé le JOUR '+d+', vendu d\'occasion',clearLine:r=>r>0?'Encore '+r+' jours. Maman n\'abandonne pas.':'8 jours d\'évasion.',fan:'Jeu de fan non officiel'},
+  post:{clear:(d,tt,r)=>'JOUR '+d+' : j\'ai repris ma console à Maman et je me suis enfui par l\'entrée !\nTIME '+tt+' (encore '+r+' jours)',over:d=>'Attrapé par Maman le JOUR '+d+'... ma console a été vendue d\'occasion pour ¥3 000.',fin:(r,ti,tt,o)=>'J\'ai repris ma console à Maman !\nRang '+r+' « '+ti+' »\nTIME '+tt+' / Vendue '+o+' fois',title:'« Maman a vendu mon jeu »'},
+  q:['« ',' »']}
+};
+let LANG='ja';
+try{const v=localStorage.getItem('uritobasare-lang');if(v&&I18N[v])LANG=v;else{const n=(navigator.language||'ja').toLowerCase();LANG=n.startsWith('ja')?'ja':n.startsWith('zh')?'zh':n.startsWith('ko')?'ko':n.startsWith('fr')?'fr':'en'}}catch(e){}
+function tr(k){const v=I18N[LANG][k];return v===undefined?I18N.ja[k]:v}
+function jpFont(){return FONTS[LANG]}
+function applyLang(){
+  document.documentElement.lang=LANG==='zh'?'zh-Hans':LANG;
+  document.documentElement.style.setProperty('--jp',FONTS[LANG]);
+  $('logo').innerHTML=tr('logo').map(([s,a])=>'<span'+(a?' class="pink"':'')+'>'+s+'</span>').join('');
+  const set=(id,k)=>{const e=$(id);if(e)e.textContent=tr(k)};
+  [['bNew','new'],['bCont','cont'],['bHow','how'],['bHowClose','close'],['dcGo','dcGo'],['bRetry','retry'],['bShareO','share'],['bTitleO','toTitle'],['bNext','next'],['bShareC','share'],['bSaveC','save'],['bTitleC','toTitle'],['slClose','back'],['bShareF','share'],['bTitleF','toTitle'],['bResume','resume'],['bSaveP','save'],['bLoadP','load'],['bRestart','restart'],['bTitleP','toTitle'],['shareX','openX'],['bCopy','copyPost'],['bShareClose','close'],['bLangT','lang'],['bLangP','lang'],['lpClose','close'],['lpTitle','langTitle']].forEach(([id,k])=>set(id,k));
+  const how=document.querySelector('.how-box');if(how){how.querySelectorAll('p').forEach(p=>p.remove());tr('howP').forEach(h=>{const p=document.createElement('p');p.innerHTML=h;how.appendChild(p)})}
+  const tag=document.querySelector('.tag small');if(tag)tag.textContent=tr('used');
+  const rt=document.querySelectorAll('.r-title span');if(rt.length===2){rt[0].textContent=tr('winT')[0];rt[1].textContent=tr('winT')[1]}
+  const d8=$('fDays');if(d8)d8.textContent=tr('days8');
+  $('shareImg').alt=tr('shareAlt');
+  document.querySelectorAll('#lpList button').forEach(b=>b.classList.toggle('cur',b.dataset.lang===LANG));
+  if(typeof toTitle==='function'&&S.mode==='title'){}
+}
+function setLang(l){LANG=l;try{localStorage.setItem('uritobasare-lang',l)}catch(e){}applyLang();SHR.kind=null;
+  if(S.mode==='over')prepareShare('over');else if(S.mode==='final')prepareShare('final');else if(S.mode==='clear')prepareShare('clear');if(S.mode==='play')updHud(true)}
+
 
 /* ================= stage design ================= */
 const DAYS=[
@@ -904,7 +1118,7 @@ function startDayCard(d){
   run.day=d;house=genHouse(d,run.seed+d*7919);
   P.x=house.sx+.5;P.y=house.sy+.75;P.dir=0;
   const c=DAYS[d-1];
-  $('dcNum').innerHTML='DAY <span>'+d+'</span>';$('dcWd').textContent=c.wd;$('dcSub').textContent=c.sub;$('dcLine').innerHTML=c.line.replace(/。(?=[^」])/g,'。<br>');$('dcHint').innerHTML=c.hint;
+  $('dcNum').innerHTML='DAY <span>'+d+'</span>';const tx=tr('days')[d-1];$('dcWd').textContent=tx.wd;$('dcSub').textContent=tx.sub;$('dcLine').innerHTML=tx.line;$('dcHint').innerHTML=tx.hint;
   hideAll();$('dayCard').hidden=false;S.mode='card';centerCam(true);
   setTimeout(()=>$('dcGo').focus(),50);
 }
@@ -920,7 +1134,7 @@ function beginDay(){
 }
 function newMom(x,y,alien){return {x:x+.5,y:y+.75,dir:0,anim:0,alien,state:alien?'chase':'patrol',path:null,repath:0,last:null,lostT:0,heard:0,hunt:null,target:null,spd:0,cool:0,jit:0}}
 function freeTileIn(r){for(let k=0;k<60;k++){const x=r.x+Math.floor(Math.random()*r.w),y=r.y+Math.floor(Math.random()*r.h);if(walkable(x,y,true))return [x,y]}return [house.sx,house.sy]}
-function hideAll(){['title','how','dayCard','cut','over','clear','ending','final','pause','shareM','debug','cc','slots'].forEach(id=>$(id).hidden=true);$('msg').hidden=true;$('hint').textContent=''}
+function hideAll(){['title','how','dayCard','cut','over','clear','ending','final','pause','shareM','debug','cc','slots','langPop'].forEach(id=>$(id).hidden=true);$('msg').hidden=true;$('hint').textContent=''}
 
 function centerCam(snap){
   const mw=house.W*TS,mh=house.H*TS;
@@ -962,21 +1176,21 @@ function flavor(lines){if(S.chase){toast(lines[0],1300)}else{showMsg(lines)}}
 function interact(o){
   const cfg=house.cfg;
   if(o.type==='bag'){
-    if(o.open){flavor(['空っぽの米袋。お米がこぼれている。']);return}
+    if(o.open){flavor([tr('bagEmpty')]);return}
     S.busy={t:0,dur:.75,o,done(){o.open=true;
       if(o.real&&!P.hasGame){pickup(o)}
-      else{SFX.miss();const extra=run.day>=5&&Math.random()<.4?'中にメモ。「ハズレ」':BAG_MISS[o.v%BAG_MISS.length];flavor([extra])}}};
+      else{SFX.miss();const BM=tr('bagMiss');const extra=run.day>=5&&Math.random()<.4?tr('memoMiss'):BM[o.v%BM.length];flavor([extra])}}};
     SFX.search();return;
   }
   if(o.type==='tansu'&&S.keyNeeded){
-    if(o.open){toast('ここは見た。',900);return}
-    S.busy={t:0,dur:.45,o,done(){o.open=true;if(o.hasKey){P.hasKey=true;SFX.key();toast('<b style="color:#9fd8f0">玄関のカギ</b>を見つけた！',1600);updHud(true)}else{SFX.miss();toast('カギはない。',900)}}};
+    if(o.open){toast(tr('seen'),900);return}
+    S.busy={t:0,dur:.45,o,done(){o.open=true;if(o.hasKey){P.hasKey=true;SFX.key();toast(tr('keyFound'),1600);updHud(true)}else{SFX.miss();toast(tr('noKey'),900)}}};
     SFX.search();return;
   }
   if(o.type==='closet'&&cfg.hide){enterHide(o);return}
-  if(o.type==='tv'){o.on=!o.on;flavor([FLAV.tv[o.on?1:0]]);return}
-  if(o.type==='shoes'){flavor([cfg.patrol&&!P.hasGame?'お母さんの靴が、ある。':FLAV.shoes[0]]);return}
-  const L=FLAV[o.type];if(L)flavor([L[o.v%L.length]]);
+  if(o.type==='tv'){o.on=!o.on;flavor([tr('flav').tv[o.on?1:0]]);return}
+  if(o.type==='shoes'){flavor([cfg.patrol&&!P.hasGame?tr('shoesHere'):tr('flav').shoes[0]]);return}
+  const L=tr('flav')[o.type];if(L)flavor([L[o.v%L.length]]);
 }
 function enterHide(o){
   P.hidden=o;SFX.hide();
@@ -989,12 +1203,12 @@ function leaveHide(){P.hidden=null;SFX.hide();for(const m of moms)if(m.hunt){m.h
 
 /* ---------- pickup / transform ---------- */
 async function pickup(o){
-  S.cut=true;P.hold=1;P.dir=0;SFX.found();toast('ゲームを取りかえした！',1100,true);
+  S.cut=true;P.hold=1;P.dir=0;SFX.found();toast(tr('gotGame'),1100,true);
   await sleep(1150);P.hold=0;ambStop();
   for(let i=0;i<3;i++){S.flick=1;SFX.glitch();await sleep(110);S.flick=0;await sleep(170)}
   P.hasGame=true;spawnAliens();
   await closeup('transform');
-  if(house.cfg.key){S.keyNeeded=true;SFX.lock();toast('玄関にチェーンがかかった！',1700)}
+  if(house.cfg.key){S.keyNeeded=true;SFX.lock();toast(tr('chain'),1700)}
   S.cut=false;S.chase=true;chaseStart();updHud(true);
 }
 function spawnAliens(){
@@ -1081,12 +1295,12 @@ function closeup(kind){
     function step(){
       const t=(performance.now()-t0)/1000;
       if(kind==='transform'){
-        if(t<1.1){paintPortrait(false,t);blitPortrait(t>.85?(t-.85)*2:0,t);if(lastPh!==0){lastPh=0;tx.textContent='……つばさ？'}}
+        if(t<1.1){paintPortrait(false,t);blitPortrait(t>.85?(t-.85)*2:0,t);if(lastPh!==0){lastPh=0;tx.textContent=tr('tsuQ')}}
         else if(t<1.6){const al=Math.random()<.5;paintPortrait(al,t);blitPortrait(.9,t);if(lastPh!==1){lastPh=1;hush();SFX.glitch();tx.textContent=''}if(Math.random()<.3)SFX.glitch()}
-        else if(t<3.5){paintPortrait(true,t);blitPortrait(t<1.8?.5:0,t,1+(t-1.6)*.05);if(lastPh!==2){lastPh=2;SFX.sting();alienVoice();tx.className='red';tx.textContent='ツ　バ　サ'}}
+        else if(t<3.5){paintPortrait(true,t);blitPortrait(t<1.8?.5:0,t,1+(t-1.6)*.05);if(lastPh!==2){lastPh=2;SFX.sting();alienVoice();tx.className='red';tx.textContent=tr('alienName')}}
         else{$('cut').hidden=true;res();return}
       }else{
-        if(t<2.9){paintPortrait(true,t);blitPortrait(t<.25?.9:(Math.random()<.06?.5:0),t,1+t*.06);if(lastPh!==0){lastPh=0;tx.className='red';tx.textContent='「つばさ、これ何？」';alienSpeak('つばさ、これなに？',.3,.25)}}
+        if(t<2.9){paintPortrait(true,t);blitPortrait(t<.25?.9:(Math.random()<.06?.5:0),t,1+t*.06);if(lastPh!==0){lastPh=0;tx.className='red';tx.textContent=tr('caughtLine');alienSpeak('つばさ、これなに？',.3,.25)}}
         else{$('cut').hidden=true;res();return}
       }
       requestAnimationFrame(step);
@@ -1107,7 +1321,7 @@ async function caught(force){
 function showOver(){
   setTimeout(()=>prepareShare('over'),0);
   drawShop($('shopCv').getContext('2d'));
-  $('overLine').innerHTML='DAY '+run.day+' でつかまった。<br>ゲームは<b>中古</b>で売られた。';
+  $('overLine').innerHTML=tr('overLine')(run.day);
   hideAll();$('hud').hidden=true;$('vig').style.opacity=0;$('over').hidden=false;S.mode='over';bgmStart();bgmLevel(1);
   setTimeout(()=>$('bRetry').focus(),50);
 }
@@ -1132,11 +1346,11 @@ async function escape(forceCut){
   setTimeout(()=>($('bNext').hidden?$('bTitleC'):$('bNext')).focus(),50);
 }
 const RANKS=[['SSS','我々は宇宙人'],['SS','地球の少年'],['S','米袋の目利き'],['A','玄関ダッシュ名人'],['B','ゲームは1日1時間'],['C','宿題は終わった？'],['D','中古で買い戻し'],['E','¥3,000']];
-function rankOf(){const s=run.total+run.overs*25;const th=[260,330,420,540,680,850,1100];let i=0;while(i<th.length&&s>th[i])i++;if(i===0&&run.overs>0)i=1;return RANKS[i]}
+function rankOf(){const s=run.total+run.overs*25;const th=[260,330,420,540,680,850,1100];let i=0;while(i<th.length&&s>th[i])i++;if(i===0&&run.overs>0)i=1;return [RANKS[i][0],tr('ranks')[i]]}
 async function ending(){
   bgmStart();bgmLevel(.8);
   S.mode='ending';$('ending').hidden=false;const g=$('endScene').getContext('2d');
-  const lines=['9日目の朝。','米袋の中には、お米しか入っていなかった。','「つばさ、ごはんよ」','いつもの、お母さんの声だった。','……たぶん。'];
+  const lines=tr('ending');
   let li=0,alive=true;
   (function loop(){if(!alive)return;const win=li>=4?(Math.random()<.92?'alien':'mom'):'mom';drawFront(g,{mode:'morning',door:0,win,kid:{x:96,y:110,dir:3,fr:0}});requestAnimationFrame(loop)})();
   const el=$('endText');
@@ -1146,7 +1360,7 @@ async function ending(){
 }
 function showFinal(){
   setTimeout(()=>prepareShare('final'),0);
-  const [r,ti]=rankOf();$('fRank').textContent=r;$('fTitle').textContent='「'+ti+'」';$('fTime').textContent=fmt(run.total);$('fOvers').textContent=run.overs+'回';
+  const [r,ti]=rankOf();$('fRank').textContent=r;$('fTitle').textContent=tr('q')[0]+ti+tr('q')[1];$('fTime').textContent=fmt(run.total);$('fOvers').textContent=tr('times')(run.overs);
   const s=loadSave();if(!s.best||run.total<s.best.total)writeSave({best:{total:run.total,overs:run.overs,rank:r}});
   $('final').hidden=false;S.mode='final';SFX.clear();setTimeout(()=>$('bShareF').focus(),50);
 }
@@ -1269,7 +1483,7 @@ function cutFrame(g,t,ev,txt){
   else if(t>=2.5&&t<3.3){kid={x:79,y:KY,dir:3,fr:t*8,pose:'dig'};if(!ev.dig){ev.dig=1;SFX.search()}}
   else if(t>=3.3&&t<3.7){kid={x:79,y:KY,dir:0,fr:0,pose:'hold'};if(!ev.hold){ev.hold=1;SFX.key()}}
   else if(t>=3.7&&t<5.0){const k=t-3.7,j=k<1?Math.abs(Math.sin(k*Math.PI*2))*7:0;kid={x:79,y:KY-j,sy:KY,dir:0,fr:0,pose:'yay'};fx=gg=>sparkle(gg,79,KY-j,t);
-    if(!ev.yay){ev.yay=1;SFX.found();if(txt)txt.textContent='やったー！'}}
+    if(!ev.yay){ev.yay=1;SFX.found();if(txt)txt.textContent=tr('yay')}}
   else if(t>=5.0&&t<6.1){const k=t-5.0,xx=79+k*60+k*k*70;kid={x:xx,y:KY,dir:2,fr:k*16};
     fx=gg=>{gg.fillStyle='rgba(220,210,200,.75)';for(let i=1;i<4;i++){const d=((t*10+i)|0)%3;gg.fillRect(Math.round(xx-12-i*9),KY-3-d,3+d,2)}};
     if(!ev.run){ev.run=1;if(txt)txt.textContent='';SFX.step()}}
@@ -1294,38 +1508,39 @@ async function makeShareImage(kind){
   if(kind==='over')drawShop(sc.getContext('2d'));else drawFront(sc.getContext('2d'),{mode:'dusk',door:1,kid:{x:79,y:108,dir:0,fr:0,pose:'yay'},fx:gg=>sparkle(gg,79,108,0)});
   const T=(txt,x,y,font,col)=>{g.font=font;g.fillStyle=col;g.fillText(txt,x,y)};
   g.textAlign='center';g.textBaseline='alphabetic';
-  const JP='"DotGothic16",sans-serif',PX='"Silkscreen",monospace';
-  if(kind==='over'){T('お母さんにゲーム',540,108,'60px '+JP,'#efeaff');T('売り飛ばされた',540,204,'84px '+JP,'#ffd23f')}
-  else if(kind==='clear'){T('DAY '+CLR.day+' ／ 8',540,108,'60px '+JP,'#efeaff');T('玄関から逃げきった！',540,204,'78px '+JP,'#9fd8f0')}
-  else{T('お母さんから',540,108,'60px '+JP,'#efeaff');T('ゲームを取りかえした！',540,204,'78px '+JP,'#9fd8f0')}
+  const JP=jpFont(),PX='"Silkscreen",monospace',IM=tr('img');
+  if(kind==='over'){T(IM.overT[0],540,108,'60px '+JP,'#efeaff');T(IM.overT[1],540,204,'78px '+JP,'#ffd23f')}
+  else if(kind==='clear'){T(IM.clearT(CLR.day)[0],540,108,'60px '+JP,'#efeaff');T(IM.clearT(CLR.day)[1],540,204,'72px '+JP,'#9fd8f0')}
+  else{T(tr('winT')[0],540,108,'60px '+JP,'#efeaff');T(tr('winT')[1],540,204,'72px '+JP,'#9fd8f0')}
   // scene 800x600 at (140,250)
   g.drawImage(sc,140,250,800,600);g.strokeStyle='#efeaff';g.lineWidth=6;g.strokeRect(137,247,806,606);
   if(kind==='over'){
     g.save();g.translate(540,706);g.fillStyle='rgba(0,0,0,.45)';g.fillRect(-75,6,150,88);g.fillStyle='#f8f5ee';g.fillRect(-75,0,150,86);g.fillStyle='#c8323a';g.fillRect(-75,0,150,32);
-    T('中古',0,25,'24px '+JP,'#ffffff');T('¥3,000',0,74,'44px '+JP,'#1b1310');g.restore();
+    T(tr('used'),0,25,'24px '+JP,'#ffffff');T('¥3,000',0,74,'44px '+JP,'#1b1310');g.restore();
     T('GAME OVER',540,1010,'700 76px '+PX,'#ff2a3d');
-    T('DAY '+run.day+' で捕まって、中古で売られた',540,1092,'40px '+JP,'#efeaff');
+    T(IM.overLine(run.day),540,1092,'38px '+JP,'#efeaff');
   }else if(kind==='clear'){
     const cols=[[300,'DAY',CLR.day+' / 8'],[540,'TIME',fmt(CLR.time)],[780,'TOTAL',fmt(CLR.total)]];
     for(const [x,l,v] of cols){T(l,x,916,'24px '+PX,'#8f89a8');T(v,x,968,'40px '+JP,'#efeaff')}
     T('ESCAPED',540,1092,'700 96px '+PX,'#9fd8f0');
-    T(CLR.day<8?'のこり '+(8-CLR.day)+'日。お母さんは、まだあきらめない。':'8日間、逃げきった。',540,1172,'36px '+JP,'#efeaff');
+    T(IM.clearLine(8-CLR.day),540,1172,'34px '+JP,'#efeaff');
   }else{
     const [r,ti]=rankOf();
-    const cols=[[300,'DAYS','8日間'],[540,'TIME',fmt(run.total)],[780,'SOLD',run.overs+'回']];
+    const cols=[[300,'DAYS',tr('days8')],[540,'TIME',fmt(run.total)],[780,'SOLD',tr('times')(run.overs)]];
     for(const [x,l,v] of cols){T(l,x,916,'24px '+PX,'#8f89a8');T(v,x,968,'40px '+JP,'#efeaff')}
     T(r,540,1100,'700 120px '+PX,'#ffd23f');
-    T('「'+ti+'」',540,1176,'46px '+JP,'#efeaff');
+    T(tr('q')[0]+ti+tr('q')[1],540,1176,'44px '+JP,'#efeaff');
   }
   T('#我々は宇宙人',540,1248,'34px '+JP,'#9fd8f0');
-  T('非公式ファンゲーム　'+GAME_URL.replace(/^https?:\/\//,''),540,1302,'24px '+JP,'#8f89a8');
+  T(IM.fan+'　'+GAME_URL.replace(/^https?:\/\//,''),540,1302,'24px '+JP,'#8f89a8');
   for(let i=0;i<9000;i++){g.fillStyle=Math.random()<.5?'rgba(255,255,255,.035)':'rgba(0,0,0,.06)';g.fillRect(Math.random()*1080,Math.random()*1350,2,2)}
   return c;
 }
 function shareText(kind){
-  if(kind==='clear')return 'DAY'+CLR.day+'、お母さんからゲームを取りかえして玄関から逃げきった！\nTIME '+fmt(CLR.time)+'（のこり'+(8-CLR.day)+'日）\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
-  if(kind==='over')return 'DAY'+run.day+'でお母さんに捕まって、ゲームを中古¥3,000で売り飛ばされた……\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
-  const [r,ti]=rankOf();return 'お母さんからゲームを取りかえした！\nランク'+r+'「'+ti+'」\nTIME '+fmt(run.total)+'／売られた回数 '+run.overs+'\n『お母さんにゲーム売り飛ばされた』\n'+GAME_URL+'\n#我々は宇宙人';
+  const PO=tr('post'),tail='\n'+PO.title+'\n'+GAME_URL+'\n#我々は宇宙人';
+  if(kind==='clear')return PO.clear(CLR.day,fmt(CLR.time),8-CLR.day)+tail;
+  if(kind==='over')return PO.over(run.day)+tail;
+  const [r,ti]=rankOf();return PO.fin(r,ti,fmt(run.total),run.overs)+tail;
 }
 /* share: pre-render on result screens so the share sheet opens inside the tap (keeps the image attached) */
 const SHR={kind:null,cvs:null,file:null,text:''};let CLR={day:1,time:0,total:0};
@@ -1358,8 +1573,8 @@ function update(dt){
   updateMoms(dt);
   // room name
   const [tx,ty]=tileOf(P),ti=ty*house.W+tx;
-  if(house.t[ti]===0&&house.room[ti]!==S.lastRoom){S.lastRoom=house.room[ti];mapName(ROOMS[house.rooms[S.lastRoom].type].name)}
-  if(ti!==P.lastTile){P.lastTile=ti;if(house.creak[ti]){SFX.creak();for(const m of moms)if(m.alien&&!m.hunt){m.heard=3;m.last=[tx,ty];m.state='chase'}if(S.chase)toast('ギシッ',600)}}
+  if(house.t[ti]===0&&house.room[ti]!==S.lastRoom){S.lastRoom=house.room[ti];mapName(tr('rooms')[house.rooms[S.lastRoom].type])}
+  if(ti!==P.lastTile){P.lastTile=ti;if(house.creak[ti]){SFX.creak();for(const m of moms)if(m.alien&&!m.hunt){m.heard=3;m.last=[tx,ty];m.state='chase'}if(S.chase)toast(tr('creak'),600)}}
   // heartbeat & vignette
   let nd=99;for(const m of moms)if(m.alien)nd=Math.min(nd,Math.hypot(m.x-P.x,m.y-P.y));
   if(S.chase){S.heartT-=dt;if(S.heartT<=0){S.heartT=clamp(.32+nd*.09,.32,1.25);SFX.heart(clamp(1.3-nd/10,.3,1))}$('vig').style.opacity=clamp(1-nd/9,0,1)*.85+(house.cfg.dark?.15:.08);if(nd<2.6)S.shake=Math.max(S.shake,.25)}
@@ -1383,7 +1598,7 @@ function movePlayer(dt){
     const ok=P.hasGame&&(!S.keyNeeded||P.hasKey);
     if(ok){escape();return}
     P.y=house.H-1-.02;
-    if(S.exitCD<=0){S.exitCD=1.8;if(!P.hasGame)flavor(['まだゲームを取りかえしてない。']);else{SFX.lock();toast('チェーンがかかっている！<br>タンスからカギを探せ。',1600)}}
+    if(S.exitCD<=0){S.exitCD=1.8;if(!P.hasGame)flavor([tr('notYet')]);else{SFX.lock();toast(tr('chainLocked'),1600)}}
   }
 }
 function updateMoms(dt){
@@ -1436,10 +1651,10 @@ function warpMom(m){
 }
 async function spotted(m){
   S.cut=true;SFX.spot();m.dir=P.x<m.x?1:P.x>m.x?2:(P.y<m.y?3:0);
-  await showMsg(['「つばさ？　宿題は終わったの？」','……部屋に戻された。']);
+  await showMsg(tr('spotted'));
   const f=$('fade');f.classList.add('on');await sleep(380);
   P.x=house.sx+.5;P.y=house.sy+.75;P.dir=0;S.dayTime+=10;m.cool=4;m.target=null;centerCam(true);
-  f.classList.remove('on');toast('+10秒',1000);S.cut=false;
+  f.classList.remove('on');toast(tr('plus10'),1000);S.cut=false;
 }
 
 /* ================= HUD ================= */
@@ -1449,19 +1664,19 @@ function updHud(force){
   $('hTime').textContent=fmt(S.dayTime).slice(0,-1);
   const unopened=house.objs.filter(o=>o.type==='bag'&&!o.open).length;
   let txt,ch=false;
-  if(!P.hasGame)txt='米袋をさがせ　のこり'+unopened;
-  else if(S.keyNeeded&&!P.hasKey){txt='タンスからカギをさがせ';ch=true}
-  else{txt='玄関から逃げろ！';ch=true}
-  const key=run.day+txt;if(key!==hudKey||force){hudKey=key;$('hDay').innerHTML='DAY '+run.day+'<b>/8</b>';$('hObj').textContent=txt;$('hObj').classList.toggle('chase',ch)}
+  if(!P.hasGame)txt=tr('objFind')(unopened);
+  else if(S.keyNeeded&&!P.hasKey){txt=tr('objKey');ch=true}
+  else{txt=tr('objRun');ch=true}
+  const key=LANG+run.day+txt;if(key!==hudKey||force){hudKey=key;$('hDay').innerHTML='DAY '+run.day+'<b>/8</b>';$('hObj').textContent=txt;$('hObj').classList.toggle('chase',ch)}
 }
 let hintKey='';
 function updHint(){
   let s='';
   if(MSG||S.cut)s='';
-  else if(P.hidden)s='息をひそめている　<b>タップ</b>で出る';
-  else if(S.busy)s='ゴソゴソ……';
-  else{const o=findTarget();if(o){const nm={bag:'米袋',tansu:'タンス',closet:'押し入れ',fridge:'冷蔵庫',tv:'テレビ',desk:'机',desk2:'机',shelf:'本棚',phone:'電話',kotatsu:'こたつ',bed:'布団',sofa:'ソファ',sink:'流し',stove:'コンロ',table:'テーブル',tub:'お風呂',washer:'洗濯機',toilet:'トイレ',boxes:'段ボール',plant:'植物',shoes:'靴箱'}[o.type]||'';
-    s=(o.type==='closet'&&house.cfg.hide)?'<b>タップ</b>　押し入れに隠れる':'<b>タップ</b>　'+nm+'を調べる'}}
+  else if(P.hidden)s=tr('hintHide');
+  else if(S.busy)s=tr('hintBusy');
+  else{const o=findTarget();if(o){const nm=tr('names')[o.type]||'';
+    s=(o.type==='closet'&&house.cfg.hide)?tr('hintHideIn'):tr('hintCheck')(nm)}}
   if(s!==hintKey){hintKey=s;$('hint').innerHTML=s}
 }
 
@@ -1575,9 +1790,9 @@ $('bShareF').onclick=()=>share('final');
 $('bShareC').onclick=()=>share('clear');
 $('bTitleF').onclick=()=>toTitle();
 $('bShareClose').onclick=()=>{$('shareM').hidden=true};
-$('bCopy').onclick=()=>{const t=$('shareM').dataset.text||'';const ok=()=>$('copied').textContent='コピーしました';
+$('bCopy').onclick=()=>{const t=$('shareM').dataset.text||'';const ok=()=>$('copied').textContent=tr('copied');
   try{navigator.clipboard.writeText(t).then(ok,()=>fallbackCopy(t))}catch(e){fallbackCopy(t)}};
-function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();$('copied').textContent=ok?'コピーしました':'コピーできませんでした。手動で選択してください。'}
+function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();$('copied').textContent=ok?tr('copied'):tr('copyFail')}
 
 function toTitle(){
   $('mapName').classList.remove('on');
@@ -1595,11 +1810,11 @@ function getSlots(){try{const a=JSON.parse(localStorage.getItem(SLOT_KEY));if(Ar
 function putSlots(a){try{localStorage.setItem(SLOT_KEY,JSON.stringify(a));return true}catch(e){return false}}
 const SL={mode:'save',data:null,back:null,warn:-1};
 function pad2(n){return (n<10?'0':'')+n}
-function slotLabel(v){const d=v.at?new Date(v.at):null;return {main:'DAY '+v.day+'　'+DAYS[v.day-1].wd,sub:'TIME '+fmt(v.total||0)+'　売られた '+(v.overs||0)+'回'+(d?'　'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes()):'')}}
+function slotLabel(v){const d=v.at?new Date(v.at):null;return {main:'DAY '+v.day+'　'+tr('days')[v.day-1].wd,sub:tr('slSub')(fmt(v.total||0),v.overs||0)+(d?'　'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes()):'')}}
 function openSlots(mode,data,back){
   SL.mode=mode;SL.data=data;SL.back=back;SL.warn=-1;
   $('slTitle').textContent=mode==='save'?'SAVE':'LOAD';
-  $('slNote').textContent=mode==='save'?'DAY '+data.day+' のはじめから再開できます':'えらんだ日のはじめから再開します';$('slTitle').textContent=mode==='save'?'SAVE':(back==='title'?'つづきから':'LOAD');$('slTitle').style.fontFamily=(mode==='load'&&back==='title')?'var(--jp)':'';
+  $('slNote').textContent=mode==='save'?tr('slSaveNote')(data.day):tr('slLoadNote');$('slTitle').textContent=mode==='save'?'SAVE':(back==='title'?tr('cont'):'LOAD');$('slTitle').style.fontFamily=(mode==='load'&&back==='title')?'var(--jp)':'';
   ['title','pause','clear'].forEach(id=>$(id).hidden=true);$('slots').hidden=false;renderSlots();
   setTimeout(()=>{const b=document.querySelector('#slList .slot:not(:disabled)');(b||$('slClose')).focus()},30);
 }
@@ -1608,13 +1823,13 @@ function renderSlots(){
   const list=$('slList'),sl=getSlots();list.innerHTML='';
   if(SL.mode==='load'){const v=autoSlot();const b=document.createElement('button');b.type='button';b.className='slot auto'+(v?'':' empty');
     b.innerHTML='<span class="no">AUTO</span><span class="main"></span><span class="sub"></span>';
-    const L=v?slotLabel(v):{main:'からっぽ',sub:''};b.querySelector('.main').textContent=L.main;b.querySelector('.sub').textContent=L.sub;
+    const L=v?slotLabel(v):{main:tr('slEmpty'),sub:''};b.querySelector('.main').textContent=L.main;b.querySelector('.sub').textContent=L.sub;
     if(!v)b.disabled=true;b.addEventListener('click',()=>slotLoad(v));list.appendChild(b);
     const sep=document.createElement('div');sep.className='slsep';sep.textContent='SAVE';list.appendChild(sep)}
   sl.forEach((v,i)=>{const b=document.createElement('button');b.type='button';b.className='slot'+(v?'':' empty')+(SL.warn===i?' warn':'');
-    const L=v?slotLabel(v):{main:'からっぽ',sub:'　'};
+    const L=v?slotLabel(v):{main:tr('slEmpty'),sub:'　'};
     b.innerHTML='<span class="no">SLOT '+(i+1)+'</span><span class="main"></span><span class="sub"></span>';
-    b.querySelector('.main').textContent=SL.warn===i?'上書きする？ もう一度タップ':L.main;b.querySelector('.sub').textContent=L.sub;
+    b.querySelector('.main').textContent=SL.warn===i?tr('slOver'):L.main;b.querySelector('.sub').textContent=L.sub;
     if(SL.mode==='load'&&!v)b.disabled=true;
     b.addEventListener('click',()=>slotPick(i));list.appendChild(b)});
 }
@@ -1623,7 +1838,7 @@ function slotPick(i){
   if(SL.mode==='save'){
     if(sl[i]&&SL.warn!==i){SL.warn=i;renderSlots();return}
     sl[i]=Object.assign({},SL.data,{at:Date.now()});
-    if(putSlots(sl)){SL.warn=-1;renderSlots();toastSlot('SLOT '+(i+1)+' にセーブしました')}else toastSlot('セーブできませんでした（ブラウザの保存領域が使えません）');
+    if(putSlots(sl)){SL.warn=-1;renderSlots();toastSlot(tr('slSaved')(i+1))}else toastSlot(tr('slFail'));
   }else{
     slotLoad(sl[i]);
   }
@@ -1641,6 +1856,17 @@ $('bSaveP').addEventListener('click',()=>openSlots('save',snapshotRun(run.day),'
 $('bLoadP').addEventListener('click',()=>openSlots('load',null,'pause'));
 $('bSaveC').addEventListener('click',()=>openSlots('save',snapshotRun(Math.min(8,run.day+1)),'clear'));
 $('slClose').addEventListener('click',closeSlots);
+
+/* ================= language popup ================= */
+(function(){const list=$('lpList');LANGS.forEach(([c,n])=>{const b=document.createElement('button');b.type='button';b.className='btn';b.dataset.lang=c;b.textContent=n;b.style.fontFamily=FONTS[c];b.lang=c==='zh'?'zh-Hans':c;
+  b.addEventListener('click',()=>{SFX.pick();setLang(c);closeLang()});list.appendChild(b)})})();
+let LP_BACK=null;
+function openLang(back){LP_BACK=back;if(back)$(back).hidden=true;$('langPop').hidden=false;applyLang();setTimeout(()=>{const c=document.querySelector('#lpList .cur');(c||$('lpClose')).focus()},30)}
+function closeLang(){$('langPop').hidden=true;if(LP_BACK)$(LP_BACK).hidden=false}
+$('bLangT').addEventListener('click',()=>{actx();SFX.pick();openLang('title')});
+$('bLangP').addEventListener('click',()=>{SFX.pick();openLang('pause')});
+$('lpClose').addEventListener('click',closeLang);
+applyLang();
 
 /* ================= loop ================= */
 let last=performance.now();
