@@ -10,30 +10,8 @@ const filterButtons = [...document.querySelectorAll("[data-filter]")];
 let projects = fallbackProjects;
 let activeFilter = "all";
 
-document.documentElement.classList.add("js");
-
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("is-visible");
-        observer.unobserve(entry.target);
-      }
-    });
-  },
-  { threshold: 0.12 },
-);
-
-function observeReveals() {
-  document.querySelectorAll("[data-reveal]:not(.is-visible)").forEach((item) => observer.observe(item));
-}
-
 function projectTitle(project) {
   return project.title || project.name || "Untitled";
-}
-
-function projectDetail(project) {
-  return project.detail || "ブラウザですぐ使える、小さな作品です。";
 }
 
 function isPublishedProject(project) {
@@ -69,8 +47,6 @@ function createCard(project, index, total) {
   const title = projectTitle(project);
   const card = document.createElement("article");
   card.className = "project-card";
-  card.dataset.reveal = "";
-  card.style.setProperty("--delay", `${index * 70}ms`);
 
   const top = document.createElement("div");
   top.className = "card-top";
@@ -84,7 +60,6 @@ function createCard(project, index, total) {
   copy.append(
     createTextElement("h3", "", title),
     createTextElement("p", "description", project.description || "説明を準備中です。"),
-    createTextElement("p", "detail", projectDetail(project)),
   );
 
   const action = document.createElement("a");
@@ -92,12 +67,32 @@ function createCard(project, index, total) {
   action.href = project.url;
   action.setAttribute("aria-label", `${title} を開く`);
   action.append(
-    createTextElement("span", "", "Open"),
+    createTextElement("span", "", project.kind === "game" ? "あそぶ" : "つかう"),
     createTextElement("span", "arrow", "↗"),
   );
   action.lastElementChild.setAttribute("aria-hidden", "true");
 
-  card.append(top, copy, action);
+  const visual = document.createElement("div");
+  visual.className = "card-visual";
+  const image = document.createElement("img");
+  image.alt = "";
+  image.width = 640;
+  image.height = 400;
+  image.loading = index < 4 ? "eager" : "lazy";
+  image.decoding = "async";
+  function showThumbnailFallback() {
+    visual.classList.add("image-unavailable");
+    image.hidden = true;
+    visual.append(createTextElement("span", "visual-fallback", title));
+  }
+  image.addEventListener("error", showThumbnailFallback, { once: true });
+  if (project.thumbnail) image.src = project.thumbnail;
+  else showThumbnailFallback();
+  visual.append(image);
+  const body = document.createElement("div");
+  body.className = "card-body";
+  body.append(top, copy, action);
+  card.append(visual, body);
   return card;
 }
 
@@ -110,7 +105,6 @@ function render() {
   const total = String(projects.length).padStart(2, "0");
   heroCount.textContent = total;
   heroWatermark.textContent = total;
-  observeReveals();
 }
 
 filterButtons.forEach((button) => {
@@ -137,5 +131,4 @@ async function loadProjects() {
   render();
 }
 
-observeReveals();
 loadProjects();
