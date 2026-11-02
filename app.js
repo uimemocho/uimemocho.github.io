@@ -103,11 +103,11 @@ function createCard(project, index, total) {
   body.className = "card-body";
   const controls = document.createElement("div");
   controls.className = "card-controls";
-  const details = document.createElement("details");
-  details.className = "project-details";
-  const summary = createTextElement("summary", "", "詳細");
-  summary.setAttribute("aria-label", `${title} の説明`);
-  details.append(summary, createTextElement("p", "full-description", project.description || "説明を準備中です。"));
+  const details = createTextElement("button", "project-details-button", "詳細");
+  details.type = "button";
+  details.setAttribute("aria-label", `${title} の詳細`);
+  details.setAttribute("aria-haspopup", "dialog");
+  details.addEventListener("click", () => openProjectDetails(project));
   const like = document.createElement("button");
   like.type = "button";
   like.className = "like-project";
@@ -123,6 +123,41 @@ function createCard(project, index, total) {
   body.append(top, copy, controls, action);
   card.append(visual, body);
   return card;
+}
+
+const projectDialog = document.querySelector("#project-dialog");
+const dialogLike = projectDialog.querySelector(".like-project");
+dialogLike.addEventListener("click", () => toggleLike(dialogLike.dataset.slug));
+projectDialog.querySelector(".dialog-close").addEventListener("click", () => projectDialog.close());
+projectDialog.addEventListener("click", (event) => {
+  if (event.target !== projectDialog) return;
+  const bounds = projectDialog.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) projectDialog.close();
+});
+
+function openProjectDetails(project) {
+  const title = projectTitle(project);
+  const image = projectDialog.querySelector(".dialog-thumbnail");
+  image.hidden = !project.thumbnail;
+  image.onerror = () => { image.hidden = true; };
+  if (project.thumbnail) image.src = project.thumbnail;
+  else image.removeAttribute("src");
+  projectDialog.querySelector("#dialog-title").textContent = title;
+  const type = projectDialog.querySelector(".type");
+  type.textContent = project.kind === "game" ? "ゲーム" : "ツール";
+  type.className = `type type-${project.kind}`;
+  projectDialog.querySelector(".dialog-description").textContent = project.description || "説明を準備中です。";
+  dialogLike.dataset.slug = project.slug;
+  dialogLike.setAttribute("aria-label", `${title} にいいね`);
+  const action = projectDialog.querySelector(".open-project");
+  action.href = project.url;
+  action.setAttribute("aria-label", `${title} を開く`);
+  action.firstElementChild.textContent = project.kind === "game" ? "あそぶ" : "つかう";
+  projectDialog.querySelector(".dialog-status").textContent = likesStatus.textContent;
+  updateLikeButtons();
+  projectDialog.showModal();
+  projectDialog.scrollTop = 0;
+  projectDialog.querySelector("#dialog-title").focus({ preventScroll: true });
 }
 
 function render() {
@@ -191,6 +226,10 @@ let visitor;
 let likesReady = false;
 let likesFailed = false;
 const likesStatus = document.querySelector('#likes-status');
+function setLikeStatus(message) {
+  likesStatus.textContent = message;
+  projectDialog.querySelector('.dialog-status').textContent = message;
+}
 
 function updateLikeButtons() {
   document.querySelectorAll('.like-project').forEach(button => {
@@ -240,12 +279,12 @@ async function loadLikes() {
     }));
     likesReady = true;
     likesFailed = false;
-    likesStatus.textContent = '';
+    setLikeStatus('');
     document.querySelectorAll('.like-project').forEach(b => b.removeAttribute('data-unavailable'));
   } catch {
     likesReady = false;
     likesFailed = true;
-    likesStatus.textContent = 'いいねを読み込めませんでした。♡ を押すと再読み込みします。';
+    setLikeStatus('いいねを読み込めませんでした。♡ を押すと再読み込みします。');
     document.querySelectorAll('.like-project').forEach(b => b.setAttribute('data-unavailable', ''));
   }
   updateLikeButtons();
@@ -261,9 +300,9 @@ async function toggleLike(slug) {
   try {
     const state = await likesRequest('/likes', { slug, liked: !previous.liked });
     likeState.set(slug, { count: state.count, liked: state.liked });
-    likesStatus.textContent = '';
+    setLikeStatus('');
   } catch {
-    likesStatus.textContent = 'いいねを保存できませんでした。もう一度お試しください。';
+    setLikeStatus('いいねを保存できませんでした。もう一度お試しください。');
   } finally {
     pendingLikes.delete(slug);
     updateLikeButtons();

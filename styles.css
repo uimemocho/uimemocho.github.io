@@ -541,22 +541,16 @@ footer a {
   position: relative;
   min-height: 36px;
 }
-.project-details summary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: max-content;
+.project-details-button {
   min-height: 36px;
-  padding: 6px 4px;
-  cursor: pointer;
-  font-size: 11px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
   color: var(--muted);
-  list-style: none;
+  font-size: 11px;
 }
-.project-details summary::-webkit-details-marker { display: none; }
-.project-details summary::after { content: "+"; font-size: 15px; }
-.project-details[open] summary::after { content: "−"; }
-.project-details summary:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.project-details-button:hover { border-color: var(--ink); color: var(--ink); }
 .full-description {
   margin: 8px 0 0;
   font-size: 12px;
@@ -624,3 +618,26 @@ footer a {
 @media(max-width:360px) {
   .catalog-bar { align-items: center; flex-direction: row; }
 }
+
+.project-dialog {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100svh - 48px);
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink);
+  overscroll-behavior: contain;
+}
+.project-dialog::backdrop { background: rgb(0 0 0 / 45%); }
+body:has(.project-dialog[open]) { overflow: hidden; }
+.dialog-thumbnail { display: block; width: 100%; height: auto; aspect-ratio: 8 / 5; object-fit: cover; border-bottom: 1px solid var(--ink); }
+.dialog-thumbnail[hidden] { display: none; }
+.dialog-body { padding: 20px; }
+.dialog-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dialog-meta .like-project { position: static; }
+#dialog-title { margin: 10px 0 14px; font-size: 22px; line-height: 1.5; overflow-wrap: anywhere; }
+#dialog-title:focus { outline: none; }
+.dialog-description { margin: 0 0 22px; font-size: 14px; line-height: 1.9; white-space: pre-line; overflow-wrap: anywhere; }
+.dialog-close { display: block; width: 100%; min-height: 44px; margin-top: 10px; border: 1px solid var(--ink); border-radius: 0; background: var(--surface); font-size: 12px; }
+@media(max-width:760px) { .dialog-body { padding: 16px; } #dialog-title { font-size: 19px; } .dialog-description { font-size: 13px; } }
