@@ -629,7 +629,11 @@ footer a {
   color: var(--ink);
   overscroll-behavior: contain;
 }
-.project-dialog::backdrop { background: rgb(0 0 0 / 45%); }
+.project-dialog::backdrop {
+  background: rgb(0 0 0 / 35%);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
 body:has(.project-dialog[open]) { overflow: hidden; }
 .dialog-thumbnail { display: block; width: 100%; height: auto; aspect-ratio: 8 / 5; object-fit: cover; border-bottom: 1px solid var(--ink); }
 .dialog-thumbnail[hidden] { display: none; }
