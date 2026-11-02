@@ -27,7 +27,3 @@ Run the backend checks with Node 22.13 or later:
 ```sh
 node --test tests/likes-worker.test.mjs
 ```
-
-The Pages workflow runs `scripts/inject-navigation.mjs` after assembling the
-static output. It adds the shared back-to-catalog script to all catalog entry
-pages without editing the game source or result-share pages.
