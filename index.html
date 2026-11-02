@@ -22,8 +22,8 @@
       }
     </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20261102-2" />
-    <script defer src="/app.js?v=20261102-2"></script>
+    <link rel="stylesheet" href="/styles.css?v=20261102-3" />
+    <script defer src="/app.js?v=20261102-3"></script>
   </head>
   <body>
     <div class="site-shell">
@@ -55,6 +55,14 @@
                 ツール
               </button>
             </div>
+            <label class="sort-control" for="project-sort">
+              並び順
+              <select id="project-sort">
+                <option value="newest">新しい順</option>
+                <option value="oldest">古い順</option>
+                <option value="popular">人気順</option>
+              </select>
+            </label>
           </div>
 
           <p class="like-status" id="likes-status" role="status" aria-live="polite"></p>

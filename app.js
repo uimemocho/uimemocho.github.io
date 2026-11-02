@@ -7,6 +7,8 @@ const filterButtons = [...document.querySelectorAll("[data-filter]")];
 
 let projects = fallbackProjects;
 let activeFilter = "all";
+let activeSort = "newest";
+const sortSelect = document.querySelector("#project-sort");
 
 function projectTitle(project) {
   return project.title || project.name || "Untitled";
@@ -16,17 +18,27 @@ function isPublishedProject(project) {
   return typeof project.url === "string" && project.url.startsWith("/apps/");
 }
 
-function sortProjectsByRecent(items) {
+function sortProjects(items) {
   return items
     .map((project, index) => {
-      const value = project.updatedAt || project.publishedAt;
+      const value = project.publishedAt || project.updatedAt;
       const timestamp = typeof value === "string" ? Date.parse(value) : Number.NaN;
       return { project, index, timestamp };
     })
     .sort((left, right) => {
+      if (activeSort === "popular") {
+        const difference = (likeState.get(right.project.slug)?.count || 0)
+          - (likeState.get(left.project.slug)?.count || 0);
+        if (difference) return difference;
+      }
       const leftHasDate = Number.isFinite(left.timestamp);
       const rightHasDate = Number.isFinite(right.timestamp);
-      if (leftHasDate && rightHasDate) return right.timestamp - left.timestamp || left.index - right.index;
+      if (leftHasDate && rightHasDate) {
+        const difference = activeSort === "oldest"
+          ? left.timestamp - right.timestamp
+          : right.timestamp - left.timestamp;
+        return difference || left.index - right.index;
+      }
       if (leftHasDate) return -1;
       if (rightHasDate) return 1;
       return left.index - right.index;
@@ -114,13 +126,32 @@ function createCard(project, index, total) {
 }
 
 function render() {
-  const visible = activeFilter === "all"
+  const visible = sortProjects(activeFilter === "all"
     ? projects
-    : projects.filter((project) => project.kind === activeFilter);
+    : projects.filter((project) => project.kind === activeFilter));
   grid.replaceChildren(...visible.map((project, index) => createCard(project, index, projects.length)));
   visibleCount.textContent = String(visible.length).padStart(2, "0");
   updateLikeButtons();
 
+}
+
+sortSelect.addEventListener("change", () => {
+  activeSort = sortSelect.value;
+  render();
+});
+
+// Move existing cards after count updates so expanded descriptions and button
+// focus survive a change in popularity.
+function refreshPopularOrder() {
+  if (activeSort !== "popular") return;
+  const focused = document.activeElement;
+  const visible = sortProjects(projects.filter(project => document.getElementById(`project-${project.slug}`)));
+  visible.forEach((project, index) => {
+    const card = document.getElementById(`project-${project.slug}`);
+    grid.append(card);
+    card.querySelector('.number').textContent = `${String(index + 1).padStart(2, "0")} / ${String(projects.length).padStart(2, "0")}`;
+  });
+  if (focused && grid.contains(focused)) focused.focus({ preventScroll: true });
 }
 
 filterButtons.forEach((button) => {
@@ -137,7 +168,7 @@ async function loadProjects() {
     if (!response.ok) throw new Error(`Catalog request failed: ${response.status}`);
     const catalog = await response.json();
     if (!Array.isArray(catalog)) throw new Error("Catalog is not an array");
-    projects = sortProjectsByRecent(catalog.filter(isPublishedProject));
+    projects = catalog.filter(isPublishedProject);
     notice.textContent = "";
   } catch (error) {
     projects = fallbackProjects;
@@ -218,6 +249,7 @@ async function loadLikes() {
     document.querySelectorAll('.like-project').forEach(b => b.setAttribute('data-unavailable', ''));
   }
   updateLikeButtons();
+  refreshPopularOrder();
 }
 
 async function toggleLike(slug) {
@@ -235,6 +267,7 @@ async function toggleLike(slug) {
   } finally {
     pendingLikes.delete(slug);
     updateLikeButtons();
+    refreshPopularOrder();
   }
 }
 
