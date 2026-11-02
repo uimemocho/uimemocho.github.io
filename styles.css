@@ -277,9 +277,10 @@ h1 {
 }
 
 .open-project {
+  position:relative;
   display:flex;
   align-items:center;
-  justify-content:space-between;
+  justify-content:center;
   min-height:44px;
   padding:10px 12px;
   background:var(--blue);
@@ -287,6 +288,11 @@ h1 {
   font-size:12px;
   font-weight:700;
   text-decoration:none;
+}
+
+.open-project .arrow {
+  position:absolute;
+  right:12px;
 }
 
 .arrow {
