@@ -22,8 +22,8 @@
       }
     </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20261102" />
-    <script defer src="/app.js?v=20261102"></script>
+    <link rel="stylesheet" href="/styles.css?v=20261102-2" />
+    <script defer src="/app.js?v=20261102-2"></script>
   </head>
   <body>
     <div class="site-shell">
@@ -37,46 +37,27 @@
       </header>
 
       <main id="top">
-        <section class="hero" aria-labelledby="headline" data-reveal>
-          <div class="hero-copy">
-            <p class="eyebrow">TOOLS / GAMES / EXPERIMENTS</p>
-            <h1 id="headline">ひらく、あそぶ。<br />ちょっと、ひらめく。</h1>
-          </div>
-          <div class="hero-aside">
-            <span class="vertical-rule" aria-hidden="true"></span>
-            <div>
-              <p class="intro">
-                気になるひとつを、タップ。<br />ブラウザで使えるツールと、遊べるゲーム。
-              </p>
-              <p class="aside-meta">
-                Open catalog — <span id="hero-count">00</span> projects
-              </p>
-            </div>
-          </div>
-          <span class="hero-watermark" id="hero-watermark" aria-hidden="true">00</span>
-        </section>
-
         <section class="catalog" aria-labelledby="catalog-title">
-          <div class="catalog-bar" data-reveal>
+          <div class="catalog-bar">
             <div>
-              <p class="catalog-kicker">PICK YOUR NEXT PLAY</p>
-              <h2 class="section-title" id="catalog-title">
+              <h1 class="section-title" id="catalog-title">
                 作品一覧 <span id="visible-count">00</span>
-              </h2>
+              </h1>
             </div>
             <div class="filters" role="group" aria-label="作品を種類で絞り込む">
               <button class="filter" type="button" data-filter="all" aria-pressed="true">
                 すべて
               </button>
-              <button class="filter" type="button" data-filter="tool" aria-pressed="false">
-                ツール
-              </button>
               <button class="filter" type="button" data-filter="game" aria-pressed="false">
                 ゲーム
+              </button>
+              <button class="filter" type="button" data-filter="tool" aria-pressed="false">
+                ツール
               </button>
             </div>
           </div>
 
+          <p class="like-status" id="likes-status" role="status" aria-live="polite"></p>
           <div class="project-grid" id="project-grid" aria-live="polite"></div>
           <p class="catalog-notice" id="catalog-notice" role="status" aria-live="polite">
             作品情報を読み込んでいます。

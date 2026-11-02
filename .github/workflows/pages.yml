@@ -29,6 +29,8 @@ jobs:
           cp -R data/. _site/data/
           if [ -d public ]; then cp -R public/. _site/; fi
           touch _site/.nojekyll
+      - name: Add app navigation
+        run: node scripts/inject-navigation.mjs _site
       - name: Inject analytics
         env:
           GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}

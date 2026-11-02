@@ -1,0 +1,14 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "uimemocho-likes",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-02",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "uimemocho-likes",
+      "database_id": "840dbf34-ec70-4b77-ae8b-3486bafd77e4"
+    }
+  ]
+}

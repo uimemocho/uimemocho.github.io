@@ -541,3 +541,59 @@ footer a {
 .card-visual img[hidden] {
   display: none;
 }
+
+.card-controls {
+  position: relative;
+  min-height: 36px;
+}
+.project-details summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  min-height: 36px;
+  padding: 6px 4px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--muted);
+  list-style: none;
+}
+.project-details summary::-webkit-details-marker { display: none; }
+.project-details summary::after { content: "+"; font-size: 15px; }
+.project-details[open] summary::after { content: "−"; }
+.project-details summary:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.full-description {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+.like-project {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 54px;
+  min-height: 36px;
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.like-heart { font-size: 23px; line-height: 1; }
+.like-project[aria-pressed="true"] { color: #d52654; }
+.like-project:disabled { cursor: wait; }
+.like-project[data-unavailable] { cursor: pointer; }
+.like-status { margin: 0; font-size: 11px; color: var(--muted); }
+@media(max-width:760px) {
+  .full-description { font-size: 11px; }
+  .card-body { gap: 8px; }
+}
+.like-status:not(:empty) { margin: 0 0 12px; }
+.like-status:empty { display: none; }

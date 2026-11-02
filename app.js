@@ -2,8 +2,6 @@ const fallbackProjects = [];
 
 const grid = document.querySelector("#project-grid");
 const visibleCount = document.querySelector("#visible-count");
-const heroCount = document.querySelector("#hero-count");
-const heroWatermark = document.querySelector("#hero-watermark");
 const notice = document.querySelector("#catalog-notice");
 const filterButtons = [...document.querySelectorAll("[data-filter]")];
 
@@ -47,6 +45,7 @@ function createCard(project, index, total) {
   const title = projectTitle(project);
   const card = document.createElement("article");
   card.className = "project-card";
+  card.id = `project-${project.slug}`;
 
   const top = document.createElement("div");
   top.className = "card-top";
@@ -59,7 +58,6 @@ function createCard(project, index, total) {
   copy.className = "card-copy";
   copy.append(
     createTextElement("h3", "", title),
-    createTextElement("p", "description", project.description || "説明を準備中です。"),
   );
 
   const action = document.createElement("a");
@@ -91,7 +89,26 @@ function createCard(project, index, total) {
   visual.append(image);
   const body = document.createElement("div");
   body.className = "card-body";
-  body.append(top, copy, action);
+  const controls = document.createElement("div");
+  controls.className = "card-controls";
+  const details = document.createElement("details");
+  details.className = "project-details";
+  const summary = createTextElement("summary", "", "詳細");
+  summary.setAttribute("aria-label", `${title} の説明`);
+  details.append(summary, createTextElement("p", "full-description", project.description || "説明を準備中です。"));
+  const like = document.createElement("button");
+  like.type = "button";
+  like.className = "like-project";
+  like.dataset.slug = project.slug;
+  like.setAttribute("aria-label", `${title} にいいね`);
+  like.setAttribute("aria-pressed", "false");
+  like.append(createTextElement("span", "like-heart", "♡"), createTextElement("span", "like-count", "—"));
+  like.firstElementChild.setAttribute("aria-hidden", "true");
+  like.disabled = true;
+  like.title = "いいね数を読み込み中";
+  like.addEventListener("click", () => toggleLike(project.slug));
+  controls.append(details, like);
+  body.append(top, copy, controls, action);
   card.append(visual, body);
   return card;
 }
@@ -102,9 +119,8 @@ function render() {
     : projects.filter((project) => project.kind === activeFilter);
   grid.replaceChildren(...visible.map((project, index) => createCard(project, index, projects.length)));
   visibleCount.textContent = String(visible.length).padStart(2, "0");
-  const total = String(projects.length).padStart(2, "0");
-  heroCount.textContent = total;
-  heroWatermark.textContent = total;
+  updateLikeButtons();
+
 }
 
 filterButtons.forEach((button) => {
@@ -129,6 +145,97 @@ async function loadProjects() {
     console.warn("Catalog could not be loaded.", error);
   }
   render();
+  const target = document.getElementById(location.hash.slice(1));
+  if (target) requestAnimationFrame(() => target.scrollIntoView({ block: "center" }));
+  await loadLikes();
+}
+
+
+// Counts and pressed state come from the shared service. Only an anonymous
+// browser identifier is kept locally so repeated taps do not add more votes.
+const likeState = new Map();
+const pendingLikes = new Set();
+let likesEndpoint;
+let visitor;
+let likesReady = false;
+let likesFailed = false;
+const likesStatus = document.querySelector('#likes-status');
+
+function updateLikeButtons() {
+  document.querySelectorAll('.like-project').forEach(button => {
+    const state = likeState.get(button.dataset.slug);
+    const liked = Boolean(state?.liked);
+    button.setAttribute('aria-pressed', String(liked));
+    button.querySelector('.like-heart').textContent = liked ? '♥' : '♡';
+    button.querySelector('.like-count').textContent = state ? String(state.count) : '—';
+    button.toggleAttribute('data-unavailable', likesFailed);
+    button.disabled = pendingLikes.has(button.dataset.slug) || (!likesReady && !likesFailed);
+    button.title = likesReady ? (liked ? 'いいねを取り消す' : 'いいね') : 'いいねを再読み込み';
+  });
+}
+
+async function likesRequest(route, body) {
+  const response = await fetch(likesEndpoint + route, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ visitor, ...body }),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new Error('Likes unavailable');
+  return response.json();
+}
+
+async function loadLikes() {
+  try {
+    if (!visitor) {
+      try { visitor = localStorage.getItem('uimemocho-like-visitor'); } catch { /* Storage may be disabled. */ }
+      if (!visitor || !/^[0-9a-f-]{36}$/.test(visitor)) {
+        visitor = crypto.randomUUID();
+        try { localStorage.setItem('uimemocho-like-visitor', visitor); } catch { /* Keep it in this session. */ }
+      }
+    }
+    if (!likesEndpoint) {
+      const configResponse = await fetch('/data/likes.json');
+      if (!configResponse.ok) throw new Error('Likes configuration unavailable');
+      const config = await configResponse.json();
+      const endpoint = new URL(config.endpoint);
+      if (endpoint.protocol !== 'https:') throw new Error('Invalid likes endpoint');
+      likesEndpoint = endpoint.origin;
+    }
+    const state = await likesRequest('/state', {});
+    projects.forEach(project => likeState.set(project.slug, {
+      count: state.counts[project.slug] || 0,
+      liked: state.liked.includes(project.slug),
+    }));
+    likesReady = true;
+    likesFailed = false;
+    likesStatus.textContent = '';
+    document.querySelectorAll('.like-project').forEach(b => b.removeAttribute('data-unavailable'));
+  } catch {
+    likesReady = false;
+    likesFailed = true;
+    likesStatus.textContent = 'いいねを読み込めませんでした。♡ を押すと再読み込みします。';
+    document.querySelectorAll('.like-project').forEach(b => b.setAttribute('data-unavailable', ''));
+  }
+  updateLikeButtons();
+}
+
+async function toggleLike(slug) {
+  if (!likesReady) { await loadLikes(); return; }
+  if (pendingLikes.has(slug)) return;
+  const previous = likeState.get(slug) || { count: 0, liked: false };
+  pendingLikes.add(slug);
+  updateLikeButtons();
+  try {
+    const state = await likesRequest('/likes', { slug, liked: !previous.liked });
+    likeState.set(slug, { count: state.count, liked: state.liked });
+    likesStatus.textContent = '';
+  } catch {
+    likesStatus.textContent = 'いいねを保存できませんでした。もう一度お試しください。';
+  } finally {
+    pendingLikes.delete(slug);
+    updateLikeButtons();
+  }
 }
 
 loadProjects();
