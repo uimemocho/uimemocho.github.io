@@ -32,8 +32,8 @@
   --peach:#ff9b6a;
   --dusk:#1d1224;
   --line:rgba(243,236,226,.55);
-  --f-disp:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;
-  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+  --f-disp:"Dela Gothic One","Hiragino Sans","Noto Sans JP","PingFang SC","Apple SD Gothic Neo",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","PingFang SC","Microsoft YaHei","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --f-num:"Oswald","Arial Narrow",sans-serif;
   color-scheme:dark;
 }
@@ -227,6 +227,19 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
 
 #muteBtn{position:absolute;right:max(14px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 14px);display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:64px;padding:0 10px;
   font-family:var(--f-num);font-size:11px;letter-spacing:.24em;text-indent:.24em;line-height:1;color:var(--bone);background:rgba(16,4,22,.3);border:0;box-shadow:inset 0 0 0 1px var(--line);cursor:pointer}
+#langBtn{position:absolute;right:calc(max(14px,env(safe-area-inset-right,0px)) + 74px);top:calc(env(safe-area-inset-top,0px) + 14px);display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:56px;padding:0 10px;
+  font-family:var(--f-body);font-weight:900;font-size:11px;letter-spacing:.14em;text-indent:.14em;line-height:1;color:var(--bone);background:rgba(16,4,22,.3);border:0;box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;transition:opacity .4s}
+#langBtn:focus-visible{outline:2px solid var(--sun)}
+#langBtn.away{opacity:0;pointer-events:none}
+#langSheet{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(16,4,22,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  padding:calc(env(safe-area-inset-top,0px) + 16px) max(24px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(24px,env(safe-area-inset-left,0px));overflow-y:auto}
+.ls-in{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:center;gap:14px;margin:auto}
+.ls-sub{font-size:13px;font-weight:900;letter-spacing:.2em;text-indent:.2em;color:var(--sun);margin-top:-6px}
+.ls-list{display:flex;flex-direction:column;gap:10px;width:100%}
+.ls-list .btn,.ls-in>.btn{width:100%}
+.ls-list .btn{letter-spacing:.08em;text-indent:.08em}
+.how-what{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--sun);text-align:center;margin-top:-10px}
+.how-what:empty{display:none}
 #muteBtn.play{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 14px)}
 #muteBtn:focus-visible{outline:2px solid var(--sun)}
 #fader{position:absolute;inset:0;background:var(--dusk);opacity:0;pointer-events:none;transition:opacity .45s}
@@ -242,8 +255,8 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
   <div id="grain" class="fx"></div>
   <div id="layer"></div>
   <div id="hud" class="sh" hidden>
-    <div class="hud-l"><div class="lab">じゃーねー力</div><div id="score">0</div></div>
-    <div class="hud-r"><div class="lab">のこり</div><div id="time">30.0</div></div>
+    <div class="hud-l"><div class="lab" data-i18n="power">じゃーねー力</div><div id="score">0</div></div>
+    <div class="hud-r"><div class="lab" data-i18n="left">のこり</div><div id="time">30.0</div></div>
   </div>
   <div id="combo" class="sh"></div>
   <div id="coTag" class="sh" hidden></div>
@@ -254,7 +267,7 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
     <div id="gTarget"></div>
     <div id="gRing"></div>
     <div id="gFx"></div>
-    <div id="gHint" class="sh">重なったらタップ</div>
+    <div id="gHint" class="sh" data-i18n="hint">重なったらタップ</div>
   </div>
   <div id="title" class="sh">
     <div class="logo">
@@ -264,69 +277,70 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
     <div class="t-btns">
       <div id="bestLine" class="best" hidden></div>
       <div id="loading">LOADING</div>
-      <button id="startBtn" class="btn" type="button" hidden>ひとりで</button>
-      <button id="coopBtn" class="btn ghost" type="button" hidden>ふたりで</button>
-      <button id="howBtn" class="btn ghost" type="button" hidden>遊び方</button>
+      <button id="startBtn" class="btn" type="button" hidden data-i18n="solo">ひとりで</button>
+      <button id="coopBtn" class="btn ghost" type="button" hidden data-i18n="duo">ふたりで</button>
+      <button id="howBtn" class="btn ghost" type="button" hidden data-i18n="how">遊び方</button>
     </div>
   </div>
   <div id="coop" class="sh" hidden>
     <div class="co-in">
       <div class="how-ttl">TWO PLAYERS</div>
       <div id="coPick" class="co-col">
-        <button id="coPickCreate" class="btn" type="button">部屋をつくる</button>
-        <button id="coPickJoin" class="btn ghost" type="button">入室する</button>
-        <button id="coBack" class="btn ghost sm2" type="button">もどる</button>
+        <button id="coPickCreate" class="btn" type="button" data-i18n="create">部屋をつくる</button>
+        <button id="coPickJoin" class="btn ghost" type="button" data-i18n="join">入室する</button>
+        <button id="coBack" class="btn ghost sm2" type="button" data-i18n="back">もどる</button>
       </div>
       <div id="coEntry" class="co-col" hidden>
         <div id="coRole" class="co-hint"></div>
-        <label class="co-lab" for="coName">なまえ（10文字まで）</label>
-        <input id="coName" class="co-name" type="text" maxlength="10" autocomplete="off" placeholder="なまえ">
+        <label class="co-lab" for="coName" data-i18n="nameLab">なまえ（10文字まで）</label>
+        <input id="coName" class="co-name" type="text" maxlength="10" autocomplete="off" placeholder="なまえ" data-i18n-ph="name">
         <div id="coJoinBox" class="co-col" hidden>
-          <div class="co-lab">部屋番号</div>
+          <div class="co-lab" data-i18n="roomNo">部屋番号</div>
           <div class="co-code"><input id="c0" inputmode="numeric" maxlength="1" aria-label="部屋番号1桁目"><input id="c1" inputmode="numeric" maxlength="1" aria-label="2桁目"><input id="c2" inputmode="numeric" maxlength="1" aria-label="3桁目"><input id="c3" inputmode="numeric" maxlength="1" aria-label="4桁目"></div>
         </div>
-        <button id="coCreate" class="btn" type="button">部屋をつくる</button>
-        <button id="coJoin" class="btn" type="button" hidden>入室する</button>
+        <button id="coCreate" class="btn" type="button" data-i18n="create">部屋をつくる</button>
+        <button id="coJoin" class="btn" type="button" hidden data-i18n="join">入室する</button>
         <div id="coStatus" class="co-status"></div>
-        <button id="coEntryBack" class="btn ghost sm2" type="button">もどる</button>
+        <button id="coEntryBack" class="btn ghost sm2" type="button" data-i18n="back">もどる</button>
       </div>
       <div id="coLobby" class="co-col" hidden>
-        <div class="co-lab">部屋番号</div>
+        <div class="co-lab" data-i18n="roomNo">部屋番号</div>
         <div id="coRoomNo" class="co-room">0000</div>
         <div class="co-seats">
-          <div class="co-seat taxi"><span>タクシー</span><b id="seatTaxi">—</b></div>
-          <div class="co-seat suv"><span>青い車</span><b id="seatSuv">—</b></div>
+          <div class="co-seat taxi"><span data-i18n="taxi">タクシー</span><b id="seatTaxi">—</b></div>
+          <div class="co-seat suv"><span data-i18n="suv">青い車</span><b id="seatSuv">—</b></div>
         </div>
         <div id="coLobbyStatus" class="co-status"></div>
-        <button id="coGo" class="btn" type="button" hidden>はじめる</button>
-        <button id="coLeave" class="btn ghost sm2" type="button">退室する</button>
+        <button id="coGo" class="btn" type="button" hidden data-i18n="go">はじめる</button>
+        <button id="coLeave" class="btn ghost sm2" type="button" data-i18n="leave">退室する</button>
       </div>
     </div>
   </div>
   <div id="how" class="sh" hidden>
     <div class="how-in" role="dialog" aria-modal="true" aria-labelledby="howTtl">
       <div id="howTtl" class="how-ttl">HOW TO PLAY</div>
+      <div class="how-what" data-i18n="what"></div>
       <ol>
-        <li>となりのタクシーが「じゃーねー！」と言う</li>
-        <li>リングが円に重なった瞬間にタップ</li>
-        <li>ぴったりなら「じゃーねー‼︎‼︎」に進化。JUSTで満点</li>
-        <li>言いかけの「じゃ…」にはつられないこと</li>
+        <li data-i18n="h1">となりのタクシーが「じゃーねー！」と言う</li>
+        <li data-i18n="h2">リングが円に重なった瞬間にタップ</li>
+        <li data-i18n="h3">ぴったりなら「じゃーねー‼︎‼︎」に進化。JUSTで満点</li>
+        <li data-i18n="h4">言いかけの「じゃ…」にはつられないこと</li>
       </ol>
-      <div class="how-note">分かれ道の最後のじゃーねーはスコア3倍<br>ふたりで：タクシー側が言って、青い車側が返す。スコアは合算<br>音ありプレイ推奨</div>
-      <div class="how-fan">映画『我々は宇宙人』非公式ファンゲーム</div>
-      <button id="howClose" class="btn" type="button">とじる</button>
+      <div class="how-note" data-i18n-html="hNote">分かれ道の最後のじゃーねーはスコア3倍<br>ふたりで：タクシー側が言って、青い車側が返す。スコアは合算<br>音ありプレイ推奨</div>
+      <div class="how-fan" data-i18n="fan">映画『我々は宇宙人』非公式ファンゲーム</div>
+      <button id="howClose" class="btn" type="button" data-i18n="close">とじる</button>
     </div>
   </div>
   <div id="result" class="sh" hidden>
-    <div class="r-lab">じゃーねー力</div>
+    <div class="r-lab" data-i18n="power">じゃーねー力</div>
     <div class="og"><div id="rScoreG" class="og-glow" aria-hidden="true">0</div><div id="rScore">0</div></div>
     <div class="rank-row"><div class="og"><div id="rRankG" class="og-glow" aria-hidden="true">S</div><div id="rRank">S</div></div><div id="rTitle"></div></div>
     <div id="rStats"></div>
     <div class="r-btns">
-      <button id="retryBtn" class="btn" type="button">もう一回</button>
+      <button id="retryBtn" class="btn" type="button" data-i18n="retry">もう一回</button>
       <div class="r-row">
-        <button id="shareX" class="btn ghost sm" type="button">Xでシェア</button>
-        <button id="copyBtn" class="btn ghost sm" type="button">結果をコピー</button>
+        <button id="shareX" class="btn ghost sm" type="button" data-i18n="shareX">Xでシェア</button>
+        <button id="copyBtn" class="btn ghost sm" type="button" data-i18n="copy">結果をコピー</button>
       </div>
       <div id="copied"></div>
     </div>
@@ -334,12 +348,21 @@ body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-s
   <div id="shareSheet" hidden>
     <div class="ss-in">
       <img id="ssImg" alt="リザルト画像">
-      <div class="ss-note">画像を長押しで保存して、Xの投稿に添付してください</div>
-      <a id="ssX" class="btn" href="#" target="_blank" rel="noopener">Xの投稿画面をひらく</a>
-      <button id="ssClose" class="btn ghost" type="button">とじる</button>
+      <div class="ss-note" data-i18n="ssNote">画像を長押しで保存して、Xの投稿に添付してください</div>
+      <a id="ssX" class="btn" href="#" target="_blank" rel="noopener" data-i18n="ssOpen">Xの投稿画面をひらく</a>
+      <button id="ssClose" class="btn ghost" type="button" data-i18n="close">とじる</button>
     </div>
   </div>
+  <button id="langBtn" type="button" data-i18n="lang">言語</button>
   <button id="muteBtn" type="button" aria-pressed="false">SOUND</button>
+  <div id="langSheet" class="sh" hidden>
+    <div class="ls-in" role="dialog" aria-modal="true" aria-labelledby="lsTtl">
+      <div id="lsTtl" class="how-ttl">LANGUAGE</div>
+      <div class="ls-sub" data-i18n="lang">言語</div>
+      <div id="lsList" class="ls-list"></div>
+      <button id="lsClose" class="btn ghost" type="button" data-i18n="close">とじる</button>
+    </div>
+  </div>
   <div id="fader"></div>
 </div>
 
@@ -1104,6 +1127,98 @@ function buildCues(){
 const FEINT=[['じゃ…','…なんでもない'],['じゃー…','…やっぱまだいいや'],['じゃ','…ちがった']];
 const CUE_TEXT={normal:'じゃーねー！',quick:'じゃねっ！',long:'じゃーーーねーーー！',final:'じゃーねーーーっ！！'};
 const RANKS=[[.975,'SSS','我々は宇宙人'],[.93,'SS','宇宙へ帰還します'],[.86,'S','夕暮れの帰り道で、じゃーねー'],[.76,'A','遊びつかれて、じゃーねー'],[.62,'B','意味のない会話と、じゃーねー'],[.46,'C','置き傘ぶら下げて、じゃーねー'],[.28,'D','小さな声のじゃーねー'],[0,'E','言えなかったじゃーねー']];
+/* ============ i18n (ja / en / zh-Hans / ko / fr) ============ */
+const LANGS=[['ja','日本語'],['en','English'],['zh','简体中文'],['ko','한국어'],['fr','Français']];
+const I18N={
+ja:{power:'じゃーねー力',left:'のこり',hint:'重なったらタップ',solo:'ひとりで',duo:'ふたりで',how:'遊び方',lang:'言語',close:'とじる',
+ create:'部屋をつくる',join:'入室する',back:'もどる',nameLab:'なまえ（10文字まで）',name:'なまえ',roomNo:'部屋番号',taxi:'タクシー',suv:'青い車',go:'はじめる',leave:'退室する',
+ roleTaxi:'部屋をつくった人はタクシー側になります',roleSuv:'入室した人は青い車側になります',
+ what:'',h1:'となりのタクシーが「じゃーねー！」と言う',h2:'リングが円に重なった瞬間にタップ',h3:'ぴったりなら「じゃーねー‼︎‼︎」に進化。JUSTで満点',h4:'言いかけの「じゃ…」にはつられないこと',
+ hNote:'分かれ道の最後のじゃーねーはスコア3倍<br>ふたりで：タクシー側が言って、青い車側が返す。スコアは合算<br>音ありプレイ推奨',
+ fan:'映画『我々は宇宙人』非公式ファンゲーム',retry:'もう一回',shareX:'Xでシェア',copy:'結果をコピー',copied:'コピーしました',copyFail:'コピーできませんでした。長押しで選択してください',
+ ssNote:'画像を長押しで保存して、Xの投稿に添付してください',ssOpen:'Xの投稿画面をひらく',combo:'れんぞく じゃーねー',waiting:'相手の結果を待っています',
+ next:'{r} まで あと {n}',rate:'達成率 {p}%　／　最大 {c} 連続',sum:'ふたりの合算（自分 {a} ＋ {who} {b}）',partner:'相手',best:'BEST',
+ nameReq:'なまえを入力してください',connecting:'接続しています',connFail:'接続できませんでした。通信環境を確かめて、もう一度試してください。',codeReq:'4桁の部屋番号を入力してください',
+ empty:'空席',full:'この部屋は満員です',clash:'同じ側の人がいます。部屋をつくり直してください。',waitGuest:'相手を待っています。部屋番号を伝えてください。',waitHost:'タクシー側の人を待っています',
+ readyHost:'そろいました。「はじめる」で出発',readyGuest:'そろいました。タクシー側の出発を待っています',
+ shareWith:'{n}さんとじゃーねー！\n',share:'夕暮れの高速で「じゃーねー！」を返した。\nじゃーねー力 {s}（{r}ランク）\n称号：{t}\n',imgAlt:'リザルト画像',
+ feint:['…なんでもない','…やっぱまだいいや','…ちがった'],
+ ranks:['我々は宇宙人','宇宙へ帰還します','夕暮れの帰り道で、じゃーねー','遊びつかれて、じゃーねー','意味のない会話と、じゃーねー','置き傘ぶら下げて、じゃーねー','小さな声のじゃーねー','言えなかったじゃーねー']},
+en:{power:'JAA-NEE POWER',left:'TIME',hint:'Tap when the rings meet',solo:'Solo',duo:'Two players',how:'How to play',lang:'Language',close:'Close',
+ create:'Create room',join:'Join room',back:'Back',nameLab:'Name (up to 10 characters)',name:'Name',roomNo:'Room number',taxi:'Taxi',suv:'Blue car',go:'Start',leave:'Leave',
+ roleTaxi:'The room creator plays the taxi',roleSuv:'The one who joins plays the blue car',
+ what:'“Jaa-nee!” means “See ya!” in Japanese',h1:'The taxi next to you calls out “Jaa-nee!”',h2:'Tap the moment the ring meets the circle',h3:'Nail it and it grows into “Jaa-nee‼︎‼︎”. JUST is a perfect score',h4:'Don’t fall for a half-said “Ja…”',
+ hNote:'The last jaa-nee at the fork scores triple<br>Two players: the taxi calls, the blue car answers. Scores are combined<br>Best played with sound on',
+ fan:'Unofficial fan game of the film “We Are Aliens”',retry:'Play again',shareX:'Share on X',copy:'Copy result',copied:'Copied',copyFail:'Couldn’t copy. Long-press to select the text',
+ ssNote:'Long-press the image to save it, then attach it to your post on X',ssOpen:'Open X to post',combo:'JAA-NEE STREAK',waiting:'Waiting for your partner’s result',
+ next:'{n} more to {r}',rate:'Accuracy {p}%  /  Best streak {c}',sum:'Combined score (you {a} + {who} {b})',partner:'partner',best:'BEST',
+ nameReq:'Enter your name',connecting:'Connecting',connFail:'Couldn’t connect. Check your connection and try again.',codeReq:'Enter the 4-digit room number',
+ empty:'Empty',full:'This room is full',clash:'Someone is already on that side. Create a new room.',waitGuest:'Waiting for your partner. Share the room number.',waitHost:'Waiting for the taxi player',
+ readyHost:'Both here. Tap “Start” to drive off',readyGuest:'Both here. Waiting for the taxi to start',
+ shareWith:'Jaa-nee with {n}!\n',share:'I said “Jaa-nee!” back on a dusk expressway.\nJaa-nee power {s} (rank {r})\nTitle: {t}\n',imgAlt:'Result image',
+ feint:['…never mind','…actually, not yet','…wrong one'],
+ ranks:['We Are Aliens','Returning to space','Jaa-nee on the road home at dusk','Played out, jaa-nee','Small talk, then jaa-nee','Spare umbrellas in hand, jaa-nee','A quiet jaa-nee','The jaa-nee left unsaid']},
+zh:{power:'Jaa-nee 力',left:'剩余',hint:'圆环重合时点击',solo:'单人',duo:'双人',how:'玩法',lang:'语言',close:'关闭',
+ create:'创建房间',join:'加入房间',back:'返回',nameLab:'名字（最多10个字）',name:'名字',roomNo:'房间号',taxi:'出租车',suv:'蓝色汽车',go:'开始',leave:'退出房间',
+ roleTaxi:'创建房间的人驾驶出租车',roleSuv:'加入房间的人驾驶蓝色汽车',
+ what:'“Jaa-nee！”是日语里的“回头见！”',h1:'旁边的出租车喊出“Jaa-nee！”',h2:'圆环与圆圈重合的瞬间点击',h3:'时机完美就会升级成“Jaa-nee‼︎‼︎”。JUST 为满分',h4:'别被说了一半的“Ja…”骗到',
+ hNote:'岔路口的最后一声 Jaa-nee 得分三倍<br>双人：出租车喊，蓝色汽车回应。分数合计<br>建议开启声音游玩',
+ fan:'电影《We Are Aliens》非官方同人游戏',retry:'再玩一次',shareX:'分享到 X',copy:'复制结果',copied:'已复制',copyFail:'无法复制。请长按选择文字',
+ ssNote:'长按图片保存后，添加到 X 的帖子中',ssOpen:'打开 X 发帖',combo:'连续 Jaa-nee',waiting:'正在等待对方的结果',
+ next:'距离 {r} 还差 {n}',rate:'完成率 {p}%　／　最高连击 {c}',sum:'两人合计（自己 {a} ＋ {who} {b}）',partner:'对方',best:'最高分',
+ nameReq:'请输入名字',connecting:'正在连接',connFail:'无法连接。请检查网络后重试。',codeReq:'请输入4位房间号',
+ empty:'空位',full:'此房间已满',clash:'同一边已经有人了。请重新创建房间。',waitGuest:'正在等待对方。请告诉对方房间号。',waitHost:'正在等待出租车一方',
+ readyHost:'人齐了。点击“开始”出发',readyGuest:'人齐了。正在等待出租车一方出发',
+ shareWith:'和{n}一起 Jaa-nee！\n',share:'在黄昏的高速路上回了一声“Jaa-nee！”\nJaa-nee 力 {s}（{r} 级）\n称号：{t}\n',imgAlt:'结果图片',
+ feint:['……没什么','……还是算了','……不对'],
+ ranks:['We Are Aliens','返回宇宙','黄昏归途，Jaa-nee','玩累了，Jaa-nee','无聊的闲谈，然后 Jaa-nee','挂着备用伞，Jaa-nee','小声的 Jaa-nee','没能说出口的 Jaa-nee']},
+ko:{power:'자-네- 파워',left:'남은 시간',hint:'겹치면 탭',solo:'혼자서',duo:'둘이서',how:'플레이 방법',lang:'언어',close:'닫기',
+ create:'방 만들기',join:'입장하기',back:'뒤로',nameLab:'이름 (최대 10자)',name:'이름',roomNo:'방 번호',taxi:'택시',suv:'파란 차',go:'시작',leave:'퇴장하기',
+ roleTaxi:'방을 만든 사람이 택시를 맡습니다',roleSuv:'입장한 사람이 파란 차를 맡습니다',
+ what:'“자-네-!”는 일본어로 “또 봐!”라는 뜻',h1:'옆 택시가 “자-네-!”라고 외친다',h2:'링이 원에 겹치는 순간 탭',h3:'딱 맞으면 “자-네-‼︎‼︎”로 진화. JUST는 만점',h4:'말하다 만 “자…”에 속지 말 것',
+ hNote:'갈림길의 마지막 자-네-는 점수 3배<br>둘이서: 택시가 외치고 파란 차가 답한다. 점수는 합산<br>소리를 켜고 플레이 추천',
+ fan:'영화 「We Are Aliens」 비공식 팬 게임',retry:'한 번 더',shareX:'X에 공유',copy:'결과 복사',copied:'복사했습니다',copyFail:'복사하지 못했습니다. 길게 눌러 선택해 주세요',
+ ssNote:'이미지를 길게 눌러 저장한 뒤 X 게시물에 첨부해 주세요',ssOpen:'X 게시 화면 열기',combo:'연속 자-네-',waiting:'상대의 결과를 기다리는 중',
+ next:'{r}까지 앞으로 {n}',rate:'달성률 {p}%　／　최대 {c} 연속',sum:'둘의 합산 (나 {a} ＋ {who} {b})',partner:'상대',best:'최고',
+ nameReq:'이름을 입력해 주세요',connecting:'연결 중',connFail:'연결하지 못했습니다. 통신 환경을 확인하고 다시 시도해 주세요.',codeReq:'4자리 방 번호를 입력해 주세요',
+ empty:'빈자리',full:'이 방은 가득 찼습니다',clash:'같은 쪽에 이미 사람이 있습니다. 방을 다시 만들어 주세요.',waitGuest:'상대를 기다리는 중. 방 번호를 알려 주세요.',waitHost:'택시 쪽을 기다리는 중',
+ readyHost:'모두 모였습니다. “시작”으로 출발',readyGuest:'모두 모였습니다. 택시 쪽의 출발을 기다리는 중',
+ shareWith:'{n} 님과 자-네-!\n',share:'노을 진 고속도로에서 “자-네-!”를 돌려줬다.\n자-네- 파워 {s} ({r} 랭크)\n칭호: {t}\n',imgAlt:'결과 이미지',
+ feint:['…아무것도 아니야','…역시 아직 됐어','…아니었네'],
+ ranks:['We Are Aliens','우주로 귀환합니다','노을 진 귀갓길에서, 자-네-','실컷 놀고 나서, 자-네-','의미 없는 수다와, 자-네-','두고 온 우산을 매달고, 자-네-','작은 목소리의 자-네-','말하지 못한 자-네-']},
+fr:{power:'FORCE JAA-NEE',left:'TEMPS',hint:'Touchez au bon moment',solo:'Solo',duo:'À deux',how:'Comment jouer',lang:'Langue',close:'Fermer',
+ create:'Créer une salle',join:'Rejoindre',back:'Retour',nameLab:'Nom (10 caractères max.)',name:'Nom',roomNo:'Numéro de salle',taxi:'Taxi',suv:'Voiture bleue',go:'Démarrer',leave:'Quitter',
+ roleTaxi:'Celui qui crée la salle conduit le taxi',roleSuv:'Celui qui rejoint conduit la voiture bleue',
+ what:'« Jaa-nee ! » veut dire « À plus ! » en japonais',h1:'Le taxi d’à côté lance « Jaa-nee ! »',h2:'Touchez au moment où l’anneau rejoint le cercle',h3:'Pile au bon moment, il devient « Jaa-nee ‼︎‼︎ ». JUST donne le score maximal',h4:'Ne vous laissez pas avoir par un « Ja… » à moitié dit',
+ hNote:'Le dernier jaa-nee à la bifurcation compte triple<br>À deux : le taxi lance, la voiture bleue répond. Les scores s’additionnent<br>À jouer avec le son',
+ fan:'Jeu de fan non officiel du film « We Are Aliens »',retry:'Rejouer',shareX:'Partager sur X',copy:'Copier le résultat',copied:'Copié',copyFail:'Copie impossible. Appuyez longuement pour sélectionner le texte',
+ ssNote:'Appuyez longuement sur l’image pour l’enregistrer, puis joignez-la à votre post sur X',ssOpen:'Ouvrir X pour publier',combo:'SÉRIE JAA-NEE',waiting:'En attente du résultat de votre partenaire',
+ next:'Encore {n} pour {r}',rate:'Précision {p} %  /  Meilleure série {c}',sum:'Score combiné (vous {a} + {who} {b})',partner:'partenaire',best:'RECORD',
+ nameReq:'Entrez votre nom',connecting:'Connexion en cours',connFail:'Connexion impossible. Vérifiez votre réseau et réessayez.',codeReq:'Entrez le numéro de salle à 4 chiffres',
+ empty:'Libre',full:'Cette salle est pleine',clash:'Quelqu’un occupe déjà ce côté. Créez une nouvelle salle.',waitGuest:'En attente de votre partenaire. Donnez-lui le numéro de salle.',waitHost:'En attente du joueur taxi',
+ readyHost:'Tout le monde est là. Touchez « Démarrer »',readyGuest:'Tout le monde est là. En attente du départ du taxi',
+ shareWith:'Jaa-nee avec {n} !\n',share:'J’ai répondu « Jaa-nee ! » sur une autoroute au crépuscule.\nForce jaa-nee {s} (rang {r})\nTitre : {t}\n',imgAlt:'Image du résultat',
+ feint:['…laisse tomber','…pas encore, en fait','…non, rien'],
+ ranks:['We Are Aliens','Retour vers l’espace','Jaa-nee sur le chemin du retour au crépuscule','Épuisés de jouer, jaa-nee','Des bavardages, puis jaa-nee','Parapluies à la main, jaa-nee','Un jaa-nee à voix basse','Le jaa-nee jamais dit']}
+};
+const LANG_KEY='jaanee.lang';
+let LANG=(()=>{try{const v=localStorage.getItem(LANG_KEY);if(v&&I18N[v])return v;}catch(e){}const n=(navigator.language||'ja').toLowerCase();
+  return n.startsWith('ja')?'ja':n.startsWith('zh')?'zh':n.startsWith('ko')?'ko':n.startsWith('fr')?'fr':n.startsWith('en')?'en':'ja';})();
+function T(k,v){let s=(I18N[LANG]&&I18N[LANG][k]);if(s==null)s=I18N.ja[k];if(typeof s==='string'&&v)s=s.replace(/\{(\w+)\}/g,(m,x)=>v[x]!=null?v[x]:m);return s;}
+function applyLang(){
+  document.documentElement.lang={ja:'ja',en:'en',zh:'zh-Hans',ko:'ko',fr:'fr'}[LANG];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=T(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{el.innerHTML=T(el.dataset.i18nHtml);});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=T(el.dataset.i18nPh);});
+  const im=document.getElementById('ssImg');if(im)im.alt=T('imgAlt');
+  RANKS.forEach((r,i)=>{r[2]=T('ranks')[i];});
+  FEINT.forEach((f,i)=>{f[1]=T('feint')[i];});
+  if(typeof showBest==='function')showBest();
+  const ls=document.getElementById('lsList');
+  if(ls){ls.innerHTML='';LANGS.forEach(([k,n])=>{const b=document.createElement('button');b.type='button';b.className='btn'+(k===LANG?'':' ghost');b.textContent=n;b.lang=k==='zh'?'zh-Hans':k;
+    b.addEventListener('click',()=>{LANG=k;try{localStorage.setItem(LANG_KEY,k);}catch(e){}applyLang();});ls.appendChild(b);});}
+  if(typeof coRender==='function')try{coRender();}catch(e){}
+}
 
 function buildCoopCues(){
   // same sequence on both devices (seeded by the host). taxi side calls, SUV side answers 0.85s later
@@ -1132,7 +1247,7 @@ function startGame(){
   initAudio();resetGame();endBlend=false;st.mode='play';
   $('title').classList.add('gone');$('result').hidden=true;$('result').classList.remove('show');
   $('hud').hidden=false;$('hud').classList.remove('fade');$('gauge').hidden=false;$('gauge').classList.remove('fade');
-  camSnap=true;$('muteBtn').classList.add('play');
+  camSnap=true;$('muteBtn').classList.add('play');$('langBtn').classList.add('away');
 }
 
 /* judgment */
@@ -1172,7 +1287,7 @@ function resolve(cue,j,why,dt){
   if(isFinal)st.finalJudge=j.toUpperCase();
   const jd=$('judge');jd.textContent=j.toUpperCase();jd.className='sh j-'+j;void jd.offsetWidth;jd.classList.add('show');
   const cb=$('combo');
-  if(st.combo>=2){cb.innerHTML=`${st.combo}<small>れんぞく じゃーねー</small>`;cb.classList.add('on');}else cb.classList.remove('on');
+  if(st.combo>=2){cb.innerHTML=`${st.combo}<small>${T('combo')}</small>`;cb.classList.add('on');}else cb.classList.remove('on');
 }
 function tap(){
   if(st.mode!=='play')return;
@@ -1384,7 +1499,7 @@ function endGame(){
     const t0=performance.now(),cb=$('combo');
     const wait=()=>{if(st.mode!=='end')return;const gone=!coPartner();
       if(CO.pFinal!=null||gone||performance.now()-t0>12000){cb.classList.remove('on');finishResult();return;}
-      if(performance.now()-t0>2300){cb.innerHTML='<small>相手の結果を待っています</small>';cb.classList.add('on');}
+      if(performance.now()-t0>2300){cb.innerHTML=`<small>${T('waiting')}</small>`;cb.classList.add('on');}
       setTimeout(wait,150);};
     setTimeout(wait,600);return;}
   finishResult();
@@ -1392,15 +1507,15 @@ function endGame(){
 function finishResult(update){
   const score=st.score+(CO.on?(CO.pFinal!=null?CO.pFinal:CO.pScore):0),ratio=st.maxScore?Math.min(1,score/st.maxScore):0;const ri=RANKS.findIndex(r=>ratio>=r[0]-1e-9),rk=RANKS[ri];
   const prev=loadBest(),isNew=!CO.on&&(!prev||score>prev.score);if(isNew)saveBest({score,rank:rk[1]});
-  let nextLine='';if(ri>0){const nx=RANKS[ri-1],need=Math.max(10,Math.ceil((nx[0]*st.maxScore-score)/10)*10);nextLine=`${nx[1]} まで あと ${need.toLocaleString()}`;}
+  let nextLine='';if(ri>0){const nx=RANKS[ri-1],need=Math.max(10,Math.ceil((nx[0]*st.maxScore-score)/10)*10);nextLine=T('next',{r:nx[1],n:need.toLocaleString()});}
   $('rScore').textContent=$('rScoreG').textContent=score.toLocaleString();
   const rr=$('rRank'),rg=$('rRankG');rr.textContent=rg.textContent=rk[1];rr.classList.toggle('low',ratio<.62);rg.classList.toggle('low',ratio<.62);
   $('rTitle').textContent=rk[2];
   const c=st.counts;
-  $('rStats').innerHTML=['perfect','great','good','miss'].map(k=>`<div><b>${c[k]}</b><span>${k.toUpperCase()}</span></div>`).join('')+`<div id="rSub">達成率 ${(ratio*100).toFixed(1)}%　／　最大 ${st.maxCombo} 連続</div>`+`<div id="rNext">${isNew?'<em>NEW RECORD</em>':''}${nextLine?`<span>${nextLine}</span>`:''}</div>`;
+  $('rStats').innerHTML=['perfect','great','good','miss'].map(k=>`<div><b>${c[k]}</b><span>${k.toUpperCase()}</span></div>`).join('')+`<div id="rSub">${T('rate',{p:(ratio*100).toFixed(1),c:st.maxCombo})}</div>`+`<div id="rNext">${isNew?'<em>NEW RECORD</em>':''}${nextLine?`<span>${nextLine}</span>`:''}</div>`;
   const pn=CO.on&&CO.pName?CO.pName:'';
-  if(CO.on)$('rSub').textContent=`ふたりの合算（自分 ${st.score.toLocaleString()} ＋ ${pn||'相手'} ${(score-st.score).toLocaleString()}）`;
-  const text=(pn?`${pn}さんとじゃーねー！\n`:'')+`夕暮れの高速で「じゃーねー！」を返した。\nじゃーねー力 ${score.toLocaleString()}（${rk[1]}ランク）\n称号：${rk[2]}\n`;
+  if(CO.on)$('rSub').textContent=T('sum',{a:st.score.toLocaleString(),who:pn||T('partner'),b:(score-st.score).toLocaleString()});
+  const text=(pn?T('shareWith',{n:pn}):'')+T('share',{s:score.toLocaleString(),r:rk[1],t:rk[2]});
   st.shareText=text+GAME_URL+'\n#'+HASHTAG;st.res={score,rank:rk[1],title:rk[2],ratio,c:{...c},maxCombo:st.maxCombo,isNew};st.shareImg=null;st.shareTextOnly=text;
   st.intent='https://x.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(GAME_URL)+'&hashtags='+encodeURIComponent(HASHTAG);
   $('copied').textContent='';
@@ -1458,24 +1573,24 @@ async function makeShareImage(){
     g.save();g.translate(W/2,128);g.transform(1,0,-.14,1,0,0);glowText('じゃーねー！',0,0,"400 84px 'Dela Gothic One',sans-serif",BONE,'rgba(20,4,26,.6)',24);g.restore();
     g.font="400 22px 'Oswald',sans-serif";g.fillStyle=BONE;g.globalAlpha=.85;g.fillText('J A A   N E E',W/2,170);g.globalAlpha=1;
     // score
-    g.font="900 26px 'Zen Kaku Gothic New',sans-serif";g.fillStyle=BONE;g.fillText('じゃーねー力',W/2,250);
+    g.font="900 26px 'Zen Kaku Gothic New','PingFang SC','Apple SD Gothic Neo',sans-serif";g.fillStyle=BONE;g.fillText(T('power'),W/2,250);
     glowText(R.score.toLocaleString(),W/2,345,"600 100px 'Oswald',sans-serif",BONE,'rgba(20,4,26,.55)',30);
     // rank
     g.save();g.translate(W/2,555);g.transform(1,0,-.16,1,0,0);
     const lowR=R.ratio<.62;glowText(R.rank,0,0,"400 220px 'Dela Gothic One',sans-serif",lowR?BONE:SUN,lowR?'rgba(255,210,180,.45)':'rgba(255,110,40,.75)',60);g.restore();
     // title
-    g.font="900 50px 'Zen Kaku Gothic New',sans-serif";let fs=50;while(g.measureText(R.title).width>W-140&&fs>28){fs-=2;g.font=`900 ${fs}px 'Zen Kaku Gothic New',sans-serif`;}
+    g.font="900 50px 'Zen Kaku Gothic New','PingFang SC','Apple SD Gothic Neo','Malgun Gothic',sans-serif";let fs=50;while(g.measureText(R.title).width>W-140&&fs>28){fs-=2;g.font=`900 ${fs}px 'Zen Kaku Gothic New','PingFang SC','Apple SD Gothic Neo','Malgun Gothic',sans-serif`;}
     glowText(R.title,W/2,645,g.font,BONE,'rgba(20,4,26,.6)',22);
     // stats
     const ks=['perfect','great','good','miss'];ks.forEach((k,i)=>{const x=W/2+(i-1.5)*190;
       glowText(String(R.c[k]),x,735,"600 48px 'Oswald',sans-serif",BONE,'rgba(20,4,26,.6)',16);
       g.font="400 20px 'Oswald',sans-serif";g.fillStyle=BONE;g.globalAlpha=.85;g.fillText(k.toUpperCase().split('').join(' '),x,765);g.globalAlpha=1;});
-    g.font="700 24px 'Zen Kaku Gothic New',sans-serif";g.fillStyle=BONE;g.fillText(`達成率 ${(R.ratio*100).toFixed(1)}%　／　最大 ${R.maxCombo} 連続`,W/2,815);
+    g.font="700 24px 'Zen Kaku Gothic New','PingFang SC','Apple SD Gothic Neo','Malgun Gothic',sans-serif";g.fillStyle=BONE;g.fillText(T('rate',{p:(R.ratio*100).toFixed(1),c:R.maxCombo}),W/2,815);
     if(R.isNew){g.font="600 26px 'Oswald',sans-serif";g.fillStyle=SUN;g.fillText('N E W   R E C O R D',W/2,855);}
     // footer
     
-    g.font="700 26px 'Zen Kaku Gothic New',sans-serif";g.fillStyle=BONE;g.fillText('#我々は宇宙人',W/2,1236);
-    g.font="700 20px 'Zen Kaku Gothic New',sans-serif";g.globalAlpha=.8;g.fillText('映画『我々は宇宙人』非公式ファンゲーム',W/2,1278);
+    g.font="700 26px 'Zen Kaku Gothic New','PingFang SC','Apple SD Gothic Neo','Malgun Gothic',sans-serif";g.fillStyle=BONE;g.fillText('#我々は宇宙人',W/2,1236);
+    g.font="700 20px 'Zen Kaku Gothic New','PingFang SC','Apple SD Gothic Neo','Malgun Gothic',sans-serif";g.globalAlpha=.8;g.fillText(T('fan'),W/2,1278);
     g.font="400 22px 'Oswald',sans-serif";g.fillText('uimemocho.github.io/apps/jaanee',W/2,1314);g.globalAlpha=1;
     // grain
     const gc=document.createElement('canvas');gc.width=gc.height=180;const gg=gc.getContext('2d'),id=gg.createImageData(180,180);
@@ -1560,18 +1675,18 @@ function openCoop(){
 function coEntryFor(mode){
   coShow('coEntry');const join=mode==='join';
   $('coJoinBox').hidden=!join;$('coJoin').hidden=!join;$('coCreate').hidden=join;
-  $('coRole').textContent=join?'入室した人は青い車側になります':'部屋をつくった人はタクシー側になります';
+  $('coRole').textContent=T(join?'roleSuv':'roleTaxi');
   setTimeout(()=>{(join&&$('coName').value?coInputs[0]:$('coName')).focus();},50);
 }
 function closeCoop(){coLeave();$('coop').hidden=true;}
 async function coJoin(code,creating){
-  const nm=cleanName($('coName').value);if(!nm){coStatus('なまえを入力してください');$('coName').focus();return;}
+  const nm=cleanName($('coName').value);if(!nm){coStatus(T('nameReq'));$('coName').focus();return;}
   try{localStorage.setItem(NAME_KEY,nm);}catch(e){}
-  coStatus('接続しています');$('coCreate').disabled=$('coJoin').disabled=true;initAudio();
+  coStatus(T('connecting'));$('coCreate').disabled=$('coJoin').disabled=true;initAudio();
   let room=null;const tries=creating?MQ_BROKERS.length:1;
   for(let k=0;k<tries&&!room;k++){const c2=k?String(((parseInt(code[0],10)-1+k)%MQ_BROKERS.length)+1)+code.slice(1):code;try{room=await mqttRoom(c2);code=c2;}catch(e){room=null;}}
   $('coCreate').disabled=$('coJoin').disabled=false;
-  if(!room){coStatus('接続できませんでした。通信環境を確かめて、もう一度試してください。');return;}
+  if(!room){coStatus(T('connFail'));return;}
   coLeave();CO.room=room;CO.code=code;CO.name=nm;CO.role=creating?'taxi':'suv';CO.go=0;CO.lastGo=0;
   CO.offs.push(room.onPeers(()=>coChange()));
   coPush({role:CO.role,name:nm,st:'lobby',go:0,hits:[],score:0,fin:null});
@@ -1582,9 +1697,9 @@ function coRender(){
   if($('coLobby').hidden)return;const p=coPartner(),pn=p?cleanName(p.p.name):'';
   const clash=p&&p.p.role===CO.role;
   const tName=CO.role==='taxi'?CO.name:pn,sName=CO.role==='suv'?CO.name:pn;
-  $('seatTaxi').textContent=tName||'空席';$('seatSuv').textContent=sName||'空席';
+  $('seatTaxi').textContent=tName||T('empty');$('seatSuv').textContent=sName||T('empty');
   const peers=CO.room?CO.room.peers().filter(x=>!x.me&&x.p&&x.p.role).length:0;
-  $('coLobbyStatus').textContent=peers>1?'この部屋は満員です':clash?'同じ側の人がいます。部屋をつくり直してください。':!p?(CO.role==='taxi'?'相手を待っています。部屋番号を伝えてください。':'タクシー側の人を待っています'):(CO.role==='taxi'?'そろいました。「はじめる」で出発':'そろいました。タクシー側の出発を待っています');
+  $('coLobbyStatus').textContent=T(peers>1?'full':clash?'clash':!p?(CO.role==='taxi'?'waitGuest':'waitHost'):(CO.role==='taxi'?'readyHost':'readyGuest'));
   $('coGo').hidden=!(CO.role==='taxi'&&p&&!clash&&peers===1);
 }
 function coChange(){
@@ -1616,15 +1731,18 @@ function coStart(){
   $('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},260);
 }
 function coBackToLobby(){
+  $('langBtn').classList.remove('away');
   st.mode='title';$('result').hidden=true;$('result').classList.remove('show');$('coTag').hidden=true;CO.on=false;
   $('hud').hidden=true;$('gauge').hidden=true;$('title').classList.remove('gone');camSnap=true;
   if(!CO.room){openCoop();return;}
   $('coop').hidden=false;coShow('coLobby');coPush({st:'lobby',hits:[],score:0,fin:null});coRender();
 }
 $('coopBtn').addEventListener('click',openCoop);
+$('langBtn').addEventListener('click',()=>{applyLang();$('langSheet').hidden=false;});
+$('lsClose').addEventListener('click',()=>{$('langSheet').hidden=true;});
 $('coBack').addEventListener('click',closeCoop);
 $('coCreate').addEventListener('click',()=>{const c=String(1+Math.floor(Math.random()*MQ_BROKERS.length))+String(Math.floor(Math.random()*1000)).padStart(3,'0');coJoin(c,true);});
-$('coJoin').addEventListener('click',()=>{const c=coInputs.map(i=>i.value).join('');if(!/^\d{4}$/.test(c)){coStatus('4桁の部屋番号を入力してください');return;}coJoin(c,false);});
+$('coJoin').addEventListener('click',()=>{const c=coInputs.map(i=>i.value).join('');if(!/^\d{4}$/.test(c)){coStatus(T('codeReq'));return;}coJoin(c,false);});
 $('coLeave').addEventListener('click',()=>{coLeave();CO.on=false;coShow('coPick');});
 $('coPickCreate').addEventListener('click',()=>coEntryFor('create'));
 $('coPickJoin').addEventListener('click',()=>coEntryFor('join'));
@@ -1632,7 +1750,7 @@ $('coEntryBack').addEventListener('click',()=>coShow('coPick'));
 $('coGo').addEventListener('click',()=>{const p=coPartner();if(!p)return;CO.go=Math.max(CO.go,CO.lastGo)+1;CO.lastGo=CO.go;CO.seed=(Math.random()*1e9)|0;coPush({st:'go',go:CO.go,seed:CO.seed});setTimeout(coStart,450);});
 
 /* ============ input ============ */
-const isUI=e=>e.target.closest&&e.target.closest('button,a,input,#how,#shareSheet,#coop');
+const isUI=e=>e.target.closest&&e.target.closest('button,a,input,#how,#shareSheet,#coop,#langSheet');
 window.addEventListener('pointerdown',e=>{if(isUI(e))return;if(st.mode==='play'){e.preventDefault();tap();}},{passive:false});
 window.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'){if(st.mode==='play'){e.preventDefault();tap();}}});
 $('startBtn').addEventListener('click',()=>{CO.on=false;$('coTag').hidden=true;$('fader').classList.add('on');setTimeout(()=>{startGame();$('fader').classList.remove('on');},260);});
@@ -1640,17 +1758,17 @@ $('retryBtn').addEventListener('click',()=>{if(CO.on){coBackToLobby();return;}$(
 $('shareX').addEventListener('click',shareResult);
 $('ssClose').addEventListener('click',()=>{$('shareSheet').hidden=true;});
 $('copyBtn').addEventListener('click',()=>{
-  const done=()=>{$('copied').textContent='コピーしました';};
+  const done=()=>{$('copied').textContent=T('copied');};
   try{navigator.clipboard.writeText(st.shareText).then(done,()=>fallbackCopy(done));}catch(e){fallbackCopy(done);}
 });
-function fallbackCopy(done){const ta=document.createElement('textarea');ta.value=st.shareText;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){$('copied').textContent='コピーできませんでした。長押しで選択してください';}ta.remove();}
+function fallbackCopy(done){const ta=document.createElement('textarea');ta.value=st.shareText;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){$('copied').textContent=T('copyFail');}ta.remove();}
 $('howBtn').addEventListener('click',()=>{$('how').hidden=false;$('howClose').focus();});
 $('howClose').addEventListener('click',()=>{$('how').hidden=true;$('howBtn').focus();});
 $('how').addEventListener('click',e=>{if(e.target.id==='how')$('how').hidden=true;});
 $('muteBtn').addEventListener('click',()=>{muted=!muted;$('muteBtn').textContent=muted?'MUTE':'SOUND';$('muteBtn').setAttribute('aria-pressed',String(muted));if(master)master.gain.value=muted?0:.75;});
 
 /* go */
-st.mode='title';$('loading').hidden=true;$('startBtn').hidden=false;$('coopBtn').hidden=false;$('howBtn').hidden=false;showBest();
+applyLang();st.mode='title';$('loading').hidden=true;$('startBtn').hidden=false;$('coopBtn').hidden=false;$('howBtn').hidden=false;showBest();
 requestAnimationFrame(frame);
 })();
 </script>
