@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFile } from 'node:fs/promises';
-import worker from '../likes-worker/worker.mjs';
+import worker, { createProjectValidator } from '../likes-worker/worker.mjs';
 
 async function setup() {
   const db = new DatabaseSync(':memory:');
@@ -51,9 +51,49 @@ test('rejects invalid origin, unknown projects, invalid visitors and malformed v
   try {
     const visitor = crypto.randomUUID();
     assert.equal((await call('/state', { visitor }, 'https://other.test')).status, 403);
-    assert.equal((await call('/likes', { visitor, slug: 'missing', liked: true })).status, 400);
+    // Invalid syntax is rejected without a catalog network request.
+    assert.equal((await call('/likes', { visitor, slug: '../missing', liked: true })).status, 400);
     assert.equal((await call('/likes', { visitor: 'invalid', slug: 'rubik-3d', liked: true })).status, 400);
     assert.equal((await call('/likes', { visitor, slug: 'rubik-3d', liked: 'yes' })).status, 400);
     assert.equal((await call('/unknown', { visitor })).status, 404);
+  } finally { close(); }
+});
+
+test('new published projects work without redeploy; unknown slugs remain rejected', async () => {
+  let requests = 0;
+  const isKnown = createProjectValidator(['rubik-3d'], async url => {
+    requests++;
+    assert.equal(url, 'https://uimemocho.github.io/data/projects.json');
+    return Response.json([{ slug: 'rubik-3d' }, { slug: 'newly-published-game' }]);
+  });
+  assert.equal(await isKnown('rubik-3d'), true);
+  assert.equal(requests, 0);
+  assert.deepEqual(await Promise.all([isKnown('newly-published-game'), isKnown('missing')]), [true, false]);
+  assert.equal(await isKnown('missing'), false);
+  assert.equal(requests, 1);
+  assert.equal(await isKnown('../invalid'), false);
+});
+
+test('catalog outage preserves bundled projects and prevents new writes', async () => {
+  const isKnown = createProjectValidator(['urooboeshi'], async () => { throw new Error('Offline'); });
+  assert.equal(await isKnown('urooboeshi'), true);
+  await assert.rejects(isKnown('unlisted-game'), /Offline/);
+});
+
+test('malformed catalog cannot authorize unknown projects', async () => {
+  const isKnown = createProjectValidator([], async () => Response.json({ slug: 'unlisted-game' }));
+  await assert.rejects(isKnown('unlisted-game'), /Invalid catalog/);
+});
+
+test('urooboeshi supports add, reload and undo', async () => {
+  const { call, close } = await setup();
+  try {
+    const visitor = crypto.randomUUID(), slug = 'urooboeshi';
+    assert.equal((await (await call('/likes', { visitor, slug, liked: true })).json()).count, 1);
+    const state = await (await call('/state', { visitor })).json();
+    assert.equal(state.counts[slug], 1);
+    assert.deepEqual(state.liked, [slug]);
+    assert.equal((await (await call('/likes', { visitor, slug, liked: false })).json()).count, 0);
+    assert.deepEqual((await (await call('/state', { visitor })).json()).liked, []);
   } finally { close(); }
 });
