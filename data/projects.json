@@ -538,5 +538,14 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-01T02:15:00Z",
     "updatedAt": "2026-11-02"
+  },
+  {
+    "slug": "sushipazu",
+    "title": "すしぱず",
+    "kind": "game",
+    "description": "ならべて消して注文をさばく、ポップな和風3D寿司マッチ3パズル。",
+    "url": "/apps/sushipazu/",
+    "publishedAt": "2026-11-03T00:00:00.000Z",
+    "updatedAt": "2026-11-03T00:00:00.000Z"
   }
 ]
