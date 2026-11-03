@@ -1,6 +1,34 @@
 import projects from '../data/projects.json' with { type: 'json' };
-const slugs = new Set(projects.map(p => p.slug));
 const origin = 'https://uimemocho.github.io';
+
+// Refresh published slugs without needing a Worker redeploy for each new app.
+export function createProjectValidator(initialSlugs, fetchCatalog = fetch) {
+  const bundled = new Set(initialSlugs);
+  let published = new Set();
+  let refreshedAt = -Infinity;
+  let pending;
+  return async slug => {
+    if (typeof slug !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 100) return false;
+    if (bundled.has(slug)) return true;
+    if (Date.now() - refreshedAt >= 60_000) {
+      pending ??= (async () => {
+        const response = await fetchCatalog(origin + '/data/projects.json', {
+          cache: 'no-store', signal: AbortSignal.timeout(4000),
+        });
+        if (!response.ok) throw new Error('Catalog unavailable');
+        const catalog = await response.json();
+        if (!Array.isArray(catalog) || !catalog.every(p => p && typeof p.slug === 'string')) {
+          throw new Error('Invalid catalog');
+        }
+        published = new Set(catalog.map(p => p.slug));
+        refreshedAt = Date.now();
+      })();
+      try { await pending; } finally { pending = undefined; }
+    }
+    return published.has(slug);
+  };
+}
+const isKnownProject = createProjectValidator(projects.map(p => p.slug));
 export default {
   async fetch(request, env) {
     const headers = {
@@ -24,7 +52,7 @@ export default {
     if (typeof body.visitor !== 'string' || !/^[0-9a-f-]{36}$/.test(body.visitor)) return reply({ error: 'Invalid visitor' }, 400);
     try {
       if (route === '/likes') {
-        if (!slugs.has(body.slug) || typeof body.liked !== 'boolean') return reply({ error: 'Invalid vote' }, 400);
+        if (typeof body.liked !== 'boolean' || !(await isKnownProject(body.slug))) return reply({ error: 'Invalid vote' }, 400);
         const mutation = body.liked
           ? env.DB.prepare('INSERT OR IGNORE INTO likes (slug, visitor) VALUES (?, ?)').bind(body.slug, body.visitor)
           : env.DB.prepare('DELETE FROM likes WHERE slug = ? AND visitor = ?').bind(body.slug, body.visitor);
