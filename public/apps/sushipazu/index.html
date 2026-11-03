@@ -1647,17 +1647,18 @@
 
     /* ---------------- X share (plated image attached where supported) ---------------- */
     var REQUIRED_TAGS = '#個人開発 #ゲーム制作 #gamedev';
+    var GAME_URL = 'https://uimemocho.github.io/apps/sushipazu/';
     function buildShareText(){
       var score = state.score.toLocaleString('ja-JP');
       var lv = state.level + 1, stars = state.lastStars || 0;
       if (state.lang === 'en') {
         return state.lastWon
-          ? '🍣 SUSHI PAZU — served every order! Score ' + score + ' pts, Level ' + lv + ' cleared with ' + stars + ' star(s)! Look at this platter! #SUSHIPAZU ' + REQUIRED_TAGS
-          : '🍣 SUSHI PAZU — reached Level ' + lv + ' with ' + score + ' pts before closing. Rematch! #SUSHIPAZU ' + REQUIRED_TAGS;
+          ? '🍣 SUSHI PAZU — served every order! Score ' + score + ' pts, Level ' + lv + ' cleared with ' + stars + ' star(s)! Look at this platter!\nPlay here 👉 ' + GAME_URL + '\n#SUSHIPAZU ' + REQUIRED_TAGS
+          : '🍣 SUSHI PAZU — reached Level ' + lv + ' with ' + score + ' pts before closing. Rematch!\nPlay here 👉 ' + GAME_URL + '\n#SUSHIPAZU ' + REQUIRED_TAGS;
       }
       return state.lastWon
-        ? '🍣『すしぱず』でスコア' + score + '点！' + lv + '品目を星' + stars + 'つで完売御礼！見て、この盛り付け！キミも注文をさばき切れる？ #すしぱず ' + REQUIRED_TAGS
-        : '🍣『すしぱず』' + lv + '品目で閉店…スコアは' + score + '点。あと少しだった！リベンジするぞ #すしぱず ' + REQUIRED_TAGS;
+        ? '🍣『すしぱず』でスコア' + score + '点！' + lv + '品目を星' + stars + 'つで完売御礼！見て、この盛り付け！キミも注文をさばき切れる？\n🎮遊ぶ👉 ' + GAME_URL + '\n#すしぱず ' + REQUIRED_TAGS
+        : '🍣『すしぱず』' + lv + '品目で閉店…スコアは' + score + '点。あと少しだった！リベンジするぞ\n🎮遊ぶ👉 ' + GAME_URL + '\n#すしぱず ' + REQUIRED_TAGS;
     }
     function shareToX(){
       var text = buildShareText();
