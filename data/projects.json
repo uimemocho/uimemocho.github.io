@@ -548,5 +548,17 @@
     "thumbnail": "/project-thumbnails/catalog/sushipazu.webp",
     "publishedAt": "2026-11-03T00:00:00.000Z",
     "updatedAt": "2026-11-03T00:00:00.000Z"
+  },
+  {
+    "slug": "urooboeshi",
+    "title": "うろおぼ絵師",
+    "kind": "game",
+    "description": "名画を10秒で覚えて、3分で描く。あなたのうろ覚えを先生が鑑定する、スマホ対応お絵描きゲーム。",
+    "url": "/apps/urooboeshi/",
+    "thumbnail": "/project-thumbnails/catalog/urooboeshi.svg",
+    "sourceFolder": "261103_うろおぼ絵師",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-03T00:00:00Z",
+    "updatedAt": "2026-11-03T00:00:00Z"
   }
 ]
