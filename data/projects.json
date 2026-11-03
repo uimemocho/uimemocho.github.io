@@ -545,6 +545,7 @@
     "kind": "game",
     "description": "ならべて消して注文をさばく、ポップな和風3D寿司マッチ3パズル。",
     "url": "/apps/sushipazu/",
+    "thumbnail": "/project-thumbnails/catalog/sushipazu.webp",
     "publishedAt": "2026-11-03T00:00:00.000Z",
     "updatedAt": "2026-11-03T00:00:00.000Z"
   }
