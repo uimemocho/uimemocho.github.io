@@ -1,0 +1,38 @@
+name: Deploy shared likes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - likes-worker/**
+      - tests/likes-worker.test.mjs
+      - .github/workflows/likes.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shared-likes-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: 440343dec1b771b90efaecf480ae21d0
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Test shared likes
+        run: node --test tests/likes-worker.test.mjs
+      - name: Deploy Worker when connected
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npx --yes wrangler@4.157.0 deploy --config likes-worker/wrangler.jsonc
+      - name: Report missing connection
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: |
+          echo "::warning::Production deployment skipped. Add the CLOUDFLARE_API_TOKEN repository secret, then run this workflow again."
