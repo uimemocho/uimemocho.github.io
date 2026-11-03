@@ -20,7 +20,7 @@
 <meta name="twitter:image" content="https://uimemocho.github.io/apps/shuriken/ogp.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Klee+One:wght@400;600&family=Oswald:wght@400;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Klee+One:wght@400;600&family=Oswald:wght@400;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+SC:wght@500;700;900&family=Noto+Sans+KR:wght@500;700;900&family=ZCOOL+KuaiLe&family=Gaegu:wght@400;700&display=swap">
 <style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
 </head>
 <body>
@@ -35,11 +35,21 @@
   --warn:#ff7a5c;
   --dusk:#1d1224;
   --line:rgba(243,236,226,.55);
-  --f-disp:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;
-  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+  --f-disp:"Dela Gothic One","Noto Sans SC","Noto Sans KR","Hiragino Sans","Noto Sans JP",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Noto Sans SC","Noto Sans KR","Hiragino Sans","Noto Sans JP",sans-serif;
   --f-num:"Oswald","Arial Narrow",sans-serif;
   color-scheme:dark;
 }
+body[data-lang=zh]{--f-disp:"Noto Sans SC",sans-serif;--f-body:"Noto Sans SC",sans-serif}
+body[data-lang=ko]{--f-disp:"Noto Sans KR",sans-serif;--f-body:"Noto Sans KR",sans-serif}
+body[data-lang=zh] #title h1,body[data-lang=ko] #title h1{font-family:"Dela Gothic One",sans-serif}
+body[data-lang=en] .btn,body[data-lang=fr] .btn{letter-spacing:.08em;text-indent:.08em}
+body[data-lang=en] .btn.sm,body[data-lang=fr] .btn.sm{font-size:12px;letter-spacing:.04em;text-indent:.04em}
+body:not([data-lang=ja]) .c-ja{font-size:clamp(20px,6.4vw,30px);letter-spacing:.06em;text-indent:.06em;max-width:90vw;line-height:1.25;text-wrap:balance}
+body:not([data-lang=ja]) #sName{font-size:13px;letter-spacing:.04em;max-width:46vw;line-height:1.3;text-wrap:balance}
+body:not([data-lang=ja]) .lab,body:not([data-lang=ja]) #lWhy,body:not([data-lang=ja]) #lTap,body:not([data-lang=ja]) .tut-s,body:not([data-lang=ja]) #aimHint{letter-spacing:.08em;text-indent:.08em}
+body:not([data-lang=ja]) .tut-s{max-width:86vw;margin:0 auto;line-height:1.5}
+body:not([data-lang=ja]) .tut-t,body:not([data-lang=ja]) #alert{letter-spacing:.02em}
 html,body{height:100%;margin:0;background:var(--dusk);overflow:hidden;overscroll-behavior:none}
 body{color:var(--bone);font-family:var(--f-body);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;-webkit-tap-highlight-color:transparent}
 #app{position:fixed;inset:0;overflow:hidden;background:var(--dusk)}
@@ -203,6 +213,20 @@ body.dbg #wbar{top:calc(env(safe-area-inset-top,0px) + 104px)}
 .dbg-grid.sc{grid-template-columns:repeat(3,1fr)}
 .dbg-grid.sc button{font-family:var(--f-body);font-size:11px;font-weight:700;letter-spacing:0;white-space:nowrap}
 .dbg-grid button:active{background:rgba(255,183,77,.25)}
+#langBtn{position:absolute;right:max(14px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 14px);display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:64px;padding:0 12px;
+  font-family:var(--f-body);font-weight:700;font-size:12px;letter-spacing:.14em;text-indent:.14em;line-height:1;color:var(--bone);background:rgba(16,4,22,.3);border:0;box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;z-index:4}
+#langBtn:focus-visible{outline:2px solid var(--sun)}
+body.titleUp #muteBtn:not(.play){right:calc(max(14px,env(safe-area-inset-right,0px)) + 82px)}
+#langDlg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,4,22,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:6;
+  padding:0 max(24px,env(safe-area-inset-right,0px)) 0 max(24px,env(safe-area-inset-left,0px))}
+.lang-in{width:100%;max-width:300px;display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.lang-ttl{font-family:var(--f-num);font-size:12px;letter-spacing:.7em;text-indent:.7em;color:var(--ash);text-align:center;margin-bottom:10px}
+#langList{display:flex;flex-direction:column;gap:10px}
+#langList .btn{width:100%;min-width:0}
+#langList .btn.on{background:var(--bone);color:var(--ink);box-shadow:none}
+#langList .btn[data-l=zh]{font-family:"Noto Sans SC",sans-serif}#langList .btn[data-l=ko]{font-family:"Noto Sans KR",sans-serif}
+#langList .btn[data-l=en],#langList .btn[data-l=fr]{letter-spacing:.14em;text-indent:.14em}
+.lang-in #langClose{margin-top:12px;width:100%;min-width:0}
 #muteBtn{position:absolute;right:max(14px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 14px);display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:64px;padding:0 10px;
   font-family:var(--f-num);font-size:11px;letter-spacing:.24em;text-indent:.24em;line-height:1;color:var(--bone);background:rgba(16,4,22,.3);border:0;box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;z-index:4}
 #muteBtn.play{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 14px)}
@@ -217,7 +241,7 @@ body.dbg #wbar{top:calc(env(safe-area-inset-top,0px) + 104px)}
   <div id="vig" class="fx"></div>
   <div id="grain" class="fx"></div>
   <div id="hud" class="sh" hidden>
-    <div class="hud-l"><div class="lab">飛距離</div><div id="dist">0.0<small>m</small></div></div>
+    <div class="hud-l"><div class="lab" data-i="dist">飛距離</div><div id="dist">0.0<small>m</small></div></div>
     <div class="hud-r"><div id="sNo">01 / 09</div><div id="sName">住宅街</div></div>
   </div>
   <div id="wbar" hidden><i></i></div>
@@ -230,10 +254,10 @@ body.dbg #wbar{top:calc(env(safe-area-inset-top,0px) + 104px)}
   <div id="gauge" hidden>
     <div id="gHalo"></div><div id="gGlow"></div><div id="gTarget"></div><div id="gRing"></div><div id="gFx"></div>
   </div>
-  <div id="aimHint" class="sh" hidden>下にスワイプして引っぱる</div>
+  <div id="aimHint" class="sh" hidden data-i="aim">下にスワイプして引っぱる</div>
   <div id="judge" class="sh"></div>
   <div id="boostFx"></div>
-  <div id="tut" class="sh" hidden><div class="tut-sw" aria-hidden="true"><i></i><i></i><i></i></div><div class="tut-t">上にスワイプして加速</div><div class="tut-s">遅くなると落ちる・加速しすぎるとバランスをくずす</div></div>
+  <div id="tut" class="sh" hidden><div class="tut-sw" aria-hidden="true"><i></i><i></i><i></i></div><div class="tut-t" data-i="tutT">上にスワイプして加速</div><div class="tut-s" data-i="tutS">遅くなると落ちる・加速しすぎるとバランスをくずす</div></div>
   <div id="card" class="sh"><div class="c-no" id="cNo">02</div><div class="c-ja" id="cJa">畑の田舎道</div><div class="c-en" id="cEn">FARM ROAD</div></div>
   <div id="title" class="sh">
     <div class="logo">
@@ -243,48 +267,48 @@ body.dbg #wbar{top:calc(env(safe-area-inset-top,0px) + 104px)}
     <div class="t-btns">
       <div id="bestLine" class="best" hidden></div>
       <div id="loading">LOADING</div>
-      <button id="startBtn" class="btn" type="button" hidden>はじめる</button>
-      <button id="howBtn" class="btn ghost" type="button" hidden>遊び方</button>
+      <button id="startBtn" class="btn" type="button" hidden data-i="start">はじめる</button>
+      <button id="howBtn" class="btn ghost" type="button" hidden data-i="how">遊び方</button>
     </div>
   </div>
   <div id="how" class="sh" hidden>
     <div class="how-in" role="dialog" aria-modal="true" aria-labelledby="howTtl">
       <div id="howTtl" class="how-ttl">HOW TO PLAY</div>
       <ol>
-        <li>下にスワイプして引っぱり、リングが円に重なった瞬間に離して投げる</li>
-        <li>飛んだら上スワイプで加速。遅くなると落ちていく</li>
-        <li>加速しすぎるとバランスをくずして落ちる</li>
-        <li>一定距離ごとに、思い出の場所へワープ</li>
-        <li>落ちた手裏剣をひらくと、手紙に結果が書いてある</li>
+        <li data-i="how1">下にスワイプして引っぱり、リングが円に重なった瞬間に離して投げる</li>
+        <li data-i="how2">飛んだら上スワイプで加速。遅くなると落ちていく</li>
+        <li data-i="how3">加速しすぎるとバランスをくずして落ちる</li>
+        <li data-i="how4">一定距離ごとに、思い出の場所へワープ</li>
+        <li data-i="how5">落ちた手裏剣をひらくと、手紙に結果が書いてある</li>
       </ol>
-      <div class="how-note">高速道路を走り抜けた先に、最後の場所がある<br>音ありプレイ推奨</div>
-      <div class="how-fan">映画『我々は宇宙人』非公式ファンゲーム</div>
-      <button id="howClose" class="btn" type="button">とじる</button>
+      <div class="how-note" data-i="note">高速道路を走り抜けた先に、最後の場所がある<br>音ありプレイ推奨</div>
+      <div class="how-fan" data-i="fan">映画『我々は宇宙人』非公式ファンゲーム</div>
+      <button id="howClose" class="btn" type="button" data-i="close">とじる</button>
     </div>
   </div>
   <div id="landUI" class="sh" hidden>
-    <div class="lab">飛距離</div>
+    <div class="lab" data-i="dist">飛距離</div>
     <div id="lDist">0<small>m</small></div>
     <div id="lWhy"></div>
-    <div id="lTap">タップでひらく</div>
+    <div id="lTap" data-i="tap">タップでひらく</div>
   </div>
   <div id="result" class="sh" hidden>
     <div id="rNext"></div>
     <div class="r-btns">
-      <button id="retryBtn" class="btn" type="button">もう一回</button>
+      <button id="retryBtn" class="btn" type="button" data-i="retry">もう一回</button>
       <div class="r-row">
-        <button id="shareX" class="btn ghost sm" type="button">Xでシェア</button>
-        <button id="copyBtn" class="btn ghost sm" type="button">結果をコピー</button>
+        <button id="shareX" class="btn ghost sm" type="button" data-i="shareX">Xでシェア</button>
+        <button id="copyBtn" class="btn ghost sm" type="button" data-i="copy">結果をコピー</button>
       </div>
       <div id="copied"></div>
     </div>
   </div>
   <div id="shareSheet" hidden>
     <div class="ss-in">
-      <img id="ssImg" alt="リザルト画像">
-      <div class="ss-note">画像を長押しで保存して、Xの投稿に添付してください</div>
-      <a id="ssX" class="btn" href="#" target="_blank" rel="noopener">Xの投稿画面をひらく</a>
-      <button id="ssClose" class="btn ghost" type="button">とじる</button>
+      <img id="ssImg" alt="リザルト画像" data-ia="alt:ssImg">
+      <div class="ss-note" data-i="ssNote">画像を長押しで保存して、Xの投稿に添付してください</div>
+      <a id="ssX" class="btn" href="#" target="_blank" rel="noopener" data-i="ssX">Xの投稿画面をひらく</a>
+      <button id="ssClose" class="btn ghost" type="button" data-i="close">とじる</button>
     </div>
   </div>
   <button id="dbgBtn" hidden type="button" aria-expanded="false" aria-controls="dbg">DEBUG</button>
@@ -293,6 +317,14 @@ body.dbg #wbar{top:calc(env(safe-area-inset-top,0px) + 104px)}
     <div class="dbg-grid" id="dbgRank"></div>
     <div class="dbg-lab">SCENE → 飛行</div>
     <div class="dbg-grid sc" id="dbgScene"></div>
+  </div>
+  <button id="langBtn" type="button" aria-haspopup="dialog" aria-controls="langDlg"><span data-i="lang">言語</span></button>
+  <div id="langDlg" class="sh" hidden>
+    <div class="lang-in" role="dialog" aria-modal="true" aria-labelledby="langTtl">
+      <div id="langTtl" class="lang-ttl">LANGUAGE</div>
+      <div id="langList"></div>
+      <button id="langClose" class="btn ghost" type="button" data-i="close">とじる</button>
+    </div>
   </div>
   <button id="muteBtn" type="button" aria-pressed="false">SOUND</button>
   <div id="fader"></div>
@@ -320,6 +352,69 @@ const easeOut=t=>1-Math.pow(1-t,3);
 const C=h=>new THREE.Color(h).convertSRGBToLinear();
 function mkRng(s){s=s|0;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const fmt=d=>d.toLocaleString('ja-JP',{minimumFractionDigits:1,maximumFractionDigits:1});
+
+/* ============ i18n: ja / en / zh-Hans / ko / fr ============ */
+const LANGS=[['ja','日本語'],['en','English'],['zh','简体中文'],['ko','한국어'],['fr','Français']];
+const L={
+ ja:{lang:'言語',close:'とじる',start:'はじめる',how:'遊び方',dist:'飛距離',aim:'下にスワイプして引っぱる',tutT:'上にスワイプして加速',tutS:'遅くなると落ちる・加速しすぎるとバランスをくずす',
+   how1:'下にスワイプして引っぱり、リングが円に重なった瞬間に離して投げる',how2:'飛んだら上スワイプで加速。遅くなると落ちていく',how3:'加速しすぎるとバランスをくずして落ちる',how4:'一定距離ごとに、思い出の場所へワープ',how5:'落ちた手裏剣をひらくと、手紙に結果が書いてある',
+   note:'高速道路を走り抜けた先に、最後の場所がある<br>音ありプレイ推奨',fan:'映画『我々は宇宙人』非公式ファンゲーム',tap:'タップでひらく',retry:'もう一回',shareX:'Xでシェア',copy:'結果をコピー',copied:'コピーしました',copyFail:'コピーできませんでした。長押しで選択してください',
+   ssImg:'リザルト画像',ssNote:'画像を長押しで保存して、Xの投稿に添付してください',ssX:'Xの投稿画面をひらく',stall:'失速！',stallS:'上スワイプで加速',balWarn:'バランス注意',balLost:'バランスをくずした',
+   whyEnd:'ひまわり畑にとどいた',whyBal:'バランスをくずして落ちた',whyStall:'失速して落ちた',next:(r,m)=>`${r} まで あと ${m}m`,
+   letHi:'とどいたよ。',letStat:(k,w)=>`いちばん速いとき ${k}km/h ・ ワープ ${w}回`,letBye:'またあそぼうね',
+   share:(d,r,t)=>`思い出の場所をワープして、手裏剣が ${d}m とんだ。\n${r}ランク「${t}」\n`,q:['「','」'],
+   scenes:['住宅街','畑の田舎道','学校の廊下','河原','雨の神社','坂の上','夜の雨','高速道路','ひまわり畑'],
+   ranks:{SSS:'我々は宇宙人',SS:'じゃーねー、のその先へ',S:'夜の雨にまぎれて',A:'雨やどりの約束',B:'放課後の河原',C:'廊下は走らない',D:'畑道の向こうへ',E:'ご近所どまり'}},
+ en:{lang:'Language',close:'Close',start:'Play',how:'How to play',dist:'Distance',aim:'Swipe down to pull back',tutT:'Swipe up to speed up',tutS:'Too slow and it drops. Too fast and it loses balance.',
+   how1:'Swipe down to pull back, and let go the moment the ring meets the circle',how2:'In flight, swipe up to speed up. Slow down and it sinks',how3:'Push too hard and it loses balance and falls',how4:'Every so often, it warps to a remembered place',how5:'Open the fallen shuriken: your result is written inside as a letter',
+   note:'Past the expressway lies one last place<br>Best played with sound on',fan:'Unofficial fan game of the film “We Are Aliens” (我々は宇宙人)',tap:'Tap to open',retry:'Play again',shareX:'Share on X',copy:'Copy result',copied:'Copied',copyFail:'Couldn’t copy. Press and hold to select the text.',
+   ssImg:'Result image',ssNote:'Press and hold the image to save it, then attach it to your post on X',ssX:'Open X to post',stall:'Stalling!',stallS:'Swipe up to speed up',balWarn:'Losing balance',balLost:'Lost balance',
+   whyEnd:'Reached the sunflower field',whyBal:'Lost balance and fell',whyStall:'Stalled and fell',next:(r,m)=>`${m}m to ${r}`,
+   letHi:'It reached you.',letStat:(k,w)=>`Top speed ${k} km/h · ${w} warp${w===1?'':'s'}`,letBye:'Let’s play again',
+   share:(d,r,t)=>`My shuriken warped through remembered places and flew ${d}m.\nRank ${r}: “${t}”\n`,q:['“','”'],
+   scenes:['Residential street','Farm road','School hallway','Riverside','Shrine in the rain','Top of the hill','Rainy night','Expressway','Sunflower field'],
+   ranks:{SSS:'We Are Aliens',SS:'Past the “see ya”',S:'Lost in the night rain',A:'A promise under shelter',B:'The river after school',C:'No running in the halls',D:'Beyond the farm road',E:'Just down the street'}},
+ zh:{lang:'语言',close:'关闭',start:'开始',how:'玩法',dist:'飞行距离',aim:'向下滑动拉开',tutT:'向上滑动加速',tutS:'太慢会掉落・加速过度会失去平衡',
+   how1:'向下滑动拉开，在光环与圆圈重合的瞬间松手投出',how2:'飞行中向上滑动加速，速度太慢就会下坠',how3:'加速过度会失去平衡而掉落',how4:'每飞一段距离，就会穿越到回忆中的地方',how5:'打开落下的手里剑，结果就写在里面的信上',
+   note:'穿过高速公路，前方还有最后一个地方<br>建议开启声音游玩',fan:'电影《我々は宇宙人》非官方同人游戏',tap:'点击打开',retry:'再来一次',shareX:'分享到 X',copy:'复制结果',copied:'已复制',copyFail:'复制失败，请长按选择文字',
+   ssImg:'结果图片',ssNote:'长按图片保存，然后附在 X 的帖子里',ssX:'打开 X 发帖',stall:'失速！',stallS:'向上滑动加速',balWarn:'注意平衡',balLost:'失去平衡',
+   whyEnd:'抵达了向日葵田',whyBal:'失去平衡掉落了',whyStall:'失速掉落了',next:(r,m)=>`距离 ${r} 还差 ${m}m`,
+   letHi:'送到了哦。',letStat:(k,w)=>`最快 ${k}km/h ・ 穿越 ${w} 次`,letBye:'下次再一起玩吧',
+   share:(d,r,t)=>`穿越回忆中的地方，手里剑飞了 ${d}m。\n${r} 级「${t}」\n`,q:['「','」'],
+   scenes:['住宅街','田间小路','学校走廊','河滩','雨中的神社','坡道上','雨夜','高速公路','向日葵田'],
+   ranks:{SSS:'我们是宇宙人',SS:'「拜拜」的另一头',S:'融入夜雨之中',A:'避雨时的约定',B:'放学后的河滩',C:'走廊上不许跑',D:'田间小路的尽头',E:'只到邻居家'}},
+ ko:{lang:'언어',close:'닫기',start:'시작',how:'플레이 방법',dist:'비행 거리',aim:'아래로 스와이프해서 당기기',tutT:'위로 스와이프해서 가속',tutS:'느려지면 떨어져요・너무 가속하면 균형을 잃어요',
+   how1:'아래로 스와이프해서 당긴 뒤, 링이 원과 겹치는 순간 손을 떼서 던지기',how2:'날아가는 동안 위로 스와이프하면 가속. 느려지면 떨어져요',how3:'너무 가속하면 균형을 잃고 떨어져요',how4:'일정 거리마다 추억의 장소로 워프',how5:'떨어진 수리검을 펼치면 편지에 결과가 적혀 있어요',
+   note:'고속도로를 지나면 마지막 장소가 기다려요<br>소리를 켜고 플레이하는 것을 추천해요',fan:'영화 〈我々は宇宙人〉 비공식 팬 게임',tap:'탭해서 펼치기',retry:'한 번 더',shareX:'X에 공유',copy:'결과 복사',copied:'복사했어요',copyFail:'복사하지 못했어요. 길게 눌러 선택해 주세요',
+   ssImg:'결과 이미지',ssNote:'이미지를 길게 눌러 저장한 뒤 X 게시물에 첨부해 주세요',ssX:'X 게시 화면 열기',stall:'실속!',stallS:'위로 스와이프해서 가속',balWarn:'균형 주의',balLost:'균형을 잃었다',
+   whyEnd:'해바라기 밭에 닿았다',whyBal:'균형을 잃고 떨어졌다',whyStall:'실속해서 떨어졌다',next:(r,m)=>`${r}까지 앞으로 ${m}m`,
+   letHi:'닿았어.',letStat:(k,w)=>`가장 빠를 때 ${k}km/h ・ 워프 ${w}번`,letBye:'또 같이 놀자',
+   share:(d,r,t)=>`추억의 장소를 워프하며 수리검이 ${d}m 날아갔다.\n${r} 랭크 「${t}」\n`,q:['「','」'],
+   scenes:['주택가','밭 사이 시골길','학교 복도','강변','비 오는 신사','언덕 위','비 오는 밤','고속도로','해바라기 밭'],
+   ranks:{SSS:'우리는 우주인',SS:'"잘 가"의 그 너머로',S:'밤비에 섞여서',A:'비를 피하며 한 약속',B:'방과 후의 강변',C:'복도에서 뛰지 않기',D:'밭길 너머로',E:'옆집까지만'}},
+ fr:{lang:'Langue',close:'Fermer',start:'Jouer',how:'Comment jouer',dist:'Distance',aim:'Glissez vers le bas pour armer',tutT:'Glissez vers le haut pour accélérer',tutS:'Trop lent, il tombe. Trop vite, il perd l’équilibre.',
+   how1:'Glissez vers le bas pour armer, puis relâchez quand l’anneau rejoint le cercle',how2:'En vol, glissez vers le haut pour accélérer. S’il ralentit, il descend',how3:'Trop d’élan, et il perd l’équilibre puis tombe',how4:'À intervalles réguliers, il se téléporte vers un lieu de souvenir',how5:'Dépliez le shuriken tombé : votre résultat y est écrit comme une lettre',
+   note:'Au-delà de l’autoroute, un dernier lieu vous attend<br>À jouer avec le son',fan:'Jeu de fan non officiel du film « We Are Aliens » (我々は宇宙人)',tap:'Touchez pour déplier',retry:'Rejouer',shareX:'Partager sur X',copy:'Copier le résultat',copied:'Copié',copyFail:'Copie impossible. Appuyez longuement pour sélectionner.',
+   ssImg:'Image du résultat',ssNote:'Appuyez longuement sur l’image pour l’enregistrer, puis joignez-la à votre post sur X',ssX:'Ouvrir X pour publier',stall:'Décrochage !',stallS:'Glissez vers le haut pour accélérer',balWarn:'Attention à l’équilibre',balLost:'Équilibre perdu',
+   whyEnd:'Arrivé au champ de tournesols',whyBal:'Il a perdu l’équilibre',whyStall:'Il a décroché',next:(r,m)=>`Encore ${m} m pour ${r}`,
+   letHi:'Il est arrivé.',letStat:(k,w)=>`Vitesse max ${k} km/h · ${w} saut${w>1?'s':''}`,letBye:'On rejoue bientôt ?',
+   share:(d,r,t)=>`Mon shuriken a traversé des lieux de souvenir et volé ${d} m.\nRang ${r} : « ${t} »\n`,q:['« ',' »'],
+   scenes:['Quartier résidentiel','Chemin des champs','Couloir de l’école','Bord de rivière','Sanctuaire sous la pluie','En haut de la côte','Nuit de pluie','Autoroute','Champ de tournesols'],
+   ranks:{SSS:'We Are Aliens',SS:'Au-delà du « à plus »',S:'Dans la pluie de la nuit',A:'Promesse à l’abri',B:'La rivière après l’école',C:'On ne court pas dans les couloirs',D:'Au bout du chemin des champs',E:'Pas plus loin que le voisin'}},
+};
+const LANG_KEY='shuriken_lang_v1';
+let lang=(()=>{try{const v=localStorage.getItem(LANG_KEY);if(v&&L[v])return v;}catch(e){}const n=(navigator.language||'ja').toLowerCase();
+  return n.startsWith('ja')?'ja':n.startsWith('zh')?'zh':n.startsWith('ko')?'ko':n.startsWith('fr')?'fr':'en';})();
+const tr=k=>L[lang][k]!==undefined?L[lang][k]:L.ja[k];
+const sceneName=i=>tr('scenes')[i];
+const rankTitle=rk=>tr('ranks')[rk];
+const HTML_LANG={ja:'ja',en:'en',zh:'zh-Hans',ko:'ko',fr:'fr'};
+function applyLang(){
+  document.documentElement.lang=HTML_LANG[lang];document.body.dataset.lang=lang;
+  document.querySelectorAll('[data-i]').forEach(el=>{const v=tr(el.dataset.i);if(typeof v==='string')el.innerHTML=v;});
+  document.querySelectorAll('[data-ia]').forEach(el=>{const [attr,k]=el.dataset.ia.split(':');el.setAttribute(attr,tr(k));});
+  document.querySelectorAll('#langList button').forEach(b=>b.classList.toggle('on',b.dataset.l===lang));
+}
 
 /* ============ fonts ============ */
 try{
@@ -1092,8 +1187,10 @@ function drawCreases(g,w,h,k=1){const P=p=>[(p[0]+1)/2*w,(1-(p[1]+1)/2)*h];g.sav
     for(const[o,c,lw]of[[0,`rgba(120,105,90,${.035*k})`,14],[0,`rgba(120,105,90,${.05*k})`,6],[1.4,`rgba(255,255,255,${.35*k})`,2],[-1.4,`rgba(110,95,80,${.14*k})`,2]]){g.strokeStyle=c;g.lineWidth=lw;g.beginPath();g.moveTo(A[0]+nx*o,A[1]+ny*o);g.lineTo(B[0]+nx*o,B[1]+ny*o);g.stroke();}}
   g.restore();}
 /* make sure every glyph on the letter is in the handwriting face before drawing (Google Fonts loads kanji in slices) */
-async function letterFonts(Rs){const txt='とどいたよ。またあそぼうねいちばん速いときワープ回km/h・→0123456789.,m「」SABCDE'+Rs.title+Rs.route.join('')+Rs.date;
-  try{await Promise.race([Promise.all(["600 60px 'Klee One'","400 30px 'Klee One'"].map(f=>document.fonts.load(f,txt))),new Promise(r=>setTimeout(r,2500))]);}catch(e){}}
+const LETF=()=>({zh:"'ZCOOL KuaiLe','Noto Sans SC',sans-serif",ko:"'Gaegu','Noto Sans KR',sans-serif"}[lang]||"'Klee One','Zen Kaku Gothic New',sans-serif");
+const UIF=()=>({zh:"'Noto Sans SC',sans-serif",ko:"'Noto Sans KR',sans-serif"}[lang]||"'Zen Kaku Gothic New',sans-serif");
+async function letterFonts(Rs){const txt=tr('letHi')+tr('letBye')+tr('letStat')(Rs.kmh,Rs.warps)+tr('q').join('')+'→0123456789.,m SABCDE'+Rs.title+Rs.route.join('')+Rs.date;const fam=LETF().split(',')[0];
+  try{await Promise.race([Promise.all([`600 60px ${fam}`,`400 30px ${fam}`,`700 60px ${fam}`].map(f=>document.fonts.load(f,txt))),new Promise(r=>setTimeout(r,2500))]);}catch(e){}}
 function drawLetter(Rs){
   letterFonts(Rs).then(()=>{if(st.res===Rs){drawLetterNow(Rs);st.shareImg=null;}});drawLetterNow(Rs);
 }
@@ -1105,27 +1202,27 @@ function drawLetterOn(Rs,cv,share){
   if(!PAPER0){PAPER0=cvs(w,h,pg=>{paperBase(pg,w,h);drawCreases(pg,w,h,.6);});PAPERS=cvs(w,h,pg=>{pg.drawImage(PAPER0,0,0);});
     const pg=PAPERS.getContext('2d');paperBase(pg,w,h);drawCreases(pg,w,h,.38);}
   g.drawImage(share?PAPERS:PAPER0,0,0);
-  const INK='#27324a',RED='#d2453a',KL="'Klee One','Zen Kaku Gothic New',sans-serif";
+  const INK='#27324a',RED='#d2453a',KL=LETF(),W4=lang==='ko'?700:400;
   g.fillStyle=INK;g.textBaseline='alphabetic';
-  g.textAlign='left';g.font=`600 52px ${KL}`;g.fillText('とどいたよ。',112,160);
-  g.textAlign='right';g.font=`400 28px ${KL}`;g.globalAlpha=.75;g.fillText(Rs.date,912,152);g.globalAlpha=1;
+  g.textAlign='left';g.font=`600 52px ${KL}`;g.fillText(tr('letHi'),112,160);
+  g.textAlign='right';g.font=`${W4} 28px ${KL}`;g.globalAlpha=.75;g.fillText(Rs.date,912,152);g.globalAlpha=1;
   g.font=`600 132px ${KL}`;const ds=fmt(Rs.dist);const dw=g.measureText(ds).width;g.font=`600 56px ${KL}`;const mw=g.measureText(' m').width;
   const x0=512-(dw+mw)/2;g.textAlign='left';g.font=`600 132px ${KL}`;g.fillText(ds,x0,340);g.font=`600 56px ${KL}`;g.fillText(' m',x0+dw,340);
   g.strokeStyle=INK;g.lineWidth=4;g.beginPath();for(let x=0;x<=dw+mw;x+=6){const y=368+Math.sin(x*.09)*4;x===0?g.moveTo(x0+x,y):g.lineTo(x0+x,y);}g.stroke();
-  g.textAlign='center';g.font=`400 30px ${KL}`;g.globalAlpha=.85;g.fillText(`いちばん速いとき ${Rs.kmh}km/h ・ ワープ ${Rs.warps}回`,512,428);g.globalAlpha=1;
+  g.textAlign='center';g.font=`${W4} 30px ${KL}`;g.globalAlpha=.85;{let fs=30;while(g.measureText(tr('letStat')(Rs.kmh,Rs.warps)).width>820&&fs>22){fs-=2;g.font=`${W4} ${fs}px ${KL}`;}g.fillText(tr('letStat')(Rs.kmh,Rs.warps),512,428);}g.globalAlpha=1;
   const ry0=590;g.font=`600 ${Rs.rank.length>2?180:210}px ${KL}`;g.fillStyle=RED;const rw=g.measureText(Rs.rank).width;g.fillText(Rs.rank,512,ry0+70);
   const top=['SSS','SS','S'].includes(Rs.rank);g.strokeStyle=RED;g.lineWidth=7;g.lineCap='round';
   if(top){const rx=rw/2+56,ry=110;for(let l=0;l<2;l++){g.beginPath();for(let t=0;t<=1.04;t+=.01){const an=-1.9+t*6.2832+l*.3,j=1+Math.sin(t*19+l)*.015;const x=512+Math.cos(an)*rx*j*(1-l*.04),y=ry0+Math.sin(an)*ry*j*(1-l*.04);t===0?g.moveTo(x,y):g.lineTo(x,y);}g.stroke();}
     if(Rs.rank==='SSS'){const n=14;g.lineWidth=6;for(let i=0;i<n;i++){const a0=i/n*6.2832,a1=(i+1)/n*6.2832,am=(a0+a1)/2;g.beginPath();
       g.moveTo(512+Math.cos(a0)*(rx+18),ry0+Math.sin(a0)*(ry+18));g.quadraticCurveTo(512+Math.cos(am)*(rx+18)*1.18,ry0+Math.sin(am)*(ry+18)*1.18,512+Math.cos(a1)*(rx+18),ry0+Math.sin(a1)*(ry+18));g.stroke();}}}
   else{g.beginPath();g.moveTo(512-rw/2-10,ry0+92);g.quadraticCurveTo(512,ry0+104,512+rw/2+14,ry0+88);g.stroke();}
-  g.fillStyle=INK;let fs=58;g.font=`600 ${fs}px ${KL}`;const tt=`「${Rs.title}」`;while(g.measureText(tt).width>820&&fs>34){fs-=2;g.font=`600 ${fs}px ${KL}`;}
+  g.fillStyle=INK;let fs=58;g.font=`600 ${fs}px ${KL}`;const tt=tr('q')[0]+Rs.title+tr('q')[1];while(g.measureText(tt).width>820&&fs>34){fs-=2;g.font=`600 ${fs}px ${KL}`;}
   g.textAlign='center';g.fillText(tt,512,790);
-  g.font=`400 27px ${KL}`;g.fillStyle='#4a5670';
+  g.font=`${W4} 27px ${KL}`;g.fillStyle='#4a5670';
   const words=Rs.route.join(' → ').split(' ');let line='';const lines=[];
   for(const wd of words){const t=line?line+' '+wd:wd;if(g.measureText(t).width>800&&line){lines.push(line);line=wd;}else line=t;}lines.push(line);
   lines.slice(0,2).forEach((l,i)=>g.fillText(l,512,858+i*38));
-  g.textAlign='right';g.fillStyle=INK;g.font=`600 40px ${KL}`;g.fillText('またあそぼうね',912,962);
+  g.textAlign='right';g.fillStyle=INK;g.font=`600 40px ${KL}`;g.fillText(tr('letBye'),912,962);
 }
 
 /* ============ post: film pass + warp tunnel ============ */
@@ -1301,14 +1398,14 @@ function resetRun(){
 }
 function toAim(){
   st.mode='aim';st.t=0;
-  $('title').classList.add('gone');setTimeout(()=>{$('title').hidden=true;},500);
+  $('title').classList.add('gone');setTimeout(()=>{$('title').hidden=true;},500);$('langBtn').hidden=true;document.body.classList.remove('titleUp');
   ['landUI','result','flyUI','wbar'].forEach(id=>$(id).hidden=true);$('result').classList.remove('show');$('landUI').classList.remove('show');
   $('hud').hidden=false;$('hud').classList.remove('fade');updHud();
   $('gauge').hidden=false;$('gauge').classList.remove('fade');$('aimHint').hidden=false;$('aimHint').classList.remove('fade');
   $('muteBtn').classList.add('play');placeAim();
 }
 const sceneNo=i=>String(i+1).padStart(2,'0');
-function updHud(){$('dist').innerHTML=fmt(st.dist)+'<small>m</small>';$('sNo').textContent=`${sceneNo(sIdx)} / ${sceneNo(SCN-1)}`;$('sName').textContent=S.ja;
+function updHud(){$('dist').innerHTML=fmt(st.dist)+'<small>m</small>';$('sNo').textContent=`${sceneNo(sIdx)} / ${sceneNo(SCN-1)}`;$('sName').textContent=sceneName(sIdx);
   const p=sIdx<SCN-1?clamp((st.dist-START[sIdx])/LEN[sIdx],0,1):1;const wb=$('wbar');wb.firstChild.style.width=(p*100)+'%';wb.classList.toggle('near',p>.85&&sIdx<SCN-1);}
 
 /* ---- aim / launch ---- */
@@ -1342,7 +1439,7 @@ function boost(s){
 }
 function alert(cls,html){const a=$('alert');if(!cls){a.classList.remove('on');return;}a.className='sh on '+cls;a.innerHTML=html;}
 function startWarp(){st.warp={t:0,swapped:false};st.warps++;sfx.warp();}
-function showCard(){const c=$('card');$('cNo').textContent=sceneNo(sIdx);$('cJa').textContent=S.ja;$('cEn').textContent=S.en;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
+function showCard(){const c=$('card');$('cNo').textContent=sceneNo(sIdx);$('cJa').textContent=sceneName(sIdx);$('cEn').textContent=lang==='en'?'':S.en;c.classList.remove('show');void c.offsetWidth;c.classList.add('show');}
 
 const vlNow=()=>12+sIdx*.8;
 function flyStep(dt){
@@ -1365,13 +1462,13 @@ function flyStep(dt){
   }
   st.vmax=Math.max(st.vmax,st.v);
   st.dist+=st.v*dt;st.z-=st.v*dt;
-  if(st.bal>=1){st.mode='tumble';st.tum=0;sfx.tumble();alert('bal','バランスをくずした');return;}
+  if(st.bal>=1){st.mode='tumble';st.tum=0;sfx.tumble();alert('bal',tr('balLost'));return;}
   if(st.h<=0){st.h=0;landNow(st.ending?'end':'stall');return;}
   if(!st.warp&&sIdx<SCN-1&&st.dist>=START[sIdx+1])startWarp();
   if(st.ending)return;
   // cues
-  if(st.v<vlNow()&&st.h<1.4&&!st.warp){alert('stall','失速！<small>上スワイプで加速</small>');if(st.stallCue<=0){sfx.stall();st.stallCue=1.2;}}
-  else if(st.bal>.75){alert('bal','バランス注意');if(st.balCue<=0){sfx.warn();st.balCue=.45;}}
+  if(st.v<vlNow()&&st.h<1.4&&!st.warp){alert('stall',tr('stall')+'<small>'+tr('stallS')+'</small>');if(st.stallCue<=0){sfx.stall();st.stallCue=1.2;}}
+  else if(st.bal>.75){alert('bal',tr('balWarn'));if(st.balCue<=0){sfx.warn();st.balCue=.45;}}
   else alert(null);
   st.stallCue-=dt;st.balCue-=dt;
 }
@@ -1389,13 +1486,13 @@ function landNow(why){
   const prev=loadBest(),isNew=!prev||st.dist>prev.dist;
   if(isNew)saveBest({dist:st.dist,rank:rk[1]});
   const d=new Date();
-  st.res={dist:st.dist,rank:rk[1],title:rk[2],kmh:Math.round(st.vmax*3.6),warps:st.warps,isNew,
-    route:SC.slice(0,sIdx+1).map(s=>s.ja),date:`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`};
+  st.res={dist:st.dist,rank:rk[1],title:rankTitle(rk[1]),kmh:Math.round(st.vmax*3.6),warps:st.warps,isNew,
+    route:SC.slice(0,sIdx+1).map((s,i)=>sceneName(i)),date:`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`};
   const ri=RANKS.indexOf(rk);st.res.next=ri>0?{rank:RANKS[ri-1][1],need:Math.max(1,START[RANKS[ri-1][0]]-st.dist)}:null;
   drawLetter(st.res);st.shareImg=null;
   setTimeout(()=>{if(st.mode!=='land'&&st.mode!=='landwait')return;
     $('lDist').innerHTML=fmt(st.dist)+'<small>m</small>';
-    $('lWhy').textContent=why==='end'?'ひまわり畑にとどいた':why==='bal'?'バランスをくずして落ちた':'失速して落ちた';
+    $('lWhy').textContent=tr(why==='end'?'whyEnd':why==='bal'?'whyBal':'whyStall');
     $('landUI').hidden=false;requestAnimationFrame(()=>$('landUI').classList.add('show'));st.mode='landwait';},1500);
 }
 function openLetter(){
@@ -1524,11 +1621,11 @@ function update(dt,nowS){
 }
 function showResult(){
   const R=st.res;$('result').hidden=false;
-  $('rNext').innerHTML=(R.isNew?'<em>NEW RECORD</em>':'')+(R.next?`<span>${R.next.rank} まで あと ${fmt(R.next.need)}m</span>`:'');
+  $('rNext').innerHTML=(R.isNew?'<em>NEW RECORD</em>':'')+(R.next?`<span>${tr('next')(R.next.rank,fmt(R.next.need))}</span>`:'');
   requestAnimationFrame(()=>$('result').classList.add('show'));
   sfx.result(R.rank);if(R.rank==='SSS')setTimeout(()=>{if(st.mode==='result')alienVoice();},700);
   setTimeout(()=>{if(st.mode==='result')makeShareImage();},900);
-  const text=`思い出の場所をワープして、手裏剣が ${fmt(R.dist)}m とんだ。\n${R.rank}ランク「${R.title}」\n`;
+  const text=tr('share')(fmt(R.dist),R.rank,R.title);
   st.shareText=text+GAME_URL+'\n#'+HASHTAG;
   st.intent='https://x.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(GAME_URL)+'&hashtags='+encodeURIComponent(HASHTAG);
   $('copied').textContent='';
@@ -1568,7 +1665,7 @@ async function makeShareImage(){
     g.drawImage(LETS,-L/2,-LH/2,L,LH);g.restore();
     const star=shotStar(440);if(star){g.save();g.translate(Wd/2-L/2+40,660+LH/2+20);g.rotate(-.28);g.shadowColor='rgba(10,2,14,.5)';g.shadowBlur=26;g.shadowOffsetY=10;g.drawImage(star,-150,-150,300,300);g.restore();}
     g.font="700 26px 'Zen Kaku Gothic New',sans-serif";g.fillStyle=BONE;g.fillText('#我々は宇宙人',Wd/2,1194);
-    g.font="700 20px 'Zen Kaku Gothic New',sans-serif";g.globalAlpha=.8;g.fillText('映画『我々は宇宙人』非公式ファンゲーム',Wd/2,1236);
+    g.globalAlpha=.8;{let fs=20;const f=()=>`700 ${fs}px ${UIF()}`;g.font=f();while(g.measureText(tr('fan')).width>Wd-120&&fs>14){fs--;g.font=f();}g.fillText(tr('fan'),Wd/2,1236);}
     g.font="400 22px 'Oswald',sans-serif";g.fillText('uimemocho.github.io/apps/shuriken',Wd/2,1274);g.globalAlpha=1;
     const gc=cvs(180,180,gg=>{const id=gg.createImageData(180,180);for(let i=0;i<id.data.length;i+=4){const v=Math.random()*255|0;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255;}gg.putImageData(id,0,0);});
     g.save();g.globalAlpha=.06;g.globalCompositeOperation='overlay';g.fillStyle=g.createPattern(gc,'repeat');g.fillRect(0,0,Wd,Hd);g.restore();
@@ -1587,7 +1684,7 @@ async function shareResult(){
 }
 
 /* ============ input ============ */
-const isUI=e=>e.target.closest&&e.target.closest('button,a,#how,#shareSheet,#title,#dbg');
+const isUI=e=>e.target.closest&&e.target.closest('button,a,#how,#shareSheet,#title,#dbg,#langDlg');
 let ptr=null;
 window.addEventListener('pointerdown',e=>{
   if(isUI(e))return;initAudio();
@@ -1624,9 +1721,9 @@ $('startBtn').addEventListener('click',()=>{initAudio();toAim();});
 $('retryBtn').addEventListener('click',()=>go(()=>{resetRun();toAim();}));
 $('shareX').addEventListener('click',shareResult);
 $('ssClose').addEventListener('click',()=>{$('shareSheet').hidden=true;});
-$('copyBtn').addEventListener('click',()=>{const done=()=>{$('copied').textContent='コピーしました';};
+$('copyBtn').addEventListener('click',()=>{const done=()=>{$('copied').textContent=tr('copied');};
   try{navigator.clipboard.writeText(st.shareText).then(done,()=>fallbackCopy(done));}catch(e){fallbackCopy(done);}});
-function fallbackCopy(done){const ta=document.createElement('textarea');ta.value=st.shareText;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){$('copied').textContent='コピーできませんでした。長押しで選択してください';}ta.remove();}
+function fallbackCopy(done){const ta=document.createElement('textarea');ta.value=st.shareText;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){$('copied').textContent=tr('copyFail');}ta.remove();}
 $('howBtn').addEventListener('click',()=>{$('how').hidden=false;$('howClose').focus();});
 $('howClose').addEventListener('click',()=>{$('how').hidden=true;$('howBtn').focus();});
 $('how').addEventListener('click',e=>{if(e.target.id==='how')$('how').hidden=true;});
@@ -1640,7 +1737,7 @@ window.__shk={launch,toAim,resetRun,warpTo:(i)=>{st.warp={t:0,swapped:false,targ
   if(!/uimemocho\.github\.io$/.test(location.hostname)||/debug/.test(location.search+location.hash)){document.body.classList.add('dbg');$('dbgBtn').hidden=false;}
   const dr=$('dbgRank'),ds=$('dbgScene');
   ['E','D','C','B','A','S','SS','SSS'].forEach(rk=>{const b=document.createElement('button');b.type='button';b.textContent=rk;b.addEventListener('click',()=>dbgJump(rk));dr.appendChild(b);});
-  SC.forEach((sc,i)=>{const b=document.createElement('button');b.type='button';b.textContent=sceneNo(i)+' '+sc.ja;b.addEventListener('click',()=>dbgFly(i));ds.appendChild(b);});
+  SC.forEach((sc,i)=>{const b=document.createElement('button');b.type='button';b.textContent=sceneNo(i)+' '+sceneName(i);b.addEventListener('click',()=>dbgFly(i));ds.appendChild(b);});
   $('dbgBtn').addEventListener('click',()=>{const p=$('dbg');p.hidden=!p.hidden;$('dbgBtn').setAttribute('aria-expanded',String(!p.hidden));});
   function enter(i,z){initAudio();if(st.mode==='title'||st.mode==='result'||st.mode==='open'||st.mode==='landwait'||st.mode==='land'){resetRun();toAim();}
     st.mode='fly';st.t=1;st.warp=null;st.ending=false;st.bal=0;st.tum=0;st.x=0;st.z=-START[i]-10;st.dist=START[i]+5;st.warps=i;st.vmax=Math.max(st.vmax,30);
@@ -1651,6 +1748,16 @@ window.__shk={launch,toAim,resetRun,warpTo:(i)=>{st.warp={t:0,swapped:false,targ
     // a distance inside that rank's stretch
     const lo=START[i],hi=i<SCN-1?START[i+1]:START[i]+400;st.dist=lo+(hi-lo)*.6;st.v=6;st.h=0;st.vmax=24+i*3;st.spinW=8;
     landNow('stall');$('dbg').hidden=true;}
+})();
+
+/* language */
+(function(){const list=$('langList');
+  LANGS.forEach(([k,name])=>{const b=document.createElement('button');b.type='button';b.className='btn ghost';b.dataset.l=k;b.lang=HTML_LANG[k];b.textContent=name;
+    b.addEventListener('click',()=>{lang=k;try{localStorage.setItem(LANG_KEY,k);}catch(e){}applyLang();if(st.res){st.res.title=rankTitle(st.res.rank);st.res.route=st.res.route.map((_,i)=>sceneName(i));drawLetter(st.res);}$('langDlg').hidden=true;$('langBtn').focus();});list.appendChild(b);});
+  $('langBtn').addEventListener('click',()=>{$('langDlg').hidden=false;const on=list.querySelector('.on');(on||list.firstChild).focus();});
+  $('langClose').addEventListener('click',()=>{$('langDlg').hidden=true;$('langBtn').focus();});
+  $('langDlg').addEventListener('click',e=>{if(e.target.id==='langDlg')$('langDlg').hidden=true;});
+  applyLang();document.body.classList.add('titleUp');
 })();
 
 /* go */
