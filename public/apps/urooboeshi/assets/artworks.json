@@ -1,0 +1,122 @@
+[
+  {
+    "id": "wave",
+    "title": "神奈川沖浪裏",
+    "artist": "葛飾北斎",
+    "country": "日本",
+    "source": "https://www.metmuseum.org/art/collection/search/45434",
+    "image": "assets/wave.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://images.metmuseum.org/CRDImages/as/original/DP130155.jpg"
+  },
+  {
+    "id": "vangogh",
+    "title": "自画像",
+    "artist": "フィンセント・ファン・ゴッホ",
+    "country": "オランダ",
+    "source": "https://www.nga.gov/artworks/106382-self-portrait",
+    "image": "assets/vangogh.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://api.nga.gov/iiif/54ee6643-e0f9-4b92-a1d2-441e5108724d/full/!800,800/0/default.jpg"
+  },
+  {
+    "id": "vermeer",
+    "title": "赤い帽子の少女",
+    "artist": "ヨハネス・フェルメール",
+    "country": "オランダ",
+    "source": "https://www.nga.gov/artworks/60-girl-red-hat",
+    "image": "assets/vermeer.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://api.nga.gov/iiif/b705a403-3496-42e8-abf5-a37e34c32198/full/!800,800/0/default.jpg"
+  },
+  {
+    "id": "monet",
+    "title": "日本の橋",
+    "artist": "クロード・モネ",
+    "country": "フランス",
+    "source": "https://www.nga.gov/artworks/74796-japanese-footbridge",
+    "image": "assets/monet.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://api.nga.gov/iiif/0b9cefb5-1ee4-401a-8154-8d4039191a28/full/!800,800/0/default.jpg"
+  },
+  {
+    "id": "leonardo",
+    "title": "ジネーヴラ・デ・ベンチ",
+    "artist": "レオナルド・ダ・ヴィンチ",
+    "country": "イタリア",
+    "source": "https://www.nga.gov/artworks/50724-ginevra-de-benci-obverse",
+    "image": "assets/leonardo.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://api.nga.gov/iiif/8f29e3c9-a289-4d53-abf0-31a66e9e98fa/full/!800,800/0/default.jpg"
+  },
+  {
+    "id": "girl",
+    "title": "白い服の少女",
+    "artist": "フィンセント・ファン・ゴッホ",
+    "country": "オランダ",
+    "source": "https://www.nga.gov/artworks/46505-girl-white",
+    "image": "assets/girl.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://api.nga.gov/iiif/6d6753b3-c1ef-494c-9dc3-244e8982c867/full/!800,800/0/default.jpg"
+  },
+  {
+    "id": "plum",
+    "title": "断橋香雪図",
+    "artist": "王冕",
+    "country": "中国",
+    "source": "https://www.metmuseum.org/art/collection/search/40080",
+    "image": "assets/plum.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://images.metmuseum.org/CRDImages/as/original/DP258037.jpg"
+  },
+  {
+    "id": "garden",
+    "title": "イプイの墓の庭園",
+    "artist": "ノーマン・ド・ガリス・デイヴィス（模写）",
+    "country": "エジプト",
+    "source": "https://www.metmuseum.org/art/collection/search/557816",
+    "image": "assets/garden.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://images.metmuseum.org/CRDImages/eg/original/vs2973.jpg"
+  },
+  {
+    "id": "straw",
+    "title": "麦わら帽子の自画像",
+    "artist": "フィンセント・ファン・ゴッホ",
+    "country": "オランダ",
+    "source": "https://www.metmuseum.org/art/collection/search/436532",
+    "image": "assets/straw.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/original/DT1502_cropped2.jpg"
+  },
+  {
+    "id": "washington",
+    "title": "デラウェア川を渡るワシントン",
+    "artist": "エマヌエル・ロイツェ",
+    "country": "アメリカ",
+    "source": "https://www.metmuseum.org/art/collection/search/11417",
+    "image": "assets/washington.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ad/original/DP215410.jpg"
+  },
+  {
+    "id": "cypresses",
+    "title": "糸杉",
+    "artist": "フィンセント・ファン・ゴッホ",
+    "country": "オランダ",
+    "source": "https://www.metmuseum.org/art/collection/search/437980",
+    "image": "assets/cypresses.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/original/DP130999.jpg"
+  },
+  {
+    "id": "dancer",
+    "title": "踊りの教室",
+    "artist": "エドガー・ドガ",
+    "country": "フランス",
+    "source": "https://www.metmuseum.org/art/collection/search/436141",
+    "image": "assets/dancer.webp",
+    "license": "Public Domain / Open Access",
+    "imageSource": "https://images.metmuseum.org/CRDImages/ep/original/DP-25445-001.jpg"
+  }
+]
