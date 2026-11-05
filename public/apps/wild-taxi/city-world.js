@@ -2,11 +2,12 @@ import {clamp,roadOffset} from './track.js';
 import {roadFootprint} from './road-mesh.js';
 export function rng(seed){let n=seed>>>0;return()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296}}
 export const BUILDING_COLORS=[0xb49c9d,0x8e8fa8,0xc19b8e,0x8e9aaa,0x778b9e,0xa291ae];
-export function createStreetObjects(length,seed){const result=[];const rand=rng(seed*83+13);for(let key=0;key<=Math.ceil(length/180);key++)for(let d=key*180+8;d<(key+1)*180&&d<length;d+=25)for(const side of [-1,1]){
+export function createStreetObjects(length,seed,phase='day'){const result=[];const rand=rng(seed*83+13);// 歩行者：昼＝普通、夕＝帰宅で多い、夜＝少ない
+const walk=phase==='evening'?1:.45,pair=phase==='evening'?.25:phase==='night'?.92:.5;for(let key=0;key<=Math.ceil(length/180);key++)for(let d=key*180+8;d<(key+1)*180&&d<length;d+=25)for(const side of [-1,1]){
  const add=(type,off,delta=0)=>result.push({id:`s${key}-${d}-${side}-${type}`,type,d:d+delta,off:side*off,side,phase:rand()*6.28,color:Math.floor(rand()*6),used:false});
  if(Math.floor(d/25)%2===0)add('lamp',8.2);else add('tree',9.1);
  if(Math.floor(d/25)%4===1)add('vending',10.1);if(Math.floor(d/25)%4===3)add('bench',9.2);
- add('pedestrian',8.5+rand()*1.4,5+rand()*8);if(rand()>.5)add('pedestrian2',8.7+rand(),14);
+ if(phase==='day'){add('pedestrian',8.5+rand()*1.4,5+rand()*8);if(rand()>.5)add('pedestrian2',8.7+rand(),14)}else{const r1=rand(),o1=8.5+rand()*1.4,o2=5+rand()*8;if(r1<walk)add('pedestrian',o1,o2);if(rand()>pair)add('pedestrian2',8.7+rand(),14)}
  }return result}
 export function streetPosition(o,time){const person=o.type.startsWith('pedestrian');return {d:o.d+(person?Math.sin(time*.72+o.phase)*2.4:0),off:o.off+(person?Math.sin(time*.43+o.phase)*.8:0)}}
 export const personType=t=>t==='pedestrian'||t==='pedestrian2';

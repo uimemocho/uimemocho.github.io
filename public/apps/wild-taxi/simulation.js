@@ -29,17 +29,41 @@ export function routeFor(data, from, to) {
     b = path(-1);
   return a.length < b.length ? a : b;
 }
-export function createRun(length, seed = 1) {
-  const rand = random(seed),
+// 時間帯ごとのコース配置。昼＝既存（通勤ラッシュ）、夕＝夕焼けドライブ（加速床・ジャンプ多め）、夜＝夜間工事（トラック・工事区間・アイテム多め）。
+// 同じシード・同じ時間帯なら配置は同じ（リトライやセーブ再開でも再現する）。
+export const COURSE_LAYOUTS = {
+  day: { step: 45, pattern: ["traffic", "boost", "oil", "item", "ramp", "cone", "clock", "traffic", "magnet", "traffic", "oil", "boost"] },
+  evening: { step: 42, pattern: ["boost", "traffic", "ramp", "item", "boost", "cone", "traffic", "clock", "ramp", "magnet", "traffic", "boost"] },
+  night: { step: 48, pattern: ["works", "item", "truck", "clock", "ramp", "works", "magnet", "boost", "truck", "item", "oil", "clock"] },
+};
+export function createRun(length, seed = 1, phase = "day") {
+  const layout = COURSE_LAYOUTS[phase] || COURSE_LAYOUTS.day,
+    rand = random(seed + (phase === "evening" ? 7919 : phase === "night" ? 104729 : 0)),
     objects = [];
   let id = 0,
     trafficIndex = 0;
-  for (let d = 90; d < length - 65; d += 45) {
+  for (let d = 90; d < length - 65; d += layout.step) {
     const lane = Math.floor(rand() * 3),
-      i = Math.floor((d - 90) / 45),
-      type = ["traffic", "boost", "oil", "item", "ramp", "cone", "clock", "traffic", "magnet", "traffic", "oil", "boost"][i % 12];
+      i = Math.floor((d - 90) / layout.step),
+      slot = layout.pattern[i % layout.pattern.length];
+    // 夜間工事：1車線をバリア、隣の車線をコーンの列でふさぐ（残る1車線を抜ける）
+    if (slot === "works") {
+      const open = lane,
+        a = (open + 1) % 3,
+        b = (open + 2) % 3;
+      objects.push({ id: id++, d, lane: a, type: "barrier", used: false });
+      for (let k = 0; k < 3; k++) objects.push({ id: id++, d: d + 4 + k * 7, lane: b, type: "cone", used: false });
+      objects.push({ id: id++, d: d + 18, lane: a, type: "cone", used: false });
+      continue;
+    }
+    const type = slot === "truck" ? "traffic" : slot;
+    const profile = type === "traffic" ? trafficProfile(seed, trafficIndex++) : {};
+    if (slot === "truck") {
+      profile.vehicleKind = "truck";
+      profile.cruiseSpeed = Math.min(profile.cruiseSpeed ?? 14, 15);
+    }
     objects.push({
-      ...(type === "traffic" ? trafficProfile(seed, trafficIndex++) : {}),
+      ...profile,
       id: id++,
       d,
       lane,
@@ -47,10 +71,12 @@ export function createRun(length, seed = 1) {
       itemKind: type === "item" ? ITEM_KINDS[Math.floor(random(Math.imul(seed + i * 13, 2654435761))() * ITEM_KINDS.length)] : null,
       used: false,
     });
-    if (type === "traffic" && i % 2 === 0) objects.push({ id: id++, d: d + 12, lane: (lane + 1) % 3, type: "cone", used: false });
+    if (type === "traffic" && i % 2 === 0 && phase !== "night") objects.push({ id: id++, d: d + 12, lane: (lane + 1) % 3, type: "cone", used: false });
     if (type === "ramp") {
       objects.push({ id: id++, d: d + 17, lane, type: "barrier", used: false });
       objects.push({ id: id++, d: d + 28, lane, type: "skyTip", used: false });
+      // 夕方は空中チップが連なる
+      if (phase === "evening") objects.push({ id: id++, d: d + 40, lane: (lane + 1) % 3, type: "skyTip", used: false });
     }
   }
   return {
@@ -61,7 +87,8 @@ export function createRun(length, seed = 1) {
     x: 0,
     targetX: 0,
     steer: 0,
-    street: createStreetObjects(length, seed),
+    street: createStreetObjects(length, seed, phase),
+    phase,
     destroyed: new Set(),
     impacts: [],
     impactId: 0,

@@ -100,6 +100,10 @@ function applyWeather(incoming) {
     fx.weather = state;
     fx.setBgmPhase(state.phase);
   }
+  // 走り出す前（タイトル・ミッション画面）に時間帯が変わったら、その時間帯の配置で作り直す
+  if (data && run && run.phase !== state.phase && ["menu", "briefing"].includes(mode) && !view?.inspection) {
+    setupRoute();
+  }
   updateWeatherLabel();
   $("weather").title =
     state.source === "debug"
@@ -118,7 +122,8 @@ function setupRoute() {
   route = routeFor(data, from, to);
   track = buildTrack(route.points);
   route.points = track.points;
-  run = createRun(track.length, missionSeed + from * 31 + to);
+  // 昼・夕・夜でコース配置が変わる（同じ時間帯なら同じ配置）
+  run = createRun(track.length, missionSeed + from * 31 + to, currentWeather?.phase || "day");
   run.passenger = passengerForStage(legIndex, missionSeed);
   run.limit = run.remaining = courseTimeLimit(track);
   run.debug = debug.enabled;
