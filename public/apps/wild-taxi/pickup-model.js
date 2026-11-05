@@ -3,9 +3,26 @@ import {mergeGeometries} from './merge.js';
 export function pickupGeometry(kind){
  const pieces=[],add=(g,color,x=0,y=0,z=0)=>{const c=new T.Color(color),n=g.getAttribute('position').count,colors=new Float32Array(n*3);for(let i=0;i<n;i++)colors.set([c.r,c.g,c.b],i*3);g.setAttribute('color',new T.BufferAttribute(colors,3));g.translate(x,y,z);pieces.push(g.index?g.toNonIndexed():g);if(g.index)g.dispose()},box=(w,h,d,c,x=0,y=0,z=0)=>add(new T.BoxGeometry(w,h,d),c,x,y,z),disc=(r,h,c,x=0,y=0,z=0)=>{const g=new T.CylinderGeometry(r,r,h,20);g.rotateX(Math.PI/2);add(g,c,x,y,z)},shape=(points,depth,color,z=0)=>{const s=new T.Shape();points.forEach(([x,y],i)=>i?s.lineTo(x,y):s.moveTo(x,y));s.closePath();const g=new T.ExtrudeGeometry(s,{depth,bevelEnabled:true,bevelSize:.035,bevelThickness:.025,bevelSegments:1,steps:1,curveSegments:4});add(g,color,0,0,z)};
  if(kind==='star'){
-  // 無敵：金色の星（厚みのある5角星＋内側の明るい星）
-  const star=(R,r)=>Array.from({length:10},(_,i)=>{const a=Math.PI/2+i*Math.PI/5,k=i%2?r:R;return [Math.cos(a)*k,Math.sin(a)*k]});
-  shape(star(.95,.42),.26,0xffc400,-.13);shape(star(.62,.28),.06,0xfff3a0,.14);box(.08,.2,.04,0x5a3a00,-.14,.06,.2);box(.08,.2,.04,0x5a3a00,.14,.06,.2);
+  // 無敵：ネオン管の線の星を3重に巻く（ピンク／シアン／黄、1本ごとにも色が流れる）
+  const loops=[[0xff3dbd,0x9a5cff,1.0,0,0],[0x2ef2ff,0x3d7bff,.8,.21,.07],[0xffe23a,0xff7a2e,.6,-.17,-.07]];
+  for(const [c0,c1,scale,rot,z] of loops){
+   const pts=[];
+   for(let i=0;i<10;i++){
+    const a0=Math.PI/2+rot+i*Math.PI/5,a1=Math.PI/2+rot+(i+1)*Math.PI/5,r0=(i%2?.42:.98)*scale,r1=((i+1)%2?.42:.98)*scale;
+    const p0=[Math.cos(a0)*r0,Math.sin(a0)*r0],p1=[Math.cos(a1)*r1,Math.sin(a1)*r1];
+    for(const t of [0,.18,.82])pts.push(new T.Vector3(p0[0]+(p1[0]-p0[0])*t,p0[1]+(p1[1]-p0[1])*t,z));
+   }
+   // 平たいリボン（星の面内に幅を持つ帯）で軽量に：1本50区間＝100三角形
+   const curve=new T.CatmullRomCurve3(pts,true,'centripetal'),N=50,P=curve.getSpacedPoints(N),pos=[],col=[],idx=[],A=new T.Color(c0),B=new T.Color(c1),tmp=new T.Color(),w=.072;
+   for(let i=0;i<N;i++){
+    const p=P[i],q=P[(i+1)%N],o=P[(i+N-1)%N],tx=q.x-o.x,ty=q.y-o.y,l=Math.hypot(tx,ty)||1,nx=-ty/l*w,ny=tx/l*w;
+    pos.push(p.x+nx,p.y+ny,z,p.x-nx,p.y-ny,z);
+    tmp.copy(A).lerp(B,.5+.5*Math.sin(i/N*Math.PI*4));col.push(tmp.r,tmp.g,tmp.b,tmp.r,tmp.g,tmp.b);
+    const a=i*2,b=((i+1)%N)*2;idx.push(a,a+1,b,a+1,b+1,b);
+   }
+   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+   pieces.push(g.toNonIndexed());g.dispose();
+  }
  }else if(kind==='boost'){
   add(new T.CylinderGeometry(.28,.32,.95,10),0xe7faff,0,.05);add(new T.ConeGeometry(.29,.55,10),0xffae57,0,.8);add(new T.ConeGeometry(.25,.65,8).rotateZ(Math.PI),0x5cddff,0,-.91);
   for(const side of [-1,1])shape([[side*.24,-.17],[side*.62,-.58],[side*.62,-.82],[side*.24,-.53]],.15,0xffae57,-.075);

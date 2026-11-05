@@ -1135,7 +1135,9 @@ export class TaxiView {
     );
     ramp.computeVertexNormals();
     make("ramp", ramp, new T.MeshLambertMaterial({ color: 0xffaf43, side: T.DoubleSide }));
-    for (const kind of ITEM_KINDS) make("pickup" + kind, pickupGeometry(kind), this.mat.color, 24);
+    // 無敵の星はネオン管：照明を受けない発光材質（明るさ>1でブルームに乗る）
+    const neon = new T.MeshBasicMaterial({ vertexColors: true, color: new T.Color(2.4, 2.4, 2.4), toneMapped: false, fog: false, side: T.DoubleSide });
+    for (const kind of ITEM_KINDS) make("pickup" + kind, pickupGeometry(kind), kind === "star" ? neon : this.mat.color, 24);
     make("skyTip", new T.TorusGeometry(1.6, 0.2, 5, 20), new T.MeshBasicMaterial({ color: new T.Color(0xffde77).multiplyScalar(2.4), toneMapped: false }));
     for (const type of ["tree", "lamp", "vending", "bench"]) make(type, this.streetGeometry(type), this.mat.color);
     make("personBody", roundedBox(0.55, 0.65, 0.32, 0.06), new T.MeshLambertMaterial({ color: 0xffffff }));
