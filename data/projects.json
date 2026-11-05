@@ -560,5 +560,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-03T00:00:00Z",
     "updatedAt": "2026-11-03T00:00:00Z"
+  },
+  {
+    "slug": "wild-taxi",
+    "title": "ワイルドタクシー",
+    "kind": "game",
+    "description": "黄色いタクシーで山手線30駅を一周する3Dタイムアタック。スワイプでかわして長押しで加速、乗客を制限時間内に届けろ。ブースト・バリア・無敵・ジェットジャンプ、東京の天気と時刻に連動する街並みとBGM。安全と速さでSSSを目指す。音ありプレイ推奨。",
+    "url": "/apps/wild-taxi/",
+    "thumbnail": "/project-thumbnails/catalog/wild-taxi.webp",
+    "sourceFolder": "261105_ワイルドタクシー",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-05T13:10:00Z",
+    "updatedAt": "2026-11-05T13:10:00Z"
   }
 ]
