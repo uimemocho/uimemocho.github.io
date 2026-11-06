@@ -603,10 +603,24 @@ export class TaxiView {
         x.strokeStyle = "#fff6d4";
         x.lineWidth = 3;
         x.strokeRect(i * 64 + 3, 3, 58, 58);
+        // 文字は自分のマスの中だけ（はみ出すと隣のナンバープレートに「G」が写り込む）
+        x.save();
+        x.beginPath();
+        x.rect(i * 64, 0, 64, 64);
+        x.clip();
         x.fillStyle = "#172f40";
-        x.font = `900 ${i === 3 ? 20 : i === 4 ? 16 : 40}px Arial`;
         x.textAlign = "center";
-        x.fillText(label, i * 64 + 32, 43);
+        if (i === 4) {
+          // ナンバー：板は横長（0.58×0.2）に貼られるので、横を縮めて描くと実際の見た目が自然な比率になる
+          x.translate(i * 64 + 32, 0);
+          x.scale(0.345, 1);
+          x.font = "900 34px Arial";
+          x.fillText(label, 0, 44, 160);
+        } else {
+          x.font = `900 ${i === 3 ? 20 : 40}px Arial`;
+          x.fillText(label, i * 64 + 32, 43, 56);
+        }
+        x.restore();
         const kind = { 0: "boost", 1: "clock", 2: "magnet", 6: "shield" }[i];
         if (kind) drawItemIcon(x, kind, i * 64 + 5, 5, 54);
       });
