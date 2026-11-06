@@ -71,7 +71,7 @@
 <div class="comparison"><figure><figcaption>ORIGINAL<span>元の名画</span></figcaption><div><canvas id="originalResult" width="768" height="768"></canvas></div></figure><span class="comparison-arrow">→</span><figure><figcaption>YOUR MEMORY<span>あなたの記憶</span></figcaption><div><canvas id="drawingResult" width="768" height="768"></canvas></div></figure></div>
 <p id="resultArt" class="result-art"></p><p class="completion-time"><span id="completionTime"></span><span id="timeRating" class="time-rating"></span></p>
 <div class="valuation"><span class="eyebrow">あなたの作品の評価額</span><div id="price" class="price">¥<span>0</span></div><div class="judge-row"><div id="judgeResult" class="teacher avatar"></div><div class="judge-comment"><span class="judge-name">プロうろおぼ絵師の先生より</span><strong id="appraisalText"></strong></div></div></div>
-<div class="result-actions"><button id="continueDrawing" class="primary continue-drawing">まだ描きたい<svg><use href="#i-pen"/></svg></button><button id="share" class="primary share"><span class="x-logo">𝕏</span> 画像つきでシェア<svg><use href="#i-arrow"/></svg></button><div class="secondary-actions"><button id="saveImage" class="secondary"><svg><use href="#i-download"/></svg>画像を保存</button><button id="again" class="secondary">もう一枚 <svg><use href="#i-arrow"/></svg></button></div><button id="textPost" class="text-btn" hidden>Xの投稿画面を開く ↗</button><p id="shareHint" class="share-hint" hidden></p></div>
+<div class="result-actions"><button id="continueDrawing" class="primary continue-drawing">まだ描きたい<svg><use href="#i-pen"/></svg></button><button id="share" class="primary share"><span class="x-logo">𝕏</span> 画像つきでシェア<svg><use href="#i-arrow"/></svg></button><div class="secondary-actions"><button id="saveImage" class="secondary"><svg><use href="#i-download"/></svg>画像を保存</button><button id="again" class="secondary">もう一枚描く <svg><use href="#i-arrow"/></svg></button></div><button id="textPost" class="text-btn" hidden>Xの投稿画面を開く ↗</button><p id="shareHint" class="share-hint" hidden></p></div>
 <div class="result-footnote">※ゲーム内の鑑定です <button id="scoreInfo" class="tiny-btn">鑑定について</button></div>
 </section>
 </div>
@@ -222,4 +222,5 @@ $('scoreInfo').onclick=()=>modal('先生の鑑定基準。',`<p>元絵と描い�
 loadArtworks().catch(()=>{});setLayer('line');sizeUI();
 </script>
 </body></html>
+
 
