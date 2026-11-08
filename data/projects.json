@@ -584,5 +584,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-07T11:26:28Z",
     "updatedAt": "2026-11-07T11:26:28Z"
+  },
+  {
+    "slug": "design-tsumitsumi",
+    "title": "デザインツミツミ",
+    "kind": "game",
+    "description": "修正メールに耐えて、納期までに積み上げろ。デザイナーの1週間（月〜日、土日出勤あり）を物理で積むパズル。ロゴ拡大・差し戻し・5分で終わるMTGをスキルで乗り切り、SSSで納品せよ。",
+    "url": "/apps/design-tsumitsumi/",
+    "thumbnail": "/project-thumbnails/catalog/design-tsumitsumi.webp",
+    "sourceFolder": "261108_デザインツミツミ",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-08T05:45:00Z",
+    "updatedAt": "2026-11-08T05:45:00Z"
   }
 ]
