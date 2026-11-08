@@ -632,5 +632,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-08T12:00:00Z",
     "updatedAt": "2026-11-08T12:00:00Z"
+  },
+  {
+    "slug": "kuzureta-lp",
+    "title": "崩れたLPを直せ",
+    "kind": "game",
+    "description": "揺れている所を、直せ。崩れたランディングページの文字サイズ・行間・余白をデザイナーの目で修復するパズル。全5LP、ステージごとのビフォーアフター画像とSSSランク・講評つき。",
+    "url": "/apps/kuzureta-lp/",
+    "thumbnail": "/project-thumbnails/catalog/kuzureta-lp.webp",
+    "sourceFolder": "261108_崩れたLPを直せ",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-08T14:02:29Z",
+    "updatedAt": "2026-11-08T14:02:29Z"
   }
 ]

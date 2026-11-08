@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>崩れたLPを直せ</title>
+<meta name="description" content="揺れている所を、直せ。崩れたランディングページの文字サイズ・行間・余白をデザイナーの目で修復するパズル。全5LP、SSSランクと講評つき。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="uimemocho">
+<meta property="og:title" content="崩れたLPを直せ">
+<meta property="og:description" content="揺れている所を、直せ。崩れたLPをデザイナーの目で修復するパズル。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/kuzureta-lp/">
+<meta property="og:image" content="https://uimemocho.github.io/apps/kuzureta-lp/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="崩れたLPを直せ">
+<meta name="twitter:image" content="https://uimemocho.github.io/apps/kuzureta-lp/ogp.png">
+<meta name="theme-color" content="#0b0c10">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%230b0c10%22/%3E%3Crect x=%2214%22 y=%2216%22 width=%2236%22 height=%228%22 rx=%222%22 fill=%22%23ff3d6e%22/%3E%3Crect x=%2210%22 y=%2230%22 width=%2236%22 height=%226%22 rx=%222%22 fill=%22%23e8eaf0%22/%3E%3Crect x=%2218%22 y=%2242%22 width=%2228%22 height=%226%22 rx=%222%22 fill=%22%2300e0c0%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=JetBrains+Mono:wght@500;700&family=Shippori+Mincho:wght@500;700&family=M+PLUS+Rounded+1c:wght@400;700;900&family=Dela+Gothic+One&family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+<style>
+:root{--ui:#0b0c10;--ui2:#14161d;--ui3:#1e212b;--line:#2a2e3a;--tx:#e8eaf0;--mut:#8a90a2;--acc:#00e0c0;--hot:#ff3d6e;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--ui);color:var(--tx);font-family:'Zen Kaku Gothic New',system-ui,sans-serif;overflow:hidden;overscroll-behavior:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.mono{font-family:'JetBrains Mono',monospace}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--sat);max-width:520px;margin:0 auto}
+/* top bar */
+#top{display:flex;align-items:center;gap:10px;padding:10px 14px;height:52px;flex:none}
+#top .stg{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:var(--mut);letter-spacing:.08em}
+#top .stg b{color:var(--tx);font-size:15px}
+#top .tm{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:15px;margin-left:auto;font-weight:700}
+#fixCount{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;color:var(--mut)}
+#fixCount b{color:var(--acc)}
+#peekBtn{font-size:12px;font-weight:700;padding:7px 10px;border-radius:8px;background:var(--ui3);border:1px solid var(--line);user-select:none;-webkit-user-select:none;touch-action:none}
+#peekBtn.on{background:var(--acc);color:#001a16}
+#peekBtn[disabled]{opacity:.35}
+/* browser frame */
+#frame{flex:1;min-height:0;margin:0 10px;border-radius:14px;overflow:hidden;background:#fff;display:flex;flex-direction:column;border:1px solid var(--line);position:relative}
+#addr{flex:none;height:30px;background:#e9eaee;display:flex;align-items:center;gap:6px;padding:0 10px;color:#5b6070;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+#addr i{width:8px;height:8px;border-radius:50%;background:#c5c8d0;display:inline-block}
+#addr span{flex:1;background:#fff;border-radius:6px;padding:3px 8px;margin-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lpScroll{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;-webkit-overflow-scrolling:touch}
+#lpScroll canvas{display:block;width:100%}
+#ghost{position:absolute;left:0;top:0;width:100%;pointer-events:none;opacity:0;transition:opacity .12s;mix-blend-mode:multiply}
+#ghost.dark{mix-blend-mode:screen}
+#ghost.on{opacity:.55}
+#frame.flash::after{content:'';position:absolute;inset:0;background:#fff;animation:flash .6s ease-out forwards;pointer-events:none}
+@keyframes flash{0%{opacity:1}100%{opacity:0}}
+/* panel */
+#panel{flex:none;height:min(38vh,300px);padding:10px 14px calc(10px + var(--sab));display:flex;flex-direction:column;gap:8px}
+#pHead{display:flex;align-items:center;gap:10px;min-height:26px}
+#pName{font-weight:900;font-size:15px}
+#pMeter{flex:1;height:6px;border-radius:3px;background:var(--ui3);overflow:hidden}
+#pMeter i{display:block;height:100%;background:var(--hot);width:0;transition:width .15s,background .15s}
+#pState{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:var(--mut);min-width:60px;text-align:right}
+#pState.ok{color:var(--acc)}
+#pBody{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:4px}
+.hint{color:var(--mut);font-size:13px;line-height:1.8;text-align:center;margin:auto 0;padding:0 8px}
+.row{display:grid;grid-template-columns:88px 1fr 54px;align-items:center;gap:8px}
+.row label{font-size:12px;color:var(--mut);line-height:1.3}
+.row .val{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;text-align:right}
+.ctl{display:flex;align-items:center;gap:6px}
+.ctl .st{width:30px;height:30px;border-radius:8px;background:var(--ui3);border:1px solid var(--line);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:16px;flex:none}
+.ctl .st:active{background:var(--line)}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:30px;background:transparent;min-width:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--ui3);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--tx);margin-top:-8px;border:0}
+input[type=range]::-moz-range-track{height:4px;background:var(--ui3);border-radius:2px}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--tx);border:0}
+.seg{display:flex;gap:4px;flex:1}
+.seg button{flex:1;height:30px;border-radius:8px;background:var(--ui3);border:1px solid var(--line);font-size:12px}
+.seg button.on{background:var(--tx);color:var(--ui);font-weight:700}
+.seg .sw{border-width:2px}
+.seg .sw.on{outline:2px solid var(--tx);outline-offset:2px}
+/* overlays */
+.ov{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:rgba(8,9,12,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ov.show{display:flex}
+.ov:not(#title){justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(20px + var(--sat)) 20px calc(28px + var(--sab))}
+.ovin{margin:auto 0;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center}
+.ovin .clrT{font-size:clamp(32px,9vw,44px)}
+.ovin .rank{font-size:64px;margin-top:10px}
+.line{margin-top:10px;font-size:13px;color:var(--mut)}
+.line b{color:var(--tx);font-weight:700}
+.shot{display:block;width:100%;max-width:360px;aspect-ratio:1;margin-top:16px;border-radius:12px;background:var(--ui2);border:1px solid var(--line);object-fit:contain;-webkit-touch-callout:default;user-select:auto;-webkit-user-select:auto}
+.imgHint{font-size:11px;color:var(--mut);margin-top:8px;line-height:1.6}
+.ovin .btnP{margin-top:14px;width:100%;max-width:360px}
+.btnRow{display:flex;gap:8px;width:100%;max-width:360px;margin-top:10px}
+.btnRow .btnS{flex:1;min-width:0;margin-top:0;padding:12px 8px;text-align:center}
+.ovin>.btnS{width:100%;max-width:360px}
+.ttl{margin-top:8px;font-weight:900;font-size:18px;letter-spacing:.04em}
+.review{margin-top:16px;width:100%;max-width:360px;text-align:left;background:var(--ui2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.rvH{font-size:11px;color:var(--acc);font-weight:700;letter-spacing:.12em;margin-bottom:6px}
+.review p{font-size:14px;line-height:1.85}
+#title{background:var(--ui)}
+.logoT{font-weight:900;font-size:clamp(40px,12vw,58px);line-height:1.15;letter-spacing:.02em;position:relative}
+.logoT .bk{display:inline-block;animation:tglitch 2.4s infinite steps(1)}
+@keyframes tglitch{0%,86%,100%{transform:none;text-shadow:none}88%{transform:translate(-4px,1px) skewX(-8deg);text-shadow:3px 0 var(--hot),-3px 0 var(--acc)}90%{transform:translate(5px,-1px);text-shadow:-4px 0 var(--hot),4px 0 var(--acc)}92%{transform:translate(-2px,0) skewX(5deg)}}
+.subT{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.32em;color:var(--mut);margin-top:12px}
+.btnP{margin-top:28px;min-width:220px;padding:16px 28px;border-radius:12px;background:var(--tx);color:var(--ui);font-weight:900;font-size:17px;letter-spacing:.06em}
+.btnP:active{transform:scale(.97)}
+.btnS{margin-top:10px;min-width:220px;padding:12px 24px;border-radius:12px;border:1px solid var(--line);font-weight:700;font-size:14px;display:inline-block;text-decoration:none;color:var(--tx)}
+.langs{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:30px;max-width:340px}
+.langs button{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
+.langs button.on{border-color:var(--tx);color:var(--tx)}
+.rmode{margin-top:18px;display:flex;gap:6px;align-items:center;font-size:11px;color:var(--mut);font-family:'JetBrains Mono'}
+.rmode button{padding:5px 9px;border-radius:6px;border:1px solid var(--line);font-size:11px;font-family:'JetBrains Mono'}
+.rmode button.on{background:var(--ui3);color:var(--tx);border-color:var(--mut)}
+.rmode button[disabled]{opacity:.3}
+.howto{margin-top:22px;max-width:300px;font-size:13px;color:var(--mut);line-height:1.9}
+.clrT{font-weight:900;font-size:clamp(38px,11vw,52px);letter-spacing:.04em;animation:clrIn .7s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes clrIn{0%{transform:scale(1.6);opacity:0;filter:blur(8px)}100%{transform:none;opacity:1;filter:none}}
+.rank{font-family:'JetBrains Mono',ui-monospace,monospace;font-weight:700;font-size:72px;line-height:1;margin-top:18px;color:var(--acc);animation:clrIn .6s .25s cubic-bezier(.2,1.4,.4,1) both}
+.rank.sss{color:#ffd23d;text-shadow:0 0 24px rgba(255,210,61,.45)}
+.stats{margin-top:18px;display:grid;grid-template-columns:auto auto;gap:6px 22px;font-size:14px;text-align:left}
+.stats dt{color:var(--mut)}
+.stats dd{font-family:'JetBrains Mono',ui-monospace,monospace;text-align:right}
+.rlist{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.rlist div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:54px}
+.rlist small{display:block;font-size:10px;color:var(--mut);font-family:'JetBrains Mono'}
+.rlist b{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:18px}
+.nb{color:#ffd23d;font-weight:700;font-size:13px;margin-top:8px;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em}
+#toast{position:fixed;left:50%;top:calc(64px + var(--sat));transform:translateX(-50%);background:var(--acc);color:#001a16;font-weight:900;font-size:13px;padding:8px 16px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;max-width:90vw;text-align:center;line-height:1.5}
+#toast.show{opacity:1}
+
+/* ===== LP (the page being fixed) ===== */
+#lp{background:var(--bg);color:var(--fg);font-family:var(--bf);padding:0 20px 44px;width:100%;min-height:100%}
+#lp h1,#ghost h1{font-weight:inherit}
+.lpe{position:relative;cursor:pointer}
+.lp-nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0 4px}
+.lp-logo{font-family:var(--hf);font-weight:700;font-size:18px}
+.lp-burger i{display:block;width:20px;height:2px;background:currentColor;margin:5px 0}
+.lp-imgw{margin-top:16px}
+.lp-img{aspect-ratio:16/10;overflow:hidden;background:var(--img);border-radius:12px}
+.lp-h1{font-family:var(--hf);margin-top:26px;font-size:28px;line-height:1.3;font-weight:700}
+.lp-p{margin-top:14px;color:var(--sub);font-size:15px;line-height:1.8}
+.lp-cardsw{margin-top:24px}
+.lp-cards{display:flex;gap:12px}
+.lp-card{flex:1;background:var(--card);padding:14px 6px;text-align:center;font-size:12px;font-weight:700;border-radius:12px;line-height:1.4}
+.lp-card .ic{width:26px;height:26px;border-radius:50%;background:var(--acc);margin:0 auto 8px;opacity:.9}
+.lp-card:nth-child(2) .ic{border-radius:6px}
+.lp-card:nth-child(3) .ic{border-radius:50% 50% 6px 50%}
+.lp-btnw{margin-top:28px;text-align:center}
+.lp-btn{display:inline-block;background:var(--acc);color:var(--btnfg);padding:14px 32px;font-weight:700;font-size:15px;text-decoration:none;border-radius:12px}
+.lp-badgew{margin-top:24px;text-align:center}
+.lp-badge{display:inline-block;padding:6px 16px;border:1px solid var(--acc);color:var(--acc);font-size:12px;letter-spacing:.1em;border-radius:999px;font-weight:700}
+.lp-price{margin-top:28px;text-align:center}
+.lp-num{font-family:var(--hf);font-size:40px;font-weight:700;color:var(--acc);line-height:1.2}
+.lp-cap{font-size:12px;color:var(--sub);margin-top:2px}
+.lp-foot{margin-top:48px;font-size:11px;color:var(--sub);text-align:center;line-height:1.8}
+/* selection & glitch */
+.lpe.sel{outline:2px dashed #00b8a0;outline-offset:4px;border-radius:2px}
+.lpe.gl{animation:gj .2s steps(2) infinite;filter:drop-shadow(calc(var(--g)*4px) 0 rgba(255,0,90,.7)) drop-shadow(calc(var(--g)*-4px) 0 rgba(0,200,255,.7))}
+.lpe.gl::after{content:'';position:absolute;left:-6px;right:-6px;top:0;bottom:0;pointer-events:none;opacity:calc(var(--g)*.55);mix-blend-mode:difference;
+  background:linear-gradient(transparent 0 30%,rgba(0,255,200,.55) 30% 34%,transparent 34% 66%,rgba(255,0,120,.5) 66% 69%,transparent 69%);background-size:100% 260%;animation:gbar .33s steps(3) infinite}
+@keyframes gj{0%{transform:translate(calc(var(--g)*-5px),0) skewX(calc(var(--g)*-7deg))}50%{transform:translate(calc(var(--g)*4px),calc(var(--g)*1px))}100%{transform:translate(calc(var(--g)*2px),calc(var(--g)*-1px)) skewX(calc(var(--g)*4deg))}}
+@keyframes gbar{0%{background-position:0 0}100%{background-position:0 100%}}
+.lpe.fx{animation:fx .5s ease-out}
+@keyframes fx{0%{box-shadow:0 0 0 0 rgba(0,224,192,.8)}100%{box-shadow:0 0 0 14px rgba(0,224,192,0)}}
+@media (prefers-reduced-motion:reduce){.lpe.gl{animation-duration:.8s}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top">
+    <div class="stg">STAGE <b id="stgNo">1</b>/5</div>
+    <div id="fixCount"><b id="fixN">0</b>/<span id="fixM">0</span></div>
+    <button id="peekBtn"><span id="peekLbl">透かし</span> <span class="mono" id="peekN">3</span></button>
+    <div class="tm" id="timer">00:00.0</div>
+  </div>
+  <div id="frame">
+    <div id="addr"><i></i><i></i><i></i><span id="url">https://</span></div>
+    <div id="lpScroll"></div>
+  </div>
+  <div id="panel">
+    <div id="pHead"><div id="pName"></div><div id="pMeter"><i></i></div><div id="pState"></div></div>
+    <div id="pBody"></div>
+  </div>
+</div>
+
+<div class="ov show" id="title">
+  <div class="logoT"><span class="bk">崩れた</span>LPを<br>直せ</div>
+  <div class="subT">FIX THE BROKEN LP</div>
+  <button class="btnP" id="startBtn"></button>
+  <div class="howto" id="howto"></div>
+  <div class="rmode"><span id="rLbl"></span><button data-m="canvas" id="rmC">HTML-in-Canvas</button><button data-m="dom" id="rmD">DOM</button></div>
+  <div class="langs" id="langs"></div>
+</div>
+
+<div class="ov" id="clear"><div class="ovin">
+  <div class="clrT" id="clrT"></div>
+  <div class="rank" id="clrRank">S</div>
+  <div class="line mono" id="clrLine"></div>
+  <img id="clrImg" class="shot" alt="">
+  <div class="imgHint" id="clrHint"></div>
+  <button class="btnP" id="nextBtn"></button>
+  <div class="btnRow"><a class="btnS" id="clrShare" target="_blank" rel="noopener"></a><button class="btnS" id="clrSave"></button></div>
+</div></div>
+
+<div class="ov" id="final"><div class="ovin">
+  <div class="clrT" id="finT"></div>
+  <div class="rank" id="finRank">S</div>
+  <div class="ttl" id="finTitle"></div>
+  <div class="nb" id="finNB"></div>
+  <div class="review"><div class="rvH" id="rvH"></div><p id="rvTx"></p></div>
+  <dl class="stats" id="finStats"></dl>
+  <div class="rlist" id="finList"></div>
+  <img id="finImg" class="shot" alt="">
+  <div class="imgHint" id="finHint"></div>
+  <a class="btnP" id="shareBtn" target="_blank" rel="noopener" style="text-decoration:none"></a>
+  <div class="btnRow"><button class="btnS" id="finSave"></button><button class="btnS" id="retryBtn"></button></div>
+  <button class="btnS" id="toTitleBtn"></button>
+</div></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ================= i18n ================= */
+const LANGS=[['ja','日本語'],['en','English'],['zh-Hans','简体中文'],['zh-Hant','繁體中文'],['ko','한국어'],['fr','Français'],['de','Deutsch'],['ru','Русский'],['it','Italiano']];
+const EK=['logo','badge','img','title','lead','cards','price','cta','foot'];
+const PK=['fs','lh','ls','py','px','mt','ta','rad','fw','col','gap'];
+function L(o){return o}
+const T={
+ja:{review:'講評',imgHint:'画像を長押しで保存して、Xの投稿に添付できます',saveImg:'画像を保存',rt:'伝説のアートディレクター,敏腕アートディレクター,頼れるデザイナー,一人前のデザイナー,修行中のデザイナー,見習いデザイナー,締切に追われる人',lead0:'違和感を一瞬で見抜く、完璧な修復でした。',lead1:'安定した目と手で、崩れを着実に直しました。',lead2:'修復はできた。あとは迷う時間を減らすだけ。',lead3:'全LPを救った粘り強さは本物です。',sNoPeek:'透かしなしで完走。自分の目だけで直しきりました。',sNoDecoy:'正しい箇所には一度も触れず、見極めが的確です。',sFast:'{lp}の修復は特に速く、得意分野です。',sGen:'最後まで投げ出さない集中力が光りました。',aPeek:'透かしに頼りがち。直す前に「どこが変か」を言葉にしてみよう。',aDecoy:'正しい箇所までいじる癖あり。触る前に一度疑うこと。',aSlow:'{lp}で時間がかかりました。余白と行間を先に疑うと速くなります。',aNext:'次は全LPでSSSを狙いましょう。',start:'はじめる',howto:'揺れている要素をタップして、下のパネルで調整。揺れが止まれば修復完了。',render:'描画',na:'非対応',selHint:'揺れている要素をタップ',peek:'透かし',peekTip:'長押しで正解を透かす',fixed:'修復',clear:'修復完了',next:'次のLPへ',finish:'結果を見る',final:'全LP修復',total:'合計スコア',score:'スコア',best:'ベスト',time:'タイム',peeks:'透かし',share:'Xでシェア',retry:'もう一度',toTitle:'タイトルへ',off:'ズレ',ok:'OK',newBest:'NEW BEST',
+ el:'ロゴ,バッジ,メインビジュアル,見出し,リード文,特徴カード,数字ブロック,ボタン,フッター',pr:'文字サイズ,行間,字間,上下余白,左右余白,上マージン,揃え,角丸,太さ,色,間隔',ta:'左,中央,右'},
+en:{review:'Review',imgHint:'Long-press the image to save it, then attach it to your X post.',saveImg:'Save image',rt:'Legendary Art Director,Ace Art Director,Trusted Designer,Solid Designer,Designer in Training,Apprentice Designer,Deadline Survivor',lead0:'You spotted every flaw instantly. A flawless repair.',lead1:'Steady eyes and hands fixed every break reliably.',lead2:'The fixes are done. Now cut down the hesitation.',lead3:'You saved every LP. That persistence is real.',sNoPeek:'Finished without a single peek, by eye alone.',sNoDecoy:'Never touched a correct property. Sharp judgment.',sFast:'Especially fast on {lp}. That is your strength.',sGen:'Your focus held all the way to the end.',aPeek:'You lean on peeks. Name what looks wrong before you fix it.',aDecoy:'You tweak things that were already right. Doubt before you touch.',aSlow:'{lp} took a while. Check spacing and line height first.',aNext:'Next goal: SSS on every LP.',start:'Start',howto:'Tap a glitching element and tune it in the panel below. When it stops shaking, it is fixed.',render:'Render',na:'unsupported',selHint:'Tap a glitching element',peek:'Peek',peekTip:'Hold to peek at the answer',fixed:'Fixed',clear:'Fixed!',next:'Next LP',finish:'See results',final:'All LPs fixed',total:'Total score',score:'Score',best:'Best',time:'Time',peeks:'Peeks',share:'Share on X',retry:'Play again',toTitle:'Title',off:'Off',ok:'OK',newBest:'NEW BEST',
+ el:'Logo,Badge,Hero image,Headline,Lead text,Feature cards,Number block,Button,Footer',pr:'Font size,Line height,Tracking,Padding Y,Padding X,Top margin,Align,Radius,Weight,Color,Gap',ta:'Left,Center,Right'},
+'zh-Hans':{review:'点评',imgHint:'长按图片保存后，可添加到X帖子中。',saveImg:'保存图片',rt:'传奇艺术总监,王牌艺术总监,可靠的设计师,独当一面的设计师,修行中的设计师,见习设计师,被截稿追赶的人',lead0:'一眼看穿所有违和感，完美的修复。',lead1:'眼准手稳，扎实地修好了每处崩坏。',lead2:'修复完成了，接下来减少犹豫的时间吧。',lead3:'救回了全部LP，这份坚持是真的。',sNoPeek:'全程未用透视，仅凭双眼修复完毕。',sNoDecoy:'从未碰过正确的地方，判断精准。',sFast:'{lp}修得特别快，是你的强项。',sGen:'专注力一直保持到了最后。',aPeek:'有些依赖透视。修之前先说出“哪里不对”。',aDecoy:'习惯连正确的地方也去改。动手前先怀疑一下。',aSlow:'{lp}花了不少时间。先检查留白和行高会更快。',aNext:'下次目标：所有LP都拿SSS。',start:'开始',howto:'点击正在抖动的元素，在下方面板中调整。停止抖动即修复完成。',render:'渲染',na:'不支持',selHint:'点击抖动的元素',peek:'透视',peekTip:'长按透视正确答案',fixed:'已修复',clear:'修复完成',next:'下一个LP',finish:'查看结果',final:'全部LP已修复',total:'总分',score:'分数',best:'最高',time:'用时',peeks:'透视',share:'分享到X',retry:'再来一次',toTitle:'返回标题',off:'偏差',ok:'OK',newBest:'新纪录',
+ el:'标志,徽章,主视觉,标题,导语,特色卡片,数字区块,按钮,页脚',pr:'字号,行高,字距,上下内边距,左右内边距,上边距,对齐,圆角,粗细,颜色,间距',ta:'左,居中,右'},
+'zh-Hant':{review:'講評',imgHint:'長按圖片儲存後，可附加到X貼文中。',saveImg:'儲存圖片',rt:'傳奇藝術總監,王牌藝術總監,可靠的設計師,獨當一面的設計師,修行中的設計師,見習設計師,被截稿追趕的人',lead0:'一眼看穿所有違和感，完美的修復。',lead1:'眼準手穩，紮實地修好了每處崩壞。',lead2:'修復完成了，接下來減少猶豫的時間吧。',lead3:'救回了全部LP，這份堅持是真的。',sNoPeek:'全程未用透視，僅憑雙眼修復完畢。',sNoDecoy:'從未碰過正確的地方，判斷精準。',sFast:'{lp}修得特別快，是你的強項。',sGen:'專注力一直保持到了最後。',aPeek:'有些依賴透視。修之前先說出「哪裡不對」。',aDecoy:'習慣連正確的地方也去改。動手前先懷疑一下。',aSlow:'{lp}花了不少時間。先檢查留白和行高會更快。',aNext:'下次目標：所有LP都拿SSS。',start:'開始',howto:'點擊正在抖動的元素，在下方面板中調整。停止抖動即修復完成。',render:'渲染',na:'不支援',selHint:'點擊抖動的元素',peek:'透視',peekTip:'長按透視正確答案',fixed:'已修復',clear:'修復完成',next:'下一個LP',finish:'查看結果',final:'全部LP已修復',total:'總分',score:'分數',best:'最高',time:'用時',peeks:'透視',share:'分享到X',retry:'再來一次',toTitle:'返回標題',off:'偏差',ok:'OK',newBest:'新紀錄',
+ el:'標誌,徽章,主視覺,標題,導言,特色卡片,數字區塊,按鈕,頁尾',pr:'字級,行高,字距,上下內距,左右內距,上邊距,對齊,圓角,粗細,顏色,間距',ta:'左,置中,右'},
+ko:{review:'총평',imgHint:'이미지를 길게 눌러 저장한 뒤 X 게시물에 첨부할 수 있습니다.',saveImg:'이미지 저장',rt:'전설의 아트 디렉터,에이스 아트 디렉터,믿음직한 디자이너,제 몫을 하는 디자이너,수행 중인 디자이너,견습 디자이너,마감에 쫓기는 사람',lead0:'위화감을 한순간에 간파한 완벽한 복구였습니다.',lead1:'안정된 눈과 손으로 무너진 곳을 착실히 고쳤습니다.',lead2:'복구는 해냈습니다. 이제 망설이는 시간만 줄이면 됩니다.',lead3:'모든 LP를 살려낸 끈기는 진짜입니다.',sNoPeek:'비춰보기 없이 완주. 자신의 눈만으로 고쳐냈습니다.',sNoDecoy:'올바른 곳은 한 번도 건드리지 않았습니다. 판단이 정확합니다.',sFast:'{lp} 복구가 특히 빨랐습니다. 당신의 강점입니다.',sGen:'끝까지 흐트러지지 않는 집중력이 돋보였습니다.',aPeek:'비춰보기에 의존하는 편입니다. 고치기 전에 어디가 이상한지 말로 해 보세요.',aDecoy:'이미 올바른 곳까지 만지는 버릇이 있습니다. 손대기 전에 한 번 의심하세요.',aSlow:'{lp}에서 시간이 걸렸습니다. 여백과 행간을 먼저 의심하면 빨라집니다.',aNext:'다음 목표는 모든 LP에서 SSS입니다.',start:'시작',howto:'흔들리는 요소를 탭하고 아래 패널에서 조정하세요. 흔들림이 멈추면 복구 완료.',render:'렌더링',na:'미지원',selHint:'흔들리는 요소를 탭',peek:'비춰보기',peekTip:'길게 눌러 정답 비춰보기',fixed:'복구',clear:'복구 완료',next:'다음 LP로',finish:'결과 보기',final:'모든 LP 복구',total:'총점',score:'점수',best:'최고',time:'시간',peeks:'비춰보기',share:'X에 공유',retry:'다시 하기',toTitle:'타이틀로',off:'어긋남',ok:'OK',newBest:'신기록',
+ el:'로고,배지,메인 비주얼,헤드라인,리드 문구,특징 카드,숫자 블록,버튼,푸터',pr:'글자 크기,행간,자간,상하 여백,좌우 여백,위쪽 마진,정렬,모서리,굵기,색상,간격',ta:'왼쪽,가운데,오른쪽'},
+fr:{review:'Bilan',imgHint:'Appui long sur l’image pour l’enregistrer, puis joignez-la à votre post X.',saveImg:'Enregistrer',rt:'Directeur artistique légendaire,Directeur artistique d’élite,Designer de confiance,Designer confirmé,Designer en formation,Apprenti designer,Survivant des deadlines',lead0:'Chaque défaut repéré en un clin d’œil. Réparation parfaite.',lead1:'Un œil sûr et une main stable ont tout réparé.',lead2:'Les réparations sont faites. Reste à moins hésiter.',lead3:'Vous avez sauvé toutes les LP. Belle ténacité.',sNoPeek:'Terminé sans aucun aperçu, à l’œil nu.',sNoDecoy:'Aucun réglage correct touché. Jugement précis.',sFast:'Particulièrement rapide sur {lp}. C’est votre point fort.',sGen:'Votre concentration a tenu jusqu’au bout.',aPeek:'Vous comptez sur les aperçus. Nommez le défaut avant de corriger.',aDecoy:'Vous modifiez ce qui était déjà juste. Doutez avant de toucher.',aSlow:'{lp} vous a pris du temps. Vérifiez d’abord marges et interlignes.',aNext:'Prochain objectif : SSS sur toutes les LP.',start:'Commencer',howto:'Touchez un élément qui tremble et réglez-le dans le panneau. Quand il s’arrête, il est réparé.',render:'Rendu',na:'non pris en charge',selHint:'Touchez un élément qui tremble',peek:'Aperçu',peekTip:'Maintenir pour voir la solution',fixed:'Réparés',clear:'Réparé !',next:'LP suivante',finish:'Résultats',final:'Toutes les LP réparées',total:'Score total',score:'Score',best:'Record',time:'Temps',peeks:'Aperçus',share:'Partager sur X',retry:'Rejouer',toTitle:'Titre',off:'Écart',ok:'OK',newBest:'NOUVEAU RECORD',
+ el:'Logo,Badge,Visuel,Titre,Chapô,Cartes,Chiffre clé,Bouton,Pied de page',pr:'Taille,Interligne,Interlettrage,Marge vert.,Marge horiz.,Marge haute,Alignement,Arrondi,Graisse,Couleur,Espacement',ta:'Gauche,Centre,Droite'},
+de:{review:'Fazit',imgHint:'Bild lange drücken zum Speichern und dann an deinen X-Post anhängen.',saveImg:'Bild speichern',rt:'Legendärer Art Director,Ass unter den Art Directors,Verlässlicher Designer,Solider Designer,Designer in Ausbildung,Designer-Lehrling,Deadline-Überlebender',lead0:'Jeden Fehler sofort erkannt. Eine makellose Reparatur.',lead1:'Sicheres Auge, ruhige Hand: alles zuverlässig repariert.',lead2:'Repariert ist alles. Jetzt nur noch weniger zögern.',lead3:'Alle LPs gerettet. Diese Ausdauer ist echt.',sNoPeek:'Ohne eine einzige Vorschau geschafft, nur mit dem Auge.',sNoDecoy:'Nie eine korrekte Einstellung angefasst. Scharfes Urteil.',sFast:'Bei {lp} besonders schnell. Das ist deine Stärke.',sGen:'Deine Konzentration hielt bis zum Schluss.',aPeek:'Du verlässt dich auf die Vorschau. Benenne erst, was falsch aussieht.',aDecoy:'Du änderst, was schon stimmte. Erst zweifeln, dann anfassen.',aSlow:'{lp} hat gedauert. Prüfe zuerst Abstände und Zeilenabstand.',aNext:'Nächstes Ziel: SSS auf allen LPs.',start:'Starten',howto:'Tippe auf ein zitterndes Element und stelle es unten ein. Hört es auf zu zittern, ist es repariert.',render:'Rendering',na:'nicht unterstützt',selHint:'Tippe auf ein zitterndes Element',peek:'Vorschau',peekTip:'Gedrückt halten: Lösung einblenden',fixed:'Repariert',clear:'Repariert!',next:'Nächste LP',finish:'Ergebnis',final:'Alle LPs repariert',total:'Gesamtpunkte',score:'Punkte',best:'Bestwert',time:'Zeit',peeks:'Vorschau',share:'Auf X teilen',retry:'Nochmal',toTitle:'Zum Titel',off:'Abweichung',ok:'OK',newBest:'NEUER BESTWERT',
+ el:'Logo,Badge,Hauptbild,Headline,Lead-Text,Feature-Karten,Zahlenblock,Button,Footer',pr:'Schriftgröße,Zeilenabstand,Laufweite,Innenabst. vert.,Innenabst. horiz.,Abstand oben,Ausrichtung,Eckenradius,Stärke,Farbe,Abstand',ta:'Links,Mitte,Rechts'},
+ru:{review:'Отзыв',imgHint:'Удерживайте изображение, чтобы сохранить и прикрепить к посту в X.',saveImg:'Сохранить',rt:'Легендарный арт-директор,Ас арт-дирекшена,Надёжный дизайнер,Крепкий дизайнер,Дизайнер-ученик,Стажёр-дизайнер,Выживший после дедлайна',lead0:'Каждый изъян замечен мгновенно. Безупречный ремонт.',lead1:'Верный глаз и твёрдая рука всё исправили.',lead2:'Всё исправлено. Осталось меньше сомневаться.',lead3:'Вы спасли все LP. Настоящее упорство.',sNoPeek:'Ни одной подсказки — только собственный глаз.',sNoDecoy:'Ни разу не тронули верную настройку. Точная оценка.',sFast:'Особенно быстро на {lp}. Это ваша сильная сторона.',sGen:'Концентрация не ослабла до самого конца.',aPeek:'Вы полагаетесь на подсказки. Сначала назовите, что не так.',aDecoy:'Вы меняете то, что уже было верно. Сомневайтесь, прежде чем трогать.',aSlow:'На {lp} ушло много времени. Сначала проверяйте отступы и интерлиньяж.',aNext:'Следующая цель — SSS на всех LP.',start:'Начать',howto:'Нажмите на дрожащий элемент и настройте его внизу. Перестал дрожать — исправлен.',render:'Рендер',na:'не поддерживается',selHint:'Нажмите на дрожащий элемент',peek:'Подсказка',peekTip:'Удерживайте, чтобы увидеть ответ',fixed:'Исправлено',clear:'Исправлено!',next:'Следующий LP',finish:'Результаты',final:'Все LP исправлены',total:'Итоговый счёт',score:'Очки',best:'Рекорд',time:'Время',peeks:'Подсказки',share:'Поделиться в X',retry:'Ещё раз',toTitle:'В меню',off:'Отклонение',ok:'OK',newBest:'НОВЫЙ РЕКОРД',
+ el:'Логотип,Бейдж,Главное изображение,Заголовок,Лид,Карточки,Цифры,Кнопка,Футер',pr:'Размер,Интерлиньяж,Трекинг,Отступ верт.,Отступ гориз.,Отступ сверху,Выравнивание,Скругление,Насыщенность,Цвет,Промежуток',ta:'Слева,Центр,Справа'},
+it:{review:'Commento',imgHint:'Tieni premuto l’immagine per salvarla e allegarla al post su X.',saveImg:'Salva immagine',rt:'Art director leggendario,Art director asso,Designer affidabile,Designer solido,Designer in formazione,Apprendista designer,Sopravvissuto alle scadenze',lead0:'Ogni difetto individuato all’istante. Riparazione perfetta.',lead1:'Occhio sicuro e mano ferma: tutto sistemato.',lead2:'Le riparazioni sono fatte. Ora esita di meno.',lead3:'Hai salvato tutte le LP. Una tenacia vera.',sNoPeek:'Finito senza anteprime, solo a occhio.',sNoDecoy:'Mai toccata un’impostazione corretta. Giudizio preciso.',sFast:'Particolarmente veloce su {lp}. È il tuo punto forte.',sGen:'La concentrazione ha retto fino alla fine.',aPeek:'Ti affidi alle anteprime. Prima di correggere, dì cosa non va.',aDecoy:'Modifichi ciò che era già giusto. Dubita prima di toccare.',aSlow:'{lp} ha richiesto tempo. Controlla prima spazi e interlinea.',aNext:'Prossimo obiettivo: SSS su tutte le LP.',start:'Inizia',howto:'Tocca un elemento che trema e regolalo nel pannello. Quando smette di tremare, è sistemato.',render:'Rendering',na:'non supportato',selHint:'Tocca un elemento che trema',peek:'Anteprima',peekTip:'Tieni premuto per vedere la soluzione',fixed:'Sistemati',clear:'Sistemato!',next:'LP successiva',finish:'Risultati',final:'Tutte le LP sistemate',total:'Punteggio totale',score:'Punteggio',best:'Record',time:'Tempo',peeks:'Anteprime',share:'Condividi su X',retry:'Riprova',toTitle:'Titolo',off:'Scarto',ok:'OK',newBest:'NUOVO RECORD',
+ el:'Logo,Badge,Visual,Titolo,Sottotitolo,Schede,Numeri,Pulsante,Footer',pr:'Dimensione,Interlinea,Spaziatura,Padding vert.,Padding oriz.,Margine sup.,Allineamento,Arrotondamento,Peso,Colore,Spazio',ta:'Sinistra,Centro,Destra'}
+};
+for(const k in T){const d=T[k];const e=d.el.split(','),p=d.pr.split(','),a=d.ta.split(',');d.EL={};d.PR={};EK.forEach((x,i)=>d.EL[x]=e[i]);PK.forEach((x,i)=>d.PR[x]=p[i]);d.TA={left:a[0],center:a[1],right:a[2]};}
+let lang='ja';
+try{const s=localStorage.getItem('klp_lang');if(s&&T[s])lang=s;else{const n=(navigator.language||'ja').toLowerCase();if(n.startsWith('ja'))lang='ja';else if(n.startsWith('zh'))lang=(n.includes('tw')||n.includes('hk')||n.includes('hant'))?'zh-Hant':'zh-Hans';else{const b=n.slice(0,2);lang=T[b]?b:'en';}}}catch(e){}
+const t=()=>T[lang];
+
+/* ================= props ================= */
+const PROP={
+ fs:{min:10,max:56,step:1,u:'px'}, lh:{min:1,max:2.4,step:.1,u:'',d:1}, ls:{min:-.1,max:.4,step:.02,u:'em',d:2},
+ py:{min:0,max:40,step:2,u:'px'}, px:{min:0,max:64,step:4,u:'px'}, mt:{min:0,max:96,step:8,u:'px'},
+ rad:{min:0,max:32,step:2,u:'px'}, gap:{min:0,max:40,step:4,u:'px'},
+ ta:{ch:['left','center','right']}, fw:{ch:[400,700,900]}, col:{ch:'pal'}
+};
+/* each prop: [correct, start] */
+const STAGES=[
+ {key:0,name:{ja:'森野珈琲',en:'MORINO COFFEE'},dom:'morino-coffee.example', par:35, dark:false,
+  th:{bg:'#f3ede3',fg:'#2a2019',sub:'#6b5a4c',acc:'#6b3f22',card:'#e8dfd1',btnfg:'#fff',hf:"'Shippori Mincho',serif",bf:"'Zen Kaku Gothic New',sans-serif",
+   img:'radial-gradient(circle at 66% 58%,#2b1a10 0 13%,#c8a27a 13.5% 15%,#fff 15.5% 21%,rgba(0,0,0,.18) 21.5% 23%,transparent 23.5%),radial-gradient(circle at 28% 34%,#e9d8bf 0 7%,transparent 7.5%),linear-gradient(140deg,#9b6a47,#4a2c1a)'},
+  els:[{id:'logo',type:'logo',p:{fs:[20,20],ls:[.16,.16]}},
+       {id:'img',type:'img',p:{rad:[12,12]}},
+       {id:'title',type:'h1',p:{fs:[30,47],lh:[1.4,1.4]}},
+       {id:'lead',type:'p',p:{lh:[1.8,1],fs:[15,15]}},
+       {id:'cta',type:'btn',p:{py:[14,2],rad:[24,24]}}],
+  copy:{ja:{logo:'森野珈琲',title:'朝の一杯を、\nいちばん丁寧に。',lead:'自家焙煎の豆を、一杯ずつハンドドリップ。駅から徒歩3分、朝7時から開いています。',cta:'メニューを見る'},
+        en:{logo:'MORINO COFFEE',title:'The slowest cup\nfor the fastest morning.',lead:'House-roasted beans, hand-dripped one cup at a time. Three minutes from the station, open from 7am.',cta:'See the menu'}}},
+ {key:1,name:{ja:'Pocket Garden',en:'Pocket Garden'},dom:'pocketgarden.example', par:50, dark:false,
+  th:{bg:'#eef6ef',fg:'#17301f',sub:'#4c6655',acc:'#2f8f4e',card:'#ffffff',btnfg:'#fff',hf:"'M PLUS Rounded 1c',sans-serif",bf:"'M PLUS Rounded 1c',sans-serif",
+   img:'radial-gradient(ellipse at 50% 100%,#7a4f2c 0 30%,transparent 30.5%),radial-gradient(circle at 38% 52%,#5cc46f 0 12%,transparent 12.5%),radial-gradient(circle at 60% 44%,#3fa458 0 15%,transparent 15.5%),radial-gradient(circle at 80% 22%,#fff6c8 0 8%,transparent 8.5%),linear-gradient(180deg,#bfe7ff,#e7f7ea)'},
+  els:[{id:'logo',type:'logo',p:{fs:[18,18]}},
+       {id:'title',type:'h1',p:{fs:[28,28],ta:['center','left']}},
+       {id:'lead',type:'p',p:{ls:[.04,.3],ta:['center','center']}},
+       {id:'img',type:'img',p:{rad:[20,20]}},
+       {id:'cards',type:'cards',p:{gap:[12,0],rad:[16,16]}},
+       {id:'cta',type:'btn',p:{py:[14,14],rad:[12,0]}}],
+  copy:{ja:{logo:'Pocket Garden',title:'ベランダが、\n小さな農園になる。',lead:'水やりのタイミングをアプリがお知らせ。はじめての家庭菜園でも枯らさない。',cards:['水やり通知','成長記録','育て方図鑑'],cta:'無料ではじめる'},
+        en:{logo:'Pocket Garden',title:'Your balcony,\na tiny farm.',lead:'The app tells you when to water. Even a first garden stays green.',cards:['Water alerts','Growth log','Plant guide'],cta:'Start free'}}},
+ {key:2,name:{ja:'STARFALL TACTICS',en:'STARFALL TACTICS'},dom:'starfall-tactics.example', par:65, dark:true,
+  th:{bg:'#0d0f1a',fg:'#e9ecff',sub:'#9aa2c8',acc:'#ffcc33',card:'#181b2c',btnfg:'#1a1300',hf:"'Dela Gothic One',sans-serif",bf:"'Zen Kaku Gothic New',sans-serif",
+   img:'radial-gradient(circle at 72% 26%,#fff 0 1.2%,transparent 1.6%),radial-gradient(circle at 20% 18%,#fff 0 .8%,transparent 1.2%),radial-gradient(circle at 46% 40%,#ffcc33 0 2%,transparent 2.4%),linear-gradient(160deg,transparent 44%,rgba(255,204,51,.7) 45%,transparent 47%),radial-gradient(ellipse at 50% 120%,#3b2a6b 0 45%,transparent 46%),linear-gradient(180deg,#060714,#1b1640)',
+   pal:{acc:'#ffcc33',mute:'#2a2d40',red:'#e0284f',sky:'#3d7bff'}},
+  els:[{id:'badge',type:'badge',p:{px:[16,4]}},
+       {id:'title',type:'h1',p:{fs:[34,34],lh:[1.2,2],ta:['center','center']}},
+       {id:'img',type:'img',p:{rad:[8,8]}},
+       {id:'lead',type:'p',p:{fs:[14,22],lh:[1.8,1.8]}},
+       {id:'cards',type:'cards',p:{gap:[12,12],rad:[8,28]}},
+       {id:'cta',type:'btn',p:{col:['acc','mute'],py:[16,16]}},
+       {id:'foot',type:'foot',p:{mt:[48,8]}}],
+  copy:{ja:{badge:'事前登録受付中',title:'STARFALL\nTACTICS',lead:'星が落ちた夜、きみの一手が戦場を変える。ターン制ストラテジーRPG、2027年配信予定。',cards:['戦略','育成','共闘'],cta:'事前登録する',foot:'© STARFALL PROJECT ／ 利用規約 ／ プライバシー'},
+        en:{badge:'PRE-REGISTER NOW',title:'STARFALL\nTACTICS',lead:'The night the stars fell, one move changes the war. A turn-based strategy RPG, coming 2027.',cards:['Strategy','Growth','Co-op'],cta:'Pre-register',foot:'© STARFALL PROJECT / Terms / Privacy'}}},
+ {key:3,name:{ja:'TidyDesk',en:'TidyDesk'},dom:'tidydesk.example', par:80, dark:false,
+  th:{bg:'#ffffff',fg:'#111827',sub:'#4b5563',acc:'#4f46e5',card:'#f3f4f6',btnfg:'#fff',hf:"'Zen Kaku Gothic New',sans-serif",bf:"'Zen Kaku Gothic New',sans-serif",
+   img:'linear-gradient(#fff 0 0) 10% 22%/38% 8% no-repeat,linear-gradient(#fff 0 0) 10% 40%/62% 8% no-repeat,linear-gradient(#c7d2fe 0 0) 10% 58%/52% 8% no-repeat,linear-gradient(#fff 0 0) 10% 76%/44% 8% no-repeat,linear-gradient(135deg,#6366f1,#a5b4fc)'},
+  els:[{id:'logo',type:'logo',p:{fs:[18,30],fw:[700,700]}},
+       {id:'title',type:'h1',p:{fs:[28,28],fw:[900,400],lh:[1.4,1.4]}},
+       {id:'lead',type:'p',p:{ls:[.02,-.08],lh:[1.8,1.8]}},
+       {id:'img',type:'img',p:{rad:[16,16],mt:[24,72]}},
+       {id:'cards',type:'cards',p:{gap:[8,8],rad:[12,12]}},
+       {id:'price',type:'price',p:{ta:['center','right'],fs:[40,40]}},
+       {id:'cta',type:'btn',p:{px:[40,8],py:[14,14]}}],
+  copy:{ja:{logo:'TidyDesk',title:'散らかったタスクを、\n3秒で片づける。',lead:'メール、チャット、カレンダーの「やること」を自動で一つのリストに。チームの抜け漏れをなくします。',cards:['自動収集','優先度AI','共有'],num:'¥980',cap:'／月・1ユーザー',cta:'14日間 無料で試す'},
+        en:{logo:'TidyDesk',title:'Tidy every task\nin three seconds.',lead:'To-dos from mail, chat and calendar, merged into one list automatically. Nothing slips through.',cards:['Auto-collect','AI priority','Share'],num:'$6',cap:'per user / month',cta:'Try free for 14 days'}}},
+ {key:4,name:{ja:"POPPIN' CRUSH",en:"POPPIN' CRUSH"},dom:'poppin-crush.example', par:95, dark:false,
+  th:{bg:'#ffe9f3',fg:'#3a1030',sub:'#7a4a6a',acc:'#ff3d8b',card:'#ffffff',btnfg:'#fff',hf:"'Mochiy Pop One',sans-serif",bf:"'M PLUS Rounded 1c',sans-serif",
+   img:'radial-gradient(circle at 22% 62%,#ff3d8b 0 9%,transparent 9.5%),radial-gradient(circle at 40% 62%,#ffcf3d 0 9%,transparent 9.5%),radial-gradient(circle at 58% 62%,#3dc7ff 0 9%,transparent 9.5%),radial-gradient(circle at 76% 62%,#ff3d8b 0 9%,transparent 9.5%),radial-gradient(circle at 76% 34%,#7cf06b 0 9%,transparent 9.5%),radial-gradient(circle at 58% 34%,#ff3d8b 0 9%,transparent 9.5%),linear-gradient(180deg,#ffb3d4,#ffd9ea)',
+   pal:{acc:'#ff3d8b',lime:'#c8ff3d',navy:'#3a1030',mint:'#5fe3c0'}},
+  els:[{id:'badge',type:'badge',p:{fs:[12,20],px:[16,16]}},
+       {id:'title',type:'h1',p:{fs:[36,24],lh:[1.2,1.2],ta:['center','center']}},
+       {id:'img',type:'img',p:{rad:[20,0]}},
+       {id:'lead',type:'p',p:{lh:[1.8,1.2],ta:['center','center']}},
+       {id:'cards',type:'cards',p:{gap:[12,36]}},
+       {id:'price',type:'price',p:{ta:['center','left']}},
+       {id:'cta',type:'btn',p:{col:['acc','acc'],py:[16,6],rad:[28,28]}}],
+  copy:{ja:{badge:'新作パズル',title:"POPPIN'\nCRUSH",lead:'3つそろえて、街ごとはじけろ。ご近所バトル型の3マッチパズル。',cards:['連鎖','街破壊','対戦'],num:'1,000,000',cap:'事前登録 突破',cta:'事前登録で限定ジェム'},
+        en:{badge:'NEW PUZZLE',title:"POPPIN'\nCRUSH",lead:'Match three, pop the whole town. A neighborhood-battle match-3 puzzle.',cards:['Chains','Smash','Versus'],num:'1,000,000',cap:'pre-registrations',cta:'Pre-register for bonus gems'}}}
+];
+
+/* ================= helpers ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const br=s=>esc(s).replace(/\n/g,'<br>');
+function lum(hex){const n=parseInt(hex.slice(1),16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;return .2126*r+.7152*g+.0722*b}
+function idx(k,v){const P=PROP[k];return P.ch?(P.ch==='pal'?v:P.ch.indexOf(v)):Math.round((v-P.min)/P.step)}
+function fmt(k,v){const P=PROP[k];if(k==='ta')return t().TA[v];if(k==='fw')return v;if(k==='col')return '';return (P.d?Number(v).toFixed(P.d):v)+(P.u||'')}
+function css(k,v,st){switch(k){
+ case'fs':return`font-size:${v}px`;case'lh':return`line-height:${v}`;case'ls':return`letter-spacing:${v}em`;
+ case'py':return`padding-top:${v}px;padding-bottom:${v}px`;case'px':return`padding-left:${v}px;padding-right:${v}px`;
+ case'mt':return`margin-top:${v}px`;case'ta':return`text-align:${v}`;case'rad':return`border-radius:${v}px`;
+ case'fw':return`font-weight:${v}`;case'gap':return`gap:${v}px`;
+ case'col':{const h=st.th.pal[v];return`background:${h};color:${lum(h)>.5?'#141414':'#ffffff'}`}}return''}
+function S(v,keys,st){return keys.filter(k=>k in v).map(k=>css(k,v[k],st)).join(';')}
+function copyOf(st){return st.copy[lang==='ja'?'ja':'en']}
+
+/* ================= state ================= */
+let touched=new Set(),startVals={},si=0,st=null,vals={},sel=null,tm=0,running=false,peeksLeft=3,peeksUsed=0,results=[],lastErr={};
+let lpEl=null,ghostEl=null,cv=null,ctx=null,ro=null,painted=false;
+const HIC=typeof CanvasRenderingContext2D!=='undefined'&&typeof CanvasRenderingContext2D.prototype.drawElementImage==='function';
+let mode=HIC?'canvas':'dom';
+try{const m=localStorage.getItem('klp_mode');if(m==='dom'||(m==='canvas'&&HIC))mode=m;}catch(e){}
+
+function elErr(el,v){
+ let s=0,n=0;for(const k in el.p){const c=el.p[k][0],P=PROP[k];n++;
+  if(P.ch){if(v[k]!==c)s+=.3}else{s+=Math.abs(idx(k,v[k])-idx(k,c))/Math.round((P.max-P.min)/P.step)}}
+ return n?s/n:0}
+function glitchOf(e){return e<=1e-9?0:Math.min(1,.28+e*5)}
+
+/* ================= LP render ================= */
+const OUT=['ta','mt'];
+function renderEl(el,v,c,ghost){
+ const e=ghost?0:elErr(el,v), g=glitchOf(e);
+ const cls=(ghost?'':' lpe')+(sel===el.id&&!ghost?' sel':'')+(g>0?' gl':'');
+ const da=ghost?'':` data-el="${el.id}"`;
+ const gv=g>0?`--g:${g.toFixed(2)};`:'';
+ const W=(k,inner,style)=>`<div class="${k}${cls}"${da} style="${gv}${style}">${inner}</div>`;
+ switch(el.type){
+  case'logo':return W('lp-nav',`<div class="lp-logo" style="${S(v,['fs','ls','fw'],st)}">${esc(c.logo)}</div><div class="lp-burger"><i></i><i></i><i></i></div>`,S(v,OUT,st));
+  case'badge':return W('lp-badgew',`<span class="lp-badge" style="${S(v,['fs','px','py','rad','ls'],st)}">${esc(c.badge)}</span>`,S(v,OUT,st));
+  case'img':return W('lp-imgw',`<div class="lp-img" style="${S(v,['rad'],st)}"></div>`,S(v,OUT,st));
+  case'h1':return W('lp-h1',br(c.title),S(v,['fs','lh','ls','fw','ta','mt'],st));
+  case'p':return W('lp-p',esc(c.lead),S(v,['fs','lh','ls','fw','ta','mt'],st));
+  case'cards':{const cs=S(v,['rad'],st);return W('lp-cardsw',`<div class="lp-cards" style="${S(v,['gap'],st)}">${c.cards.map(x=>`<div class="lp-card" style="${cs}"><div class="ic"></div>${esc(x)}</div>`).join('')}</div>`,S(v,OUT,st));}
+  case'price':return W('lp-price',`<div class="lp-num" style="${S(v,['fs','ls','fw'],st)}">${esc(c.num)}</div><div class="lp-cap">${esc(c.cap)}</div>`,S(v,OUT,st));
+  case'btn':return W('lp-btnw',`<span class="lp-btn" style="${S(v,['fs','py','px','rad','col'],st)}">${esc(c.cta)}</span>`,S(v,OUT,st));
+  case'foot':return W('lp-foot',esc(c.foot),S(v,['mt','ta'],st));
+ }return''}
+function lpHTML(ghost){
+ const c=copyOf(st);
+ return st.els.map(el=>{const v={};for(const k in el.p)v[k]=ghost?el.p[k][0]:vals[el.id][k];return renderEl(el,v,c,ghost)}).join('');
+}
+function themeVars(node){const th=st.th;for(const k of['bg','fg','sub','acc','card','btnfg','hf','bf','img'])node.style.setProperty('--'+k,th[k]);}
+
+function mountLP(){
+ const wrap=$('#lpScroll');wrap.innerHTML='';wrap.scrollTop=0;
+ if(ro){ro.disconnect();ro=null}cv=null;ctx=null;
+ lpEl=document.createElement('div');lpEl.id='lp';themeVars(lpEl);
+ ghostEl=document.createElement('div');ghostEl.id='ghost';
+ const gin=document.createElement('div');gin.id='lpg';gin.style.cssText='background:transparent;padding:0 20px 44px;font-family:var(--bf);color:var(--fg)';themeVars(gin);ghostEl.appendChild(gin);
+ ghostEl.classList.toggle('dark',st.dark);
+ if(mode==='canvas'&&HIC){
+  try{
+   cv=document.createElement('canvas');cv.setAttribute('layoutsubtree','');cv.setAttribute('content','drawable');
+   wrap.appendChild(cv);cv.appendChild(lpEl);ctx=cv.getContext('2d');
+   cv.addEventListener('paint',onPaint);
+   ro=new ResizeObserver(sizeCanvas);ro.observe(lpEl);ro.observe(wrap);
+   painted=false;const myCv=cv;
+   setTimeout(()=>{if(cv===myCv&&!painted)fallbackDOM()},1500);
+  }catch(e){fallbackDOM(true)}
+ }else wrap.appendChild(lpEl);
+ wrap.appendChild(ghostEl);
+}
+function fallbackDOM(silent){
+ const wrap=$('#lpScroll');if(ro){ro.disconnect();ro=null}
+ if(cv){try{cv.removeChild(lpEl)}catch(e){}cv.remove();cv=null;ctx=null}
+ mode='dom';wrap.insertBefore(lpEl,wrap.firstChild);renderLP();updateModeBtns();
+}
+function sizeCanvas(){
+ if(!cv)return;const wrap=$('#lpScroll');const dpr=Math.min(3,window.devicePixelRatio||1);
+ const w=wrap.clientWidth,h=Math.max(lpEl.scrollHeight,wrap.clientHeight);
+ cv.style.height=h+'px';const W=Math.round(w*dpr),H=Math.round(h*dpr);
+ if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
+ if(cv.requestPaint)cv.requestPaint();
+}
+function onPaint(){
+ painted=true;if(!ctx)return;
+ try{
+  const dpr=cv.width/Math.max(1,cv.clientWidth);
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.drawElementImage(lpEl,0,0);
+  // whole-page slice glitch, scaled by how broken the page still is
+  const amp=stageErr()*26*dpr;
+  if(amp>0.5){
+   ctx.setTransform(1,0,0,1,0,0);
+   const n=3+Math.floor(stageErr()*10);
+   for(let i=0;i<n;i++){const y=Math.random()*cv.height,h=(4+Math.random()*26)*dpr,dx=(Math.random()-.5)*amp*2;
+    ctx.drawImage(cv,0,y,cv.width,h,dx,y,cv.width,h);}
+   ctx.globalCompositeOperation='screen';ctx.fillStyle='rgba(255,0,90,.06)';
+   const y2=Math.random()*cv.height;ctx.fillRect(0,y2,cv.width,10*dpr);ctx.globalCompositeOperation='source-over';
+  }
+ }catch(e){console.warn('HTML-in-Canvas paint failed, falling back',e);fallbackDOM()}
+}
+function stageErr(){let s=0;for(const el of st.els)s+=glitchOf(elErr(el,vals[el.id]));return s/st.els.length}
+
+function renderLP(){
+ lpEl.innerHTML=lpHTML(false);
+ $('#lpg').innerHTML=lpHTML(true);
+ let fixedN=0;
+ for(const el of st.els){const e=elErr(el,vals[el.id]);
+  if(e===0)fixedN++;
+  if(lastErr[el.id]>0&&e===0){const n=lpEl.querySelector(`[data-el="${el.id}"]`);if(n){n.classList.add('fx');}sfx('fix');toast(t().EL[el.id]+' '+t().ok)}
+  lastErr[el.id]=e;}
+ $('#fixN').textContent=fixedN;$('#fixM').textContent=st.els.length;
+ if(cv)sizeCanvas();
+ if(fixedN===st.els.length&&running)stageClear();
+}
+
+/* ================= panel ================= */
+function renderPanel(){
+ const body=$('#pBody');
+ if(!sel){$('#pName').textContent='';$('#pMeter').style.visibility='hidden';$('#pState').textContent='';
+  body.innerHTML=`<div class="hint">${esc(si===0?t().howto:t().selHint)}</div>`;return}
+ const el=st.els.find(e=>e.id===sel);$('#pName').textContent=t().EL[sel];$('#pMeter').style.visibility='visible';
+ body.innerHTML='';
+ for(const k in el.p){
+  const P=PROP[k],row=document.createElement('div');row.className='row';
+  row.innerHTML=`<label>${esc(t().PR[k])}</label><div class="ctl"></div><div class="val mono"></div>`;
+  const ctl=row.querySelector('.ctl'),val=row.querySelector('.val');
+  const eid=sel;const upd=()=>{val.textContent=fmt(k,vals[eid][k])};
+  if(P.ch){
+   const opts=P.ch==='pal'?Object.keys(st.th.pal):P.ch;const seg=document.createElement('div');seg.className='seg';
+   opts.forEach(o=>{const b=document.createElement('button');
+    if(k==='col'){b.className='sw';b.style.background=st.th.pal[o];b.style.borderColor='rgba(255,255,255,.25)';b.setAttribute('aria-label',o)}
+    else b.textContent=k==='ta'?t().TA[o]:(o===400?'R':o===700?'B':'Bk');
+    if(vals[eid][k]===o)b.classList.add('on');
+    b.onclick=()=>{if(!running)return;if(vals[eid][k]!==o)touch(eid,k);vals[eid][k]=o;seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));changed();upd()};
+    seg.appendChild(b)});
+   ctl.appendChild(seg);
+  }else{
+   const max=Math.round((P.max-P.min)/P.step);
+   const mk=(txt,d)=>{const b=document.createElement('button');b.className='st';b.textContent=txt;
+    b.onclick=()=>{if(!running)return;setIdx(Math.max(0,Math.min(max,idx(k,vals[eid][k])+d)))};return b};
+   const r=document.createElement('input');r.type='range';r.min=0;r.max=max;r.step=1;r.value=idx(k,vals[eid][k]);
+   const setIdx=i=>{if(!running)return;const nv=+(P.min+i*P.step).toFixed(3);if(nv!==vals[eid][k])touch(eid,k);vals[eid][k]=nv;r.value=i;changed();upd()};
+   r.oninput=()=>setIdx(+r.value);
+   ctl.append(mk('−',-1),r,mk('+',1));
+  }
+  upd();body.appendChild(row);
+ }
+ meter();
+}
+function meter(){
+ if(!sel)return;const el=st.els.find(e=>e.id===sel);const e=elErr(el,vals[sel]);const g=glitchOf(e);
+ const m=$('#pMeter i');m.style.width=(g*100)+'%';
+ const ps=$('#pState');if(e===0){ps.textContent=t().ok;ps.className='ok'}else{ps.textContent=t().off+' '+Math.round(g*100)+'%';ps.className=''}
+}
+function changed(){
+ if(!sel||!running)return;
+ const el=st.els.find(e=>e.id===sel);const e=elErr(el,vals[sel]);
+ sfx('tick',1-glitchOf(e));renderLP();meter();
+}
+$('#lpScroll').addEventListener('click',ev=>{
+ if(!running)return;const n=ev.target.closest&&ev.target.closest('[data-el]');if(!n)return;
+ sel=n.dataset.el;sfx('sel');renderLP();renderPanel();
+});
+
+/* ================= peek ================= */
+const pb=$('#peekBtn');
+function peekOn(e){e.preventDefault();if(!running||peeksLeft<=0)return;peeksLeft--;peeksUsed++;$('#peekN').textContent=peeksLeft;ghostEl.classList.add('on');pb.classList.add('on');sfx('peek')}
+function peekOff(){if(ghostEl)ghostEl.classList.remove('on');pb.classList.remove('on');if(peeksLeft<=0)pb.disabled=true}
+pb.addEventListener('pointerdown',peekOn);['pointerup','pointercancel','pointerleave'].forEach(x=>pb.addEventListener(x,peekOff));
+pb.addEventListener('contextmenu',e=>e.preventDefault());
+
+/* ================= flow ================= */
+function startStage(i){
+ si=i;st=STAGES[i];vals={};lastErr={};sel=null;peeksLeft=3;peeksUsed=0;tm=0;
+ for(const el of st.els){vals[el.id]={};for(const k in el.p)vals[el.id][k]=el.p[k][1];}
+ for(const el of st.els)lastErr[el.id]=elErr(el,vals[el.id]);
+ touched=new Set();startVals=JSON.parse(JSON.stringify(vals));
+ $('#stgNo').textContent=i+1;$('#url').textContent='https://'+st.dom+'/';$('#peekN').textContent=3;pb.disabled=false;
+ $('#peekLbl').textContent=t().peek;pb.title=t().peekTip;
+ mountLP();renderLP();renderPanel();running=true;last=performance.now();
+}
+function score(par,time,peeks){return Math.max(0,Math.round(1000*Math.min(2,par/Math.max(1,time)))-peeks*250)}
+function rankOf(s){return s>=1800?'SSS':s>=1500?'SS':s>=1200?'S':s>=900?'A':s>=650?'B':s>=400?'C':'D'}
+function touch(eid,k){touched.add(eid+'.'+k)}
+function decoyCount(){let n=0;for(const el of st.els)for(const k in el.p){if(el.p[k][0]===el.p[k][1]&&touched.has(el.id+'.'+k))n++}return n}
+let clrCanvas=null,finCanvas=null;
+function stageClear(){
+ running=false;sel=null;peekOff();
+ $('#frame').classList.remove('flash');void $('#frame').offsetWidth;$('#frame').classList.add('flash');sfx('clear');
+ const sc=score(st.par,tm,peeksUsed),rk=rankOf(sc);results[si]={sc,rk,tm,peeks:peeksUsed,decoys:decoyCount(),before:startVals};
+ const R=results[si],stage=st,idx0=si;
+ setTimeout(()=>{
+  renderLP();renderPanel();
+  $('#clrT').textContent=t().clear;const r=$('#clrRank');r.textContent=rk;r.className='rank'+(rk==='SSS'?' sss':'');
+  $('#clrLine').innerHTML=`${t().time} <b>${fmtT(tm)}</b>　${t().peeks} <b>${peeksUsed}</b>　${t().score} <b>${sc}</b>`;
+  $('#nextBtn').textContent=si<STAGES.length-1?t().next:t().finish;
+  $('#clrShare').textContent=t().share;$('#clrSave').textContent=t().saveImg;$('#clrHint').textContent=t().imgHint;
+  $('#clrShare').href=shareURL(`崩れたLPを直せ / FIX THE BROKEN LP\nLP${si+1} ${st.dom}\nRANK ${rk}  TIME ${fmtT(tm)}\n\n#崩れたLPを直せ #ゲーム開発 #個人開発 #gamedev`);
+  const img=$('#clrImg');img.removeAttribute('src');clrCanvas=null;
+  show('#clear');$('#clear').scrollTop=0;
+  makeStageImage(stage,idx0,R).then(c=>{clrCanvas=c;img.src=c.toDataURL('image/png')}).catch(e=>console.warn(e));
+ },650);
+}
+$('#nextBtn').onclick=()=>{sfx('sel');hide('#clear');if(si<STAGES.length-1)startStage(si+1);else showFinal()};
+$('#clrSave').onclick=()=>saveImg(clrCanvas,`kuzureta-lp-${si+1}.png`);
+$('#finSave').onclick=()=>saveImg(finCanvas,'kuzureta-lp-result.png');
+const RANKS=['SSS','SS','S','A','B','C','D'];
+function rankTitle(rk){return t().rt.split(',')[RANKS.indexOf(rk)]}
+function lpName(i){return STAGES[i].name[lang==='ja'?'ja':'en']}
+function makeReview(rk){
+ const d=t(),tier=['SSS','SS'].includes(rk)?0:['S','A'].includes(rk)?1:['B','C'].includes(rk)?2:3;
+ const peeks=results.reduce((a,r)=>a+r.peeks,0),decoys=results.reduce((a,r)=>a+r.decoys,0);
+ const ratio=results.map((r,i)=>r.tm/STAGES[i].par);
+ let fast=0,slow=0;ratio.forEach((x,i)=>{if(x<ratio[fast])fast=i;if(x>ratio[slow])slow=i});
+ const sk=peeks===0?'sNoPeek':decoys===0?'sNoDecoy':ratio[fast]<.8?'sFast':'sGen';
+ const ak=peeks>=6?'aPeek':decoys>=3?'aDecoy':ratio[slow]>1?'aSlow':'aNext';
+ const sep=/^(ja|zh|ko)/.test(lang)?(lang==='ko'?' ':''):' ';
+ return [d['lead'+tier],d[sk].replace('{lp}',lpName(fast)),d[ak].replace('{lp}',lpName(slow))].join(sep);
+}
+function showFinal(){
+ const total=results.reduce((a,r)=>a+r.sc,0),rk=rankOf(total/STAGES.length),title=rankTitle(rk);
+ let best=0,nb=false;try{best=+localStorage.getItem('klp_best')||0;if(total>best){localStorage.setItem('klp_best',total);nb=true;best=total}}catch(e){best=Math.max(best,total)}
+ $('#finT').textContent=t().final;const r=$('#finRank');r.textContent=rk;r.className='rank'+(rk==='SSS'?' sss':'');
+ $('#finTitle').textContent=title;$('#finNB').textContent=nb?t().newBest:'';
+ const rv=makeReview(rk);$('#rvH').textContent=t().review;$('#rvTx').textContent=rv;
+ const tt=results.reduce((a,r)=>a+r.tm,0);
+ $('#finStats').innerHTML=`<dt>${t().total}</dt><dd>${total}</dd><dt>${t().time}</dt><dd>${fmtT(tt)}</dd><dt>${t().best}</dt><dd>${best}</dd>`;
+ $('#finList').innerHTML=results.map((x,i)=>`<div><small>LP${i+1}</small><b>${x.rk}</b></div>`).join('');
+ const txt=`崩れたLPを直せ / FIX THE BROKEN LP\nRANK ${rk}「${title}」\nSCORE ${total}  TIME ${fmtT(tt)}\n\n#崩れたLPを直せ #ゲーム開発 #個人開発 #gamedev`;
+ $('#shareBtn').href=shareURL(txt);
+ $('#shareBtn').textContent=t().share;$('#retryBtn').textContent=t().retry;$('#toTitleBtn').textContent=t().toTitle;
+ $('#finSave').textContent=t().saveImg;$('#finHint').textContent=t().imgHint;
+ const img=$('#finImg');img.removeAttribute('src');finCanvas=null;
+ show('#final');$('#final').scrollTop=0;sfx('clear');
+ makeFinalImage({rk,title,total,tt,rv}).then(c=>{finCanvas=c;img.src=c.toDataURL('image/png')}).catch(e=>console.warn(e));
+}
+$('#retryBtn').onclick=()=>{hide('#final');results=[];startStage(0)};
+$('#toTitleBtn').onclick=()=>{hide('#final');results=[];showTitle()};
+$('#startBtn').onclick=()=>{audioInit();sfx('sel');hide('#title');results=[];startStage(0)};
+const GAME_URL='https://uimemocho.github.io/apps/kuzureta-lp/';
+function shareURL(txt){return 'https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(GAME_URL)}
+function show(s){$(s).classList.add('show')}function hide(s){$(s).classList.remove('show')}
+function fmtT(s){const m=Math.floor(s/60),r=s-m*60;return String(m).padStart(2,'0')+':'+r.toFixed(1).padStart(4,'0')}
+let last=performance.now();
+function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;if(running){tm+=dt;$('#timer').textContent=fmtT(tm)}requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+let toastT=0;function toast(s,ms=900){const e=$('#toast');e.textContent=s;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),ms)}
+
+/* ================= share images (canvas re-render of the LP) ================= */
+const DEF={logo:{fs:18,ls:0,fw:700},badge:{fs:12,px:16,py:6,rad:999,ls:.1,mt:24},img:{rad:12,mt:16},
+ h1:{fs:28,lh:1.3,ls:0,fw:700,ta:'left',mt:26},p:{fs:15,lh:1.8,ls:0,fw:400,ta:'left',mt:14},
+ cards:{gap:12,rad:12,mt:24},price:{fs:40,ta:'center',mt:28,fw:700,ls:0},btn:{fs:15,py:14,px:32,rad:12,col:null,ta:'center',mt:28},foot:{mt:48,ta:'center'}};
+function cFont(c,w,size,fam){c.font=`${w} ${size}px ${fam}`}
+function tW(c,s,ls){let w=0;for(const ch of s)w+=c.measureText(ch).width+ls;return w-(s.length?ls:0)}
+function tLine(c,s,x,y,ls){if(!ls){c.fillText(s,x,y);return}for(const ch of s){c.fillText(ch,x,y);x+=c.measureText(ch).width+ls}}
+function wrapT(c,text,maxW,ls){const out=[];for(const para of String(text).split('\n')){const sp=/\s/.test(para);const toks=sp?para.split(/(\s+)/):[...para];let line='';
+ for(const tk of toks){const test=line+tk;if(tW(c,test.trimEnd(),ls)>maxW&&line.trim()){out.push(line.trimEnd());line=sp?tk.trimStart():tk}else line=test}out.push(line.trimEnd())}return out}
+function alignX(ta,x0,maxW,w){return ta==='center'?x0+(maxW-w)/2:ta==='right'?x0+maxW-w:x0}
+function rr(c,x,y,w,h,r){r=Math.max(0,Math.min(r,h/2,w/2));c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function circ(c,x,y,r,col){c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill()}
+const ARTS=[
+ (c,x,y,w,h)=>{let g=c.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,'#9b6a47');g.addColorStop(1,'#4a2c1a');c.fillStyle=g;c.fillRect(x,y,w,h);
+  circ(c,x+w*.28,y+h*.34,w*.055,'#e9d8bf');const cx=x+w*.66,cy=y+h*.58;circ(c,cx+3,cy+4,w*.17,'rgba(0,0,0,.18)');circ(c,cx,cy,w*.16,'#fff');circ(c,cx,cy,w*.115,'#c8a27a');circ(c,cx,cy,w*.1,'#2b1a10')},
+ (c,x,y,w,h)=>{let g=c.createLinearGradient(x,y,x,y+h);g.addColorStop(0,'#bfe7ff');g.addColorStop(1,'#e7f7ea');c.fillStyle=g;c.fillRect(x,y,w,h);
+  circ(c,x+w*.8,y+h*.22,w*.06,'#fff6c8');circ(c,x+w*.38,y+h*.52,w*.1,'#5cc46f');circ(c,x+w*.6,y+h*.44,w*.12,'#3fa458');
+  c.fillStyle='#7a4f2c';c.beginPath();c.ellipse(x+w*.5,y+h,w*.36,h*.3,0,0,Math.PI*2);c.fill()},
+ (c,x,y,w,h)=>{let g=c.createLinearGradient(x,y,x,y+h);g.addColorStop(0,'#060714');g.addColorStop(1,'#1b1640');c.fillStyle=g;c.fillRect(x,y,w,h);
+  c.fillStyle='#3b2a6b';c.beginPath();c.ellipse(x+w*.5,y+h*1.2,w*.42,h*.75,0,0,Math.PI*2);c.fill();
+  c.strokeStyle='rgba(255,204,51,.75)';c.lineWidth=3;c.beginPath();c.moveTo(x,y+h*.9);c.lineTo(x+w,y+h*.25);c.stroke();
+  circ(c,x+w*.72,y+h*.26,2.2,'#fff');circ(c,x+w*.2,y+h*.18,1.6,'#fff');circ(c,x+w*.46,y+h*.42,3.4,'#ffcc33')},
+ (c,x,y,w,h)=>{let g=c.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,'#6366f1');g.addColorStop(1,'#a5b4fc');c.fillStyle=g;c.fillRect(x,y,w,h);
+  [[.22,.38,'#fff'],[.40,.62,'#fff'],[.58,.52,'#c7d2fe'],[.76,.44,'#fff']].forEach(([py,pw,col])=>{c.fillStyle=col;c.fillRect(x+w*.1,y+h*py-h*.04,w*pw,h*.08)})},
+ (c,x,y,w,h)=>{let g=c.createLinearGradient(x,y,x,y+h);g.addColorStop(0,'#ffb3d4');g.addColorStop(1,'#ffd9ea');c.fillStyle=g;c.fillRect(x,y,w,h);
+  [[.22,.62,'#ff3d8b'],[.40,.62,'#ffcf3d'],[.58,.62,'#3dc7ff'],[.76,.62,'#ff3d8b'],[.76,.34,'#7cf06b'],[.58,.34,'#ff3d8b']].forEach(([px,py,col])=>circ(c,x+w*px,y+h*py,w*.07,col))}
+];
+function drawLP(c,stage,V){
+ const th=stage.th,cp=stage.copy[lang==='ja'?'ja':'en'],W=360,P=20,CW=W-2*P;
+ c.fillStyle=th.bg;c.fillRect(0,0,W,4000);c.textBaseline='middle';let y=0;
+ for(const el of stage.els){const v=Object.assign({},DEF[el.type],V[el.id]);
+  switch(el.type){
+   case'logo':{y+=16;const h=Math.max(v.fs*1.3,22);cFont(c,v.fw,v.fs,th.hf);c.fillStyle=th.fg;c.textAlign='left';tLine(c,cp.logo,P,y+h/2,v.ls*v.fs);
+    for(let i=0;i<3;i++)c.fillRect(W-P-20,y+h/2-8+i*7,20,2);y+=h+4;break}
+   case'badge':{y+=v.mt;cFont(c,700,v.fs,th.bf);const ls=v.ls*v.fs,w=tW(c,cp.badge,ls),bw=w+2*v.px,bh=v.fs*1.35+2*v.py,bx=(W-bw)/2;
+    rr(c,bx+.5,y+.5,bw-1,bh-1,v.rad);c.strokeStyle=th.acc;c.lineWidth=1;c.stroke();c.fillStyle=th.acc;tLine(c,cp.badge,bx+v.px,y+bh/2,ls);y+=bh;break}
+   case'img':{y+=v.mt;const h=CW*10/16;c.save();rr(c,P,y,CW,h,v.rad);c.clip();ARTS[stage.key](c,P,y,CW,h);c.restore();y+=h;break}
+   case'h1':case'p':{y+=v.mt;const isH=el.type==='h1';cFont(c,v.fw,v.fs,isH?th.hf:th.bf);c.fillStyle=isH?th.fg:th.sub;const ls=v.ls*v.fs;
+    const lines=wrapT(c,isH?cp.title:cp.lead,CW,ls),lh=v.fs*v.lh;
+    lines.forEach((ln,i)=>tLine(c,ln,alignX(v.ta,P,CW,tW(c,ln,ls)),y+lh*(i+.5),ls));y+=lines.length*lh;break}
+   case'cards':{y+=v.mt;const cw=(CW-2*v.gap)/3,ch=80;cp.cards.forEach((lb,i)=>{const x=P+i*(cw+v.gap);rr(c,x,y,cw,ch,v.rad);c.fillStyle=th.card;c.fill();
+     c.fillStyle=th.acc;const ix=x+cw/2,iy=y+14+13;if(i===1){rr(c,ix-13,iy-13,26,26,6);c.fill()}else circ(c,ix,iy,13,th.acc);
+     cFont(c,700,12,th.bf);c.fillStyle=th.fg;c.textAlign='center';c.fillText(lb,ix,y+14+26+8+9,cw-8);c.textAlign='left'});y+=ch;break}
+   case'price':{y+=v.mt;cFont(c,v.fw,v.fs,th.hf);c.fillStyle=th.acc;const ls=v.ls*v.fs,w=tW(c,cp.num,ls),lh=v.fs*1.2;tLine(c,cp.num,alignX(v.ta,P,CW,w),y+lh/2,ls);y+=lh+2;
+    cFont(c,400,12,th.bf);c.fillStyle=th.sub;const w2=tW(c,cp.cap,0);c.fillText(cp.cap,alignX(v.ta,P,CW,w2),y+9);y+=18;break}
+   case'btn':{y+=v.mt;cFont(c,700,v.fs,th.bf);const w=tW(c,cp.cta,0),bw=w+2*v.px,bh=v.fs*1.35+2*v.py,bx=alignX(v.ta,P,CW,bw);
+    const bg=v.col?th.pal[v.col]:th.acc;rr(c,bx,y,bw,bh,v.rad);c.fillStyle=bg;c.fill();c.fillStyle=v.col?(lum(bg)>.5?'#141414':'#fff'):th.btnfg;c.fillText(cp.cta,bx+v.px,y+bh/2);y+=bh;break}
+   case'foot':{y+=v.mt;cFont(c,400,11,th.bf);c.fillStyle=th.sub;const lines=wrapT(c,cp.foot,CW,0);lines.forEach((ln,i)=>c.fillText(ln,alignX(v.ta,P,CW,tW(c,ln,0)),y+19.8*(i+.5)));y+=lines.length*19.8;break}
+  }}
+ return y+44;
+}
+function lpCanvas(stage,V,glitch){
+ const S=2,oc=document.createElement('canvas');oc.width=360*S;oc.height=2400*S;const c=oc.getContext('2d');c.scale(S,S);
+ const h=Math.min(2400,Math.ceil(drawLP(c,stage,V)));
+ const out=document.createElement('canvas');out.width=360*S;out.height=h*S;const o=out.getContext('2d');o.drawImage(oc,0,0);
+ if(glitch){let seed=7+stage.key*13;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let i=0;i<14;i++){const yy=rnd()*out.height,hh=(6+rnd()*40)*S,dx=(rnd()-.5)*34*S;o.drawImage(oc,0,yy,out.width,hh,dx,yy,out.width,hh)}
+  o.globalCompositeOperation='screen';for(let i=0;i<6;i++){o.fillStyle=i%2?'rgba(0,220,255,.22)':'rgba(255,0,100,.22)';o.fillRect(0,rnd()*out.height,out.width,(2+rnd()*6)*S)}
+  o.globalCompositeOperation='source-over'}
+ return out;
+}
+function valsOf(stage,which,before){const V={};for(const el of stage.els){V[el.id]={};for(const k in el.p)V[el.id][k]=which==='before'?before[el.id][k]:el.p[k][0]}return V}
+async function loadFonts(stage){
+ if(!document.fonts||!document.fonts.load)return;
+ const fams=[stage?stage.th.hf:"'Zen Kaku Gothic New'",stage?stage.th.bf:"'Zen Kaku Gothic New'","'Zen Kaku Gothic New'","'JetBrains Mono'"];
+ const jobs=[];for(const f of fams)for(const w of[400,700,900])jobs.push(document.fonts.load(`${w} 20px ${f}`,'あA1'));
+ await Promise.race([Promise.allSettled(jobs),new Promise(r=>setTimeout(r,1800))]);
+}
+function frameLP(c,lp,x,y,w,h,bg){
+ rr(c,x,y,w,h,18);c.save();c.clip();c.fillStyle='#e9eaee';c.fillRect(x,y,w,34);
+ ['#c5c8d0','#c5c8d0','#c5c8d0'].forEach((col,i)=>circ(c,x+20+i*14,y+17,4.5,col));
+ c.fillStyle=bg;c.fillRect(x,y+34,w,h-34);
+ const s=Math.min(w/lp.width,(h-34)/lp.height);const dw=lp.width*s,dh=lp.height*s;
+ c.drawImage(lp,x+(w-dw)/2,y+34,dw,dh);c.restore();
+ c.strokeStyle='#2a2e3a';c.lineWidth=2;rr(c,x,y,w,h,18);c.stroke();
+}
+const UIF="'Zen Kaku Gothic New',sans-serif",MONO="'JetBrains Mono',ui-monospace,monospace";
+async function makeStageImage(stage,i,R){
+ await loadFonts(stage);
+ const before=lpCanvas(stage,valsOf(stage,'before',R.before),true),after=lpCanvas(stage,valsOf(stage,'after'),false);
+ const cv=document.createElement('canvas');cv.width=1200;cv.height=1200;const c=cv.getContext('2d');
+ c.fillStyle='#0b0c10';c.fillRect(0,0,1200,1200);c.textBaseline='alphabetic';
+ cFont(c,900,46,UIF);c.fillStyle='#e8eaf0';c.textAlign='left';c.fillText('崩れたLPを直せ',60,92);
+ cFont(c,500,20,MONO);c.fillStyle='#8a90a2';c.fillText('FIX THE BROKEN LP',60,126);
+ c.textAlign='right';cFont(c,700,30,MONO);c.fillStyle='#e8eaf0';c.fillText(`LP ${i+1}/5`,1140,92);cFont(c,500,20,MONO);c.fillStyle='#8a90a2';c.fillText(stage.dom,1140,126);
+ c.textAlign='left';cFont(c,700,24,MONO);c.fillStyle='#ff3d6e';c.fillText('BEFORE',60,180);c.fillStyle='#00e0c0';c.fillText('AFTER',620,180);
+ frameLP(c,before,60,196,520,830,stage.th.bg);frameLP(c,after,620,196,520,830,stage.th.bg);
+ circ(c,600,611,26,'#e8eaf0');c.strokeStyle='#0b0c10';c.lineWidth=5;c.lineCap='round';c.beginPath();c.moveTo(592,598);c.lineTo(606,611);c.lineTo(592,624);c.stroke();
+ const sss=R.rk==='SSS';cFont(c,700,20,MONO);c.fillStyle='#8a90a2';c.fillText('RANK',60,1072);
+ cFont(c,700,84,MONO);c.fillStyle=sss?'#ffd23d':'#00e0c0';c.fillText(R.rk,60,1150);
+ cFont(c,700,20,MONO);c.fillStyle='#8a90a2';c.fillText('TIME',360,1072);c.fillText('PEEK',640,1072);
+ cFont(c,700,46,MONO);c.fillStyle='#e8eaf0';c.fillText(fmtT(R.tm),360,1140);c.fillText(String(R.peeks),640,1140);
+ c.textAlign='right';cFont(c,500,20,MONO);c.fillStyle='#8a90a2';c.fillText('uimemocho.github.io',1140,1110);cFont(c,700,22,UIF);c.fillStyle='#e8eaf0';c.fillText('#崩れたLPを直せ',1140,1142);
+ return cv;
+}
+async function makeFinalImage(F){
+ await loadFonts(null);for(const sg of STAGES)await loadFonts(sg);
+ const cv=document.createElement('canvas');cv.width=1200;cv.height=1200;const c=cv.getContext('2d');
+ c.fillStyle='#0b0c10';c.fillRect(0,0,1200,1200);c.textBaseline='alphabetic';c.textAlign='center';
+ cFont(c,900,46,UIF);c.fillStyle='#e8eaf0';c.fillText('崩れたLPを直せ',600,92);cFont(c,500,20,MONO);c.fillStyle='#8a90a2';c.fillText('FIX THE BROKEN LP  —  ALL 5 LPs FIXED',600,128);
+ const sss=F.rk==='SSS';cFont(c,700,190,MONO);c.fillStyle=sss?'#ffd23d':'#00e0c0';if(sss){c.shadowColor='rgba(255,210,61,.45)';c.shadowBlur=40}c.fillText(F.rk,600,330);c.shadowBlur=0;
+ cFont(c,900,40,UIF);c.fillStyle='#e8eaf0';c.fillText(F.title,600,396,1080);
+ cFont(c,700,26,MONO);c.fillStyle='#8a90a2';c.fillText(`SCORE ${F.total}   TIME ${fmtT(F.tt)}`,600,446);
+ const tw=200,th=290,gx=20,x0=(1200-(tw*5+gx*4))/2,y0=490;
+ STAGES.forEach((sg,i)=>{const lp=lpCanvas(sg,valsOf(sg,'after'),false);const x=x0+i*(tw+gx);
+  c.save();rr(c,x,y0,tw,th,14);c.clip();c.fillStyle=sg.th.bg;c.fillRect(x,y0,tw,th);const s=tw/lp.width;c.drawImage(lp,x,y0,tw,lp.height*s);c.restore();
+  c.strokeStyle='#2a2e3a';c.lineWidth=2;rr(c,x,y0,tw,th,14);c.stroke();
+  const r=results[i]?results[i].rk:'-';cFont(c,700,30,MONO);c.fillStyle=r==='SSS'?'#ffd23d':'#e8eaf0';c.fillText(r,x+tw/2,y0+th+42);});
+ const bx=60,by=860,bw=1080,bh=250;rr(c,bx,by,bw,bh,20);c.fillStyle='#14161d';c.fill();c.strokeStyle='#2a2e3a';c.stroke();
+ c.textAlign='left';cFont(c,700,20,UIF);c.fillStyle='#00e0c0';c.fillText(t().review,bx+36,by+48);
+ cFont(c,700,28,UIF);c.fillStyle='#e8eaf0';const lines=wrapT(c,F.rv,bw-72,0).slice(0,4);lines.forEach((ln,i)=>c.fillText(ln,bx+36,by+98+i*44));
+ c.textAlign='center';cFont(c,500,20,MONO);c.fillStyle='#8a90a2';c.fillText('uimemocho.github.io   #崩れたLPを直せ',600,1160);
+ return cv;
+}
+async function saveImg(canvas,name){
+ if(!canvas){toast(t().imgHint,2600);return}
+ try{const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));const file=new File([blob],name,{type:'image/png'});
+  if(window.claude&&window.claude.use){const dl=await window.claude.use('downloads').catch(()=>null);
+   if(dl){try{await dl.save({filename:name,data:blob});return}catch(e1){try{await dl.save({filename:name,data:new Uint8Array(await blob.arrayBuffer())});return}catch(e2){}}}}
+  if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+ }catch(e){if(e&&e.name==='AbortError')return}
+ toast(t().imgHint,2600);
+}
+
+/* ================= title / lang / mode ================= */
+function showTitle(){
+ running=false;show('#title');
+ $('#startBtn').textContent=t().start;$('#howto').textContent=t().howto;$('#rLbl').textContent=t().render;
+ document.documentElement.lang=lang;
+ $('#langs').innerHTML=LANGS.map(([k,n])=>`<button data-l="${k}" class="${k===lang?'on':''}">${n}</button>`).join('');
+ updateModeBtns();
+}
+function updateModeBtns(){
+ $('#rmC').classList.toggle('on',mode==='canvas');$('#rmD').classList.toggle('on',mode==='dom');
+ $('#rmC').disabled=!HIC;$('#rmC').title=HIC?'':t().na;
+}
+$('#langs').addEventListener('click',e=>{const b=e.target.closest('[data-l]');if(!b)return;lang=b.dataset.l;try{localStorage.setItem('klp_lang',lang)}catch(_){}showTitle()});
+document.querySelector('.rmode').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;mode=b.dataset.m;try{localStorage.setItem('klp_mode',mode)}catch(_){}updateModeBtns()});
+
+/* ================= audio ================= */
+let AC=null;
+function audioInit(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}}
+function tone(f,d,type,vol,when=0,slide){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain(),t0=AC.currentTime+when;
+ o.type=type;o.frequency.setValueAtTime(f,t0);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t0+d);
+ g.gain.setValueAtTime(vol,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(g).connect(AC.destination);o.start(t0);o.stop(t0+d+.02)}
+function sfx(k,x){if(!AC)return;try{
+ if(k==='tick')tone(260+x*900,.05,'square',.04);
+ else if(k==='sel')tone(660,.06,'triangle',.08);
+ else if(k==='peek')tone(420,.18,'sine',.08,0,840);
+ else if(k==='fix'){tone(880,.09,'triangle',.1);tone(1320,.14,'triangle',.08,.07)}
+ else if(k==='clear'){[523,659,784,1047].forEach((f,i)=>tone(f,.22,'triangle',.1,i*.08));tone(80,.4,'sawtooth',.05,0,40)}
+}catch(e){}}
+
+showTitle();
+</script>
+</body>
+</html>
