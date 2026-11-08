@@ -608,5 +608,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-08T05:34:00Z",
     "updatedAt": "2026-11-08T05:34:00Z"
+  },
+  {
+    "slug": "shanai-portal",
+    "title": "社内ポータル、何かいる。",
+    "kind": "game",
+    "description": "廃業した会社のサーバーで、2003年の社内ポータルが勝手に立ち上がる。壊れていく画面に日本語で答えを打ち込み、消された社員の痕跡を追う謎解きホラー。エンド3種。音ありプレイ推奨。",
+    "url": "/apps/shanai-portal/",
+    "thumbnail": "/project-thumbnails/catalog/shanai-portal.webp",
+    "sourceFolder": "261108_社内ポータル、何かいる。",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-08T10:32:21Z",
+    "updatedAt": "2026-11-08T10:32:21Z"
   }
 ]

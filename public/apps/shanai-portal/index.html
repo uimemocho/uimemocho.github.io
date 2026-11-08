@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<title>社内ポータル、何かいる。</title>
+<meta name="description" content="社内ポータル、何かいる。廃業した会社の古い社内ポータルで、消された社員の痕跡を追う謎解きホラー。壊れていく画面に、日本語で答えを打ち込め。エンド3種。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="uimemocho">
+<meta property="og:title" content="社内ポータル、何かいる。">
+<meta property="og:description" content="廃業した会社の古い社内ポータルで、消された社員の痕跡を追う謎解きホラー。壊れていく画面に、日本語で答えを打ち込め。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/shanai-portal/">
+<meta property="og:image" content="https://uimemocho.github.io/apps/shanai-portal/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="社内ポータル、何かいる。">
+<meta name="twitter:image" content="https://uimemocho.github.io/apps/shanai-portal/ogp.png">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23050505%22/%3E%3Crect x=%2210%22 y=%2214%22 width=%2244%22 height=%2232%22 rx=%224%22 fill=%22%230a246a%22/%3E%3Ccircle cx=%2226%22 cy=%2228%22 r=%223%22 fill=%22%23000%22/%3E%3Ccircle cx=%2238%22 cy=%2228%22 r=%223%22 fill=%22%23000%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#wrap{position:fixed;inset:0;background:#000}
+#crt{position:absolute;inset:0;width:100%;height:100%;display:block}
+#crt.overlay{pointer-events:none;z-index:10}
+#screen{background:#050505;font-family:'DotGothic16','MS PGothic','Osaka',sans-serif;color:#111;overflow:hidden;
+  padding:max(20px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));transform-origin:50% 50%}
+#screen.dom{position:absolute;inset:0}
+#screen.hic{position:relative}
+#portal{position:relative;height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;background:#d4d0c8;
+  border:2px solid;border-color:#fff #404040 #404040 #fff}
+.titlebar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 8px;color:#fff;font-size:13px;
+  background:linear-gradient(90deg,#0a246a,#3a6ea5 60%,#a6caf0)}
+.greet{padding:6px 10px;background:#fff;border-bottom:1px solid #808080;font-size:13px;line-height:1.6}
+#tabs{display:flex;flex-wrap:wrap;gap:3px;padding:6px 6px 0}
+#tabs button{font:inherit;font-size:13px;min-height:34px;padding:0 10px;background:#d4d0c8;color:#111;
+  border:1px solid;border-color:#fff #404040 #d4d0c8 #fff;border-radius:3px 3px 0 0}
+#tabs button.on{background:#fff;position:relative;top:1px}
+#tabs button:disabled{color:#888}
+#main{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#fff;margin:0 6px;padding:14px 12px 24px;
+  border:2px solid;border-color:#808080 #fff #fff #808080;font-size:15px;line-height:1.75}
+.page{display:none}.page.on{display:block}
+h2{font-size:17px;font-weight:normal;margin:0 0 10px;padding-bottom:4px;border-bottom:2px solid #0a246a;color:#0a246a}
+label{display:block;margin:10px 0;font-size:14px}
+input,select,textarea{display:block;width:100%;margin-top:4px;font:inherit;font-size:16px;padding:7px 8px;background:#fff;color:#111;
+  border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;outline:none}
+input:focus,select:focus,textarea:focus{background:#ffffe8}
+textarea{min-height:110px;resize:none;line-height:1.7}
+.btn{font:inherit;font-size:15px;min-height:38px;padding:4px 16px;background:#d4d0c8;color:#111;cursor:pointer;
+  border:1px solid;border-color:#fff #404040 #404040 #fff;box-shadow:inset -1px -1px #808080,inset 1px 1px #ececec}
+.btn:active{border-color:#404040 #fff #fff #404040;box-shadow:inset 1px 1px #808080}
+.row{display:flex;gap:8px;align-items:flex-end}.row>label{flex:1;margin:0}
+.sys{background:#ffffe1;border:1px solid #808080;padding:8px 10px;font-size:14px;margin:10px 0}
+.voice{background:#111;color:#cfe;border:1px solid #333;padding:10px 12px;font-size:14px;margin:12px 0;white-space:pre-wrap}
+.err{color:#b00000;font-size:14px;min-height:1.75em;margin:6px 0}
+.sticky{display:inline-block;margin:16px 0 0 6px;padding:10px 14px;background:#fff38a;transform:rotate(-2.5deg);font-size:14px;
+  line-height:1.8;box-shadow:2px 3px 0 rgba(0,0,0,.18)}
+.post{padding:10px 0;border-bottom:1px dotted #999}
+.post .meta{font-size:12px;color:#666}
+.post .pt{color:#0a246a;margin:2px 0}
+.post .pb{font-size:14px}
+.post.hid{background:#f4f4f4;padding:10px 8px}
+.cnt{font-size:13px;color:#555;margin:6px 0}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+th,td{border:1px solid #999;padding:5px 6px;text-align:left;line-height:1.6}
+th{background:#e8e8e8;font-weight:normal}
+.photo{display:inline-block;width:28px;height:34px;background:#000;vertical-align:middle}
+#dial{font-size:26px;letter-spacing:.2em;text-align:center;background:#1c2a1c;color:#9f9;padding:8px;min-height:52px;border:2px inset #808080}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.pad .btn{min-height:52px;font-size:20px;padding:0}
+.statusbar{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 8px;font-size:12px;min-height:40px}
+#status{flex:1;line-height:1.5}
+.sbtn{font:inherit;font-size:12px;min-height:30px;padding:0 10px;background:#d4d0c8;border:1px solid;border-color:#fff #404040 #404040 #fff}
+#powerBtn{color:#a00000}
+.hidden{display:none!important}
+.ov{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  background:#050505;color:#ddd;padding:24px}
+#title .t1{font-size:26px;letter-spacing:.06em;line-height:1.5}
+#title .t2{font-size:12px;color:#777;letter-spacing:.3em;margin:8px 0 26px}
+#title .story{font-size:14px;line-height:2;color:#aaa;max-width:300px;margin:0 0 28px}
+#title .note{font-size:12px;color:#666;margin-top:18px}
+.darkbtn{font:inherit;font-size:16px;min-height:46px;padding:0 28px;background:transparent;color:#ddd;border:1px solid #777}
+#boot{align-items:stretch;justify-content:flex-start;text-align:left;font-size:13px;line-height:1.8;color:#9c9;white-space:pre-wrap}
+#ending .tag{font-size:12px;color:#777;letter-spacing:.3em}
+#ending h3{font-size:24px;font-weight:normal;margin:8px 0 20px}
+#ending p{font-size:14px;line-height:2;color:#bbb;max-width:300px;margin:0 0 14px}
+#ending .row{justify-content:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div id="wrap">
+<canvas id="crt">
+<div id="screen">
+  <div id="portal">
+    <div class="titlebar"><span>ナギサ電算 NAGISA-NET</span><span id="clock"></span></div>
+    <div class="greet" id="greet">ようこそ ゲスト さん</div>
+    <nav id="tabs"></nav>
+    <div id="main">
+
+      <section class="page" id="p-login">
+        <h2>ログイン</h2>
+        <p class="sys">業務端末からのアクセスです。社員IDとパスワードを入力してください。<br>※ パスワードのマスク表示には対応していません。</p>
+        <label>社員ID<input id="loginId" value="yakin" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+        <label>パスワード<input id="loginPw" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+        <button class="btn" id="loginBtn">ログイン</button>
+        <p class="err" id="loginErr"></p>
+        <div class="sticky">夜勤用<br>ID：yakin<br>PW：会社名を<br>　　ぜんぶひらがなで</div>
+      </section>
+
+      <section class="page" id="p-board">
+        <h2>社内掲示板</h2>
+        <div class="row"><label>掲示板内検索<input id="boardQ" autocomplete="off"></label><button class="btn" id="boardBtn">検索</button></div>
+        <p class="cnt" id="boardCnt"></p>
+        <div id="boardList"></div>
+      </section>
+
+      <section class="page" id="p-roster">
+        <h2>社員名簿</h2>
+        <label>部署<select id="deptSel"></select></label>
+        <div class="row"><label>部署名で検索<input id="deptQ" autocomplete="off"></label><button class="btn" id="deptBtn">検索</button></div>
+        <p class="err" id="deptErr"></p>
+        <div id="rosterBox"></div>
+      </section>
+
+      <section class="page" id="p-phone">
+        <h2>内線</h2>
+        <div id="dial"></div>
+        <div class="pad" id="pad"></div>
+        <div class="row"><button class="btn" id="clrBtn" style="flex:1">クリア</button><button class="btn" id="callBtn" style="flex:2">発信</button></div>
+        <div class="voice hidden" id="callLog"></div>
+      </section>
+
+      <section class="page" id="p-nippo">
+        <h2>日報</h2>
+        <p class="sys">作成者情報が破損しています。作成者の氏名を入力すると復元できます。</p>
+        <div class="row"><label>作成者氏名<input id="nameQ" autocomplete="off"></label><button class="btn" id="nameBtn">復元</button></div>
+        <p class="err" id="nameErr"></p>
+        <div id="nippoList"></div>
+        <label>本日の日報（下書き）<textarea id="draft"></textarea></label>
+      </section>
+
+      <section class="page" id="p-apply">
+        <h2>申請：退職届</h2>
+        <p class="sys">退職届は本人が提出してください。後任者氏名は必須項目です。</p>
+        <label>氏名<input id="apName" autocomplete="off"></label>
+        <label>所属<input value="第零開発室" readonly></label>
+        <label>退職理由<select id="apReason"><option>一身上の都合</option><option>契約満了</option><option>その他</option></select></label>
+        <label>退職日<input id="apDate" type="date"></label>
+        <label>後任者氏名<input id="apNext" autocomplete="off"></label>
+        <button class="btn" id="apBtn">提出</button>
+        <p class="err" id="apErr"></p>
+      </section>
+
+    </div>
+    <div class="statusbar">
+      <span id="status">接続待機中</span>
+      <button class="sbtn hidden" id="hintBtn">ヒント</button>
+      <button class="sbtn hidden" id="powerBtn">電源</button>
+    </div>
+  </div>
+
+  <div class="ov" id="title">
+    <div class="t1">社内ポータル、<br>何かいる。</div>
+    <div class="t2">NAGISA-NET 2003</div>
+    <p class="story" id="story"></p>
+    <button class="darkbtn" id="startBtn">電源を入れる</button>
+    <div class="note">音が出ます。ヘッドホン推奨</div>
+  </div>
+  <div class="ov hidden" id="boot"></div>
+  <div class="ov hidden" id="ending">
+    <div class="tag" id="endTag"></div>
+    <h3 id="endTitle"></h3>
+    <p id="endText"></p>
+    <p id="endTime"></p>
+    <div class="row"><button class="darkbtn" id="againBtn">もう一度</button><button class="darkbtn" id="shareBtn">Xでシェア</button></div>
+  </div>
+</div>
+</canvas>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const Q=new URLSearchParams(location.search);
+const FAST=Q.has('fast');
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,FAST?1:ms));
+const now=new Date();
+const pad2=n=>String(n).padStart(2,'0');
+const norm=s=>(s||'').normalize('NFKC').replace(/[\s　]/g,'').replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).toLowerCase();
+const HER_OK=['水野灯','みずのあかり','水野あかり','みずの灯'].map(norm);
+const NONE_OK=['なし','無し','ない','無い','いない','いません','不要','該当なし','空欄','none','-','ー','なしで'].map(norm);
+
+/* ============ state ============ */
+const S={started:false,prog:'login',page:'login',unl:new Set(),horror:0,glitch:0,ghost:0,ghostT:0,sx:1,sy:1,
+  t0:0,solved:{},wrong:0,her:'■■ ■',successor:'',realYear:false,busy:false,ended:false};
+const ORDER=['login','board','roster','phone','nippo','apply'];
+const HORROR={login:.05,board:.15,roster:.3,phone:.45,nippo:.62,apply:.78};
+const HINT={
+  login:'付箋の指示どおり。会社名は画面のいちばん上にあります。',
+  board:'「名無し」の投稿タイトルの最初の1文字を、上から順に読んでみて。',
+  roster:'掲示板の【通達】に、廃止された部署の名前が出てきます。',
+  phone:'名簿で見つけた内線番号にかけてみて。',
+  nippo:'8月4日の日報。上は「水の野原」、下は「灯台の灯」。読みはひらがなで三文字。',
+  apply:'電話の最後の言葉を思い出して。'
+};
+
+/* ============ audio ============ */
+let AC=null,master,noiseBuf,drone;
+function initAudio(){
+  try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){AC=null;return;}
+  master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);
+  noiseBuf=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);
+  const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  // hum
+  const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=50;
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=140;
+  const g=AC.createGain();g.gain.value=.025;o.connect(lp).connect(g).connect(master);o.start();
+  // hiss
+  const n=AC.createBufferSource();n.buffer=noiseBuf;n.loop=true;
+  const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=5000;
+  const ng=AC.createGain();ng.gain.value=.008;n.connect(hp).connect(ng).connect(master);n.start();
+  // drone
+  drone=AC.createGain();drone.gain.value=0;drone.connect(master);
+  [55,55.8,82.4].forEach(f=>{const x=AC.createOscillator();x.frequency.value=f;x.connect(drone);x.start();});
+}
+function noise(dur,{f=1200,q=1,g=.08,type='bandpass',f2=null}={}){
+  if(!AC)return;const t=AC.currentTime;
+  const s=AC.createBufferSource();s.buffer=noiseBuf;
+  const b=AC.createBiquadFilter();b.type=type;b.frequency.setValueAtTime(f,t);b.Q.value=q;
+  if(f2)b.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  const v=AC.createGain();v.gain.setValueAtTime(g,t);v.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  s.connect(b).connect(v).connect(master);s.start(t,Math.random());s.stop(t+dur+.02);
+}
+function tone(f,dur,{g=.08,type='sine',at=0}={}){
+  if(!AC)return;const t=AC.currentTime+at;
+  const o=AC.createOscillator();o.type=type;o.frequency.value=f;
+  const v=AC.createGain();v.gain.setValueAtTime(0,t);v.gain.linearRampToValueAtTime(g,t+.01);v.gain.setValueAtTime(g,t+dur-.02);v.gain.linearRampToValueAtTime(0,t+dur);
+  o.connect(v).connect(master);o.start(t);o.stop(t+dur+.02);
+}
+const click=()=>noise(.03,{f:3000,q:.7,g:.05});
+const sGlitch=a=>noise(.15+a*.3,{f:400+Math.random()*3000,q:2,g:.05+a*.1,f2:80+Math.random()*200});
+const DT={'1':[697,1209],'2':[697,1336],'3':[697,1477],'4':[770,1209],'5':[770,1336],'6':[770,1477],'7':[852,1209],'8':[852,1336],'9':[852,1477],'*':[941,1209],'0':[941,1336],'#':[941,1477]};
+function dtmf(k){const p=DT[k];if(!p)return;tone(p[0],.12,{g:.06});tone(p[1],.12,{g:.06});}
+function ringback(){
+  if(!AC)return;const t=AC.currentTime;
+  const o=AC.createOscillator();o.frequency.value=400;
+  const am=AC.createGain();am.gain.value=0;
+  const lfo=AC.createOscillator();lfo.frequency.value=16;const lg=AC.createGain();lg.gain.value=.04;
+  lfo.connect(lg).connect(am.gain);
+  const env=AC.createGain();env.gain.setValueAtTime(0,t);env.gain.linearRampToValueAtTime(1,t+.02);env.gain.setValueAtTime(1,t+1);env.gain.linearRampToValueAtTime(0,t+1.02);
+  o.connect(am).connect(env).connect(master);o.start(t);lfo.start(t);o.stop(t+1.1);lfo.stop(t+1.1);
+}
+const whisper=()=>noise(.07,{f:500+Math.random()*2200,q:6,g:.07});
+function stinger(){noise(1.6,{f:2500,q:.5,g:.14,f2:60});tone(46,1.8,{g:.12,type:'sawtooth'});}
+
+/* ============ render (HTML-in-Canvas / fallback) ============ */
+let canvas=$('crt');const screen=$('screen');
+function hicKind(){
+  if(Q.get('mode')==='dom')return null;
+  const c=document.createElement('canvas');c.setAttribute('content','drawable');
+  if(c.content==='drawable')return 'new';
+  if(typeof HTMLCanvasElement!=='undefined'&&'layoutSubtree' in HTMLCanvasElement.prototype)return 'legacy';
+  return null;
+}
+let mode='dom',kind=hicKind(),G=null,uiTex=null,uiW=0,uiH=0,T=[],pp=0,painted=false;
+const FLIP=Q.get('flip')==='1'?1:0;
+
+const VS=`#version 300 es
+in vec2 aPos;out vec2 vUv;void main(){vUv=aPos*.5+.5;gl_Position=vec4(aPos,0.,1.);}`;
+const FS_A=`#version 300 es
+precision highp float;in vec2 vUv;out vec4 o;
+uniform sampler2D uUI,uPrev;uniform float uTime,uGlitch,uHorror,uTrail,uCurve,uFlip;
+float h(float n){return fract(sin(n)*43758.5453);}
+void main(){
+  vec2 c=vUv-.5;float r2=dot(c,c);vec2 uv=c*(1.+uCurve*r2)+.5;
+  float band=floor(uv.y*42.);float tt=floor(uTime*18.);
+  float on=step(1.-uGlitch*.55,h(band*3.17+tt));
+  uv.x+=(h(band+tt*1.3)-.5)*.09*uGlitch*on;
+  vec2 e=abs(uv-.5);
+  float inside=step(e.x,.5)*step(e.y,.5)*(1.-smoothstep(.0,.006,length(max(e-.47,0.))-.03));
+  vec2 t=vec2(uv.x,mix(1.-uv.y,uv.y,uFlip));
+  float ca=.0012+.007*uGlitch+.002*uHorror;
+  vec3 col=vec3(texture(uUI,t+vec2(ca,0.)).r,texture(uUI,t).g,texture(uUI,t-vec2(ca,0.)).b)*inside;
+  vec3 prev=texture(uPrev,vUv).rgb;
+  o=vec4(mix(col,prev,uTrail),1.);
+}`;
+const FS_B=`#version 300 es
+precision highp float;in vec2 vUv;out vec4 o;
+uniform sampler2D uSrc;uniform float uOverlay,uTime,uHorror,uGlitch,uGhost,uSX,uSY;uniform vec2 uRes;
+float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+void main(){
+  vec2 q=(vUv-.5)/vec2(uSX,uSY)+.5;
+  float inQ=step(0.,q.x)*step(q.x,1.)*step(0.,q.y)*step(q.y,1.);
+  vec3 base=vec3(0.);
+  if(uOverlay<.5)base=texture(uSrc,q).rgb*inQ;
+  vec2 px=vUv*uRes;
+  float scan=.92+.08*sin(px.y*1.5708);
+  vec2 c=vUv-.5;float vig=1.-dot(c,c)*(.75+uHorror*.9);
+  float flick=1.-.03*uHorror*(.5+.5*sin(uTime*57.))-uGlitch*.1*h2(vec2(floor(uTime*30.),1.));
+  float m=clamp(scan*vig*flick,0.,1.);
+  float n=h2(px+fract(uTime*7.)*91.);
+  vec3 add=vec3(n)*(.02+.07*uGlitch+.03*uHorror);
+  float rb=fract(vUv.y*.6-uTime*.07);
+  add+=vec3(smoothstep(.0,.06,rb)*(1.-smoothstep(.06,.14,rb)))*.025*(.3+uHorror);
+  if(uGhost>.001){
+    vec2 p=(vUv-vec2(.5,.56))*vec2(uRes.x/uRes.y,1.);
+    float face=1.-smoothstep(.15,.24,length(p*vec2(1.,.78)));
+    float eyes=(1.-smoothstep(.018,.042,length(p-vec2(-.062,.03))))+(1.-smoothstep(.018,.042,length(p-vec2(.062,.03))));
+    float mouth=1.-smoothstep(.012,.04,length((p-vec2(0.,-.085))*vec2(1.,.55)));
+    float mask=face*(.45+.55*h2(floor(px/3.)+floor(uTime*24.)));
+    add+=vec3(.75,.8,.86)*mask*uGhost*.32;
+    m*=1.-clamp(eyes+mouth,0.,1.)*face*uGhost*.9;
+  }
+  float line=(1.-uSY)*exp(-abs(vUv.y-.5)*uRes.y*.12)*step(abs(vUv.x-.5),uSX*.5+.01);
+  add+=vec3(.9,.95,1.)*line;
+  if(uOverlay<.5)o=vec4(base*m+add,1.);else o=vec4(add,1.-m);
+}`;
+
+function mkGL(cv,overlay){
+  let gl=null;
+  try{gl=cv.getContext('webgl2',{alpha:overlay,premultipliedAlpha:true,antialias:false});}catch(e){}
+  if(!gl)return null;
+  const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x;};
+  const prog=fs=>{const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+    gl.bindAttribLocation(p,0,'aPos');gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
+    const u={};return{p,u:n=>(n in u)?u[n]:(u[n]=gl.getUniformLocation(p,n))};};
+  try{
+    const A=overlay?null:prog(FS_A),B=prog(FS_B);
+    const vao=gl.createVertexArray();gl.bindVertexArray(vao);
+    const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+    return{gl,A,B,overlay,w:0,h:0};
+  }catch(e){console.warn(e);return null;}
+}
+function mkTex(gl,w,h){
+  const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  return t;
+}
+function mkTarget(gl,w,h){const t=mkTex(gl,w,h),f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);gl.bindFramebuffer(gl.FRAMEBUFFER,null);return{t,f};}
+
+function setupHIC(){
+  if(kind==='new'){canvas.setAttribute('content','drawable');screen.setAttribute('drawable','');}
+  else canvas.setAttribute('layoutsubtree','');
+  screen.className='hic';
+  G=mkGL(canvas,false);
+  if(!G)return false;
+  const gl=G.gl;
+  if(typeof gl.texElementSubImage2D!=='function'&&typeof gl.texElementImage2D!=='function')return false;
+  uiTex=mkTex(gl,1,1);
+  canvas.addEventListener('paint',onPaint);
+  mode='hic';
+  sizeScreen();
+  if(canvas.requestPaint)canvas.requestPaint();
+  setTimeout(()=>{if(mode==='hic'&&!painted){console.warn('no paint event: fallback');toFallback();}},2500);
+  return true;
+}
+function onPaint(){
+  if(mode!=='hic')return;
+  try{
+    const gl=G.gl;
+    let w,h;
+    if(canvas.getElementImageDefaultSize){const s=canvas.getElementImageDefaultSize(screen);w=Math.ceil(s.width);h=Math.ceil(s.height);}
+    else{w=Math.ceil(screen.offsetWidth*dpr());h=Math.ceil(screen.offsetHeight*dpr());}
+    gl.bindTexture(gl.TEXTURE_2D,uiTex);
+    if(typeof gl.texElementSubImage2D==='function'){
+      if(w!==uiW||h!==uiH){gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,Math.max(1,w),Math.max(1,h),0,gl.RGBA,gl.UNSIGNED_BYTE,null);uiW=w;uiH=h;}
+      gl.texElementSubImage2D(gl.TEXTURE_2D,0,0,0,screen);
+    }else{
+      // Chrome < 155: (target, internalformat, element)。さらに古い6引数形にも対応
+      if(gl.texElementImage2D.length<=3)gl.texElementImage2D(gl.TEXTURE_2D,gl.RGBA8,screen);
+      else gl.texElementImage2D(gl.TEXTURE_2D,0,gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE,screen);
+    }
+    if(canvas.updateElementGeometry)canvas.updateElementGeometry(screen,{canvasTransform:new DOMMatrix()});
+    painted=true;
+  }catch(e){console.warn('HTML-in-Canvas upload failed',e);toFallback();}
+}
+function toFallback(){
+  if(mode==='dom'&&G&&G.overlay)return;
+  mode='dom';
+  if(canvas.isConnected){canvas.removeEventListener('paint',onPaint);}
+  const nc=document.createElement('canvas');nc.id='crt';nc.className='overlay';
+  screen.removeAttribute('drawable');screen.className='dom';screen.style.width='';screen.style.height='';
+  $('wrap').appendChild(screen);
+  if(canvas.parentNode)canvas.parentNode.replaceChild(nc,canvas);else $('wrap').appendChild(nc);
+  canvas=nc;
+  G=mkGL(canvas,true);
+  if(G){G.gl.enable(G.gl.BLEND);G.gl.blendFunc(G.gl.ONE,G.gl.ONE_MINUS_SRC_ALPHA);}
+  bootRenderLabel();
+}
+const dpr=()=>Math.min(window.devicePixelRatio||1,2);
+function sizeScreen(){
+  if(mode==='hic'){screen.style.width=canvas.clientWidth+'px';screen.style.height=canvas.clientHeight+'px';}
+}
+function resizeGL(){
+  if(!G)return;
+  const w=Math.max(1,Math.round(canvas.clientWidth*dpr())),h=Math.max(1,Math.round(canvas.clientHeight*dpr()));
+  if(w===G.w&&h===G.h)return;
+  G.w=w;G.h=h;canvas.width=w;canvas.height=h;
+  if(!G.overlay){T=[mkTarget(G.gl,w,h),mkTarget(G.gl,w,h)];sizeScreen();}
+}
+function render(time){
+  if(!G)return;
+  resizeGL();
+  const gl=G.gl,H=S.horror;
+  const setB=(B,ov)=>{gl.useProgram(B.p);gl.uniform1i(B.u('uSrc'),0);gl.uniform1f(B.u('uOverlay'),ov);gl.uniform1f(B.u('uTime'),time);
+    gl.uniform1f(B.u('uHorror'),H);gl.uniform1f(B.u('uGlitch'),S.glitch);gl.uniform1f(B.u('uGhost'),S.ghost);
+    gl.uniform1f(B.u('uSX'),Math.max(S.sx,.002));gl.uniform1f(B.u('uSY'),Math.max(S.sy,.002));gl.uniform2f(B.u('uRes'),G.w,G.h);};
+  if(mode==='hic'&&!G.overlay){
+    const src=T[pp],dst=T[1-pp];
+    gl.bindFramebuffer(gl.FRAMEBUFFER,dst.f);gl.viewport(0,0,G.w,G.h);
+    const A=G.A;gl.useProgram(A.p);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,uiTex);gl.uniform1i(A.u('uUI'),0);
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,src.t);gl.uniform1i(A.u('uPrev'),1);
+    gl.uniform1f(A.u('uTime'),time);gl.uniform1f(A.u('uGlitch'),S.glitch);gl.uniform1f(A.u('uHorror'),H);
+    gl.uniform1f(A.u('uTrail'),Math.min(.8,.18+H*.6));gl.uniform1f(A.u('uCurve'),.035+H*.03);gl.uniform1f(A.u('uFlip'),FLIP);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,G.w,G.h);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,dst.t);
+    setB(G.B,0);gl.drawArrays(gl.TRIANGLES,0,3);
+    pp=1-pp;
+  }else{
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,G.w,G.h);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    setB(G.B,1);gl.drawArrays(gl.TRIANGLES,0,3);
+  }
+}
+
+/* ============ loop ============ */
+let last=0;
+function frame(ts){
+  const t=ts/1000,dt=Math.min(.1,t-last||.016);last=t;
+  S.glitch=Math.max(0,S.glitch-dt*1.8);
+  if(S.started&&!S.ended){
+    if(Math.random()<dt*(.02+S.horror*.22))glitch(.2+Math.random()*.5*S.horror,false);
+    if(S.horror>.4&&Math.random()<dt*.015)ghostFlash(.35);
+  }
+  S.ghostT=Math.max(0,S.ghostT-dt);
+  const gt=S.ghostT>0?1:0;S.ghost+=(gt-S.ghost)*Math.min(1,dt*(gt?6:3));
+  if(drone)drone.gain.value=S.ended?0:Math.max(0,S.horror-.35)*.06;
+  if(mode==='dom'){
+    let tf='';
+    if(S.sx!==1||S.sy!==1)tf+=`scale(${Math.max(S.sx,.002)},${Math.max(S.sy,.002)}) `;
+    if(S.glitch>.15)tf+=`translateX(${((Math.random()-.5)*20*S.glitch).toFixed(1)}px) skewX(${((Math.random()-.5)*6*S.glitch).toFixed(2)}deg)`;
+    screen.style.transform=tf;
+    screen.style.filter=S.glitch>.3?`contrast(${1+S.glitch*.6}) hue-rotate(${(Math.random()*40*S.glitch).toFixed(0)}deg)`:'';
+  }
+  render(t);
+  requestAnimationFrame(frame);
+}
+function glitch(a,snd=true){S.glitch=Math.min(1,Math.max(S.glitch,a));if(snd)sGlitch(a);}
+function ghostFlash(sec){S.ghostT=Math.max(S.ghostT,sec);if(sec>.3)noise(.4,{f:180,q:3,g:.06});}
+function anim(ms,fn){return new Promise(r=>{const t0=performance.now(),d=FAST?1:ms;const st=()=>{const k=Math.min(1,(performance.now()-t0)/d);fn(k);k<1?requestAnimationFrame(st):r();};st();});}
+
+/* ============ UI basics ============ */
+const TABS=[['board','掲示板'],['roster','社員名簿'],['phone','内線'],['nippo','日報'],['apply','申請']];
+function renderTabs(){
+  const nav=$('tabs');nav.innerHTML='';
+  if(S.prog==='login')return;
+  TABS.forEach(([p,l])=>{const b=document.createElement('button');
+    const ok=S.unl.has(p);b.textContent=ok?l:'■■■';b.disabled=!ok;if(S.page===p)b.className='on';
+    b.onclick=()=>{click();go(p);};nav.appendChild(b);});
+}
+function go(p){
+  S.page=p;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('on',x.id==='p-'+p));
+  $('main').scrollTop=0;renderTabs();
+}
+function unlock(p){S.unl.add(p);S.prog=p;S.horror=Math.max(S.horror,HORROR[p]);S.wrong=0;renderTabs();glitch(.7);setStatus('新しいページが表示されました');}
+let stTimer=0;
+function setStatus(s,ms=0){$('status').textContent=s;clearTimeout(stTimer);if(ms)stTimer=setTimeout(()=>$('status').textContent='接続中',FAST?1:ms);}
+function setGreet(s){$('greet').textContent=s;}
+function tickClock(){const d=new Date();const y=S.realYear?d.getFullYear():2003;
+  $('clock').textContent=`${y}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;}
+setInterval(tickClock,1000);tickClock();
+function onEnter(inp,fn){inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();fn();}});}
+document.addEventListener('input',()=>click());
+
+/* text corruption */
+setInterval(()=>{
+  if(!S.started||S.ended||Math.random()>S.horror*.8)return;
+  const els=[...document.querySelectorAll('.page.on p,.page.on td,.page.on .pt,.page.on .pb')].filter(e=>e.childElementCount===0&&e.textContent.length>2);
+  if(!els.length)return;const e=els[Math.floor(Math.random()*els.length)];
+  const s=e.textContent,i=Math.floor(Math.random()*s.length);
+  e.textContent=s.slice(0,i)+'■'+s.slice(i+1);setTimeout(()=>{if(e.textContent.length===s.length)e.textContent=s;},FAST?1:260);
+},1400);
+
+/* ============ title / boot ============ */
+$('story').textContent=`${now.getFullYear()}年${now.getMonth()+1}月。廃業した株式会社ナギサ電算の、サーバー撤去作業。最後の1台に電源を入れると、古い社内ポータルが立ち上がった。`;
+let bootLabelEl=null;
+function bootRenderLabel(){if(bootLabelEl)bootLabelEl.textContent='RENDER: '+(mode==='hic'?'HTML-in-Canvas / WebGL2':'DOM FALLBACK');}
+$('startBtn').onclick=async()=>{
+  if(S.started)return;S.started=true;initAudio();
+  if(AC&&AC.state==='suspended')AC.resume();
+  noise(.25,{f:6000,q:.5,g:.12,f2:200});tone(15000,.4,{g:.01});
+  S.sy=.004;$('title').classList.add('hidden');const boot=$('boot');boot.classList.remove('hidden');
+  await anim(320,k=>{S.sy=.004+k*k*.996;});S.sy=1;
+  S.t0=performance.now();
+  const lines=['NAGISA BIOS v2.03','MEMORY TEST ...... 262144K OK','IDE0 : NGS-SV01 ...... OK',null,'LOADING NAGISA-NET ......','LAST SHUTDOWN : 2003/09/30 03:33 (異常終了)','','起動します。'];
+  for(const l of lines){
+    const d=document.createElement('div');boot.appendChild(d);
+    if(l===null){bootLabelEl=d;bootRenderLabel();}else d.textContent=l;
+    click();await sleep(l===''?200:380);
+  }
+  await sleep(500);glitch(.8);boot.classList.add('hidden');
+  go('login');setStatus('接続中');
+};
+
+/* ============ login ============ */
+async function doLogin(){
+  if(S.busy)return;
+  const pw=norm($('loginPw').value);
+  if(norm($('loginId').value)!=='yakin'){$('loginErr').textContent='社員IDが見つかりません';glitch(.3);return;}
+  if(pw!==norm('なぎさでんさん')){S.wrong++;$('loginErr').textContent='パスワードが違います（残り回数：∞）';glitch(.3);
+    if(S.wrong>=2){$('hintBtn').classList.remove('hidden');}return;}
+  S.busy=true;$('loginErr').textContent='';
+  setStatus('認証中……');await sleep(700);
+  glitch(.9);ghostFlash(.2);
+  setGreet('おかえりなさい、■■ ■ さん');
+  await sleep(500);
+  setStatus('前回ログイン：2003/09/30 03:33');
+  $('hintBtn').classList.remove('hidden');
+  unlock('board');go('board');renderBoard();S.busy=false;
+}
+$('loginBtn').onclick=doLogin;onEnter($('loginPw'),doLogin);onEnter($('loginId'),()=>$('loginPw').focus());
+
+/* ============ board ============ */
+const POSTS=[
+  ['2003/10/01 09:12','総務部 佐伯','【重要】10月の入館証更新について','入館証の更新は10月10日までに総務部へ。古い入館証は回収します。'],
+  ['2003/10/03 03:33','名無し','こんな時間に、誰かいますか','サーバー室の明かりがついています。'],
+  ['2003/10/07 14:40','システム管理室 堀','サーバー室 空調停止のお知らせ','10月11日（土）は点検のため空調が止まります。'],
+  ['2003/10/12 03:33','名無し','ここの空調、止まっていませんか','とても寒いです。'],
+  ['2003/10/15 12:05','営業部 三浦','忘年会 幹事募集','今年も幹事を募集します。立候補は三浦まで。'],
+  ['2003/10/20 03:33','名無し','日報を書いても、名前が消えます','何度入力しても、作成者が空欄になります。'],
+  ['2003/10/24 17:30','総務部 佐伯','【通達】第零開発室に関する問い合わせについて','第零開発室は2003年9月をもって廃止されました。同室について、社内外を問わず口外しないでください。'],
+  ['2003/10/29 03:33','名無し','いつもの席から、みんなが見えます','でも、だれもこっちを見ません。'],
+  ['2003/11/02 10:21','開発部 黒田','夜間バッチが毎晩03:33に走っている件','設定した覚えのないジョブです。止め方を知っている方は連絡ください。'],
+  ['2003/11/06 03:33','名無し','るすばん、まだ続けないといけませんか','だれか、かわってください。'],
+];
+function postHTML(p,i,cls=''){return `<div class="post ${cls}"><div class="meta">No.${i}　${p[0]}　${p[1]}</div><div class="pt">${p[2]}</div><div class="pb">${p[3]}</div></div>`;}
+function renderBoard(list=null){
+  const src=list||POSTS.map((p,i)=>[p,i+1]);
+  let h=src.map(([p,i])=>postHTML(p,i)).join('');
+  if(!list&&S.solved.lastPost){const d=new Date();h+=postHTML([`2003/${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`,'名無し','いま、みてる？','うえから　よんで'],POSTS.length+1);}
+  if(S.solved.board)h=postHTML(['????/??/?? 03:33','名無し','［非公開］ここにいる','見つけてくれて、ありがとう。わたしは、まだここにいます。名簿にはもう載っていない部署に、いました。'],0,'hid')+h;
+  $('boardList').innerHTML=h;
+  $('boardCnt').textContent=list?`該当 ${list.length}件`:`全 ${POSTS.length+(S.solved.lastPost?1:0)}件`;
+}
+$('main').addEventListener('scroll',()=>{
+  const m=$('main');
+  if(S.page==='board'&&!S.solved.lastPost&&m.scrollTop+m.clientHeight>m.scrollHeight-24){
+    S.solved.lastPost=true;renderBoard();glitch(.6);ghostFlash(.25);noise(.5,{f:900,q:8,g:.05});
+  }
+});
+function doBoard(){
+  const q=norm($('boardQ').value);
+  if(!q){renderBoard();return;}
+  if(q===norm('ここにいる')){
+    if(S.solved.board){renderBoard();return;}
+    S.solved.board=true;glitch(1);ghostFlash(.5);stinger();
+    renderBoard();$('boardCnt').textContent='非公開スレッドを1件表示しました';
+    setTimeout(()=>unlock('roster'),FAST?1:1200);return;
+  }
+  if(q.includes('みずの')||q.includes('水野')){$('boardCnt').textContent='該当 0件　その名前は削除されています';glitch(.6);return;}
+  const r=POSTS.map((p,i)=>[p,i+1]).filter(([p])=>norm(p[2]+p[3]+p[1]).includes(q));
+  renderBoard(r);S.wrong++;
+}
+$('boardBtn').onclick=doBoard;onEnter($('boardQ'),doBoard);
+
+/* ============ roster ============ */
+const STAFF={
+  '総務部':[['佐伯 由紀','1102','1994/04'],['大森 健','1103','1999/04']],
+  '営業部':[['三浦 拓也','2201','1997/04'],['福田 真理','2204','2000/10']],
+  '開発部':[['黒田 誠','3301','1996/04'],['新井 翔','3305','2002/04']],
+  'システム管理室':[['堀 一郎','4401','1991/04']],
+};
+const ds=$('deptSel');Object.keys(STAFF).forEach(k=>{const o=document.createElement('option');o.textContent=k;ds.appendChild(o);});
+function table(rows,photo=false){
+  return `<table><tr><th>氏名</th><th>内線</th><th>入社</th></tr>`+rows.map(r=>`<tr><td>${photo?'<span class="photo"></span> ':''}<span class="nm">${r[0]}</span></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')+`</table>`;
+}
+function showDept(){$('deptErr').textContent='';$('rosterBox').innerHTML=table(STAFF[ds.value]);}
+ds.onchange=()=>{click();showDept();};showDept();
+function zeroRow(){
+  $('rosterBox').innerHTML=`<p class="cnt">第零開発室　在籍 1名</p>`+table([['','0444','2001/04']],true);
+  $('rosterBox').querySelector('.nm').textContent=S.successor||S.her;
+}
+function doDept(){
+  const q=norm($('deptQ').value);if(!q){showDept();return;}
+  if(['第零','だいぜろ','第0','ぜろ','零'].some(k=>q.includes(norm(k)))){
+    zeroRow();glitch(.9);ghostFlash(.3);
+    if(!S.solved.roster){S.solved.roster=true;stinger();setTimeout(()=>unlock('phone'),FAST?1:1200);}
+    return;
+  }
+  const hit=Object.keys(STAFF).find(k=>norm(k).includes(q));
+  if(hit){ds.value=hit;showDept();return;}
+  $('deptErr').textContent='該当する部署はありません';S.wrong++;
+}
+$('deptBtn').onclick=doDept;onEnter($('deptQ'),doDept);
+
+/* ============ phone ============ */
+let dialed='';
+['1','2','3','4','5','6','7','8','9','*','0','#'].forEach(k=>{const b=document.createElement('button');b.className='btn';b.textContent=k;
+  b.onclick=()=>{if(S.busy)return;if(dialed.length<8){dialed+=k;$('dial').textContent=dialed;}dtmf(k);};$('pad').appendChild(b);});
+$('clrBtn').onclick=()=>{if(S.busy)return;click();dialed='';$('dial').textContent='';};
+const CALL=['……','……きこえる？','よかった。やっと、つながった。','わたし、第零開発室にいたの。','部署がなくなっても、アカウントだけ残されて。','ポータルの「留守番」をしなさいって。','もう、自分の名前も思い出せない。','日報に、わたしが書いたものが残ってるはず。','名前を、思い出して。','……それと。','最後に書類を出すとき、後任の欄には、だれの名前も書かないで。'];
+async function typeLine(el,s){for(const ch of s){el.textContent+=ch;if(ch!=='…'&&ch!=='、'&&ch!=='。')whisper();await sleep(70);}el.textContent+='\n';await sleep(420);}
+$('callBtn').onclick=async()=>{
+  if(S.busy||!dialed)return;S.busy=true;const log=$('callLog');log.classList.remove('hidden');log.textContent='';
+  const num=dialed;setStatus('発信中：'+num);
+  for(let i=0;i<2;i++){ringback();await sleep(1600);}
+  if(num==='0444'&&!S.solved.phone){
+    noise(.08,{f:800,g:.15});glitch(.8);ghostFlash(1.2);setStatus('通話中');
+    for(const l of CALL){await typeLine(log,l);if(Math.random()<.4)glitch(.3,false);}
+    await sleep(600);noise(.1,{f:800,g:.15});log.textContent+='\n―― 通話が切断されました';
+    S.solved.phone=true;$('powerBtn').classList.remove('hidden');setGreet('おかえりなさい、■■ ■ さん（在籍中）');
+    unlock('nippo');
+  }else if(num==='0444'){log.textContent='……日報を、見て。';}
+  else if(num==='4401'){await typeLine(log,'……03:33のバッチは、止めるな。');glitch(.5);}
+  else{log.textContent='おかけになった内線は、現在使われておりません。';}
+  dialed='';$('dial').textContent='';S.busy=false;if(S.prog!=='nippo'||S.solved.nippo)setStatus('接続中');
+};
+
+/* ============ nippo ============ */
+const NIPPO=[
+  ['2003/08/04','本日も第零開発室で検証作業。受付で名前を伝えるとき、上は「水の野原」で通じるのに、下の名前はいつも説明が要る。「灯台の灯」と書いて、読みはひらがな三文字。'],
+  ['2003/09/12','室長が、わたしにポータルへ「常駐」してもらうと言っていた。意味がわからない。'],
+  ['2003/09/30','部署が廃止になった。でも、わたしのアカウントは消えない。帰れない。'],
+];
+function renderNippo(){
+  $('nippoList').innerHTML=NIPPO.map(n=>`<div class="post"><div class="meta">${n[0]}　作成者：<span class="au"></span></div><div class="pb">${n[1]}</div></div>`).join('');
+  $('nippoList').querySelectorAll('.au').forEach(e=>e.textContent=S.her);
+}
+renderNippo();
+let gk=0;
+setInterval(()=>{
+  if(S.page!=='nippo'||S.solved.nippo||S.ended)return;
+  const ta=$('draft');ta.value+='ここにいる'[gk++%5];if(ta.value.length>90)ta.value=ta.value.slice(-90);
+  if(gk%10===0)glitch(.25,false);
+},FAST?5:650);
+function doName(){
+  const q=norm($('nameQ').value);
+  if(HER_OK.includes(q)){
+    if(S.solved.nippo)return;
+    S.solved.nippo=true;S.her='水野 灯';renderNippo();$('nameErr').textContent='';
+    glitch(1);ghostFlash(.8);stinger();$('draft').value='';
+    setGreet('……水野 灯。そう、わたしの名前。ありがとう。');
+    const v=document.createElement('p');v.className='voice';v.textContent='最後に、退職届を出させて。申請ページにあります。';
+    $('nippoList').before(v);
+    setTimeout(()=>unlock('apply'),FAST?1:1400);return;
+  }
+  S.wrong++;
+  if(q.startsWith(norm('水野'))||q.startsWith('みずの'))$('nameErr').textContent='下の名前が一致しません';
+  else $('nameErr').textContent='該当する社員が見つかりません';
+  glitch(.4);
+}
+$('nameBtn').onclick=doName;onEnter($('nameQ'),doName);
+
+/* ============ apply ============ */
+$('apDate').value=`2003-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+function doApply(){
+  if(S.busy||S.ended)return;
+  const nm=norm($('apName').value),nx=$('apNext').value.trim();
+  if(!nm){$('apErr').textContent='氏名を入力してください';return;}
+  if(!HER_OK.includes(nm)){$('apErr').textContent='本人以外は提出できません';glitch(.5);return;}
+  if(!nx){$('apErr').textContent='後任者氏名は必須項目です';glitch(.3);return;}
+  $('apErr').textContent='';
+  if(NONE_OK.includes(norm(nx)))endTrue();else endBad(nx.slice(0,20));
+}
+$('apBtn').onclick=doApply;onEnter($('apNext'),doApply);
+
+/* ============ power ============ */
+let powerArm=0;
+$('powerBtn').onclick=()=>{
+  if(S.busy||S.ended)return;
+  const t=performance.now();
+  if(t-powerArm<3000||FAST){endNormal();return;}
+  powerArm=t;setStatus('もう一度押すと電源を切ります',3000);click();
+};
+
+/* ============ endings ============ */
+async function showEnding(tag,title,text){
+  S.ended=true;S.busy=false;
+  const ms=performance.now()-S.t0,mm=Math.floor(ms/60000),ss=Math.floor(ms/1000)%60;
+  $('endTag').textContent=tag;$('endTitle').textContent=title;$('endText').textContent=text;
+  $('endTime').textContent=`プレイ時間 ${pad2(mm)}:${pad2(ss)}`;
+  $('ending').classList.remove('hidden');
+  S.endShare=`『社内ポータル、何かいる。』${tag}「${title}」に到達しました。（${pad2(mm)}:${pad2(ss)}）`;
+}
+async function endTrue(){
+  S.busy=true;setStatus('送信中……');await sleep(900);
+  glitch(1);ghostFlash(1);await sleep(900);
+  S.horror=0;S.ghostT=0;S.realYear=true;tickClock();
+  setGreet('退職届を受理しました。おつかれさまでした、水野 灯 さん。');setStatus('受理しました');
+  tone(523,.5,{g:.05});tone(659,.5,{g:.05,at:.25});tone(784,.9,{g:.05,at:.5});
+  await sleep(2600);
+  showEnding('END 1','退職受理','サーバーは静かに止まった。翌朝、撤去伝票の備考欄に、だれかの字で「ありがとう」と書かれていた。');
+}
+async function endBad(name){
+  S.busy=true;setStatus('送信中……');await sleep(900);
+  S.successor=name;S.horror=1;glitch(1);ghostFlash(2.5);stinger();
+  setGreet(`後任者：${name} さん。着任を確認しました。`);
+  await sleep(1400);
+  setGreet(`おかえりなさい、${name} さん`);unlock('roster');go('roster');$('deptQ').value='第零開発室';zeroRow();
+  await sleep(2400);
+  showEnding('END 3','後任着任',`第零開発室　在籍者：${name}。ポータルは今夜も、03:33に夜間バッチを走らせる。`);
+}
+async function endNormal(){
+  S.busy=true;noise(.3,{f:3000,q:.5,g:.15,f2:100});
+  await anim(220,k=>{S.sy=1-k*.996;});await anim(200,k=>{S.sx=1-k*.998;});
+  await sleep(900);
+  showEnding('END 2','強制終了','電源を切った。……翌朝、撤去したはずのサーバー室から、内線0444の呼び出し音が鳴り続けていたという。');
+  await anim(260,k=>{S.sx=.002+k*.998;});await anim(260,k=>{S.sy=.004+k*.996;});S.sx=S.sy=1;S.horror=.2;
+}
+$('againBtn').onclick=()=>location.reload();
+$('shareBtn').onclick=()=>{
+  const u=location.href.split('?')[0];
+  const text=(S.endShare||'『社内ポータル、何かいる。』')+'\n#ゲーム開発 #個人開発 #gamedev';
+  window.open('https://x.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(u),'_blank');
+};
+$('hintBtn').onclick=()=>{click();setStatus('ヒント：'+HINT[S.prog],7000);};
+
+/* ============ boot ============ */
+if(!(kind&&setupHIC()))toFallback();
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>sizeScreen()).observe(document.getElementById('wrap'));
+renderTabs();
+window.__S=S;window.__mode=()=>mode;
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
