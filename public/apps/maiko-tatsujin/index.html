@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#141a2e">
+<title>舞妓の達人</title>
+<meta name="description" content="舞妓の達人。帯を引いて舞え。回転する舞妓さん同士が舞台でぶつかり合う3D対戦ゲーム。身支度で性能が変わるアバター、オンライン対戦、SSSランク。">
+<meta property="og:type" content="website"><meta property="og:site_name" content="uimemocho"><meta property="og:title" content="舞妓の達人">
+<meta property="og:description" content="帯を下へ引いて、舞え。回転する舞妓さん同士が檜舞台でぶつかり合う3D対戦ゲーム。身支度で性能が変わる。オンライン対戦あり。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/maiko-tatsujin/"><meta property="og:image" content="https://uimemocho.github.io/apps/maiko-tatsujin/ogp.png">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="舞妓の達人">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%230e1a2b%22/%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2218%22 fill=%22%23ffd60a%22/%3E%3C/svg%3E"><link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"./three.module.js","three/addons/":"./addons/"}}</script>
+<link rel="modulepreload" href="three.module.js"><link rel="modulepreload" href="game.js">
+</head><body data-screen="title">
+<canvas id="world" aria-label="舞妓の達人のゲーム画面"></canvas><div id="shade"></div>
+<div id="flash" aria-hidden="true"></div><div id="speedLines" aria-hidden="true"></div>
+
+<header>
+ <div id="brandMini" aria-hidden="true">舞妓の達人</div>
+ <div class="headerbuttons">
+  <button id="pauseBtn" class="icon-button" data-i18n-aria="pause" aria-label="一時停止">Ⅱ</button>
+  <button id="settingsBtn" class="icon-button" data-i18n-aria="settings" aria-label="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.808 10.049 L22.000 12.000 L19.846 13.561 L19.391 15.061 L20.315 17.556 L19.071 19.071 L16.445 18.652 L15.061 19.391 L13.951 21.808 L12.000 22.000 L10.439 19.846 L8.939 19.391 L6.444 20.315 L4.929 19.071 L5.348 16.445 L4.609 15.061 L2.192 13.951 L2.000 12.000 L4.154 10.439 L4.609 8.939 L3.685 6.444 L4.929 4.929 L7.555 5.348 L8.939 4.609 L10.049 2.192 L12.000 2.000 L13.561 4.154 L15.061 4.609 L17.556 3.685 L19.071 4.929 L18.652 7.555 L19.391 8.939 Z"/><circle cx="12" cy="12" r="3.3"/></svg></button>
+ </div>
+</header>
+
+<main>
+<section id="titleScreen" class="screen title-screen" aria-label="タイトル">
+ <div class="title-block">
+  <h1 id="title"><span>舞妓</span><small>の</small><em>達人</em></h1>
+  <p class="title-sub" data-i18n="sub">MAIKO MASTER</p>
+ </div>
+ <div class="title-actions">
+  <button id="oneBtn" class="primary" data-i18n="streak" disabled>勝ち抜き</button>
+  <button id="onlineBtn" class="ghost" data-i18n="online">オンライン対戦</button>
+  <button id="dressBtn" class="ghost dress-btn"><span data-i18n="dress">身支度</span><small id="dressName"></small></button>
+  <div class="title-foot"><button id="howtoBtn" class="text-button" data-i18n="howto">遊び方</button><span id="bestStreak"></span></div>
+ </div>
+</section>
+
+<section id="dressScreen" class="screen dress-screen" hidden>
+ <div class="screen-kicker"><span data-i18n="dress">身支度</span><button id="dressBack" class="text-button" data-i18n="back">もどる</button></div>
+ <div class="dress-panel">
+  <label class="name-row"><span data-i18n="name">名前</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false"></label>
+  <div id="catTabs" class="cat-tabs" role="tablist"></div>
+  <div id="optGrid" class="opt-grid"></div>
+  <div id="statBars" class="stat-bars"></div>
+  <div class="dress-actions"><button id="randomLook" class="ghost" data-i18n="random">おまかせ</button><button id="dressDone" class="primary" data-i18n="done">これで決まり</button></div>
+ </div>
+</section>
+
+<section id="levelScreen" class="screen level-screen" hidden>
+ <div class="screen-kicker"><span data-i18n="one">一番勝負</span><button id="levelBack" class="text-button" data-i18n="back">もどる</button></div>
+ <div class="level-body">
+  <h2 data-i18n="opponent">相手の格</h2>
+  <div id="levelList" class="level-list"></div>
+ </div>
+ <button id="levelGo" class="primary" data-i18n="start">この相手と勝負</button>
+</section>
+
+<section id="onlineScreen" class="screen online-screen" hidden>
+ <div class="screen-kicker"><span data-i18n="online">オンライン対戦</span><button id="onlineBack" class="text-button" data-i18n="back">もどる</button></div>
+ <div id="onlineMain" class="online-body">
+  <label class="name-row"><span data-i18n="name">名前</span><input id="onlineName" maxlength="8" autocomplete="off" spellcheck="false"></label>
+  <button id="randomMatchBtn" class="primary"><span data-i18n="randomMatch">ランダム対戦</span><small class="btn-sub" data-i18n="streak">勝ち抜き</small></button>
+  <p id="onlineBest" class="online-best"></p>
+  <button id="friendBtn" class="ghost"><span data-i18n="friend">フレンド対戦</span><small class="btn-sub dim" data-i18n="one">一番勝負</small></button>
+ </div>
+ <div id="friendMenu" class="online-body" hidden>
+  <h2 class="friend-title"><span data-i18n="friend">フレンド対戦</span><small data-i18n="one">一番勝負</small></h2>
+  <button id="createRoomBtn" class="primary" data-i18n="roomCreate">部屋をつくる</button>
+  <button id="joinMenuBtn" class="ghost" data-i18n="roomJoin">部屋に入る</button>
+  <div id="joinRow" class="join-row" hidden><input id="codeInput" inputmode="numeric" maxlength="4" pattern="[0-9]*" data-i18n-ph="enterCode" placeholder="4桁の番号"><button id="joinRoomBtn" class="primary" data-i18n="join">入る</button></div>
+  <button id="friendBack" class="text-button" data-i18n="back">もどる</button>
+ </div>
+ <div id="onlineStatus" class="online-status" hidden>
+  <p id="roomCodeShow" class="room-code" hidden><small data-i18n="roomCode">部屋番号</small><strong id="roomCodeNum">----</strong></p>
+  <p id="onlineMsg" class="online-msg"></p>
+  <div class="seek-bar"><i id="seekProgress"></i></div>
+  <button id="onlineCancel" class="text-button" data-i18n="cancel">やめる</button>
+ </div>
+</section>
+
+<section id="resultScreen" class="screen result-screen" hidden>
+ <div class="result-heading"><p id="resultMode"></p><h2 id="resultTitle">勝ち</h2><p id="resultKimarite"></p></div>
+ <div id="rankHero" class="rank-hero"><span class="rank-caption">RANK</span><strong id="rankGrade">S</strong><p id="rankTitle"></p></div>
+ <div class="result-stats">
+  <div><small data-i18n="maxRpm">最高回転</small><strong id="statRpm">0</strong><span class="unit">rpm</span></div>
+  <div><small data-i18n="crits">会心</small><strong id="statCrit">0</strong></div>
+  <div><small data-i18n="finish">決着</small><strong id="statTime">0</strong><span class="unit" data-i18n="sec">秒</span></div>
+  <div><small data-i18n="remain">残り回転</small><strong id="statRemain">0</strong><span class="unit">%</span></div>
+ </div>
+ <p id="streakLine" class="streak-line"></p>
+ <div id="resultActions">
+  <button id="shareBtn" class="share"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span data-i18n="share">Xに投稿</span></button>
+  <button id="againBtn" class="primary" data-i18n="again">もう一番</button>
+  <div class="result-secondary"><button id="resultDress" class="ghost" data-i18n="dress">身支度</button><button id="resultTitleBtn" class="ghost" data-i18n="toTitle">タイトルへ</button></div>
+ </div>
+</section>
+</main>
+
+<div id="hud" hidden>
+ <div class="plates">
+  <div class="plate me"><div class="plate-name"><span id="hudMeName"></span><b id="hudMeRpm">0</b></div><div class="gauge"><i id="hudMeGauge"></i></div></div>
+  <div class="clock"><strong id="hudTime">40</strong></div>
+  <div class="plate op"><div class="plate-name"><b id="hudOpRpm">0</b><span id="hudOpName"></span></div><div class="gauge"><i id="hudOpGauge"></i></div></div>
+ </div>
+ <div id="pullGuide" class="pull-guide" hidden><strong data-i18n="pullHint">帯を下へ勢いよく引け</strong><small data-i18n="pullSub"></small><div class="pull-meter"><i id="pullFill"></i></div><div class="pull-arrow" aria-hidden="true"></div></div>
+ <p id="waitMsg" class="wait-msg" hidden data-i18n="waiting">相手の引きを待っています</p>
+ <div id="dashBar" class="dash-bar" hidden><div class="pips"><i></i><i></i><i></i></div><span data-i18n="dashHint">タップで踏み込み</span></div>
+</div>
+
+<div id="maie" aria-hidden="true"><div class="maie-lines"></div><strong>舞え<span>‼︎</span></strong><small data-i18n="maieSub">DANCE!</small></div>
+<div id="critCut" aria-hidden="true"><i class="band b1"></i><i class="band b2"></i><div class="crit-text"><strong data-i18n="critHit">会心</strong><span>CRITICAL!</span></div></div>
+<div id="impact" aria-hidden="true"><strong id="impactMain"></strong><span id="impactSub"></span></div>
+<div id="vsCut" aria-hidden="true"><div class="vs-side op"><small id="vsOpTag"></small><strong id="vsOp"></strong></div><b>VS</b><div class="vs-side me"><small id="vsMeTag"></small><strong id="vsMe"></strong></div></div>
+
+<div id="sheet" class="sheet" hidden>
+ <div class="sheet-card" role="dialog" aria-modal="true">
+  <div id="settingsBody" hidden>
+   <h3 data-i18n="settings">設定</h3>
+   <div class="set-row"><span data-i18n="se">効果音</span><button class="toggle" data-key="se"></button></div>
+   <div class="set-row"><span data-i18n="bgm">BGM</span><button class="toggle" data-key="bgm"></button></div>
+   <div class="set-row"><span data-i18n="vib">振動</span><button class="toggle" data-key="vib"></button></div>
+   <div class="set-row"><span data-i18n="quality">画質</span><button class="toggle" data-key="hq"></button></div>
+   <div class="set-row"><span data-i18n="lang">言語</span><select id="langSelect"></select></div>
+  </div>
+  <div id="howtoBody" hidden>
+   <h3 data-i18n="howto">遊び方</h3>
+   <ol class="howto"><li data-i18n="how1"></li><li data-i18n="how2"></li><li data-i18n="how3"></li><li data-i18n="how4"></li></ol>
+  </div>
+  <div id="pauseBody" hidden><h3 data-i18n="pause">一時停止</h3></div>
+  <div class="sheet-actions"><button id="sheetTitle" class="ghost" data-i18n="toTitle" hidden>タイトルへ</button><button id="sheetClose" class="primary" data-i18n="close">とじる</button></div>
+ </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="boot"><strong>舞妓の達人</strong><span id="bootMsg">…</span></div>
+<script type="module" src="game.js"></script>
+</body></html>

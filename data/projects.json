@@ -596,5 +596,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-08T05:45:00Z",
     "updatedAt": "2026-11-08T05:45:00Z"
+  },
+  {
+    "slug": "maiko-tatsujin",
+    "title": "舞妓の達人",
+    "kind": "game",
+    "description": "帯を下へ引いて、舞え。回転する舞妓さん同士が檜舞台でぶつかり合う3D対戦。身支度で性能が変わるアバター、踏み込みと会心、勝ち抜き戦とオンライン対戦。SSSを目指せ。音ありプレイ推奨。",
+    "url": "/apps/maiko-tatsujin/",
+    "thumbnail": "/project-thumbnails/catalog/maiko-tatsujin.webp",
+    "sourceFolder": "261107_舞妓の達人",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-08T05:34:00Z",
+    "updatedAt": "2026-11-08T05:34:00Z"
   }
 ]
