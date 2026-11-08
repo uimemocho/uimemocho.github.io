@@ -1300,7 +1300,7 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
         g.fillText(t("statCleared") + " " + r.cleared + "   " + t("statCombo") + " " + r.maxCombo + "   " + t("statEscaped") + " " + r.escaped, 140, 460);
         g.fillStyle = dark ? "#9aa7b1" : "#6d7680";
         g.font = "700 26px 'M PLUS Rounded 1c', sans-serif";
-        g.fillText("#ゲーム開発 #個人開発 #gamedev", 140, 520);
+        g.fillText("#DOMパニック #ゲーム開発 #個人開発 #gamedev", 140, 520);
         g.save();
         g.translate(955, 320); g.rotate(-0.17);
         g.strokeStyle = rankColor(r.rank); g.lineWidth = 10;
@@ -1324,7 +1324,7 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
       function shareTextStr() {
         const r = lastResult || { score: 0, rank: "E", cleared: 0 };
         return t("shareResult").replace("{score}", r.score.toLocaleString()).replace("{rank}", r.rank).replace("{cleared}", String(r.cleared)) +
-          "\nhttps://uimemocho.github.io/apps/dom-panic/\n#ゲーム開発 #個人開発 #gamedev";
+          "\nhttps://uimemocho.github.io/apps/dom-panic/\n#DOMパニック #ゲーム開発 #個人開発 #gamedev";
       }
       function openXIntent() {
         const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareTextStr());
