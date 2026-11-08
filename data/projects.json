@@ -620,5 +620,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-08T10:32:21Z",
     "updatedAt": "2026-11-08T10:32:21Z"
+  },
+  {
+    "slug": "dom-panic",
+    "title": "DOMパニック！",
+    "kind": "game",
+    "description": "暴走したHTML部品が画面を逃げ回る！本物のボタンやスライダーを指示どおり操作して、60秒で何個さばける？",
+    "url": "/apps/dom-panic/",
+    "thumbnail": "/project-thumbnails/catalog/dom-panic.webp",
+    "sourceFolder": "261108_DOMパニック！",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-08T12:00:00Z",
+    "updatedAt": "2026-11-08T12:00:00Z"
   }
 ]

@@ -1,0 +1,1447 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>DOMパニック！ | HTML-in-Canvasゲーム</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f2ede1;
+        --bg2: #e9e1cd;
+        --ink: #1e2732;
+        --panel: #fffdf4;
+        --panel2: #f7f1de;
+        --accent: #ff5a36;
+        --accent-ink: #ffffff;
+        --teal: #0d9d8a;
+        --amber: #ffb400;
+        --blue: #2f7fe0;
+        --danger: #e5383b;
+        --muted: #6d7680;
+        --shadow: rgba(30, 39, 50, 0.9);
+        --gridot: rgba(30, 39, 50, 0.10);
+        --fuse-bg: rgba(30, 39, 50, 0.14);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #131a21;
+          --bg2: #0d1218;
+          --ink: #eef2f0;
+          --panel: #202a34;
+          --panel2: #26313c;
+          --accent: #ff6a45;
+          --teal: #17bda6;
+          --amber: #ffb400;
+          --blue: #4b96f5;
+          --danger: #ff5a5e;
+          --muted: #9aa7b1;
+          --shadow: rgba(0, 0, 0, 0.55);
+          --gridot: rgba(238, 242, 240, 0.09);
+          --fuse-bg: rgba(238, 242, 240, 0.16);
+        }
+      }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        overflow: hidden;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      button { font-family: inherit; }
+      .mono { font-family: "Space Mono", ui-monospace, Menlo, monospace; }
+
+      #app { position: fixed; inset: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, var(--bg), var(--bg2)); }
+
+      /* ---------- HUD ---------- */
+      #hud {
+        display: none;
+        align-items: center; gap: 10px;
+        padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+        z-index: 30;
+      }
+      #hud.on { display: flex; }
+      .hud-box {
+        background: var(--panel);
+        border: 2px solid var(--ink);
+        border-radius: 12px;
+        box-shadow: 3px 3px 0 var(--shadow);
+        padding: 5px 10px;
+        line-height: 1.1;
+      }
+      .hud-label { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; color: var(--muted); }
+      .hud-value { font-size: 20px; font-weight: 700; }
+      #hudTime { flex: 1; padding: 7px 10px 9px; }
+      #timeBarWrap { height: 9px; border-radius: 99px; background: var(--fuse-bg); overflow: hidden; margin-top: 4px; }
+      #timeBar { height: 100%; width: 100%; border-radius: 99px; background: var(--teal); transform-origin: left center; }
+      #timeBar.low { background: var(--danger); }
+      #hudCombo { min-width: 86px; text-align: center; }
+      #hudCombo .hud-value { color: var(--accent); }
+      #hudCombo.fever { background: var(--amber); border-color: var(--ink); }
+      #hudCombo.fever .hud-label, #hudCombo.fever .hud-value { color: #1e2732; }
+      .icon-btn {
+        width: 40px; height: 40px; flex: none;
+        display: grid; place-items: center;
+        background: var(--panel); color: var(--ink);
+        border: 2px solid var(--ink); border-radius: 12px;
+        box-shadow: 3px 3px 0 var(--shadow); cursor: pointer;
+      }
+      .icon-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+      .icon-btn svg { width: 20px; height: 20px; display: block; }
+
+      /* ---------- Stage ---------- */
+      #stage { position: relative; flex: 1; overflow: hidden; touch-action: none; }
+      #bgC, #fxC { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      #fxC { pointer-events: none; z-index: 20; }
+      #widgetLayer { position: absolute; inset: 0; z-index: 10; }
+      #dangerVignette {
+        position: absolute; inset: 0; z-index: 15; pointer-events: none; opacity: 0;
+        box-shadow: inset 0 0 0 6px var(--danger);
+      }
+
+      /* ---------- Widgets (the runaway HTML parts) ---------- */
+      .widget { position: absolute; left: 0; top: 0; will-change: transform; }
+      .w-inner {
+        background: var(--panel);
+        border: 2px solid var(--ink);
+        border-radius: 14px;
+        box-shadow: 5px 5px 0 var(--shadow);
+        padding: 8px 10px 9px;
+        animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes popIn { from { transform: scale(0.5); } to { transform: scale(1); } }
+      .w-inner.shake { animation: shakeX 0.3s; }
+      @keyframes shakeX {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-6px); }
+        55% { transform: translateX(5px); }
+        80% { transform: translateX(-3px); }
+      }
+      .w-inner.done { animation: donePop 0.28s forwards; }
+      @keyframes donePop {
+        40% { transform: scale(1.13); }
+        100% { transform: scale(0.2); opacity: 0; }
+      }
+      .w-head { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+      .w-tag {
+        font-family: "Space Mono", ui-monospace, monospace;
+        font-size: 10px; font-weight: 700; color: #fff;
+        background: var(--ink); border-radius: 6px; padding: 2px 6px; white-space: nowrap;
+      }
+      .w-tag.c-tap { background: var(--accent); }
+      .w-tag.c-toggle { background: var(--teal); }
+      .w-tag.c-check { background: var(--blue); }
+      .w-tag.c-slider { background: #8a5cf6; }
+      .w-tag.c-radio { background: #e07b00; }
+      .w-tag.c-order { background: #d6336c; }
+      .w-req { font-size: 13px; font-weight: 800; line-height: 1.15; }
+      .w-fuse { height: 6px; border-radius: 99px; background: var(--fuse-bg); overflow: hidden; margin-top: 8px; }
+      .w-fuse i { display: block; height: 100%; width: 100%; border-radius: 99px; background: var(--teal); transform-origin: left center; }
+      .widget.critical .w-fuse i { background: var(--danger); }
+      .widget.critical .w-inner { animation: critPulse 0.4s infinite alternate; }
+      @keyframes critPulse { from { box-shadow: 5px 5px 0 var(--shadow); } to { box-shadow: 5px 5px 0 var(--danger); } }
+
+      .ctl-btn {
+        display: block; width: 100%;
+        background: var(--accent); color: var(--accent-ink);
+        border: 2px solid var(--ink); border-radius: 11px;
+        font-size: 17px; font-weight: 800; letter-spacing: 0.04em;
+        padding: 10px 8px; cursor: pointer;
+        box-shadow: 0 4px 0 var(--ink);
+      }
+      .ctl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+      .mash-pips { display: flex; gap: 5px; justify-content: center; margin-top: 7px; }
+      .mash-pips i { width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--ink); background: var(--panel2); }
+      .mash-pips i.hit { background: var(--amber); }
+
+      .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      .switch-state { font-size: 15px; font-weight: 800; min-width: 34px; text-align: center; }
+      .switch {
+        width: 64px; height: 36px; flex: none; position: relative;
+        background: var(--panel2); border: 2px solid var(--ink); border-radius: 99px; cursor: pointer; padding: 0;
+      }
+      .switch .knob {
+        position: absolute; top: 2px; left: 2px; width: 28px; height: 28px;
+        border-radius: 50%; background: var(--panel); border: 2px solid var(--ink);
+        transition: left 0.15s ease, background 0.15s ease;
+      }
+      .switch[aria-checked="true"] { background: var(--teal); }
+      .switch[aria-checked="true"] .knob { left: 30px; background: #fff; }
+
+      .chk-list { display: flex; flex-direction: column; gap: 6px; }
+      .chk {
+        display: flex; align-items: center; gap: 8px; cursor: pointer;
+        background: var(--panel2); border: 2px solid var(--ink); border-radius: 9px; padding: 6px 9px;
+        font-size: 14px; font-weight: 700;
+      }
+      .chk input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+      .chk .box {
+        width: 20px; height: 20px; flex: none; border-radius: 6px;
+        border: 2px solid var(--ink); background: var(--panel);
+        display: grid; place-items: center;
+      }
+      .chk .box svg { width: 13px; height: 13px; opacity: 0; transform: scale(0.4); transition: opacity 0.12s, transform 0.12s; }
+      .chk input:checked ~ .box { background: var(--blue); }
+      .chk input:checked ~ .box svg { opacity: 1; transform: scale(1); }
+      .chk input:focus-visible ~ .box { outline: 3px solid var(--amber); }
+
+      .slider-zone { position: relative; height: 14px; border: 2px solid var(--ink); border-radius: 7px; background: var(--panel2); margin-bottom: 6px; overflow: hidden; }
+      .slider-zone .band { position: absolute; top: 0; bottom: 0; background: var(--teal); opacity: 0.75; }
+      .slider-val { text-align: center; font-size: 19px; font-weight: 700; margin-bottom: 2px; }
+      .slider-val.inband { color: var(--teal); }
+      input[type="range"] { width: 100%; margin: 2px 0 0; accent-color: var(--accent); height: 30px; cursor: pointer; }
+
+      .chip-row { display: flex; gap: 7px; }
+      .chip {
+        flex: 1; border: 2px solid var(--ink); border-radius: 10px; padding: 9px 2px;
+        font-size: 13px; font-weight: 800; color: #fff; cursor: pointer;
+        box-shadow: 0 3px 0 var(--ink); text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+      }
+      .chip:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+      .order-row { display: flex; gap: 7px; }
+      .order-btn {
+        flex: 1; height: 46px; font-size: 20px; font-weight: 800;
+        background: var(--panel2); color: var(--ink);
+        border: 2px solid var(--ink); border-radius: 11px; cursor: pointer; box-shadow: 0 3px 0 var(--ink);
+      }
+      .order-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+      .order-btn.hit { background: var(--amber); }
+
+      /* ---------- Screens ---------- */
+      .screen {
+        position: absolute; inset: 0; z-index: 40;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: calc(16px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom));
+        overflow-y: auto;
+      }
+      .screen.hidden { display: none; }
+      .window {
+        width: min(430px, 100%);
+        background: var(--panel);
+        border: 2.5px solid var(--ink); border-radius: 18px;
+        box-shadow: 8px 8px 0 var(--shadow);
+        overflow: hidden;
+      }
+      .win-bar {
+        display: flex; align-items: center; gap: 6px;
+        padding: 9px 12px; border-bottom: 2px solid var(--ink); background: var(--panel2);
+      }
+      .win-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--ink); }
+      .win-url {
+        flex: 1; margin-left: 6px; font-size: 11px; color: var(--muted);
+        background: var(--panel); border: 2px solid var(--ink); border-radius: 99px; padding: 3px 10px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .win-body { padding: 22px 20px 24px; text-align: center; position: relative; }
+      .logo-tags { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+      .logo-tags span {
+        font-family: "Space Mono", ui-monospace, monospace; font-size: 11px; font-weight: 700;
+        border: 2px solid var(--ink); border-radius: 7px; padding: 2px 7px; background: var(--panel2);
+      }
+      h1.logo {
+        margin: 0; font-size: clamp(40px, 11.5vw, 56px); font-weight: 800; line-height: 1.08; letter-spacing: 0.01em;
+      }
+      h1.logo .accent { color: var(--accent); }
+      .tagline { margin: 10px 0 0; font-size: 14px; font-weight: 700; color: var(--muted); line-height: 1.55; }
+      .best-line { margin-top: 12px; font-size: 13px; font-weight: 800; color: var(--teal); min-height: 18px; }
+      .btn-col { display: flex; flex-direction: column; gap: 11px; margin-top: 20px; }
+      .big-btn {
+        border: 2.5px solid var(--ink); border-radius: 14px; cursor: pointer;
+        font-size: 19px; font-weight: 800; padding: 14px 18px;
+        box-shadow: 0 5px 0 var(--ink);
+      }
+      .big-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+      .big-btn.primary { background: var(--accent); color: var(--accent-ink); }
+      .big-btn.ghost { background: var(--panel); color: var(--ink); font-size: 16px; padding: 11px 18px; }
+      .big-btn.x { background: var(--ink); color: var(--panel); }
+      .lang-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; }
+      .lang-row label { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); }
+      .lang-row select {
+        font-family: inherit; font-size: 14px; font-weight: 700; color: var(--ink);
+        background: var(--panel2); border: 2px solid var(--ink); border-radius: 9px; padding: 5px 8px;
+      }
+      .float-parts { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+      .float-parts .fp { position: absolute; opacity: 0.5; animation: bob 3.4s ease-in-out infinite alternate; }
+      @keyframes bob { from { transform: translateY(-5px) rotate(-3deg); } to { transform: translateY(6px) rotate(3deg); } }
+
+      /* how to */
+      .howto-list { text-align: left; margin: 14px 0 4px; display: flex; flex-direction: column; gap: 10px; }
+      .howto-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; font-weight: 700; line-height: 1.5; }
+      .howto-item .w-tag { margin-top: 1px; flex: none; }
+      h2.screen-title { margin: 0; font-size: 24px; font-weight: 800; }
+
+      /* result */
+      .rank-stamp {
+        width: 118px; height: 118px; margin: 4px auto 0;
+        border: 5px solid var(--rank-color, var(--accent)); border-radius: 50%;
+        display: grid; place-items: center;
+        color: var(--rank-color, var(--accent));
+        transform: rotate(-10deg);
+        animation: stampIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s backwards;
+      }
+      @keyframes stampIn { from { transform: rotate(-10deg) scale(2.4); opacity: 0; } to { transform: rotate(-10deg) scale(1); opacity: 1; } }
+      .rank-stamp .rank-letter { font-size: 52px; font-weight: 800; line-height: 1; }
+      .rank-caption { font-size: 11px; font-weight: 800; letter-spacing: 0.22em; color: var(--muted); margin-top: 10px; }
+      .result-score { font-size: 46px; font-weight: 700; line-height: 1.1; margin-top: 2px; }
+      .new-record { display: none; font-size: 13px; font-weight: 800; color: var(--accent); margin-top: 4px; }
+      .new-record.on { display: block; }
+      .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 16px; }
+      .stat-cell { background: var(--panel2); border: 2px solid var(--ink); border-radius: 12px; padding: 8px 4px; }
+      .stat-cell .v { font-size: 21px; font-weight: 700; }
+      .stat-cell .k { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--muted); margin-top: 1px; }
+
+      #countOverlay {
+        position: absolute; inset: 0; z-index: 35; display: none;
+        place-items: center; pointer-events: none;
+      }
+      #countOverlay.on { display: grid; }
+      #countNum { font-size: 110px; font-weight: 800; color: var(--accent); text-shadow: 5px 5px 0 var(--shadow); }
+      #countNum.pop { animation: countPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+      @keyframes countPop { from { transform: scale(1.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+      #toast {
+        position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
+        z-index: 60; background: var(--ink); color: var(--panel);
+        font-size: 13.5px; font-weight: 700; padding: 10px 16px; border-radius: 99px;
+        opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+        max-width: calc(100vw - 32px); text-align: center;
+      }
+      #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .w-inner, .rank-stamp, .float-parts .fp, #countNum.pop { animation: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- HUD -->
+      <div id="hud">
+        <div class="hud-box" id="hudScore">
+          <div class="hud-label">SCORE</div>
+          <div class="hud-value mono" id="scoreVal">0</div>
+        </div>
+        <div class="hud-box" id="hudTime">
+          <div class="hud-label">TIME <span class="mono" id="timeVal">60</span></div>
+          <div id="timeBarWrap"><div id="timeBar"></div></div>
+        </div>
+        <div class="hud-box" id="hudCombo">
+          <div class="hud-label">COMBO</div>
+          <div class="hud-value mono" id="comboVal">0</div>
+        </div>
+        <button class="icon-btn" id="muteBtn" aria-label="Sound on/off">
+          <svg id="sndOnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18 6a8.5 8.5 0 0 1 0 12"/></svg>
+          <svg id="sndOffIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor" stroke="none"/><line x1="16" y1="9" x2="22" y2="15"/><line x1="22" y1="9" x2="16" y2="15"/></svg>
+        </button>
+      </div>
+
+      <!-- Stage -->
+      <div id="stage">
+        <canvas id="bgC"></canvas>
+        <div id="widgetLayer"></div>
+        <div id="dangerVignette"></div>
+        <canvas id="fxC"></canvas>
+        <div id="countOverlay"><div id="countNum">3</div></div>
+      </div>
+
+      <!-- Title -->
+      <div class="screen" id="titleScreen">
+        <div class="window">
+          <div class="win-bar">
+            <span class="win-dot" style="background:#ff5f57"></span>
+            <span class="win-dot" style="background:#febc2e"></span>
+            <span class="win-dot" style="background:#28c840"></span>
+            <span class="win-url mono">dom-panic://index.html</span>
+          </div>
+          <div class="win-body">
+            <div class="float-parts" aria-hidden="true">
+              <span class="fp mono" style="left:6%;top:8%;font-size:12px;color:var(--blue)">&lt;input&gt;</span>
+              <span class="fp mono" style="right:7%;top:16%;font-size:12px;color:var(--teal);animation-delay:.7s">&lt;select&gt;</span>
+              <span class="fp mono" style="left:9%;bottom:10%;font-size:12px;color:var(--accent);animation-delay:1.2s">&lt;button&gt;</span>
+              <span class="fp mono" style="right:9%;bottom:6%;font-size:12px;color:#8a5cf6;animation-delay:.3s">&lt;range&gt;</span>
+            </div>
+            <div class="logo-tags">
+              <span>&lt;html&gt;</span><span>&lt;canvas&gt;</span><span>&lt;panic&gt;</span>
+            </div>
+            <h1 class="logo">DOM<span class="accent">パニック</span>！</h1>
+            <p class="tagline" data-i18n="tagline"></p>
+            <div class="best-line mono" id="bestLine"></div>
+            <div class="btn-col">
+              <button class="big-btn primary" id="startBtn" data-i18n="start"></button>
+              <button class="big-btn ghost" id="howtoBtn" data-i18n="howto"></button>
+            </div>
+            <div class="lang-row">
+              <label for="langSel">LANGUAGE</label>
+              <select id="langSel">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+                <option value="zh-Hans">简体中文</option>
+                <option value="zh-Hant">繁體中文</option>
+                <option value="ko">한국어</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="pt">Português</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How to -->
+      <div class="screen hidden" id="howtoScreen">
+        <div class="window">
+          <div class="win-bar">
+            <span class="win-dot" style="background:#ff5f57"></span>
+            <span class="win-dot" style="background:#febc2e"></span>
+            <span class="win-dot" style="background:#28c840"></span>
+            <span class="win-url mono">dom-panic://how-to-play</span>
+          </div>
+          <div class="win-body">
+            <h2 class="screen-title" data-i18n="howto"></h2>
+            <div class="howto-list" id="howtoList"></div>
+            <div class="btn-col">
+              <button class="big-btn primary" id="howtoStartBtn" data-i18n="start"></button>
+              <button class="big-btn ghost" id="howtoBackBtn" data-i18n="back"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="screen hidden" id="resultScreen">
+        <div class="window">
+          <div class="win-bar">
+            <span class="win-dot" style="background:#ff5f57"></span>
+            <span class="win-dot" style="background:#febc2e"></span>
+            <span class="win-dot" style="background:#28c840"></span>
+            <span class="win-url mono">dom-panic://result</span>
+          </div>
+          <div class="win-body">
+            <h2 class="screen-title" data-i18n="resultTitle"></h2>
+            <div class="rank-stamp" id="rankStamp"><span class="rank-letter" id="rankLetter">S</span></div>
+            <div class="rank-caption">RANK</div>
+            <div class="result-score mono" id="resultScore">0</div>
+            <div class="new-record" id="newRecord" data-i18n="newRecord"></div>
+            <div class="stat-grid">
+              <div class="stat-cell"><div class="v mono" id="statCleared">0</div><div class="k" data-i18n="statCleared"></div></div>
+              <div class="stat-cell"><div class="v mono" id="statCombo">0</div><div class="k" data-i18n="statCombo"></div></div>
+              <div class="stat-cell"><div class="v mono" id="statEscaped">0</div><div class="k" data-i18n="statEscaped"></div></div>
+            </div>
+            <div class="btn-col">
+              <button class="big-btn x" id="shareImgBtn" data-i18n="shareImg"></button>
+              <button class="big-btn ghost" id="shareTextBtn" data-i18n="shareText"></button>
+              <button class="big-btn primary" id="retryBtn" data-i18n="retry"></button>
+              <button class="big-btn ghost" id="toTitleBtn" data-i18n="toTitle"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="toast" role="status"></div>
+<script>
+"use strict";
+/* ============================================================
+DOM PANIC! — runaway HTML parts inside a canvas world.
+The widgets are real DOM form controls living on the stage;
+the canvases paint the world, particles and score popups.
+============================================================ */
+
+/* ---------------- i18n (9 languages) ---------------- */
+const I18N = {
+ja: {
+tagline: "暴走したHTML部品が画面を逃げ回る！<br>本物のボタンやスライダーを正しく操作して、60秒で何個さばける？",
+start: "はじめる", howto: "あそびかた", back: "もどる",
+best: "ベストスコア",
+resultTitle: "けっかはっぴょう", newRecord: "新記録！",
+statCleared: "さばいた数", statCombo: "最大コンボ", statEscaped: "逃がした数",
+shareImg: "画像つきでXに投稿", shareText: "Xに投稿（テキストのみ）",
+retry: "もういちど", toTitle: "タイトルへ",
+savedToast: "結果画像を保存しました。Xの投稿に添付してね",
+shareResult: "スコア {score}／ランク {rank}！暴走したHTML部品を{cleared}個さばいた！",
+go: "GO!",
+reqTap: "押せ！", reqMash: "連打しろ！", reqToggleOn: "ONにしろ！", reqToggleOff: "OFFにしろ！",
+reqCheck: "全部チェックしろ！", reqSlider: "ゾーンに合わせろ！", reqRadio: "「{name}」を選べ！", reqOrder: "1→2→3の順に押せ！",
+howtoItems: [
+["<button>", "ボタンやスイッチなどのHTML部品が、キャンバスの中を逃げ回ります。"],
+["<input>", "指示どおりに正しく操作すると消えます。部品ごとに制限時間つき！"],
+["<range>", "スライダーは緑のゾーンに合わせ続ける、順番ボタンは1→2→3の順に押そう。"],
+["<combo>", "連続で成功するとコンボ。10コンボでフィーバー（得点2倍）！"],
+["<time>", "制限時間は60秒。逃がすとコンボが消えます。ランクSSSを目指そう！"]
+],
+checkWords: ["同意", "確認", "保存", "公開", "通知"],
+colorNames: ["赤", "青", "緑", "黄"]
+},
+en: {
+tagline: "Runaway HTML parts are loose on the canvas!<br>Work the real buttons and sliders correctly — how many can you clear in 60 seconds?",
+start: "START", howto: "HOW TO PLAY", back: "BACK",
+best: "BEST",
+resultTitle: "RESULTS", newRecord: "NEW RECORD!",
+statCleared: "CLEARED", statCombo: "MAX COMBO", statEscaped: "ESCAPED",
+shareImg: "Post to X with image", shareText: "Post to X (text only)",
+retry: "PLAY AGAIN", toTitle: "TITLE",
+savedToast: "Result image saved — attach it to your X post!",
+shareResult: "[DOM PANIC!] Score {score} / Rank {rank}! I cleared {cleared} runaway HTML parts!",
+go: "GO!",
+reqTap: "Tap it!", reqMash: "Mash it!", reqToggleOn: "Turn it ON!", reqToggleOff: "Turn it OFF!",
+reqCheck: "Check them all!", reqSlider: "Hit the zone!", reqRadio: "Pick “{name}”!", reqOrder: "Tap 1 → 2 → 3!",
+howtoItems: [
+["<button>", "HTML parts — buttons, switches and more — run wild inside the canvas."],
+["<input>", "Operate each part exactly as instructed before its fuse runs out!"],
+["<range>", "Hold the slider inside the green zone. Order buttons go 1 → 2 → 3."],
+["<combo>", "Chain successes for combos. 10 combo starts FEVER (double points)!"],
+["<time>", "You have 60 seconds. A part that escapes breaks your combo. Aim for rank SSS!"]
+],
+checkWords: ["Agree", "Check", "Save", "Post", "Alerts"],
+colorNames: ["Red", "Blue", "Green", "Yellow"]
+},
+"zh-Hans": {
+tagline: "失控的HTML部件在画布里四处逃窜！<br>正确操作真实的按钮和滑杆，60秒内你能搞定几个？",
+start: "开始", howto: "玩法", back: "返回",
+best: "最佳成绩",
+resultTitle: "结果公布", newRecord: "新纪录！",
+statCleared: "搞定数量", statCombo: "最大连击", statEscaped: "逃掉数量",
+shareImg: "带图发布到X", shareText: "发布到X（仅文字）",
+retry: "再来一局", toTitle: "返回标题",
+savedToast: "结果图已保存，请附到X的帖子里",
+shareResult: "得分 {score}／等级 {rank}！搞定了{cleared}个失控的HTML部件！",
+go: "GO!",
+reqTap: "点它！", reqMash: "狂点它！", reqToggleOn: "打开它！", reqToggleOff: "关掉它！",
+reqCheck: "全部勾选！", reqSlider: "对准绿色区域！", reqRadio: "选择「{name}」！", reqOrder: "按1→2→3的顺序点！",
+howtoItems: [
+["<button>", "按钮、开关等HTML部件会在画布里四处乱跑。"],
+["<input>", "按指示正确操作部件即可消除，每个部件都有时间限制！"],
+["<range>", "滑杆要停在绿色区域内；顺序按钮按1→2→3点按。"],
+["<combo>", "连续成功积攒连击，10连击进入狂热（分数翻倍）！"],
+["<time>", "限时60秒。部件逃掉会中断连击。目标等级SSS！"]
+],
+checkWords: ["同意", "确认", "保存", "发布", "通知"],
+colorNames: ["红", "蓝", "绿", "黄"]
+},
+"zh-Hant": {
+tagline: "失控的HTML部件在畫布裡四處逃竄！<br>正確操作真實的按鈕和滑桿，60秒內你能搞定幾個？",
+start: "開始", howto: "玩法", back: "返回",
+best: "最佳成績",
+resultTitle: "結果公布", newRecord: "新紀錄！",
+statCleared: "搞定數量", statCombo: "最大連擊", statEscaped: "逃掉數量",
+shareImg: "帶圖發布到X", shareText: "發布到X（僅文字）",
+retry: "再來一局", toTitle: "返回標題",
+savedToast: "結果圖已儲存，請附到X的貼文裡",
+shareResult: "得分 {score}／等級 {rank}！搞定了{cleared}個失控的HTML部件！",
+go: "GO!",
+reqTap: "點它！", reqMash: "狂點它！", reqToggleOn: "打開它！", reqToggleOff: "關掉它！",
+reqCheck: "全部勾選！", reqSlider: "對準綠色區域！", reqRadio: "選擇「{name}」！", reqOrder: "按1→2→3的順序點！",
+howtoItems: [
+["<button>", "按鈕、開關等HTML部件會在畫布裡四處亂跑。"],
+["<input>", "按指示正確操作部件即可消除，每個部件都有時間限制！"],
+["<range>", "滑桿要停在綠色區域內；順序按鈕按1→2→3點按。"],
+["<combo>", "連續成功累積連擊，10連擊進入狂熱（分數翻倍）！"],
+["<time>", "限時60秒。部件逃掉會中斷連擊。目標等級SSS！"]
+],
+checkWords: ["同意", "確認", "儲存", "發布", "通知"],
+colorNames: ["紅", "藍", "綠", "黃"]
+},
+ko: {
+tagline: "폭주한 HTML 부품이 캔버스 안을 도망다닌다!<br>진짜 버튼과 슬라이더를 제대로 조작해서 60초 동안 몇 개를 해치울 수 있을까?",
+start: "시작", howto: "遊び方", back: "戻る",
+best: "베스트 스코어",
+resultTitle: "결과 발표", newRecord: "신기록!",
+statCleared: "처리한 수", statCombo: "최대 콤보", statEscaped: "놓친 수",
+shareImg: "이미지와 함께 X에 게시", shareText: "X에 게시 (텍스트만)",
+retry: "다시 하기", toTitle: "타이틀로",
+savedToast: "결과 이미지를 저장했습니다. X 게시물에 첨부해 주세요",
+shareResult: "[DOM PANIC!] 스코어 {score} / 랭크 {rank}! 폭주한 HTML 부품을 {cleared}개 처리했다!",
+go: "GO!",
+reqTap: "눌러라!", reqMash: "연타해라!", reqToggleOn: "ON으로!", reqToggleOff: "OFF로!",
+reqCheck: "전부 체크해라!", reqSlider: "구역에 맞춰라!", reqRadio: "「{name}」을(를) 골라라!", reqOrder: "1→2→3 순서로 눌러라!",
+howtoItems: [
+["<button>", "버튼과 스위치 같은 HTML 부품이 캔버스 안을 도망다닙니다."],
+["<input>", "지시대로 정확히 조작하면 사라집니다. 부품마다 제한 시간!"],
+["<range>", "슬라이더는 초록 구역에 유지, 순서 버튼은 1→2→3 순으로 누르세요."],
+["<combo>", "연속 성공으로 콤보. 10콤보에서 피버 (점수 2배)!"],
+["<time>", "제한 시간은 60초. 놓치면 콤보가 사라집니다. 랭크 SSS를 노리세요!"]
+],
+checkWords: ["동의", "확인", "저장", "게시", "알림"],
+colorNames: ["빨강", "파랑", "초록", "노랑"]
+},
+es: {
+tagline: "¡Las piezas HTML se han escapado por el lienzo!<br>Usa bien los botones y controles reales: ¿cuántas despejas en 60 segundos?",
+start: "JUGAR", howto: "CÓMO JUGAR", back: "VOLVER",
+best: "RÉCORD",
+resultTitle: "RESULTADOS", newRecord: "¡NUEVO RÉCORD!",
+statCleared: "DESPEJADAS", statCombo: "COMBO MÁX.", statEscaped: "ESCAPADAS",
+shareImg: "Publicar en X con imagen", shareText: "Publicar en X (solo texto)",
+retry: "OTRA VEZ", toTitle: "TÍTULO",
+savedToast: "Imagen guardada: adjúntala a tu publicación en X",
+shareResult: "[DOM PANIC!] ¡{score} puntos / rango {rank}! Despejé {cleared} piezas HTML fugitivas.",
+go: "¡YA!",
+reqTap: "¡Tócalo!", reqMash: "¡Machácalo!", reqToggleOn: "¡Enciéndelo!", reqToggleOff: "¡Apágalo!",
+reqCheck: "¡Márcalas todas!", reqSlider: "¡A la zona verde!", reqRadio: "¡Elige «{name}»!", reqOrder: "¡Toca 1 → 2 → 3!",
+howtoItems: [
+["<button>", "Piezas HTML (botones, interruptores…) corren libres dentro del lienzo."],
+["<input>", "Opéralas tal como se indica antes de que se acabe su mecha."],
+["<range>", "Mantén el control dentro de la zona verde. Botones de orden: 1 → 2 → 3."],
+["<combo>", "Encadena aciertos: ¡10 de combo activan FIESTA (puntos dobles)!"],
+["<time>", "Tienes 60 segundos. Si una pieza escapa, pierdes el combo. ¡A por el rango SSS!"]
+],
+checkWords: ["Acepto", "Revisar", "Guardar", "Publicar", "Avisos"],
+colorNames: ["Rojo", "Azul", "Verde", "Amarillo"]
+},
+fr: {
+tagline: "Des pièces HTML en fuite sèment la panique dans le canvas!<br>Manipule les vrais boutons et curseurs: combien en 60 secondes?",
+start: "JOUER", howto: "COMMENT JOUER", back: "RETOUR",
+best: "RECORD",
+resultTitle: "RÉSULTATS", newRecord: "NOUVEAU RECORD!",
+statCleared: "TRAITÉES", statCombo: "COMBO MAX", statEscaped: "ÉCHAPPÉES",
+shareImg: "Publier sur X avec image", shareText: "Publier sur X (texte seul)",
+retry: "REJOUER", toTitle: "TITRE",
+savedToast: "Image enregistrée: joins-la à ta publication X",
+shareResult: "[DOM PANIC!] Score {score} / rang {rank}! J'ai traité {cleared} pièces HTML en fuite.",
+go: "GO!",
+reqTap: "Touche-le!", reqMash: "Martèle-le!", reqToggleOn: "Allume-le!", reqToggleOff: "Éteins-le!",
+reqCheck: "Coche tout!", reqSlider: "Dans la zone verte!", reqRadio: "Choisis « {name} »!", reqOrder: "Touche 1 → 2 → 3!",
+howtoItems: [
+["<button>", "Des pièces HTML (boutons, interrupteurs…) s'échappent dans le canvas."],
+["<input>", "Manipule chaque pièce comme indiqué avant la fin de sa mèche!"],
+["<range>", "Garde le curseur dans la zone verte. Boutons d'ordre: 1 → 2 → 3."],
+["<combo>", "Enchaîne les réussites: 10 combos = FIÈVRE (points doublés)!"],
+["<time>", "60 secondes chrono. Une pièce qui s'échappe casse le combo. Vise le rang SSS!"]
+],
+checkWords: ["J'accepte", "Vérifier", "Enregistrer", "Publier", "Alertes"],
+colorNames: ["Rouge", "Bleu", "Vert", "Jaune"]
+},
+de: {
+tagline: "Ausgebüxte HTML-Teile rennen über die Canvas!<br>Bediene echte Buttons und Regler richtig — wie viele schaffst du in 60 Sekunden?",
+start: "START", howto: "ANLEITUNG", back: "ZURÜCK",
+best: "REKORD",
+resultTitle: "ERGEBNIS", newRecord: "NEUER REKORD!",
+statCleared: "GESCHAFFT", statCombo: "MAX. KOMBO", statEscaped: "ENTKOMMEN",
+shareImg: "Mit Bild auf X posten", shareText: "Auf X posten (nur Text)",
+retry: "NOCHMAL", toTitle: "TITEL",
+savedToast: "Ergebnisbild gespeichert – hänge es an deinen X-Post an",
+shareResult: "[DOM PANIC!] {score} Punkte / Rang {rank}! Ich habe {cleared} ausgebüxte HTML-Teile geschafft.",
+go: "LOS!",
+reqTap: "Drück drauf!", reqMash: "Hämmer drauf!", reqToggleOn: "Schalte AN!", reqToggleOff: "Schalte AUS!",
+reqCheck: "Alles anhaken!", reqSlider: "In die Zone!", reqRadio: "Wähle „{name}“!", reqOrder: "Tippe 1 → 2 → 3!",
+howtoItems: [
+["<button>", "HTML-Teile (Buttons, Schalter …) rennen wild in der Canvas umher."],
+["<input>", "Bediene jedes Teil genau nach Anweisung, bevor die Zündschnur endet!"],
+["<range>", "Halte den Regler in der grünen Zone. Reihenfolge-Buttons: 1 → 2 → 3."],
+["<combo>", "Erfolge in Serie geben Kombo. 10 Kombo = FIEBER (doppelte Punkte)!"],
+["<time>", "60 Sekunden Zeit. Entkommt ein Teil, ist die Kombo weg. Ziel: Rang SSS!"]
+],
+checkWords: ["Zustimmen", "Prüfen", "Speichern", "Posten", "Hinweise"],
+colorNames: ["Rot", "Blau", "Grün", "Gelb"]
+},
+pt: {
+tagline: "Peças HTML fugitivas estão soltas na tela!<br>Use os botões e controles reais do jeito certo: quantas você resolve em 60 segundos?",
+start: "JOGAR", howto: "COMO JOGAR", back: "VOLTAR",
+best: "RECORDE",
+resultTitle: "RESULTADOS", newRecord: "NOVO RECORDE!",
+statCleared: "RESOLVIDAS", statCombo: "COMBO MÁX.", statEscaped: "ESCAPARAM",
+shareImg: "Postar no X com imagem", shareText: "Postar no X (só texto)",
+retry: "DE NOVO", toTitle: "TÍTULO",
+savedToast: "Imagem salva: anexe ao seu post no X",
+shareResult: "[DOM PANIC!] {score} pontos / rank {rank}! Resolvi {cleared} peças HTML fugitivas.",
+go: "VAI!",
+reqTap: "Toque nele!", reqMash: "Esmague!", reqToggleOn: "Ligue!", reqToggleOff: "Desligue!",
+reqCheck: "Marque tudo!", reqSlider: "Na zona verde!", reqRadio: "Escolha “{name}”!", reqOrder: "Toque 1 → 2 → 3!",
+howtoItems: [
+["<button>", "Peças HTML (botões, interruptores…) fogem pela tela."],
+["<input>", "Opere cada peça como indicado antes de o pavio acabar!"],
+["<range>", "Mantenha o controle na zona verde. Botões de ordem: 1 → 2 → 3."],
+["<combo>", "Acerte em sequência: 10 de combo = FEBRE (pontos dobrados)!"],
+["<time>", "São 60 segundos. Se uma peça escapa, o combo acaba. Mire no rank SSS!"]
+],
+checkWords: ["Aceito", "Conferir", "Salvar", "Publicar", "Avisos"],
+colorNames: ["Vermelho", "Azul", "Verde", "Amarelo"]
+}
+};
+let lang = "ja";
+const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.ja[key] || key;
+
+/* ---------------- Audio (all WebAudio, procedural) ---------------- */
+const AudioSys = {
+ctx: null, master: null, muted: false, bgmTimer: null, bgmStep: 0,
+ensure() {
+if (this.ctx) { if (this.ctx.state === "suspended") this.ctx.resume(); return;}
+const AC = window.AudioContext || window.webkitAudioContext;
+if (!AC) return;
+this.ctx = new AC();
+this.master = this.ctx.createGain();
+this.master.gain.value = 0.5;
+this.master.connect(this.ctx.destination);
+},
+tone(freq, dur, type, vol, when, slideTo) {
+if (!this.ctx || this.muted) return;
+const c = this.ctx, t0 = c.currentTime + (when || 0);
+const o = c.createOscillator(), g = c.createGain();
+o.type = type || "square";
+o.frequency.setValueAtTime(freq, t0);
+if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+g.gain.setValueAtTime(vol || 0.16, t0);
+g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+o.connect(g); g.connect(this.master);
+o.start(t0); o.stop(t0 + dur + 0.02);
+},
+pop(combo) {
+const base = 520 + Math.min(combo, 20) * 22;
+this.tone(base, 0.09, "square", 0.14);
+this.tone(base * 1.5, 0.12, "square", 0.12, 0.05);
+},
+tapTick() { this.tone(880, 0.05, "square", 0.09);},
+wrong() { this.tone(170, 0.16, "sawtooth", 0.13, 0, 110);},
+escape() { this.tone(320, 0.28, "sawtooth", 0.11, 0, 70);},
+urgentTick() { this.tone(1250, 0.04, "square", 0.06);},
+countBeep(final) { this.tone(final? 990: 620, final? 0.3: 0.12, "square", 0.15);},
+feverStart() { [660, 830, 990, 1320].forEach((f, i) => this.tone(f, 0.12, "square", 0.12, i * 0.06));},
+fanfare() { [523, 659, 784, 1046, 784, 1046].forEach((f, i) => this.tone(f, 0.22, "triangle", 0.18, i * 0.11));},
+startBgm() {
+if (!this.ctx || this.bgmTimer) return;
+const bass = [131, 131, 165, 131, 147, 147, 196, 165];
+this.bgmTimer = setInterval(() => {
+if (this.muted ||!this.ctx) return;
+const s = this.bgmStep % 16;
+if (s % 2 === 0) this.tone(bass[(s / 2) | 0], 0.16, "triangle", 0.055);
+if (s % 4 === 2) this.tone(1560, 0.03, "square", 0.018);
+this.bgmStep++;
+}, 132);
+},
+stopBgm() { if (this.bgmTimer) { clearInterval(this.bgmTimer); this.bgmTimer = null;}},
+setMuted(m) {
+this.muted = m;
+if (this.master) this.master.gain.value = m? 0: 0.5;
+}
+};
+
+      /* ---------------- DOM refs ---------------- */
+      const $ = (id) => document.getElementById(id);
+      const stage = $("stage"), layer = $("widgetLayer");
+      const bgC = $("bgC"), fxC = $("fxC");
+      const bgX = bgC.getContext("2d"), fxX = fxC.getContext("2d");
+      const scoreVal = $("scoreVal"), comboVal = $("comboVal"), timeVal = $("timeVal"), timeBar = $("timeBar");
+      const hudCombo = $("hudCombo"), dangerV = $("dangerVignette");
+
+      /* ---------------- Game state ---------------- */
+      const GAME_LEN = 60;
+      const FEVER_NEED = 10, FEVER_LEN = 6;
+      let state = "title"; // title | count | play | result
+      let widgets = [], particles = [], popups = [];
+      let score = 0, combo = 0, maxCombo = 0, cleared = 0, escaped = 0;
+      let best = 0, lastResult = null;
+      let startAt = 0, spawnAt = 0, rafId = 0, lastFrame = 0, lastTickSnd = 0;
+      let feverUntil = 0;
+      let stageW = 0, stageH = 0, dpr = 1;
+      let nextId = 1;
+
+      const rand = (a, b) => a + Math.random() * (b - a);
+      const randi = (a, b) => Math.floor(rand(a, b + 1));
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+      function resize() {
+        const r = stage.getBoundingClientRect();
+        stageW = Math.max(280, r.width); stageH = Math.max(280, r.height);
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        [bgC, fxC].forEach((c) => { c.width = stageW * dpr; c.height = stageH * dpr; });
+        bgX.setTransform(dpr, 0, 0, dpr, 0, 0);
+        fxX.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawBg(0);
+      }
+      window.addEventListener("resize", resize);
+
+      /* ---------------- Background canvas ---------------- */
+      let bgGlyphs = [];
+      function drawBg(now) {
+        bgX.clearRect(0, 0, stageW, stageH);
+        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        bgX.fillStyle = dark ? "rgba(238,242,240,0.10)" : "rgba(30,39,50,0.10)";
+        const gap = 26;
+        for (let x = gap / 2; x < stageW; x += gap) {
+          for (let y = gap / 2; y < stageH; y += gap) {
+            bgX.beginPath(); bgX.arc(x, y, 1.6, 0, 7); bgX.fill();
+          }
+        }
+        if (!bgGlyphs.length) {
+          const words = ["<div>", "</span>", "<input>", "{}", "const", "<canvas>", "=>", "</button>", "if()", "<form>"];
+          for (let i = 0; i < 9; i++) {
+            bgGlyphs.push({ s: pick(words), x: Math.random(), y: Math.random(), sp: rand(4, 11), size: randi(13, 22), ph: rand(0, 6) });
+          }
+        }
+        bgX.font = "700 16px 'Space Mono', monospace";
+        bgGlyphs.forEach((g) => {
+          const y = ((g.y * stageH + now * 0.001 * g.sp) % (stageH + 40)) - 20;
+          bgX.font = "700 " + g.size + "px 'Space Mono', monospace";
+          bgX.fillStyle = dark ? "rgba(238,242,240,0.07)" : "rgba(30,39,50,0.07)";
+          bgX.fillText(g.s, g.x * stageW, y);
+        });
+      }
+
+      /* ---------------- FX canvas ---------------- */
+      function burst(x, y, colors, n) {
+        for (let i = 0; i < (n || 16); i++) {
+          const a = rand(0, Math.PI * 2), sp = rand(40, 230);
+          particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60, life: rand(0.35, 0.7), age: 0, c: pick(colors), r: rand(2.5, 5.5), sq: Math.random() < 0.4, rot: rand(0, 6) });
+        }
+      }
+      function smoke(x, y) {
+        for (let i = 0; i < 10; i++) {
+          particles.push({ x: x + rand(-16, 16), y: y + rand(-8, 8), vx: rand(-25, 25), vy: rand(-90, -40), life: rand(0.4, 0.8), age: 0, c: "#9aa7b1", r: rand(5, 10), sq: false, rot: 0, smoke: true });
+        }
+      }
+      function popup(x, y, text, color) {
+        popups.push({ x, y, text, color: color || "#ff5a36", age: 0, life: 0.9 });
+      }
+      function drawFx(dt) {
+        fxX.clearRect(0, 0, stageW, stageH);
+        particles = particles.filter((p) => (p.age += dt) < p.life);
+        particles.forEach((p) => {
+          p.x += p.vx * dt; p.y += p.vy * dt;
+          if (!p.smoke) p.vy += 420 * dt;
+          const k = 1 - p.age / p.life;
+          fxX.save();
+          fxX.globalAlpha = p.smoke ? k * 0.5 : k;
+          fxX.translate(p.x, p.y); fxX.rotate(p.rot + p.age * 3);
+          fxX.fillStyle = p.c;
+          if (p.sq) fxX.fillRect(-p.r / 2, -p.r / 2, p.r, p.r);
+          else { fxX.beginPath(); fxX.arc(0, 0, p.r * (p.smoke ? (1.6 - k * 0.6) : 1), 0, 7); fxX.fill(); }
+          fxX.restore();
+        });
+        popups = popups.filter((p) => (p.age += dt) < p.life);
+        popups.forEach((p) => {
+          const k = p.age / p.life;
+          fxX.save();
+          fxX.globalAlpha = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+          fxX.font = "800 " + (p.big ? 30 : 21) + "px 'M PLUS Rounded 1c', sans-serif";
+          fxX.textAlign = "center";
+          fxX.lineWidth = 4; fxX.strokeStyle = "rgba(255,253,244,0.9)";
+          const y = p.y - k * 44;
+          fxX.strokeText(p.text, p.x, y);
+          fxX.fillStyle = p.color;
+          fxX.fillText(p.text, p.x, y);
+          fxX.restore();
+        });
+      }
+
+      /* ---------------- Widgets ---------------- */
+      const CONFETTI = ["#ff5a36", "#0d9d8a", "#ffb400", "#2f7fe0", "#8a5cf6"];
+      const TYPE_DEFS = {
+        tap:    { tag: "<button>", cls: "c-tap",    fuse: 6.5, base: 100, w: 148 },
+        mash:   { tag: "<button>", cls: "c-tap",    fuse: 8.0, base: 200, w: 158 },
+        toggle: { tag: "<input>",  cls: "c-toggle", fuse: 7.0, base: 150, w: 168 },
+        check:  { tag: "<input>",  cls: "c-check",  fuse: 9.0, base: 200, w: 172 },
+        slider: { tag: "<input>",  cls: "c-slider", fuse: 10.0, base: 250, w: 196 },
+        radio:  { tag: "<input>",  cls: "c-radio",  fuse: 7.5, base: 200, w: 196 },
+        order:  { tag: "<button>", cls: "c-order",  fuse: 8.5, base: 250, w: 176 }
+      };
+      const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6"/></svg>';
+
+      function el(html) {
+        const d = document.createElement("div");
+        d.innerHTML = html;
+        return d.firstElementChild;
+      }
+
+      function spawnWidget(forceType) {
+        const elapsed = state === "play" ? (performance.now() - startAt) / 1000 : 0;
+        const prog = clamp(elapsed / GAME_LEN, 0, 1);
+        const pool = elapsed < 6 ? ["tap", "toggle", "tap"] : Object.keys(TYPE_DEFS);
+        const type = forceType || pick(pool);
+        const def = TYPE_DEFS[type];
+        const root = document.createElement("div");
+        root.className = "widget";
+        root.style.width = def.w + "px";
+        const inner = document.createElement("div");
+        inner.className = "w-inner";
+        root.appendChild(inner);
+        const head = document.createElement("div");
+        head.className = "w-head";
+        const tag = document.createElement("span");
+        tag.className = "w-tag " + def.cls; tag.textContent = def.tag;
+        const req = document.createElement("span");
+        req.className = "w-req";
+        head.appendChild(tag); head.appendChild(req);
+        inner.appendChild(head);
+        const body = document.createElement("div");
+        inner.appendChild(body);
+        const fuse = document.createElement("div");
+        fuse.className = "w-fuse";
+        const fuseBar = document.createElement("i");
+        fuse.appendChild(fuseBar);
+        inner.appendChild(fuse);
+        layer.appendChild(root);
+
+        const w = {
+          id: nextId++, type, def, root, inner, fuseBar, req,
+          x: 0, y: 0, w: def.w, h: 100,
+          vx: 0, vy: 0, fuse: 0, fuseMax: 1, dead: false, state: {}
+        };
+        builders[type](w, body, req);
+        w.h = root.offsetHeight || 100;
+        w.x = rand(6, Math.max(7, stageW - w.w - 6));
+        w.y = rand(6, Math.max(7, stageH - w.h - 6));
+        const ang = rand(0, Math.PI * 2), sp = rand(22, 46) + prog * 26;
+        w.vx = Math.cos(ang) * sp; w.vy = Math.sin(ang) * sp;
+        w.fuseMax = def.fuse * rand(0.9, 1.1) * (1 - prog * 0.32);
+        w.fuse = w.fuseMax;
+        root.style.transform = "translate(" + w.x + "px," + w.y + "px)";
+        widgets.push(w);
+        return w;
+      }
+
+      function shake(w) {
+        w.inner.classList.remove("shake");
+        void w.inner.offsetWidth;
+        w.inner.classList.add("shake");
+      }
+
+      function completeWidget(w) {
+        if (w.dead) return;
+        w.dead = true;
+        combo++; maxCombo = Math.max(maxCombo, combo);
+        const fever = performance.now() < feverUntil;
+        if (combo > 0 && combo % FEVER_NEED === 0) {
+          feverUntil = performance.now() + FEVER_LEN * 1000;
+          AudioSys.feverStart();
+          popup(clamp(w.x + w.w / 2, 70, stageW - 70), Math.max(40, w.y - 6), "FEVER!", "#e07b00");
+          const p = popups[popups.length - 1]; if (p) p.big = true;
+        }
+        const timeBonus = Math.round(100 * (w.fuse / w.fuseMax));
+        let pts = w.def.base + timeBonus;
+        if (fever) pts *= 2;
+        score += pts;
+        cleared++;
+        AudioSys.pop(combo);
+        burst(w.x + w.w / 2, w.y + w.h / 2, CONFETTI, 18);
+        popup(w.x + w.w / 2, w.y + 6, "+" + pts, fever ? "#e07b00" : "#ff5a36");
+        w.inner.classList.add("done");
+        setTimeout(() => { w.root.remove(); }, 300);
+        widgets = widgets.filter((o) => o !== w);
+        updateHud();
+      }
+
+      function escapeWidget(w) {
+        if (w.dead) return;
+        w.dead = true;
+        escaped++;
+        combo = 0;
+        AudioSys.escape();
+        smoke(w.x + w.w / 2, w.y + w.h / 2);
+        w.root.style.transition = "transform 0.45s ease-in, opacity 0.45s";
+        w.root.style.transform = "translate(" + w.x + "px," + (w.y - 130) + "px)";
+        w.root.style.opacity = "0";
+        setTimeout(() => { w.root.remove(); }, 480);
+        widgets = widgets.filter((o) => o !== w);
+        dangerV.style.transition = "none"; dangerV.style.opacity = "0.85";
+        requestAnimationFrame(() => { dangerV.style.transition = "opacity 0.4s"; dangerV.style.opacity = "0"; });
+        updateHud();
+      }
+
+      function wrongAction(w) {
+        AudioSys.wrong();
+        shake(w);
+        w.fuse = Math.max(0.4, w.fuse - 1.1);
+      }
+
+      /* --- per-type builders --- */
+      const builders = {
+        tap(w, body, req) {
+          req.textContent = t("reqTap");
+          const b = el('<button class="ctl-btn" type="button">PUSH!</button>');
+          b.textContent = pick(["PUSH!", "OK!", "GO!", "CLICK!"]);
+          b.addEventListener("click", () => completeWidget(w));
+          body.appendChild(b);
+        },
+        mash(w, body, req) {
+          req.textContent = t("reqMash");
+          const need = 6;
+          w.state.left = need;
+          const b = el('<button class="ctl-btn" type="button">TAP!</button>');
+          const pips = document.createElement("div");
+          pips.className = "mash-pips";
+          for (let i = 0; i < need; i++) pips.appendChild(document.createElement("i"));
+          b.addEventListener("click", () => {
+            if (w.dead) return;
+            w.state.left--;
+            AudioSys.tapTick();
+            burst(w.x + w.w / 2, w.y + 30, ["#ffb400", "#ff5a36"], 4);
+            const idx = need - w.state.left - 1;
+            if (pips.children[idx]) pips.children[idx].classList.add("hit");
+            b.style.transform = "scale(0.94)";
+            setTimeout(() => { b.style.transform = ""; }, 60);
+            if (w.state.left <= 0) completeWidget(w);
+          });
+          body.appendChild(b); body.appendChild(pips);
+        },
+        toggle(w, body, req) {
+          const target = Math.random() < 0.5;
+          w.state.target = target;
+          w.state.on = !target;
+          req.textContent = target ? t("reqToggleOn") : t("reqToggleOff");
+          const row = document.createElement("div");
+          row.className = "switch-row";
+          const sw = el('<button class="switch" type="button" role="switch"><span class="knob"></span></button>');
+          const label = document.createElement("span");
+          label.className = "switch-state mono";
+          const paint = () => {
+            sw.setAttribute("aria-checked", String(w.state.on));
+            label.textContent = w.state.on ? "ON" : "OFF";
+            label.style.color = w.state.on ? "var(--teal)" : "var(--muted)";
+          };
+          sw.addEventListener("click", () => {
+            if (w.dead) return;
+            w.state.on = !w.state.on;
+            AudioSys.tapTick();
+            paint();
+            if (w.state.on === w.state.target) completeWidget(w);
+          });
+          paint();
+          row.appendChild(label); row.appendChild(sw);
+          body.appendChild(row);
+        },
+        check(w, body, req) {
+          req.textContent = t("reqCheck");
+          const words = I18N[lang].checkWords.slice();
+          const chosen = [];
+          for (let i = 0; i < 3; i++) chosen.push(words.splice(randi(0, words.length - 1), 1)[0]);
+          const list = document.createElement("div");
+          list.className = "chk-list";
+          w.state.checked = 0;
+          chosen.forEach((word) => {
+            const lab = document.createElement("label");
+            lab.className = "chk";
+            const inp = document.createElement("input");
+            inp.type = "checkbox";
+            const box = document.createElement("span");
+            box.className = "box"; box.innerHTML = CHECK_SVG;
+            const txt = document.createElement("span");
+            txt.textContent = word;
+            inp.addEventListener("change", () => {
+              if (w.dead) return;
+              AudioSys.tapTick();
+              w.state.checked += inp.checked ? 1 : -1;
+              if (w.state.checked >= 3) completeWidget(w);
+            });
+            lab.appendChild(inp); lab.appendChild(box); lab.appendChild(txt);
+            list.appendChild(lab);
+          });
+          body.appendChild(list);
+        },
+        slider(w, body, req) {
+          req.textContent = t("reqSlider");
+          const lo = randi(15, 55), hi = lo + randi(18, 26);
+          w.state.lo = lo; w.state.hi = hi; w.state.inSince = 0;
+          const zone = document.createElement("div");
+          zone.className = "slider-zone";
+          const band = document.createElement("div");
+          band.className = "band";
+          band.style.left = lo + "%"; band.style.width = (hi - lo) + "%";
+          zone.appendChild(band);
+          const val = document.createElement("div");
+          val.className = "slider-val mono";
+          let start = pick([0, 100, randi(0, 30), randi(70, 100)]);
+          if (start >= lo && start <= hi) start = start < 50 ? 0 : 100;
+          const input = document.createElement("input");
+          input.type = "range"; input.min = "0"; input.max = "100"; input.value = String(start);
+          w.state.value = start;
+          const paint = () => {
+            val.textContent = w.state.value;
+            val.classList.toggle("inband", w.state.value >= lo && w.state.value <= hi);
+          };
+          input.addEventListener("input", () => {
+            w.state.value = parseInt(input.value, 10);
+            if (w.state.value < lo || w.state.value > hi) w.state.inSince = 0;
+            paint();
+          });
+          paint();
+          body.appendChild(zone); body.appendChild(val); body.appendChild(input);
+        },
+        radio(w, body, req) {
+          const names = I18N[lang].colorNames;
+          const colors = ["#e5383b", "#2f7fe0", "#2ea84f", "#f2b705"];
+          const idxs = [0, 1, 2, 3].sort(() => Math.random() - 0.5).slice(0, 3);
+          const targetIdx = pick(idxs);
+          w.state.target = targetIdx;
+          req.textContent = t("reqRadio").replace("{name}", names[targetIdx]);
+          const row = document.createElement("div");
+          row.className = "chip-row";
+          idxs.forEach((ci) => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "chip";
+            chip.style.background = colors[ci];
+            chip.textContent = names[ci];
+            chip.addEventListener("click", () => {
+              if (w.dead) return;
+              if (ci === w.state.target) completeWidget(w);
+              else wrongAction(w);
+            });
+            row.appendChild(chip);
+          });
+          body.appendChild(row);
+        },
+        order(w, body, req) {
+          req.textContent = t("reqOrder");
+          w.state.next = 1;
+          const nums = [1, 2, 3].sort(() => Math.random() - 0.5);
+          const row = document.createElement("div");
+          row.className = "order-row";
+          nums.forEach((n) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "order-btn mono";
+            b.textContent = String(n);
+            b.addEventListener("click", () => {
+              if (w.dead) return;
+              if (n === w.state.next) {
+                AudioSys.tapTick();
+                b.classList.add("hit");
+                b.disabled = true;
+                w.state.next++;
+                if (w.state.next > 3) completeWidget(w);
+              } else {
+                w.state.next = 1;
+                row.querySelectorAll(".order-btn").forEach((o) => { o.classList.remove("hit"); o.disabled = false; });
+                wrongAction(w);
+              }
+            });
+            row.appendChild(b);
+          });
+          body.appendChild(row);
+        }
+      };
+
+      /* ---------------- HUD / flow ---------------- */
+      function updateHud() {
+        scoreVal.textContent = score.toLocaleString();
+        comboVal.textContent = String(combo);
+        hudCombo.classList.toggle("fever", performance.now() < feverUntil);
+      }
+
+      function clearWidgets() {
+        widgets.forEach((w) => w.root.remove());
+        widgets = [];
+        layer.innerHTML = "";
+      }
+
+      function startGame() {
+        AudioSys.ensure();
+        clearWidgets();
+        particles = []; popups = [];
+        score = 0; combo = 0; maxCombo = 0; cleared = 0; escaped = 0;
+        feverUntil = 0;
+        $("titleScreen").classList.add("hidden");
+        $("howtoScreen").classList.add("hidden");
+        $("resultScreen").classList.add("hidden");
+        $("hud").classList.add("on");
+        updateHud();
+        timeVal.textContent = String(GAME_LEN);
+        timeBar.style.transform = "scaleX(1)";
+        timeBar.classList.remove("low");
+        state = "count";
+        resize();
+        const overlay = $("countOverlay"), num = $("countNum");
+        overlay.classList.add("on");
+        let c = 3;
+        const showNum = (txt, final) => {
+          num.textContent = txt;
+          num.classList.remove("pop"); void num.offsetWidth; num.classList.add("pop");
+          AudioSys.countBeep(final);
+        };
+        showNum("3", false);
+        const iv = setInterval(() => {
+          c--;
+          if (c > 0) showNum(String(c), false);
+          else if (c === 0) showNum(t("go"), true);
+          else {
+            clearInterval(iv);
+            overlay.classList.remove("on");
+            state = "play";
+            startAt = performance.now();
+            spawnAt = 0;
+            AudioSys.startBgm();
+            spawnWidget("tap");
+          }
+        }, 700);
+        if (!rafId) { lastFrame = performance.now(); rafId = requestAnimationFrame(loop); }
+      }
+
+      function endGame() {
+        state = "result";
+        AudioSys.stopBgm();
+        AudioSys.fanfare();
+        burst(stageW / 2, stageH / 3, CONFETTI, 42);
+        widgets.slice().forEach((w) => { w.dead = true; w.root.remove(); });
+        widgets = [];
+        const rank = rankFor(score);
+        const isRecord = score > best;
+        if (isRecord) best = score;
+        lastResult = { score, rank, cleared, maxCombo, escaped };
+        $("rankLetter").textContent = rank;
+        $("rankStamp").style.setProperty("--rank-color", rankColor(rank));
+        $("resultScore").textContent = score.toLocaleString();
+        $("statCleared").textContent = String(cleared);
+        $("statCombo").textContent = String(maxCombo);
+        $("statEscaped").textContent = String(escaped);
+        $("newRecord").classList.toggle("on", isRecord && cleared > 0);
+        $("hud").classList.remove("on");
+        setTimeout(() => { $("resultScreen").classList.remove("hidden"); }, 650);
+        updateBestLine();
+        if (!rafId) { lastFrame = performance.now(); rafId = requestAnimationFrame(loop); }
+      }
+
+      function rankFor(s) {
+        if (s >= 10500) return "SSS";
+        if (s >= 8800) return "SS";
+        if (s >= 7200) return "S";
+        if (s >= 5600) return "A";
+        if (s >= 4200) return "B";
+        if (s >= 2800) return "C";
+        if (s >= 1500) return "D";
+        return "E";
+      }
+      function rankColor(r) {
+        return { SSS: "#e07b00", SS: "#e07b00", S: "#ff5a36", A: "#0d9d8a", B: "#2f7fe0", C: "#8a5cf6", D: "#6d7680", E: "#6d7680" }[r] || "#ff5a36";
+      }
+
+      /* ---------------- Main loop ---------------- */
+      function loop(now) {
+        rafId = requestAnimationFrame(loop);
+        const dt = Math.min(0.05, (now - lastFrame) / 1000 || 0.016);
+        lastFrame = now;
+        drawBg(now);
+        if (state === "play") {
+          const elapsed = (now - startAt) / 1000;
+          const left = GAME_LEN - elapsed;
+          if (left <= 0) { timeVal.textContent = "0"; endGame(); }
+          else {
+            timeVal.textContent = String(Math.ceil(left));
+            timeBar.style.transform = "scaleX(" + clamp(left / GAME_LEN, 0, 1) + ")";
+            timeBar.classList.toggle("low", left <= 10);
+            if (left <= 5.05 && Math.ceil(left) !== loop._lastBeep) { loop._lastBeep = Math.ceil(left); AudioSys.countBeep(false); }
+
+            const prog = clamp(elapsed / GAME_LEN, 0, 1);
+            const interval = 1350 - prog * 620;
+            const maxConc = Math.round(3 + prog * 3.4);
+            if (now - spawnAt > interval && widgets.length < maxConc) {
+              spawnWidget();
+              spawnAt = now;
+            }
+            let minFuse = 99;
+            widgets.slice().forEach((w) => {
+              if (w.dead) return;
+              w.x += w.vx * dt; w.y += w.vy * dt;
+              if (w.x < 2) { w.x = 2; w.vx = Math.abs(w.vx); }
+              if (w.x > stageW - w.w - 2) { w.x = stageW - w.w - 2; w.vx = -Math.abs(w.vx); }
+              if (w.y < 2) { w.y = 2; w.vy = Math.abs(w.vy); }
+              if (w.y > stageH - w.h - 2) { w.y = stageH - w.h - 2; w.vy = -Math.abs(w.vy); }
+              w.root.style.transform = "translate(" + w.x + "px," + w.y + "px)";
+              w.fuse -= dt;
+              minFuse = Math.min(minFuse, w.fuse);
+              w.fuseBar.style.transform = "scaleX(" + clamp(w.fuse / w.fuseMax, 0, 1) + ")";
+              w.root.classList.toggle("critical", w.fuse < w.fuseMax * 0.3);
+              if (w.type === "slider" && w.state.value >= w.state.lo && w.state.value <= w.state.hi) {
+                w.state.inSince += dt;
+                if (w.state.inSince >= 0.4) { completeWidget(w); return; }
+              }
+              if (w.fuse <= 0) escapeWidget(w);
+            });
+            if (minFuse < 1.6 && minFuse > 0 && now - lastTickSnd > 280) { lastTickSnd = now; AudioSys.urgentTick(); }
+            if (hudCombo.classList.contains("fever") && performance.now() >= feverUntil) updateHud();
+          }
+        }
+        drawFx(dt);
+      }
+
+      /* ---------------- Result image + X share ---------------- */
+      function makeResultImage() {
+        const c = document.createElement("canvas");
+        c.width = 1200; c.height = 630;
+        const g = c.getContext("2d");
+        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const paper = dark ? "#202a34" : "#fffdf4", ink = dark ? "#eef2f0" : "#1e2732", bg = dark ? "#131a21" : "#f2ede1";
+        g.fillStyle = bg; g.fillRect(0, 0, 1200, 630);
+        g.fillStyle = dark ? "rgba(238,242,240,0.12)" : "rgba(30,39,50,0.10)";
+        for (let x = 20; x < 1200; x += 34) for (let y = 20; y < 630; y += 34) { g.beginPath(); g.arc(x, y, 2.2, 0, 7); g.fill(); }
+        g.fillStyle = paper;
+        g.strokeStyle = ink; g.lineWidth = 5;
+        roundRect(g, 90, 60, 1020, 510, 26); g.fill(); g.stroke();
+        g.fillStyle = dark ? "#26313c" : "#f7f1de";
+        roundRect(g, 90, 60, 1020, 74, 26); g.fill();
+        g.beginPath(); g.moveTo(90, 134); g.lineTo(1110, 134); g.lineWidth = 4; g.stroke();
+        [["#ff5f57", 128], ["#febc2e", 162], ["#28c840", 196]].forEach(([col, cx]) => {
+          g.beginPath(); g.arc(cx, 97, 13, 0, 7); g.fillStyle = col; g.fill(); g.lineWidth = 3.5; g.stroke();
+        });
+        g.fillStyle = dark ? "#9aa7b1" : "#6d7680";
+        g.font = "700 26px 'Space Mono', monospace";
+        g.fillText("dom-panic://result", 240, 107);
+        const r = lastResult || { score: 0, rank: "E", cleared: 0, maxCombo: 0, escaped: 0 };
+        g.fillStyle = ink;
+        g.font = "800 64px 'M PLUS Rounded 1c', sans-serif";
+        g.fillText("DOMパニック！", 140, 225);
+        g.font = "800 30px 'M PLUS Rounded 1c', sans-serif";
+        g.fillStyle = dark ? "#9aa7b1" : "#6d7680";
+        g.fillText(t("resultTitle"), 142, 268);
+        g.font = "700 110px 'Space Mono', monospace";
+        g.fillStyle = ink;
+        g.fillText(r.score.toLocaleString(), 138, 395);
+        g.font = "800 34px 'M PLUS Rounded 1c', sans-serif";
+        g.fillStyle = ink;
+        g.fillText(t("statCleared") + " " + r.cleared + "   " + t("statCombo") + " " + r.maxCombo + "   " + t("statEscaped") + " " + r.escaped, 140, 460);
+        g.fillStyle = dark ? "#9aa7b1" : "#6d7680";
+        g.font = "700 26px 'M PLUS Rounded 1c', sans-serif";
+        g.fillText("#ゲーム開発 #個人開発 #gamedev", 140, 520);
+        g.save();
+        g.translate(955, 320); g.rotate(-0.17);
+        g.strokeStyle = rankColor(r.rank); g.lineWidth = 10;
+        g.beginPath(); g.arc(0, 0, 105, 0, 7); g.stroke();
+        g.fillStyle = rankColor(r.rank);
+        g.font = "800 " + (r.rank.length > 1 ? 74 : 110) + "px 'M PLUS Rounded 1c', sans-serif";
+        g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillText(r.rank, 0, 6);
+        g.restore();
+        return c;
+      }
+      function roundRect(g, x, y, w, h, r) {
+        g.beginPath();
+        g.moveTo(x + r, y);
+        g.arcTo(x + w, y, x + w, y + h, r);
+        g.arcTo(x + w, y + h, x, y + h, r);
+        g.arcTo(x, y + h, x, y, r);
+        g.arcTo(x, y, x + w, y, r);
+        g.closePath();
+      }
+      function shareTextStr() {
+        const r = lastResult || { score: 0, rank: "E", cleared: 0 };
+        return t("shareResult").replace("{score}", r.score.toLocaleString()).replace("{rank}", r.rank).replace("{cleared}", String(r.cleared)) +
+          "\nhttps://uimemocho.github.io/apps/dom-panic/\n#ゲーム開発 #個人開発 #gamedev";
+      }
+      function openXIntent() {
+        const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareTextStr());
+        window.open(url, "_blank", "noopener");
+      }
+      let toastTimer = 0;
+      function toast(msg) {
+        const elx = $("toast");
+        elx.textContent = msg;
+        elx.classList.add("on");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => elx.classList.remove("on"), 3400);
+      }
+      function downloadImage(blob) {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "dom-panic-result.png";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+      }
+      function shareWithImage() {
+        AudioSys.ensure();
+        const c = makeResultImage();
+        c.toBlob(async (blob) => {
+          if (!blob) { openXIntent(); return; }
+          const file = new File([blob], "dom-panic-result.png", { type: "image/png" });
+          const text = shareTextStr();
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try { await navigator.share({ files: [file], text }); return; }
+            catch (e) { if (e && e.name === "AbortError") return; }
+          }
+          if (navigator.share) {
+            try { await navigator.share({ text }); return; }
+            catch (e) { if (e && e.name === "AbortError") return; }
+          }
+          downloadImage(blob);
+          toast(t("savedToast"));
+          setTimeout(openXIntent, 500);
+        }, "image/png");
+      }
+
+      /* ---------------- i18n apply / screens ---------------- */
+      function applyLang() {
+        document.documentElement.lang = lang === "zh-Hans" ? "zh-CN" : lang === "zh-Hant" ? "zh-TW" : lang;
+        document.querySelectorAll("[data-i18n]").forEach((n) => {
+          const v = t(n.getAttribute("data-i18n"));
+          if (typeof v === "string") n.innerHTML = v;
+        });
+        const list = $("howtoList");
+        list.innerHTML = "";
+        t("howtoItems").forEach(([tag, text]) => {
+          const item = document.createElement("div");
+          item.className = "howto-item";
+          const chip = document.createElement("span");
+          chip.className = "w-tag"; chip.textContent = tag;
+          const p = document.createElement("span"); p.textContent = text;
+          item.appendChild(chip); item.appendChild(p);
+          list.appendChild(item);
+        });
+        updateBestLine();
+      }
+      function updateBestLine() {
+        $("bestLine").textContent = best > 0 ? t("best") + "  " + best.toLocaleString() : "";
+      }
+      function showTitle() {
+        state = "title";
+        clearWidgets();
+        $("hud").classList.remove("on");
+        $("resultScreen").classList.add("hidden");
+        $("howtoScreen").classList.add("hidden");
+        $("titleScreen").classList.remove("hidden");
+        updateBestLine();
+        if (!rafId) { lastFrame = performance.now(); rafId = requestAnimationFrame(loop); }
+      }
+
+      /* ---------------- wire up ---------------- */
+      $("startBtn").addEventListener("click", startGame);
+      $("howtoStartBtn").addEventListener("click", startGame);
+      $("retryBtn").addEventListener("click", startGame);
+      $("howtoBtn").addEventListener("click", () => {
+        AudioSys.ensure(); AudioSys.tapTick();
+        $("titleScreen").classList.add("hidden");
+        $("howtoScreen").classList.remove("hidden");
+      });
+      $("howtoBackBtn").addEventListener("click", () => {
+        $("howtoScreen").classList.add("hidden");
+        $("titleScreen").classList.remove("hidden");
+      });
+      $("toTitleBtn").addEventListener("click", showTitle);
+      $("shareImgBtn").addEventListener("click", shareWithImage);
+      $("shareTextBtn").addEventListener("click", openXIntent);
+      $("muteBtn").addEventListener("click", () => {
+        AudioSys.ensure();
+        AudioSys.setMuted(!AudioSys.muted);
+        $("sndOnIcon").style.display = AudioSys.muted ? "none" : "block";
+        $("sndOffIcon").style.display = AudioSys.muted ? "block" : "none";
+        if (!AudioSys.muted) AudioSys.tapTick();
+      });
+      $("langSel").addEventListener("change", (e) => {
+        lang = e.target.value;
+        applyLang();
+      });
+      stage.addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
+      document.addEventListener("gesturestart", (e) => e.preventDefault());
+
+      applyLang();
+      resize();
+      rafId = requestAnimationFrame(loop);
+
+      /* small state handle for scripted checks */
+      window.DOMPANIC = {
+        get state() { return state; },
+        get score() { return score; },
+        get widgets() { return widgets.length; },
+        start: startGame
+      };
+    </script>
+  </body>
+</html>
