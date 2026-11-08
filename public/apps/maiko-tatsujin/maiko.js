@@ -214,7 +214,7 @@ export function buildMaiko(look) {
   }
 
   // 持ち物（手に持たせる）
-  let canopy = null, fan = null;
+  let canopy = null, fan = null, kasaG = null, kasaArm = null;
   const Rh = hands.R, Lh = hands.L;
   if (look.item === 'sensu') {
     const fg = new THREE.Group(); fg.position.copy(Rh.w).addScaledVector(Rh.dir, 0.06); Rh.g.add(fg);
@@ -223,12 +223,22 @@ export function buildMaiko(look) {
     const ribs = new THREE.Mesh(new THREE.CircleGeometry(0.03, 12, Math.PI * 0.16, Math.PI * 0.68), std({ color: '#2a1408', side: THREE.DoubleSide })); ribs.rotation.copy(fan.rotation); ribs.position.z = 0.001; fg.add(ribs);
   } else if (look.item === 'kasa') {
     const kg = new THREE.Group(); kg.position.copy(Rh.w).addScaledVector(Rh.dir, 0.05); Rh.g.add(kg);
+    kasaG = kg; kasaArm = Rh.g;
     const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.72, 6), std({ color: '#6b3a1c' })); stick.position.y = 0.3; kg.add(stick);
     const can = new THREE.Group(); can.position.y = 0.67; kg.add(can);
     const top = cast(new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.13, 24, 1, true), std({ color: '#c8102e', side: THREE.DoubleSide, roughness: 0.6 })));
     can.add(top);
     const hub = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), std({ color: '#111' })); hub.position.y = 0.08; can.add(hub);
-    for (let i = 0; i < 16; i++) { const rib = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.34, 4), std({ color: '#5a2a10' })); const a = i / 16 * Math.PI * 2; rib.position.set(Math.cos(a) * 0.15, -0.065, Math.sin(a) * 0.15); rib.rotation.set(0, -a, Math.PI / 2 + 0.36); rib.rotation.order = 'YXZ'; can.add(rib); }
+    // 骨：傘の内側の面に沿わせる（面の頂点と同じ角度に置き、少し内側へ）
+    const ribMat = std({ color: '#5a2a10' }), CR = 0.34, CH = 0.13, IN = 0.012;
+    for (let i = 0; i < 24; i += 2) {
+      const th = i / 24 * Math.PI * 2, rr = CR - 0.006;
+      const A = new THREE.Vector3(0, CH / 2 - IN, 0), B = new THREE.Vector3(Math.sin(th) * rr, CH / 2 - CH * (rr / CR) - IN, Math.cos(th) * rr);
+      can.add(limb(A, B, 0.0028, 0.0028, ribMat, 5));
+      // 受け骨（柄から骨の中ほどへ）
+      const rm = 0.15, M = new THREE.Vector3(Math.sin(th) * rm, CH / 2 - CH * (rm / CR) - IN - 0.004, Math.cos(th) * rm);
+      can.add(limb(new THREE.Vector3(0, -0.15, 0), M, 0.002, 0.002, ribMat, 4));
+    }
     canopy = can;
   } else if (look.item === 'kinchaku') {
     const bg = new THREE.Group(); bg.position.copy(Lh.w).addScaledVector(Lh.dir, 0.05); Lh.g.add(bg);
@@ -300,6 +310,7 @@ export function buildMaiko(look) {
         swing.rotation.x = -outward * (flare * 1.15 + 0.05 + (0.5 + 0.5 * Math.sin(time * 1.7 + sx)) * 0.03);
       });
       danglers.forEach((d, i) => { d.rotation.z = (i % 2 ? 1 : -1) * flare * 0.8; d.rotation.x = flare * 0.9 + (0.5 + 0.5 * Math.sin(time * 7 + i)) * 0.08 * (flare + 0.2); });
+      if (kasaG) kasaG.quaternion.copy(kasaArm.quaternion).invert(); // 腕が広がっても傘はまっすぐ
       if (canopy) canopy.rotation.y += visRate * dt * 0.3;
       blur.material.opacity = spinning ? Math.min(0.95, 0.18 + ratio * 0.55 + boost * 0.35) : Math.min(0.5, (s.preSpin || 0) * 0.025);
       blur.material.map.offset.x -= dt * (6 * ratio + 10 * boost + (s.preSpin || 0) * 0.3);
