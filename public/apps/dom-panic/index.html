@@ -3,15 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="light" />
     <link rel="icon" href="data:," />
     <title>DOMパニック！ | HTML-in-Canvasゲーム</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Mochiy+Pop+One&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <style>
       :root {
-        color-scheme: light dark;
+        /* Always the bright thumbnail look (cream + dots + pop colors),
+           regardless of the OS dark-mode setting. */
+        color-scheme: light;
         --bg: #f2ede1;
         --bg2: #e9e1cd;
         --ink: #1e2732;
@@ -27,24 +29,9 @@
         --shadow: rgba(30, 39, 50, 0.9);
         --gridot: rgba(30, 39, 50, 0.10);
         --fuse-bg: rgba(30, 39, 50, 0.14);
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #131a21;
-          --bg2: #0d1218;
-          --ink: #eef2f0;
-          --panel: #202a34;
-          --panel2: #26313c;
-          --accent: #ff6a45;
-          --teal: #17bda6;
-          --amber: #ffb400;
-          --blue: #4b96f5;
-          --danger: #ff5a5e;
-          --muted: #9aa7b1;
-          --shadow: rgba(0, 0, 0, 0.55);
-          --gridot: rgba(238, 242, 240, 0.09);
-          --fuse-bg: rgba(238, 242, 240, 0.16);
-        }
+        --logo-navy: #16307a;
+        --logo-red: #e8312f;
+        --logo-shadow: rgba(30, 39, 50, 0.22);
       }
       * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
       html, body { height: 100%; }
@@ -199,7 +186,7 @@
       .slider-zone .band { position: absolute; top: 0; bottom: 0; background: var(--teal); opacity: 0.75; }
       .slider-val { text-align: center; font-size: 19px; font-weight: 700; margin-bottom: 2px; }
       .slider-val.inband { color: var(--teal); }
-      input[type="range"] { width: 100%; margin: 2px 0 0; accent-color: var(--accent); height: 30px; cursor: pointer; }
+      input[type="range"] { width: 100%; margin: 2px 0 0; accent-color: var(--accent); height: 34px; cursor: pointer; touch-action: none; }
 
       .chip-row { display: flex; gap: 7px; }
       .chip {
@@ -220,13 +207,15 @@
       /* ---------- Screens ---------- */
       .screen {
         position: absolute; inset: 0; z-index: 40;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        padding: calc(16px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom));
+        display: flex; flex-direction: column; align-items: center;
+        padding: calc(14px + env(safe-area-inset-top)) 16px calc(26px + env(safe-area-inset-bottom));
         overflow-y: auto;
       }
       .screen.hidden { display: none; }
       .window {
         width: min(430px, 100%);
+        margin: auto;
+        flex: none;
         background: var(--panel);
         border: 2.5px solid var(--ink); border-radius: 18px;
         box-shadow: 8px 8px 0 var(--shadow);
@@ -242,17 +231,27 @@
         background: var(--panel); border: 2px solid var(--ink); border-radius: 99px; padding: 3px 10px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
-      .win-body { padding: 22px 20px 24px; text-align: center; position: relative; }
+      .win-body { padding: 20px 20px 22px; text-align: center; position: relative; }
       .logo-tags { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
       .logo-tags span {
         font-family: "Space Mono", ui-monospace, monospace; font-size: 11px; font-weight: 700;
         border: 2px solid var(--ink); border-radius: 7px; padding: 2px 7px; background: var(--panel2);
       }
       h1.logo {
-        margin: 0; font-size: clamp(40px, 11.5vw, 56px); font-weight: 800; line-height: 1.08; letter-spacing: 0.01em;
+        margin: 0;
+        display: flex; justify-content: center; align-items: center;
+        font-family: "Mochiy Pop One", "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif;
+        font-size: clamp(30px, 9.2vw, 46px); font-weight: 400; line-height: 1.15; letter-spacing: 0.01em;
+        white-space: nowrap;
+        color: var(--logo-navy);
+        text-shadow: 3px 3px 0 var(--logo-shadow);
       }
-      h1.logo .accent { color: var(--accent); }
-      .tagline { margin: 10px 0 0; font-size: 14px; font-weight: 700; color: var(--muted); line-height: 1.55; }
+      h1.logo .accent { color: var(--logo-red); }
+      .tagline {
+        margin: 12px 0 0;
+        font-family: "Mochiy Pop One", "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif;
+        font-size: 14.5px; font-weight: 400; color: var(--ink); line-height: 1.65;
+      }
       .best-line { margin-top: 12px; font-size: 13px; font-weight: 800; color: var(--teal); min-height: 18px; }
       .btn-col { display: flex; flex-direction: column; gap: 11px; margin-top: 20px; }
       .big-btn {
@@ -278,27 +277,60 @@
       .howto-list { text-align: left; margin: 14px 0 4px; display: flex; flex-direction: column; gap: 10px; }
       .howto-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; font-weight: 700; line-height: 1.5; }
       .howto-item .w-tag { margin-top: 1px; flex: none; }
-      h2.screen-title { margin: 0; font-size: 24px; font-weight: 800; }
+      h2.screen-title {
+        margin: 0; font-size: 26px; font-weight: 400;
+        font-family: "Mochiy Pop One", "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif;
+        letter-spacing: 0.02em;
+      }
 
       /* result */
+      .result-body { padding-top: 16px; padding-bottom: 18px; }
       .rank-stamp {
-        width: 118px; height: 118px; margin: 4px auto 0;
-        border: 5px solid var(--rank-color, var(--accent)); border-radius: 50%;
-        display: grid; place-items: center;
+        position: relative;
+        width: 128px; height: 128px; margin: 12px auto 0;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
         color: var(--rank-color, var(--accent));
-        transform: rotate(-10deg);
+        transform: rotate(-8deg);
         animation: stampIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s backwards;
+        filter: drop-shadow(0 5px 6px rgba(30, 39, 50, 0.28));
       }
-      @keyframes stampIn { from { transform: rotate(-10deg) scale(2.4); opacity: 0; } to { transform: rotate(-10deg) scale(1); opacity: 1; } }
-      .rank-stamp .rank-letter { font-size: 52px; font-weight: 800; line-height: 1; }
-      .rank-caption { font-size: 11px; font-weight: 800; letter-spacing: 0.22em; color: var(--muted); margin-top: 10px; }
-      .result-score { font-size: 46px; font-weight: 700; line-height: 1.1; margin-top: 2px; }
-      .new-record { display: none; font-size: 13px; font-weight: 800; color: var(--accent); margin-top: 4px; }
+      @keyframes stampIn { from { transform: rotate(-8deg) scale(2.4); opacity: 0; } to { transform: rotate(-8deg) scale(1); opacity: 1; } }
+      .rank-stamp .ring-outer,
+      .rank-stamp .ring-inner {
+        position: absolute; border-radius: 50%; pointer-events: none;
+      }
+      .rank-stamp .ring-outer { inset: 0; border: 5px solid var(--rank-color, var(--accent)); }
+      .rank-stamp .ring-inner {
+        inset: 8px;
+        border: 2px solid var(--rank-color, var(--accent));
+        opacity: 0.55;
+        background: radial-gradient(circle at 50% 32%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 62%), var(--panel2);
+      }
+      .rank-stamp .sheen {
+        position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+        background: linear-gradient(155deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 46%);
+      }
+      .rank-stamp .rank-letter {
+        position: relative; z-index: 1;
+        font-family: "Mochiy Pop One", "M PLUS Rounded 1c", sans-serif;
+        font-size: 52px; font-weight: 400; line-height: 1;
+        text-shadow: 2px 3px 0 rgba(30, 39, 50, 0.14);
+      }
+      .rank-caption { font-size: 11px; font-weight: 800; letter-spacing: 0.3em; text-indent: 0.3em; color: var(--muted); margin-top: 12px; }
+      .result-score { font-size: 44px; font-weight: 700; line-height: 1.1; margin-top: 3px; }
+      .new-record { display: none; font-size: 13px; font-weight: 800; color: var(--accent); margin-top: 5px; }
       .new-record.on { display: block; }
-      .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 16px; }
-      .stat-cell { background: var(--panel2); border: 2px solid var(--ink); border-radius: 12px; padding: 8px 4px; }
+      .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 14px; }
+      .stat-cell {
+        background: linear-gradient(180deg, var(--panel), var(--panel2));
+        border: 2px solid var(--ink); border-radius: 12px; padding: 8px 4px 7px;
+        box-shadow: 0 3px 0 var(--ink);
+      }
       .stat-cell .v { font-size: 21px; font-weight: 700; }
       .stat-cell .k { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--muted); margin-top: 1px; }
+      .result-body .btn-col { margin-top: 16px; gap: 10px; }
+      .result-body .big-btn { padding: 12px 18px; }
 
       #countOverlay {
         position: absolute; inset: 0; z-index: 35; display: none;
@@ -373,7 +405,7 @@
             <div class="logo-tags">
               <span>&lt;html&gt;</span><span>&lt;canvas&gt;</span><span>&lt;panic&gt;</span>
             </div>
-            <h1 class="logo">DOM<span class="accent">パニック</span>！</h1>
+            <h1 class="logo">DOM<span class="accent">パニック！</span></h1>
             <p class="tagline" data-i18n="tagline"></p>
             <div class="best-line mono" id="bestLine"></div>
             <div class="btn-col">
@@ -427,9 +459,9 @@
             <span class="win-dot" style="background:#28c840"></span>
             <span class="win-url mono">dom-panic://result</span>
           </div>
-          <div class="win-body">
+          <div class="win-body result-body">
             <h2 class="screen-title" data-i18n="resultTitle"></h2>
-            <div class="rank-stamp" id="rankStamp"><span class="rank-letter" id="rankLetter">S</span></div>
+            <div class="rank-stamp" id="rankStamp"><span class="ring-outer" aria-hidden="true"></span><span class="ring-inner" aria-hidden="true"></span><span class="sheen" aria-hidden="true"></span><span class="rank-letter" id="rankLetter">S</span></div>
             <div class="rank-caption">RANK</div>
             <div class="result-score mono" id="resultScore">0</div>
             <div class="new-record" id="newRecord" data-i18n="newRecord"></div>
@@ -764,8 +796,7 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
       let bgGlyphs = [];
       function drawBg(now) {
         bgX.clearRect(0, 0, stageW, stageH);
-        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        bgX.fillStyle = dark ? "rgba(238,242,240,0.10)" : "rgba(30,39,50,0.10)";
+        bgX.fillStyle = "rgba(30,39,50,0.10)";
         const gap = 26;
         for (let x = gap / 2; x < stageW; x += gap) {
           for (let y = gap / 2; y < stageH; y += gap) {
@@ -782,7 +813,7 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
         bgGlyphs.forEach((g) => {
           const y = ((g.y * stageH + now * 0.001 * g.sp) % (stageH + 40)) - 20;
           bgX.font = "700 " + g.size + "px 'Space Mono', monospace";
-          bgX.fillStyle = dark ? "rgba(238,242,240,0.07)" : "rgba(30,39,50,0.07)";
+          bgX.fillStyle = "rgba(30,39,50,0.07)";
           bgX.fillText(g.s, g.x * stageW, y);
         });
       }
@@ -1058,11 +1089,27 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
             val.textContent = w.state.value;
             val.classList.toggle("inband", w.state.value >= lo && w.state.value <= hi);
           };
-          input.addEventListener("input", () => {
+          const syncVal = () => {
             w.state.value = parseInt(input.value, 10);
             if (w.state.value < lo || w.state.value > hi) w.state.inSince = 0;
             paint();
-          });
+          };
+          input.addEventListener("input", syncVal);
+          input.addEventListener("change", syncVal);
+          /* While the player is dragging the thumb, freeze the widget so the
+             moving target cannot fight the drag (the value is computed
+             against the track, so a fleeing widget makes the slider feel
+             dead). Resume fleeing as soon as the drag ends. */
+          const holdOn = () => { w.state.holdMove = true; };
+          const holdOff = () => { w.state.holdMove = false; syncVal(); };
+          input.addEventListener("pointerdown", holdOn);
+          input.addEventListener("touchstart", holdOn, { passive: true });
+          input.addEventListener("pointerup", holdOff);
+          input.addEventListener("pointercancel", holdOff);
+          input.addEventListener("touchend", holdOff);
+          input.addEventListener("touchcancel", holdOff);
+          window.addEventListener("pointerup", holdOff);
+          window.addEventListener("pointercancel", holdOff);
           paint();
           body.appendChild(zone); body.appendChild(val); body.appendChild(input);
         },
@@ -1187,8 +1234,10 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
         const isRecord = score > best;
         if (isRecord) best = score;
         lastResult = { score, rank, cleared, maxCombo, escaped };
-        $("rankLetter").textContent = rank;
+        const rankLetterEl = $("rankLetter");
+        rankLetterEl.textContent = rank;
         $("rankStamp").style.setProperty("--rank-color", rankColor(rank));
+        rankLetterEl.style.fontSize = ({ 1: 56, 2: 48, 3: 37 }[rank.length] || 37) + "px";
         $("resultScore").textContent = score.toLocaleString();
         $("statCleared").textContent = String(cleared);
         $("statCombo").textContent = String(maxCombo);
@@ -1240,7 +1289,7 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
             let minFuse = 99;
             widgets.slice().forEach((w) => {
               if (w.dead) return;
-              w.x += w.vx * dt; w.y += w.vy * dt;
+              if (!w.state.holdMove) { w.x += w.vx * dt; w.y += w.vy * dt; }
               if (w.x < 2) { w.x = 2; w.vx = Math.abs(w.vx); }
               if (w.x > stageW - w.w - 2) { w.x = stageW - w.w - 2; w.vx = -Math.abs(w.vx); }
               if (w.y < 2) { w.y = 2; w.vy = Math.abs(w.vy); }
@@ -1268,29 +1317,28 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
         const c = document.createElement("canvas");
         c.width = 1200; c.height = 630;
         const g = c.getContext("2d");
-        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const paper = dark ? "#202a34" : "#fffdf4", ink = dark ? "#eef2f0" : "#1e2732", bg = dark ? "#131a21" : "#f2ede1";
+        const paper = "#fffdf4", ink = "#1e2732", bg = "#f2ede1";
         g.fillStyle = bg; g.fillRect(0, 0, 1200, 630);
-        g.fillStyle = dark ? "rgba(238,242,240,0.12)" : "rgba(30,39,50,0.10)";
+        g.fillStyle = "rgba(30,39,50,0.10)";
         for (let x = 20; x < 1200; x += 34) for (let y = 20; y < 630; y += 34) { g.beginPath(); g.arc(x, y, 2.2, 0, 7); g.fill(); }
         g.fillStyle = paper;
         g.strokeStyle = ink; g.lineWidth = 5;
         roundRect(g, 90, 60, 1020, 510, 26); g.fill(); g.stroke();
-        g.fillStyle = dark ? "#26313c" : "#f7f1de";
+        g.fillStyle = "#f7f1de";
         roundRect(g, 90, 60, 1020, 74, 26); g.fill();
         g.beginPath(); g.moveTo(90, 134); g.lineTo(1110, 134); g.lineWidth = 4; g.stroke();
         [["#ff5f57", 128], ["#febc2e", 162], ["#28c840", 196]].forEach(([col, cx]) => {
           g.beginPath(); g.arc(cx, 97, 13, 0, 7); g.fillStyle = col; g.fill(); g.lineWidth = 3.5; g.stroke();
         });
-        g.fillStyle = dark ? "#9aa7b1" : "#6d7680";
+        g.fillStyle = "#6d7680";
         g.font = "700 26px 'Space Mono', monospace";
         g.fillText("dom-panic://result", 240, 107);
         const r = lastResult || { score: 0, rank: "E", cleared: 0, maxCombo: 0, escaped: 0 };
         g.fillStyle = ink;
-        g.font = "800 64px 'M PLUS Rounded 1c', sans-serif";
+        g.font = "64px 'Mochiy Pop One', 'M PLUS Rounded 1c', sans-serif";
         g.fillText("DOMパニック！", 140, 225);
         g.font = "800 30px 'M PLUS Rounded 1c', sans-serif";
-        g.fillStyle = dark ? "#9aa7b1" : "#6d7680";
+        g.fillStyle = "#6d7680";
         g.fillText(t("resultTitle"), 142, 268);
         g.font = "700 110px 'Space Mono', monospace";
         g.fillStyle = ink;
@@ -1298,17 +1346,24 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
         g.font = "800 34px 'M PLUS Rounded 1c', sans-serif";
         g.fillStyle = ink;
         g.fillText(t("statCleared") + " " + r.cleared + "   " + t("statCombo") + " " + r.maxCombo + "   " + t("statEscaped") + " " + r.escaped, 140, 460);
-        g.fillStyle = dark ? "#9aa7b1" : "#6d7680";
+        g.fillStyle = "#6d7680";
         g.font = "700 26px 'M PLUS Rounded 1c', sans-serif";
         g.fillText("#DOMパニック #ゲーム開発 #個人開発 #gamedev", 140, 520);
         g.save();
-        g.translate(955, 320); g.rotate(-0.17);
+        g.translate(955, 320); g.rotate(-0.14);
+        g.shadowColor = "rgba(30,39,50,0.28)"; g.shadowBlur = 14; g.shadowOffsetY = 6;
+        g.fillStyle = "#fffdf4";
+        g.beginPath(); g.arc(0, 0, 105, 0, 7); g.fill();
+        g.shadowColor = "transparent"; g.shadowBlur = 0; g.shadowOffsetY = 0;
         g.strokeStyle = rankColor(r.rank); g.lineWidth = 10;
         g.beginPath(); g.arc(0, 0, 105, 0, 7); g.stroke();
+        g.globalAlpha = 0.55; g.lineWidth = 3;
+        g.beginPath(); g.arc(0, 0, 88, 0, 7); g.stroke();
+        g.globalAlpha = 1;
         g.fillStyle = rankColor(r.rank);
-        g.font = "800 " + (r.rank.length > 1 ? 74 : 110) + "px 'M PLUS Rounded 1c', sans-serif";
+        g.font = ({ 1: 110, 2: 92, 3: 70 }[r.rank.length] || 70) + "px 'Mochiy Pop One', 'M PLUS Rounded 1c', sans-serif";
         g.textAlign = "center"; g.textBaseline = "middle";
-        g.fillText(r.rank, 0, 6);
+        g.fillText(r.rank, 0, 4);
         g.restore();
         return c;
       }
@@ -1428,7 +1483,13 @@ if (this.master) this.master.gain.value = m? 0: 0.5;
         lang = e.target.value;
         applyLang();
       });
-      stage.addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
+      stage.addEventListener("touchmove", (e) => {
+        /* Never swallow touch moves that belong to a widget control: the
+           range slider's native thumb drag depends on them, so blocking
+           them here made the slider unresponsive on touch devices. */
+        if (e.target && e.target.closest && e.target.closest(".widget")) return;
+        e.preventDefault();
+      }, { passive: false });
       document.addEventListener("gesturestart", (e) => e.preventDefault());
 
       applyLang();
