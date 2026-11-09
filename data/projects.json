@@ -656,5 +656,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-09T21:55:41Z",
     "updatedAt": "2026-11-09T21:55:41Z"
+  },
+  {
+    "slug": "densen-gosenfu",
+    "title": "電線五線譜",
+    "kind": "game",
+    "description": "電線は、五線譜だ。タップで電線を飛び移り、仲間のスズメを集めて群れと曲をつくる。止まった線がそのまま音になり、夕焼けから夜へ。カラスとビリビリをかわして、SSSランクを目指せ。自分の曲が譜面になったシェア画像でX投稿も。",
+    "url": "/apps/densen-gosenfu/",
+    "thumbnail": "/project-thumbnails/catalog/densen-gosenfu.webp",
+    "sourceFolder": "261110_電線五線譜",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-09T23:32:25Z",
+    "updatedAt": "2026-11-09T23:32:25Z"
   }
 ]
