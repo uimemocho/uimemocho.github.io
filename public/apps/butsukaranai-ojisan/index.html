@@ -276,15 +276,15 @@ class Sound{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;try{this.ctx=new AC()}catch{return}
   const c=this.ctx;this.master=c.createGain();this.master.connect(c.destination);this.sfx=c.createGain();this.sfx.connect(this.master);this.music=c.createGain();this.music.connect(this.master);
   const len=c.sampleRate;const b=c.createBuffer(1,len,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;this.nb=b;this.apply()}
- apply(){if(!this.ctx)return;this.master.gain.value=this.on?this.vol:0;this.music.gain.value=this.bgmOn?.42:0}
+ apply(){if(!this.ctx)return;this.master.gain.value=this.on?this.vol:0;this.music.gain.value=this.bgmOn?.55:0}
  env(g,t,a,p,dcy){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(p,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+dcy)}
  tone(f,dur,{type='sine',vol=.2,at=0,slide=0,dest,att=.005}={}){const c=this.ctx;if(!c)return;const t=c.currentTime+at+(this.off||0),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);o.connect(g);g.connect(dest||this.sfx);this.env(g,t,att,vol,dur);o.start(t);o.stop(t+dur+att+.05)}
  noise(dur,{vol=.2,at=0,type='lowpass',freq=1000,q=1,slide=0,dest}={}){const c=this.ctx;if(!c)return;const t=c.currentTime+at+(this.off||0),s=c.createBufferSource();s.buffer=this.nb;const f=c.createBiquadFilter();f.type=type;f.frequency.setValueAtTime(freq,t);if(slide)f.frequency.exponentialRampToValueAtTime(slide,t+dur);f.Q.value=q;const g=c.createGain();s.connect(f);f.connect(g);g.connect(dest||this.sfx);this.env(g,t,.004,vol,dur);s.start(t,Math.random()*.6);s.stop(t+dur+.06)}
  play(n,x=0){if(!this.ctx||!this.on)return;const T=this.tone.bind(this),N=this.noise.bind(this);
   switch(n){
    case 'step':N(.05,{vol:.05,freq:380+Math.random()*260});T(85,.05,{vol:.035});break;
-   case 'near':{N(.22,{type:'bandpass',freq:700,slide:3400,q:1.4,vol:.16});const sc=[0,2,4,7,9,12,14,16,19,21,24,26,28,31];const f=523.25*Math.pow(2,sc[Math.min(x-1,sc.length-1)]/12);T(f,.26,{type:'triangle',vol:.12,at:.03});T(f*2,.16,{vol:.04,at:.05});break}
-   case 'god':N(.3,{type:'bandpass',freq:900,slide:5000,q:1,vol:.18});[0,4,7,12].forEach((s,i)=>T(880*Math.pow(2,s/12),.22,{type:'triangle',vol:.07,at:.03+i*.04}));break;
+   case 'near':{N(.16,{type:'bandpass',freq:900,slide:3000,q:2,vol:.07});const sc=[0,2,4,7,9,12,14,16,19,21,24,26,28,31];const f=523.25*Math.pow(2,sc[Math.min(x-1,sc.length-1)]/12);T(f,.26,{type:'triangle',vol:.12,at:.03});T(f*2,.16,{vol:.04,at:.05});break}
+   case 'god':N(.2,{type:'bandpass',freq:1000,slide:4000,q:2,vol:.08});[0,4,7,12].forEach((s,i)=>T(880*Math.pow(2,s/12),.22,{type:'triangle',vol:.07,at:.03+i*.04}));break;
    case 'hit':T(150,.28,{vol:.5,slide:42});N(.2,{freq:800,vol:.32});T(240,.14,{type:'square',vol:.05,slide:110,at:.02});break;
    case 'bark':for(let i=0;i<2;i++){T(560,.09,{type:'sawtooth',vol:.11,slide:280,at:i*.17});N(.08,{type:'bandpass',freq:1300,q:3,vol:.14,at:i*.17})}break;
    case 'bell':for(let i=0;i<2;i++){T(2900,.4,{vol:.07,at:i*.14});T(4170,.28,{vol:.04,at:i*.14})}break;
@@ -305,9 +305,9 @@ class Sound{
    case 'stamp':T(70,.5,{vol:.55,slide:35});N(.25,{freq:500,vol:.3});T(1047,.5,{type:'triangle',vol:.07,at:.05});T(1568,.6,{type:'triangle',vol:.05,at:.12});break;
    case 'spurt':[0,5,7,12].forEach((sm,i)=>T(659*Math.pow(2,sm/12),.14,{type:'square',vol:.04,at:i*.07}));break;
   }}
- startWind(){if(!this.ctx||this.wind)return;const c=this.ctx,s=c.createBufferSource();s.buffer=this.nb;s.loop=true;const f=c.createBiquadFilter();f.type='bandpass';f.Q.value=.7;f.frequency.value=400;const g=c.createGain();g.gain.value=0;s.connect(f);f.connect(g);g.connect(this.sfx);s.start();this.wind={s,f,g}}
- setWind(v){if(!this.wind)return;const t=this.ctx.currentTime,k=clamp((v-2.5)/5,0,1);this.wind.g.gain.setTargetAtTime(k*k*.22,t,.1);this.wind.f.frequency.setTargetAtTime(350+k*1800,t,.1)}
- stopWind(){if(!this.wind)return;try{this.wind.s.stop()}catch{}this.wind=null}
+ startWind(){}
+ setWind(){}
+ stopWind(){}
  startBgm(st){if(!this.ctx)return;this.stopBgm();this.bpm=st.bpm;this.prog=st.prog;this.step=0;this.next=this.ctx.currentTime+.08;this.timer=setInterval(()=>this.sched(),30)}
  stopBgm(){if(this.timer)clearInterval(this.timer);this.timer=null}
  sched(){const c=this.ctx,spb=60/this.bpm/2;while(this.next<c.currentTime+.14){this.note(this.step,this.next-c.currentTime);this.next+=spb;this.step++}}
@@ -319,11 +319,13 @@ class Sound{
   [[2,[0,3,7,10]],[10,[0,4,7,11]],[7,[0,3,7,10]],[9,[0,4,7,10]]]][this.prog];
   const bar=Math.floor(step/8)%4,s=step%8,[root,ch]=P[bar],base=65.41*Math.pow(2,root/12),d=this.music,T=this.tone.bind(this),N=this.noise.bind(this);
   if(s===0||s===4||(s===7&&bar===3))T(118,.16,{vol:.32,slide:42,at,dest:d});
-  if(s===2||s===6)N(.11,{type:'bandpass',freq:1900,q:.8,vol:.09,at,dest:d});
-  N(.025,{type:'highpass',freq:7500,vol:s%2?.035:.018,at,dest:d});
-  const bl=[1,0,1,1.5,0,1,2,1.5][s];if(bl)T(base*bl,.22,{type:'triangle',vol:.16,at,dest:d});
+  if(s===2||s===6){N(.09,{type:'bandpass',freq:1800,q:1.2,vol:.055,at,dest:d});T(190,.08,{type:'triangle',vol:.06,slide:120,at,dest:d})}
+  N(.02,{type:'highpass',freq:9000,vol:s%2?.016:.008,at,dest:d});
+  const bl=[1,0,1,1.5,0,1,2,1.5][s];if(bl){T(base*bl,.22,{type:'triangle',vol:.2,at,dest:d});T(base*bl*2,.12,{type:'sawtooth',vol:.018,at,dest:d})}
+  {const M=[[0,null,2,null,1,2,null,3,2,null,1,0,null,1,null,null],[2,null,3,2,null,1,null,0,null,1,2,null,3,null,4,null],[0,1,2,null,4,null,3,2,null,null,1,null,2,1,0,null],[3,null,2,null,3,4,null,2,1,null,0,null,1,null,null,null]][(step>>4)%4][step%16];
+   if(M!==null){const iv=ch[M%ch.length]+12*Math.floor(M/ch.length);const f=base*8*Math.pow(2,iv/12);T(f,.2,{type:'triangle',vol:.06,at,dest:d,att:.006});T(f,.12,{type:'square',vol:.014,at,dest:d});if(this.fever)T(f*2,.14,{type:'triangle',vol:.025,at,dest:d})}}
   if(s===1||s===4||s===6&&bar%2)for(const iv of ch)T(base*4*Math.pow(2,iv/12),.2,{type:'triangle',vol:.022,at,dest:d,att:.01});
-  if(this.fever){const iv=ch[step%ch.length];T(base*8*Math.pow(2,iv/12)*(step%4===3?2:1),.09,{type:'square',vol:.02,at,dest:d});T(base*8*Math.pow(2,ch[(step+2)%ch.length]/12),.07,{type:'triangle',vol:.018,at:at+60/this.bpm/4,dest:d});if(s%2)N(.07,{type:'highpass',freq:6000,vol:.04,at,dest:d})}
+  if(this.fever){const iv=ch[step%ch.length];T(base*8*Math.pow(2,iv/12)*(step%4===3?2:1),.09,{type:'square',vol:.02,at,dest:d});T(base*8*Math.pow(2,ch[(step+2)%ch.length]/12),.07,{type:'triangle',vol:.018,at:at+60/this.bpm/4,dest:d});}
   if(s===0&&(step/8|0)%2===0){const iv=ch[(step*7>>3)%ch.length];T(base*8*Math.pow(2,iv/12),.5,{vol:.026,at:at+.0,dest:d,att:.01})}
  }
 }
@@ -333,7 +335,7 @@ const snd=new Sound();
 const canvas=$('world');
 let renderer;
 try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'})}catch(e){$('error').hidden=false;$('error').textContent='この端末では3D表示（WebGL）が使えないため、遊べません。';throw e}
-let pixelRatio=REC?(devicePixelRatio||1):Math.min(devicePixelRatio||1,QA?1:1.75);renderer.setPixelRatio(pixelRatio);
+let pixelRatio=REC?Math.min(1.5,devicePixelRatio||1):Math.min(devicePixelRatio||1,QA?1:1.75);renderer.setPixelRatio(pixelRatio);
 renderer.toneMapping=THREE.NeutralToneMapping;renderer.toneMappingExposure=1;
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(58,1,.1,150);
@@ -1106,7 +1108,7 @@ async function boot(){
  $('depart').disabled=false;$('depart').textContent='出発';$('boot').classList.add('done');
  requestAnimationFrame(t=>{last=t;frame(t)});
 }
-if(QA)window.__oji={get state(){return state},set state(v){state=v},player,get agents(){return agents},get run(){return run},STAGES,prepareStage,showMission,startCount,finish,showResult,showEnding,openShare,onNear,onHit,setTime:v=>{time=v},session,get schedule(){return schedule},setSession:s=>{session=s},renderer,scene,camera,setScreen,makeHuman,LOOKS,poseHuman,makeDog,OJISAN,rng,snd,Sound,setFever,STAGES_REF:STAGES,impact,flash,get camLook(){return camLook}};
+if(QA)window.__oji={get state(){return state},set state(v){state=v},player,get agents(){return agents},get run(){return run},STAGES,prepareStage,showMission,startCount,finish,showResult,showEnding,openShare,onNear,onHit,setTime:v=>{time=v},session,get schedule(){return schedule},setSession:s=>{session=s},renderer,scene,camera,setScreen,makeHuman,LOOKS,poseHuman,makeDog,OJISAN,rng,snd,Sound,setFever,STAGES_REF:STAGES,impact,flash,showTitle,get camLook(){return camLook}};
 boot().catch(e=>{console.error(e);$('error').hidden=false;$('error').textContent='読み込みに失敗しました：'+e.message});
 </script>
 </body></html>
