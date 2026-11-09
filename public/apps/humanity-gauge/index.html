@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>人類ゲージ — HUMANITY PROGRESS BAR</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavior:none}
+body{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;left:0;top:0;width:100%;height:100%;display:block;cursor:ew-resize}
+#shelf{position:fixed;left:-10000px;top:0;pointer-events:none}
+#hud{position:fixed;inset:0;pointer-events:none;color:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;transition:color .4s}
+#hud[data-tone="dark"]{color:#1a1a1a}
+#hud .tl{position:absolute;left:16px;top:14px}
+#hud .tl b{display:block;font:800 15px/1.3 system-ui,-apple-system,"Hiragino Sans",sans-serif;letter-spacing:.08em}
+#hud .tl span{display:block;font-size:9px;letter-spacing:.22em;opacity:.65;margin-top:3px}
+#hud .tr{position:absolute;right:12px;top:12px;display:flex;gap:6px}
+#hud button{pointer-events:auto;font:700 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.18em;color:inherit;background:transparent;border:1.5px solid currentColor;border-radius:999px;padding:8px 12px;cursor:pointer;opacity:.85}
+#hud button[aria-pressed="true"]{background:currentColor}
+#hud button[aria-pressed="true"] em{color:#000;font-style:normal}
+#hud[data-tone="dark"] button[aria-pressed="true"] em{color:#fff}
+#hud button em{font-style:normal}
+#hud .bl{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-size:10px;letter-spacing:.16em;line-height:1.9;opacity:.7}
+#hud .bl i{font-style:normal;opacity:.75;font-size:9px}
+#restart{position:fixed;left:50%;top:calc(50% + clamp(70px,16vw,110px));transform:translateX(-50%);display:none;font:600 12px/1 system-ui,-apple-system,"Hiragino Sans",sans-serif;letter-spacing:.4em;color:#bbb;background:none;border:1px solid #444;border-radius:999px;padding:14px 22px;cursor:pointer;white-space:nowrap}
+</style>
+<style id="gcss">
+#g{--u:1px;box-sizing:border-box;width:calc(var(--u)*340);padding:calc(var(--u)*18) calc(var(--u)*20) calc(var(--u)*16);color:#fff;background:transparent;border:calc(var(--u)*2) solid #fff;border-radius:calc(var(--u)*6);position:relative;font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+#g .row{display:flex;justify-content:space-between;align-items:baseline;gap:calc(var(--u)*8)}
+#g .top{font:600 calc(var(--u)*10)/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em}
+#g #yr{font-size:calc(var(--u)*30);font-weight:800;line-height:1.15;margin:calc(var(--u)*12) 0 calc(var(--u)*6);white-space:nowrap;letter-spacing:.01em}
+#g #yr sup{font-size:.5em;vertical-align:.9em;margin:0 .05em}
+#g .mid{margin-bottom:calc(var(--u)*4)}
+#g #eraJ{font-weight:800;font-size:calc(var(--u)*16)}
+#g #eraE{font:700 calc(var(--u)*10) ui-monospace,Menlo,monospace;letter-spacing:.22em}
+#g #track{position:relative;height:calc(var(--u)*14);border:calc(var(--u)*2) solid currentColor;border-radius:calc(var(--u)*9);margin:calc(var(--u)*34) 0 calc(var(--u)*12)}
+#g #fill{position:absolute;left:calc(var(--u)*2);top:calc(var(--u)*2);bottom:calc(var(--u)*2);width:0;background:currentColor;border-radius:calc(var(--u)*5)}
+#g #thumb{position:absolute;top:50%;left:0;width:calc(var(--u)*22);height:calc(var(--u)*22);margin:calc(var(--u)*-11) 0 0 calc(var(--u)*-11);border-radius:50%;background:currentColor;box-sizing:border-box}
+#g #ticks i{position:absolute;top:calc(var(--u)*-9);width:calc(var(--u)*2);height:calc(var(--u)*5);background:currentColor}
+#g #now{position:absolute;left:68%;top:calc(var(--u)*-30);width:0;height:0}
+#g #now i{position:absolute;left:calc(var(--u)*-1);top:calc(var(--u)*16);width:calc(var(--u)*2);height:calc(var(--u)*32);background:currentColor}
+#g #now b{position:absolute;left:calc(var(--u)*-50);top:0;width:calc(var(--u)*100);text-align:center;font:800 calc(var(--u)*8)/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;white-space:nowrap}
+#g .bot{font:800 calc(var(--u)*13)/1.2 ui-monospace,Menlo,monospace;letter-spacing:.08em}
+#g #badge{display:none;background:#ff2d55;color:#fff;border-radius:calc(var(--u)*10);padding:calc(var(--u)*2) calc(var(--u)*8);font-size:calc(var(--u)*11)}
+#g #note{margin-top:calc(var(--u)*10);font-size:calc(var(--u)*12);line-height:1.75;min-height:3.5em}
+
+#g[data-era="cave"]{border-width:calc(var(--u)*4);border-radius:38% 14% 32% 20% / 24% 40% 16% 36%;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;padding:calc(var(--u)*22) calc(var(--u)*24) calc(var(--u)*18)}
+#g[data-era="cave"] #track{border-width:calc(var(--u)*3);border-radius:calc(var(--u)*3) calc(var(--u)*14) calc(var(--u)*6) calc(var(--u)*12)}
+#g[data-era="cave"] #thumb{border-radius:40% 60% 55% 45%;width:calc(var(--u)*26);height:calc(var(--u)*24)}
+#g[data-era="clay"]{border-width:calc(var(--u)*3);border-radius:calc(var(--u)*22);font-family:"Hiragino Mincho ProN","Yu Mincho",serif}
+#g[data-era="clay"] #yr{letter-spacing:.06em}
+#g[data-era="clay"] #thumb{border-radius:calc(var(--u)*4);transform:rotate(45deg)}
+#g[data-era="scroll"]{border:none;border-top:calc(var(--u)*3) double #fff;border-bottom:calc(var(--u)*3) double #fff;border-radius:0;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-style:italic}
+#g[data-era="scroll"] #track{border-radius:0;height:calc(var(--u)*6)}
+#g[data-era="print"]{border:calc(var(--u)*5) double #fff;border-radius:0;font-family:"Hiragino Mincho ProN","Yu Mincho","Times New Roman",serif}
+#g[data-era="print"] #yr{font-weight:600;letter-spacing:.04em}
+#g[data-era="print"] #track{border-radius:0}
+#g[data-era="print"] #fill{border-radius:0}
+#g[data-era="print"] #thumb{border-radius:0;width:calc(var(--u)*6);height:calc(var(--u)*28);margin:calc(var(--u)*-14) 0 0 calc(var(--u)*-3)}
+#g[data-era="steam"]{border-width:calc(var(--u)*3);border-radius:calc(var(--u)*14);font-family:Georgia,"Hiragino Mincho ProN",serif}
+#g[data-era="steam"]::before,#g[data-era="steam"]::after{content:"";position:absolute;top:calc(var(--u)*8);width:calc(var(--u)*6);height:calc(var(--u)*6);border-radius:50%;background:#fff}
+#g[data-era="steam"]::before{left:calc(var(--u)*8)}#g[data-era="steam"]::after{right:calc(var(--u)*8)}
+#g[data-era="steam"] #thumb{border:calc(var(--u)*4) solid #fff;background:transparent;width:calc(var(--u)*26);height:calc(var(--u)*26);margin:calc(var(--u)*-13) 0 0 calc(var(--u)*-13)}
+#g[data-era="crt"]{border-radius:calc(var(--u)*20)/calc(var(--u)*34);font-family:ui-monospace,Menlo,Consolas,monospace}
+#g[data-era="crt"] #yr{font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:calc(var(--u)*27)}
+#g[data-era="crt"] #eraJ{font-family:ui-monospace,monospace}
+#g[data-era="digital"]{border-width:calc(var(--u)*4);border-radius:0;font-family:ui-monospace,Menlo,Consolas,monospace}
+#g[data-era="digital"] #yr{font-family:ui-monospace,Menlo,monospace;font-weight:800;font-size:calc(var(--u)*27);letter-spacing:-.02em}
+#g[data-era="digital"] #track,#g[data-era="digital"] #fill{border-radius:0}
+#g[data-era="digital"] #thumb{border-radius:0;width:calc(var(--u)*18);height:calc(var(--u)*18);margin:calc(var(--u)*-9) 0 0 calc(var(--u)*-9)}
+#g[data-era="feed"]{background:#fff;color:#111;border:none;border-radius:calc(var(--u)*24);padding:calc(var(--u)*20) calc(var(--u)*22) calc(var(--u)*16)}
+#g[data-era="feed"] #fill{background:linear-gradient(90deg,#ff2d55,#ff9f0a)}
+#g[data-era="feed"] #track{border-color:#e4e4ea;background:#f2f2f6}
+#g[data-era="feed"] #thumb{background:#fff;border:calc(var(--u)*3) solid #ff2d55}
+#g[data-era="feed"] #badge{display:inline-block}
+#g[data-era="feed"] #note{color:#555}
+#g[data-era="ai"]{border-width:calc(var(--u)*1);border-radius:calc(var(--u)*2)}
+#g[data-era="ai"] #yr,#g[data-era="cosmos"] #yr,#g[data-era="giant"] #yr,#g[data-era="death"] #yr{font-weight:200;letter-spacing:.08em}
+#g[data-era="ai"] #track,#g[data-era="cosmos"] #track{height:calc(var(--u)*3);border-width:calc(var(--u)*1)}
+#g[data-era="ai"] #thumb,#g[data-era="cosmos"] #thumb{width:calc(var(--u)*10);height:calc(var(--u)*10);margin:calc(var(--u)*-5) 0 0 calc(var(--u)*-5)}
+#g[data-era="cosmos"],#g[data-era="giant"],#g[data-era="death"]{border:none;border-radius:0}
+#g[data-era="giant"] #track{border-radius:0;height:calc(var(--u)*10)}
+#g[data-era="death"] #track{height:calc(var(--u)*2);border-width:calc(var(--u)*1)}
+#g[data-era="death"] #thumb{width:calc(var(--u)*6);height:calc(var(--u)*6);margin:calc(var(--u)*-3) 0 0 calc(var(--u)*-3)}
+</style>
+</head>
+<body>
+<canvas id="stage" aria-label="人類の始まりから終わりまでを表すゲージ">
+  <div id="g" data-era="cave" drawable role="slider" tabindex="0" aria-label="人類の進捗" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="row top"><span>HUMANITY.progress</span><span id="eraNo">ERA 01/12</span></div>
+    <div id="yr">300,000 年前</div>
+    <div class="row mid"><span id="eraJ">ヒト、火を持つ</span><span id="eraE">HOMO SAPIENS</span></div>
+    <div id="track"><div id="ticks"></div><div id="fill"></div><div id="now"><b>YOU ARE HERE</b><i></i></div><div id="thumb"></div></div>
+    <div class="row bot"><span id="pct">0.0000%</span><span id="badge">1</span></div>
+    <div id="note">火と、手形と、夜の長さ。</div>
+  </div>
+</canvas>
+<div id="shelf"></div>
+<div id="hud" data-tone="light">
+  <div class="tl"><b>人類ゲージ</b><span>HUMANITY PROGRESS BAR</span></div>
+  <div class="tr"><button id="bAuto" aria-pressed="false"><em>AUTO</em></button><button id="bSnd" aria-pressed="false"><em>SOUND</em></button><button id="bLang" aria-label="Language"><em id="langLbl">日本語</em></button></div>
+  <div class="bl"><div id="hint">ゲージをドラッグ / 画面のどこでも横スワイプで時間を進める</div><i id="mode">RENDER: —</i></div>
+</div>
+<button id="restart">もう一度、はじめる</button>
+
+<script>
+(()=>{
+'use strict';
+const cv=document.getElementById('stage');
+const ctx=cv.getContext('2d');
+const G=document.getElementById('g');
+const $=id=>document.getElementById(id);
+const E={yr:$('yr'),eraJ:$('eraJ'),eraE:$('eraE'),eraNo:$('eraNo'),pct:$('pct'),note:$('note'),fill:$('fill'),thumb:$('thumb'),badge:$('badge'),track:$('track'),ticks:$('ticks')};
+const hud=$('hud'), modeEl=$('mode'), bAuto=$('bAuto'), bSnd=$('bSnd'), restart=$('restart');
+const GCSS=$('gcss').textContent;
+
+/* ---------- 多言語 ---------- */
+const LANGS=['ja','en','zh-Hans','zh-Hant','ko','fr','de','ru','it'];
+const LNAME={ja:'日本語',en:'English','zh-Hans':'简体中文','zh-Hant':'繁體中文',ko:'한국어',fr:'Français',de:'Deutsch',ru:'Русский',it:'Italiano'};
+const CJK={ja:1,'zh-Hans':1,'zh-Hant':1,ko:1};
+const I18N={
+ja:{ui:{hint:'ゲージをドラッグ / 画面のどこでも横スワイプで時間を進める',endA:'進捗 100%。',endB:'おつかれさまでした。',restart:'もう一度、はじめる',ago:'{n} 年前',bce:'紀元前 {n}年',ce:'西暦 {n}年',fut:'{n}年後'},e:[
+['ヒト、火を持つ','火と、手形と、夜の長さ。',['30万年前、アフリカでホモ・サピエンスが現れる。','火は夜を短くし、食べ物をやわらかくした。','言葉が生まれ、嘘も、物語も生まれた。','およそ7万年前、ヒトはアフリカの外へ広がっていく。','洞窟の壁に、自分の手の形を残した。','氷期が明ける。季節が、繰り返しはじめる。']],
+['農耕','麦を待つことを覚えた。待つことが、文明になった。',['約1万2千年前、肥沃な三日月地帯で麦が育てられる。','一か所に留まることを選んだ。村ができた。','余った穀物が、富と、税と、王を生んだ。','粘土に印を押し、誰が何を持つかを記録した。','水路が、川の流れを人間の側へ曲げた。','土器が、時間を貯蔵する道具になった。']],
+['文字','記録できたものだけが、存在したことになった。',['紀元前3200年頃、ウルクで楔形文字が刻まれる。','法が書かれ、王の名が石に残った。','アルファベットが、文字を少数の手から解き放つ。','哲学者は問い、写字生は写し、図書館は燃えた。','紙が、東から西へ旅をした。','書かれなかった無数の人生は、記録の外にある。']],
+['活版印刷','同じ言葉が、同時に千人へ届く。',['1450年頃、マインツで活字が組まれる。','書物が、修道院の写字室から人々の手へ渡りはじめる。','地図が書き換えられ、世界は丸い市場になった。','新聞が生まれ、世論という怪物が目を覚ます。','望遠鏡が空を、顕微鏡が一滴の水を開いた。','知識が複製できるなら、権威も複製できる。']],
+['蒸気機関','時間が、時計で測られはじめる。',['1769年、ワットが蒸気機関の改良で特許を得る。','石炭が掘られ、都市の空が煤で曇る。','工場の汽笛が、一日の始まりと終わりを決めた。','鉄道が、距離を時刻表に変えた。','都市が膨らみ、子どもも機械の横に立った。','「進歩」という言葉が、信仰のように語られた。']],
+['電気と放送','世界が、光る箱の中へ引っ越す。',['電信、電話、ラジオ。声が電線を走りはじめる。','二度の世界大戦。技術は破壊の規模も拡大した。','1945年、ヒトは自らを滅ぼせる力を手にした。','抗生物質が、平均寿命を書き換えていく。','テレビの前で、世界は同じ瞬間を見た。','1969年、月面に足跡が残る。']],
+['デジタル','すべてが、0と1で言い直される。',['1971年、マイクロプロセッサが一枚のチップに収まる。','ネットワークがつながり、ネットワークのネットワークになった。','1991年、ウェブが公開される。','ムーアの法則が、毎年少しずつ未来を前借りする。','情報は、コピーしても減らない財になった。','地球の裏側と、遅延0.2秒で話せる。']],
+['タイムライン','通知。通知。通知。進捗は、共有された。',['2007年、ポケットにインターネットが入る。','人類の半分以上が、同じ画面を見下ろしている。','いいね、通知、おすすめ。注意が通貨になった。','2020年、世界は同時に家に閉じこもった。','気温は上がり続け、私たちはそれを実況した。','そして機械が、言葉を話しはじめた。']],
+['特異点','このゲージは、もうあなたが動かさなくても進む。',['[推測] 機械は、人間の書いたすべてを読み終えた。','問いを立てるのも答えるのも、人間だけではなくなる。','研究、設計、制作。速度が人間の知覚を超えていく。','何を任せ、何を手放さないか。それが最後の仕事になる。','進捗バーは、もう誰の手にも握られていない。','ここから先は、すべて仮説である。']],
+['星間移住','地球は、出発点の名前になった。',['[推測] 太陽系の外へ、最初の探査船が加速する。','世代を重ねる船の中で、地球を知らない子が生まれる。','光の速さは、それでも遅すぎた。','故郷からの通信は、数千年遅れて届く。','星々のあいだで、人類は互いの言葉を忘れていく。','人類は、もはや一つの種の名前ではない。']],
+['赤色巨星','太陽が、ゆっくりと故郷を飲み込む。',['約50億年後、太陽は中心の水素を使い果たす。','膨張する太陽が、水星と金星を飲み込む。','地球の海は、とうの昔に蒸発している。','アンドロメダ銀河と天の川銀河が、ひとつに溶け合う。','残された記録は、誰に読まれるだろうか。','新しい星が生まれることも、いつか終わる。']],
+['熱的死','星が消え、熱が均され、何も起きなくなる。',['約100兆年後、最後の星々が燃え尽きる。','宇宙は暗く、冷たく、ただ広がり続ける。','ブラックホールさえ、ゆっくりと蒸発していく。','温度差がなくなれば、何も起こらない。','記憶も、物語も、進捗も、平らに均される。','100%。']]]},
+en:{ui:{hint:'Drag the gauge / swipe anywhere to move through time',endA:'Progress 100%.',endB:'Good work, humanity.',restart:'Begin again',ago:'{n} years ago',bce:'{n} BCE',ce:'{n} CE',fut:'in {n} years'},e:[
+['Homo sapiens','Fire, handprints, and the length of night.',['300,000 years ago, Homo sapiens appears in Africa.','Fire shortened the night and softened our food.','Language was born — and with it, lies and stories.','About 70,000 years ago, humans spread out of Africa.','On cave walls, they left the shape of their hands.','The ice age ends. The seasons begin to repeat.']],
+['Agriculture','We learned to wait for wheat. Waiting became civilization.',['About 12,000 years ago, wheat is farmed in the Fertile Crescent.','We chose to stay in one place. Villages appeared.','Surplus grain gave birth to wealth, taxes, and kings.','Marks pressed into clay recorded who owned what.','Canals bent rivers toward human needs.','Pottery became a tool for storing time.']],
+['Writing','Only what could be recorded came to exist.',['Around 3200 BCE, cuneiform is carved in Uruk.','Laws were written; the names of kings survived in stone.','The alphabet freed writing from the hands of the few.','Philosophers asked, scribes copied, libraries burned.','Paper traveled from East to West.','Countless unwritten lives remain outside the record.']],
+['Printing press','The same words reach a thousand people at once.',['Around 1450, movable type is set in Mainz.','Books leave the monastery and reach ordinary hands.','Maps were redrawn; the world became a round marketplace.','Newspapers appear, and public opinion awakens.','The telescope opened the sky; the microscope, a drop of water.','If knowledge can be copied, so can authority.']],
+['Steam power','Time begins to be measured by clocks.',['1769: James Watt patents his improved steam engine.','Coal is mined, and city skies darken with soot.','Factory whistles marked the start and end of the day.','Railways turned distance into timetables.','Cities swelled; even children stood beside the machines.','"Progress" was spoken of almost like a faith.']],
+['Electricity & broadcast','The world moves into a glowing box.',['Telegraph, telephone, radio. Voices race along wires.','Two world wars. Technology also scaled up destruction.','1945: humanity gains the power to destroy itself.','Antibiotics rewrite life expectancy.','In front of the TV, the world watched the same moment.','1969: footprints are left on the Moon.']],
+['Digital','Everything is restated in 0s and 1s.',['1971: a microprocessor fits on a single chip.','Networks connected, becoming a network of networks.','1991: the World Wide Web goes public.','Moore\'s law borrows a little from the future every year.','Information became wealth that doesn\'t shrink when copied.','We talk to the far side of the planet with 0.2 s of delay.']],
+['The Feed','Notifications. Notifications. Progress, shared.',['2007: the internet fits in a pocket.','More than half of humanity looks down at the same kind of screen.','Likes, notifications, recommendations. Attention became currency.','2020: the whole world stayed home at the same time.','Temperatures kept rising, and we livestreamed it.','And then machines began to speak.']],
+['Singularity','This gauge now advances without you.',['[Speculative] Machines have read everything humans ever wrote.','Asking and answering questions is no longer only human.','Research, design, creation. Speed outruns human perception.','What to delegate, what never to let go: the last job.','The progress bar is no longer in anyone\'s hand.','From here on, everything is hypothesis.']],
+['Interstellar','Earth became the name of a starting point.',['[Speculative] The first probe accelerates beyond the solar system.','Aboard generation ships, children are born who never knew Earth.','Even the speed of light was too slow.','Messages from home arrive thousands of years late.','Between the stars, humans forget each other\'s languages.','"Humanity" is no longer the name of a single species.']],
+['Red giant','The Sun slowly swallows our home.',['In about 5 billion years, the Sun exhausts the hydrogen in its core.','The swelling Sun engulfs Mercury and Venus.','Earth\'s oceans boiled away long ago.','The Andromeda and Milky Way galaxies merge into one.','Who will read the records that remain?','Even the birth of new stars will one day end.']],
+['Heat death','The stars go out, heat evens out, nothing happens.',['In about 100 trillion years, the last stars burn out.','The universe grows dark and cold, and only keeps expanding.','Even black holes slowly evaporate.','With no temperature differences left, nothing can happen.','Memory, stories, progress: all flattened out.','100%.']]]},
+'zh-Hans':{ui:{hint:'拖动进度条 / 在任意位置横向滑动以推进时间',endA:'进度 100%。',endB:'辛苦了。',restart:'重新开始',ago:'{n} 年前',bce:'公元前 {n}年',ce:'公元 {n}年',fut:'{n}年后'},e:[
+['智人，掌握火','火、手印，与漫长的夜。',['30万年前，智人在非洲出现。','火缩短了黑夜，也让食物变得柔软。','语言诞生了，谎言与故事也随之诞生。','约7万年前，人类走出非洲，散布世界。','他们在洞穴的墙上，留下了手的形状。','冰期结束。季节开始循环往复。']],
+['农耕','学会了等待麦子。等待，成了文明。',['约1.2万年前，新月沃地开始种植小麦。','人们选择定居一处。村庄出现了。','剩余的谷物，催生了财富、赋税与国王。','在泥板上按下印记，记录谁拥有什么。','水渠让河流转向人类的一侧。','陶器成了储存时间的工具。']],
+['文字','只有被记录下来的，才算存在过。',['约公元前3200年，乌鲁克刻下了楔形文字。','法律被写下，王的名字留在了石头上。','字母让文字走出了少数人之手。','哲人发问，抄写员抄录，图书馆被焚毁。','纸从东方一路传到西方。','无数未被书写的人生，留在记录之外。']],
+['活字印刷','同样的话语，同时抵达一千个人。',['约1450年，美因茨排出了活字。','书籍开始走出修道院，来到普通人手中。','地图被重绘，世界变成了圆形的市场。','报纸诞生，名为舆论的怪物苏醒了。','望远镜打开了天空，显微镜打开了一滴水。','如果知识可以复制，权威也可以复制。']],
+['蒸汽机','时间开始由钟表来衡量。',['1769年，瓦特取得改良蒸汽机的专利。','煤炭被开采，城市的天空被煤烟遮蔽。','工厂的汽笛，决定了一天的开始与结束。','铁路把距离变成了时刻表。','城市膨胀，连孩子也站到了机器旁边。','“进步”一词，被人像信仰一样谈论。']],
+['电与广播','世界搬进了一个发光的盒子。',['电报、电话、广播。声音沿着电线奔跑。','两次世界大战。技术也扩大了破坏的规模。','1945年，人类掌握了足以毁灭自身的力量。','抗生素改写了平均寿命。','在电视机前，全世界看着同一个瞬间。','1969年，月球表面留下了足迹。']],
+['数字化','一切都被0和1重新表述。',['1971年，微处理器被装进一块芯片。','网络相连，成为网络的网络。','1991年，万维网向公众开放。','摩尔定律每年都向未来预支一点点。','信息成了复制也不会减少的财富。','与地球另一端通话，延迟只有0.2秒。']],
+['时间线','通知。通知。通知。进度，已被分享。',['2007年，互联网装进了口袋。','超过一半的人类，低头看着同样的屏幕。','点赞、通知、推荐。注意力成了货币。','2020年，全世界同时闭门不出。','气温持续上升，而我们在直播它。','然后，机器开始说话了。']],
+['奇点','这个进度条，已经不需要你来推动。',['[推测] 机器读完了人类写下的一切。','提出问题与回答问题的，不再只有人类。','研究、设计、创作。速度超越了人类的感知。','交出什么、守住什么——这是最后的工作。','进度条已不在任何人手中。','从这里开始，一切都是假说。']],
+['星际移民','地球，成了出发点的名字。',['[推测] 第一艘探测器加速驶出太阳系。','在世代飞船中，出生了不知道地球的孩子。','即便是光速，也还是太慢了。','来自故乡的通信，迟到数千年才抵达。','在群星之间，人类渐渐忘记彼此的语言。','人类，已不再是一个物种的名字。']],
+['红巨星','太阳慢慢吞没了故乡。',['约50亿年后，太阳耗尽核心的氢。','膨胀的太阳吞没了水星和金星。','地球的海洋早已蒸发殆尽。','仙女座星系与银河系融为一体。','留下的记录，会被谁读到呢？','新恒星的诞生，终有一天也会结束。']],
+['热寂','星辰熄灭，热量均匀，什么也不再发生。',['约100万亿年后，最后的恒星燃尽。','宇宙黑暗、寒冷，只是不断膨胀。','就连黑洞，也在慢慢蒸发。','没有了温差，便什么也不会发生。','记忆、故事、进度，都被抹平。','100%。']]]},
+'zh-Hant':{ui:{hint:'拖曳進度條／在任意位置橫向滑動以推進時間',endA:'進度 100%。',endB:'辛苦了。',restart:'重新開始',ago:'{n} 年前',bce:'西元前 {n}年',ce:'西元 {n}年',fut:'{n}年後'},e:[
+['智人，掌握火','火、手印，與漫長的夜。',['30萬年前，智人在非洲出現。','火縮短了黑夜，也讓食物變得柔軟。','語言誕生了，謊言與故事也隨之誕生。','約7萬年前，人類走出非洲，散布世界。','他們在洞穴的牆上，留下了手的形狀。','冰期結束。季節開始循環往復。']],
+['農耕','學會了等待麥子。等待，成了文明。',['約1.2萬年前，肥沃月彎開始種植小麥。','人們選擇定居一處。村莊出現了。','剩餘的穀物，催生了財富、賦稅與國王。','在泥板上按下印記，記錄誰擁有什麼。','水渠讓河流轉向人類的一側。','陶器成了儲存時間的工具。']],
+['文字','只有被記錄下來的，才算存在過。',['約西元前3200年，烏魯克刻下了楔形文字。','法律被寫下，王的名字留在了石頭上。','字母讓文字走出了少數人之手。','哲人發問，抄寫員抄錄，圖書館被焚毀。','紙從東方一路傳到西方。','無數未被書寫的人生，留在記錄之外。']],
+['活字印刷','同樣的話語，同時抵達一千個人。',['約1450年，美因茲排出了活字。','書籍開始走出修道院，來到普通人手中。','地圖被重繪，世界變成了圓形的市場。','報紙誕生，名為輿論的怪物甦醒了。','望遠鏡打開了天空，顯微鏡打開了一滴水。','如果知識可以複製，權威也可以複製。']],
+['蒸汽機','時間開始由鐘錶來衡量。',['1769年，瓦特取得改良蒸汽機的專利。','煤炭被開採，城市的天空被煤煙遮蔽。','工廠的汽笛，決定了一天的開始與結束。','鐵路把距離變成了時刻表。','城市膨脹，連孩子也站到了機器旁邊。','「進步」一詞，被人像信仰一樣談論。']],
+['電與廣播','世界搬進了一個發光的盒子。',['電報、電話、廣播。聲音沿著電線奔跑。','兩次世界大戰。技術也擴大了破壞的規模。','1945年，人類掌握了足以毀滅自身的力量。','抗生素改寫了平均壽命。','在電視機前，全世界看著同一個瞬間。','1969年，月球表面留下了足跡。']],
+['數位化','一切都被0和1重新表述。',['1971年，微處理器被裝進一塊晶片。','網路相連，成為網路的網路。','1991年，全球資訊網向大眾開放。','摩爾定律每年都向未來預支一點點。','資訊成了複製也不會減少的財富。','與地球另一端通話，延遲只有0.2秒。']],
+['時間軸','通知。通知。通知。進度，已被分享。',['2007年，網際網路裝進了口袋。','超過一半的人類，低頭看著同樣的螢幕。','按讚、通知、推薦。注意力成了貨幣。','2020年，全世界同時閉門不出。','氣溫持續上升，而我們在直播它。','然後，機器開始說話了。']],
+['奇點','這個進度條，已經不需要你來推動。',['[推測] 機器讀完了人類寫下的一切。','提出問題與回答問題的，不再只有人類。','研究、設計、創作。速度超越了人類的感知。','交出什麼、守住什麼——這是最後的工作。','進度條已不在任何人手中。','從這裡開始，一切都是假說。']],
+['星際移民','地球，成了出發點的名字。',['[推測] 第一艘探測器加速駛出太陽系。','在世代飛船中，出生了不知道地球的孩子。','即便是光速，也還是太慢了。','來自故鄉的通訊，遲到數千年才抵達。','在群星之間，人類漸漸忘記彼此的語言。','人類，已不再是一個物種的名字。']],
+['紅巨星','太陽慢慢吞沒了故鄉。',['約50億年後，太陽耗盡核心的氫。','膨脹的太陽吞沒了水星和金星。','地球的海洋早已蒸發殆盡。','仙女座星系與銀河系融為一體。','留下的紀錄，會被誰讀到呢？','新恆星的誕生，終有一天也會結束。']],
+['熱寂','星辰熄滅，熱量均勻，什麼也不再發生。',['約100兆年後，最後的恆星燃盡。','宇宙黑暗、寒冷，只是不斷膨脹。','就連黑洞，也在慢慢蒸發。','沒有了溫差，便什麼也不會發生。','記憶、故事、進度，都被抹平。','100%。']]]},
+ko:{ui:{hint:'게이지를 드래그 / 화면 어디서나 가로로 스와이프해 시간을 진행',endA:'진행률 100%.',endB:'수고하셨습니다.',restart:'다시 시작하기',ago:'{n}년 전',bce:'기원전 {n}년',ce:'서기 {n}년',fut:'{n}년 후'},e:[
+['불을 손에 넣은 인류','불과 손자국, 그리고 긴 밤.',['30만 년 전, 아프리카에서 호모 사피엔스가 나타난다.','불은 밤을 짧게 하고, 음식을 부드럽게 했다.','언어가 태어났고, 거짓말과 이야기도 태어났다.','약 7만 년 전, 인류는 아프리카 밖으로 퍼져 나간다.','동굴 벽에 자신의 손 모양을 남겼다.','빙하기가 끝난다. 계절이 되풀이되기 시작한다.']],
+['농경','밀을 기다리는 법을 배웠다. 기다림이 문명이 되었다.',['약 1만 2천 년 전, 비옥한 초승달 지대에서 밀을 기른다.','한곳에 머물기를 선택했다. 마을이 생겼다.','남은 곡식이 부와 세금과 왕을 낳았다.','점토에 표시를 눌러, 누가 무엇을 가졌는지 기록했다.','수로가 강의 흐름을 인간 쪽으로 굽혔다.','토기는 시간을 저장하는 도구가 되었다.']],
+['문자','기록된 것만이 존재한 것이 되었다.',['기원전 3200년경, 우루크에서 쐐기 문자가 새겨진다.','법이 쓰이고, 왕의 이름이 돌에 남았다.','알파벳이 문자를 소수의 손에서 풀어 주었다.','철학자는 묻고, 필경사는 베끼고, 도서관은 불탔다.','종이가 동쪽에서 서쪽으로 여행했다.','쓰이지 않은 수많은 삶은 기록 밖에 있다.']],
+['활판 인쇄','같은 말이 동시에 천 명에게 닿는다.',['1450년경, 마인츠에서 활자가 조판된다.','책이 수도원을 벗어나 사람들의 손에 닿기 시작한다.','지도가 다시 그려지고, 세계는 둥근 시장이 되었다.','신문이 생기고, 여론이라는 괴물이 눈을 뜬다.','망원경은 하늘을, 현미경은 물 한 방울을 열었다.','지식을 복제할 수 있다면, 권위도 복제할 수 있다.']],
+['증기 기관','시간이 시계로 측정되기 시작한다.',['1769년, 와트가 개량한 증기 기관으로 특허를 얻는다.','석탄이 채굴되고, 도시의 하늘이 그을음으로 흐려진다.','공장의 기적 소리가 하루의 시작과 끝을 정했다.','철도가 거리를 시간표로 바꾸었다.','도시가 부풀고, 아이들도 기계 옆에 섰다.','"진보"라는 말이 신앙처럼 이야기되었다.']],
+['전기와 방송','세계가 빛나는 상자 속으로 이사한다.',['전신, 전화, 라디오. 목소리가 전선을 달린다.','두 번의 세계 대전. 기술은 파괴의 규모도 키웠다.','1945년, 인류는 스스로를 멸망시킬 수 있는 힘을 손에 넣었다.','항생제가 평균 수명을 다시 쓴다.','텔레비전 앞에서 세계는 같은 순간을 보았다.','1969년, 달 표면에 발자국이 남는다.']],
+['디지털','모든 것이 0과 1로 다시 말해진다.',['1971년, 마이크로프로세서가 칩 하나에 담긴다.','네트워크가 연결되어, 네트워크의 네트워크가 되었다.','1991년, 월드 와이드 웹이 공개된다.','무어의 법칙이 해마다 조금씩 미래를 앞당겨 빌린다.','정보는 복사해도 줄지 않는 재산이 되었다.','지구 반대편과 0.2초의 지연으로 대화한다.']],
+['타임라인','알림. 알림. 알림. 진행 상황이 공유되었다.',['2007년, 인터넷이 주머니 속에 들어온다.','인류의 절반 이상이 같은 화면을 내려다본다.','좋아요, 알림, 추천. 주의력이 화폐가 되었다.','2020년, 세계는 동시에 집에 머물렀다.','기온은 계속 올랐고, 우리는 그것을 실시간으로 중계했다.','그리고 기계가 말을 하기 시작했다.']],
+['특이점','이 게이지는 이제 당신이 움직이지 않아도 나아간다.',['[추측] 기계는 인간이 쓴 모든 것을 다 읽었다.','질문을 세우는 것도, 답하는 것도 더는 인간만이 아니다.','연구, 설계, 제작. 속도가 인간의 지각을 넘어선다.','무엇을 맡기고 무엇을 놓지 않을 것인가. 그것이 마지막 일이 된다.','진행 바는 더 이상 누구의 손에도 쥐어져 있지 않다.','여기서부터는 모두 가설이다.']],
+['성간 이주','지구는 출발점의 이름이 되었다.',['[추측] 첫 탐사선이 태양계 밖으로 가속한다.','세대를 거듭하는 우주선 안에서, 지구를 모르는 아이가 태어난다.','빛의 속도조차 너무 느렸다.','고향에서 온 통신은 수천 년 늦게 도착한다.','별들 사이에서 인류는 서로의 언어를 잊어 간다.','인류는 더 이상 하나의 종의 이름이 아니다.']],
+['적색 거성','태양이 천천히 고향을 삼킨다.',['약 50억 년 후, 태양은 중심의 수소를 다 써 버린다.','부풀어 오른 태양이 수성과 금성을 삼킨다.','지구의 바다는 이미 오래전에 증발했다.','안드로메다 은하와 우리 은하가 하나로 합쳐진다.','남겨진 기록은 누가 읽게 될까.','새로운 별이 태어나는 일도 언젠가 끝난다.']],
+['열적 죽음','별이 꺼지고, 열이 고르게 퍼지고, 아무 일도 일어나지 않는다.',['약 100조 년 후, 마지막 별들이 다 타 버린다.','우주는 어둡고 차갑게, 그저 계속 팽창한다.','블랙홀조차 천천히 증발해 간다.','온도 차가 사라지면 아무 일도 일어나지 않는다.','기억도, 이야기도, 진행도 평평하게 고르게 된다.','100%.']]]},
+fr:{ui:{hint:'Faites glisser la jauge / balayez l’écran pour avancer dans le temps',endA:'Progression : 100 %.',endB:'Beau travail, l’humanité.',restart:'Recommencer',ago:'il y a {n} ans',bce:'{n} AEC',ce:'an {n}',fut:'dans {n} ans'},e:[
+['Homo sapiens','Le feu, les mains peintes et la longueur des nuits.',['Il y a 300 000 ans, Homo sapiens apparaît en Afrique.','Le feu raccourcit la nuit et adoucit la nourriture.','Le langage naît — et avec lui, le mensonge et les récits.','Il y a environ 70 000 ans, les humains quittent l’Afrique.','Sur les parois des grottes, ils laissent la forme de leurs mains.','L’ère glaciaire s’achève. Les saisons commencent à se répéter.']],
+['Agriculture','Nous avons appris à attendre le blé. Attendre est devenu civilisation.',['Il y a environ 12 000 ans, on cultive le blé dans le Croissant fertile.','Nous avons choisi de rester. Les villages sont nés.','Le surplus de grain a engendré richesse, impôts et rois.','Des marques dans l’argile notaient qui possédait quoi.','Les canaux ont plié les fleuves vers les besoins humains.','La poterie devint un outil pour conserver le temps.']],
+['Écriture','Seul ce qui pouvait être écrit a fini par exister.',['Vers 3200 AEC, l’écriture cunéiforme est gravée à Uruk.','Les lois furent écrites ; le nom des rois resta dans la pierre.','L’alphabet libéra l’écriture des mains de quelques-uns.','Les philosophes questionnaient, les scribes copiaient, les bibliothèques brûlaient.','Le papier voyagea d’Est en Ouest.','D’innombrables vies non écrites restent hors des archives.']],
+['Imprimerie','Les mêmes mots atteignent mille personnes à la fois.',['Vers 1450, des caractères mobiles sont composés à Mayence.','Les livres quittent les monastères pour des mains ordinaires.','Les cartes sont redessinées ; le monde devient un marché rond.','Les journaux naissent, et l’opinion publique s’éveille.','Le télescope ouvrit le ciel ; le microscope, une goutte d’eau.','Si le savoir peut se copier, l’autorité aussi.']],
+['Vapeur','Le temps commence à se mesurer à l’horloge.',['1769 : James Watt brevette sa machine à vapeur améliorée.','On extrait le charbon ; le ciel des villes s’assombrit de suie.','Les sirènes d’usine fixaient le début et la fin du jour.','Le chemin de fer changea la distance en horaires.','Les villes enflèrent ; même les enfants se tenaient près des machines.','On parlait du « progrès » presque comme d’une foi.']],
+['Électricité et radio','Le monde emménage dans une boîte lumineuse.',['Télégraphe, téléphone, radio. Les voix courent sur les fils.','Deux guerres mondiales. La technique a aussi décuplé la destruction.','1945 : l’humanité acquiert le pouvoir de se détruire elle-même.','Les antibiotiques réécrivent l’espérance de vie.','Devant la télévision, le monde regarde le même instant.','1969 : des empreintes de pas sur la Lune.']],
+['Numérique','Tout est redit en 0 et en 1.',['1971 : un microprocesseur tient sur une seule puce.','Les réseaux se relient et deviennent un réseau de réseaux.','1991 : le World Wide Web est ouvert au public.','La loi de Moore emprunte chaque année un peu à l’avenir.','L’information devient une richesse qui ne diminue pas quand on la copie.','On parle à l’autre bout de la planète avec 0,2 s de délai.']],
+['Le fil','Notifications. Notifications. La progression est partagée.',['2007 : Internet tient dans une poche.','Plus de la moitié de l’humanité baisse les yeux vers le même écran.','J’aime, notifications, recommandations. L’attention devient monnaie.','2020 : le monde entier reste chez soi au même moment.','Les températures montaient, et nous le commentions en direct.','Puis les machines se sont mises à parler.']],
+['Singularité','Cette jauge avance désormais sans vous.',['[Spéculation] Les machines ont lu tout ce que les humains ont écrit.','Poser des questions et y répondre n’est plus seulement humain.','Recherche, conception, création : la vitesse dépasse la perception humaine.','Que confier, que ne jamais lâcher : voilà le dernier travail.','La barre de progression n’est plus entre les mains de personne.','À partir d’ici, tout n’est qu’hypothèse.']],
+['Interstellaire','La Terre devient le nom d’un point de départ.',['[Spéculation] La première sonde accélère hors du système solaire.','Dans des vaisseaux-générations naissent des enfants qui n’ont jamais connu la Terre.','Même la vitesse de la lumière était trop lente.','Les messages du pays natal arrivent avec des millénaires de retard.','Entre les étoiles, les humains oublient la langue des autres.','« Humanité » n’est plus le nom d’une seule espèce.']],
+['Géante rouge','Le Soleil avale lentement notre foyer.',['Dans environ 5 milliards d’années, le Soleil épuise l’hydrogène de son cœur.','Le Soleil enfle et engloutit Mercure et Vénus.','Les océans de la Terre se sont évaporés depuis longtemps.','Andromède et la Voie lactée fusionnent en une seule galaxie.','Qui lira les archives qui restent ?','Même la naissance de nouvelles étoiles prendra fin un jour.']],
+['Mort thermique','Les étoiles s’éteignent, la chaleur s’égalise, plus rien n’arrive.',['Dans environ 100 000 milliards d’années, les dernières étoiles s’éteignent.','L’univers devient sombre et froid, et ne fait que s’étendre.','Même les trous noirs s’évaporent lentement.','Sans différence de température, plus rien ne peut se produire.','Mémoire, récits, progression : tout est aplani.','100 %.']]]},
+de:{ui:{hint:'Leiste ziehen / überall waagerecht wischen, um durch die Zeit zu reisen',endA:'Fortschritt 100 %.',endB:'Gute Arbeit, Menschheit.',restart:'Neu beginnen',ago:'vor {n} Jahren',bce:'{n} v. u. Z.',ce:'Jahr {n}',fut:'in {n} Jahren'},e:[
+['Homo sapiens','Feuer, Handabdrücke und die Länge der Nacht.',['Vor 300.000 Jahren erscheint Homo sapiens in Afrika.','Das Feuer verkürzte die Nacht und machte die Nahrung weich.','Die Sprache entstand – und mit ihr Lügen und Geschichten.','Vor etwa 70.000 Jahren breiten sich Menschen über Afrika hinaus aus.','An Höhlenwänden hinterließen sie die Form ihrer Hände.','Die Eiszeit endet. Die Jahreszeiten beginnen sich zu wiederholen.']],
+['Ackerbau','Wir lernten, auf den Weizen zu warten. Warten wurde Zivilisation.',['Vor etwa 12.000 Jahren wird im Fruchtbaren Halbmond Weizen angebaut.','Wir entschieden uns zu bleiben. Dörfer entstanden.','Überschüssiges Getreide brachte Reichtum, Steuern und Könige hervor.','In Ton gedrückte Zeichen hielten fest, wem was gehörte.','Kanäle lenkten Flüsse zu den Menschen.','Keramik wurde zum Werkzeug, um Zeit aufzubewahren.']],
+['Schrift','Nur was aufgeschrieben werden konnte, galt als existent.',['Um 3200 v. u. Z. wird in Uruk Keilschrift eingeritzt.','Gesetze wurden geschrieben; die Namen von Königen blieben im Stein.','Das Alphabet befreite die Schrift aus den Händen weniger.','Philosophen fragten, Schreiber kopierten, Bibliotheken brannten.','Papier reiste von Osten nach Westen.','Unzählige ungeschriebene Leben liegen außerhalb der Aufzeichnungen.']],
+['Buchdruck','Dieselben Worte erreichen tausend Menschen zugleich.',['Um 1450 werden in Mainz bewegliche Lettern gesetzt.','Bücher verlassen die Klöster und gelangen in gewöhnliche Hände.','Karten werden neu gezeichnet; die Welt wird ein runder Markt.','Zeitungen entstehen, und die öffentliche Meinung erwacht.','Das Teleskop öffnete den Himmel, das Mikroskop einen Wassertropfen.','Wenn Wissen kopierbar ist, dann auch Autorität.']],
+['Dampfkraft','Die Zeit wird nach der Uhr gemessen.',['1769: James Watt erhält ein Patent auf seine verbesserte Dampfmaschine.','Kohle wird abgebaut; der Himmel über den Städten verdunkelt sich vom Ruß.','Fabriksirenen bestimmten Anfang und Ende des Tages.','Die Eisenbahn verwandelte Entfernung in Fahrpläne.','Städte schwollen an; selbst Kinder standen an Maschinen.','Von „Fortschritt“ sprach man fast wie von einem Glauben.']],
+['Elektrizität & Rundfunk','Die Welt zieht in einen leuchtenden Kasten.',['Telegraf, Telefon, Radio. Stimmen rasen durch Drähte.','Zwei Weltkriege. Die Technik vergrößerte auch das Ausmaß der Zerstörung.','1945: Die Menschheit erlangt die Macht, sich selbst zu vernichten.','Antibiotika schreiben die Lebenserwartung neu.','Vor dem Fernseher sah die Welt denselben Moment.','1969: Fußspuren auf dem Mond.']],
+['Digital','Alles wird in Nullen und Einsen neu gesagt.',['1971: Ein Mikroprozessor passt auf einen einzigen Chip.','Netze verbanden sich zu einem Netz der Netze.','1991: Das World Wide Web wird öffentlich.','Das Mooresche Gesetz leiht sich jedes Jahr ein wenig Zukunft.','Information wurde zu einem Gut, das beim Kopieren nicht weniger wird.','Wir sprechen mit der anderen Seite der Erde – mit 0,2 s Verzögerung.']],
+['Der Feed','Benachrichtigungen. Benachrichtigungen. Fortschritt, geteilt.',['2007: Das Internet passt in die Hosentasche.','Mehr als die Hälfte der Menschheit blickt auf denselben Bildschirm hinab.','Likes, Benachrichtigungen, Empfehlungen. Aufmerksamkeit wurde zur Währung.','2020: Die ganze Welt blieb gleichzeitig zu Hause.','Die Temperaturen stiegen weiter, und wir streamten es live.','Und dann begannen Maschinen zu sprechen.']],
+['Singularität','Diese Leiste bewegt sich jetzt auch ohne dich.',['[Spekulation] Maschinen haben alles gelesen, was Menschen je schrieben.','Fragen stellen und beantworten ist nicht mehr nur menschlich.','Forschung, Entwurf, Gestaltung: Das Tempo übersteigt die menschliche Wahrnehmung.','Was man abgibt und was man nie loslässt – das ist die letzte Aufgabe.','Die Fortschrittsleiste liegt in niemandes Hand mehr.','Ab hier ist alles Hypothese.']],
+['Interstellar','Die Erde wurde zum Namen eines Ausgangspunkts.',['[Spekulation] Die erste Sonde beschleunigt aus dem Sonnensystem hinaus.','In Generationenschiffen werden Kinder geboren, die die Erde nie kannten.','Selbst die Lichtgeschwindigkeit war zu langsam.','Nachrichten aus der Heimat treffen Jahrtausende zu spät ein.','Zwischen den Sternen vergessen Menschen die Sprachen der anderen.','„Menschheit“ ist nicht mehr der Name einer einzigen Art.']],
+['Roter Riese','Die Sonne verschlingt langsam unsere Heimat.',['In etwa 5 Milliarden Jahren verbraucht die Sonne den Wasserstoff in ihrem Kern.','Die anschwellende Sonne verschluckt Merkur und Venus.','Die Ozeane der Erde sind längst verdampft.','Andromeda und die Milchstraße verschmelzen zu einer Galaxie.','Wer wird die verbliebenen Aufzeichnungen lesen?','Selbst die Geburt neuer Sterne wird eines Tages enden.']],
+['Wärmetod','Die Sterne erlöschen, die Wärme gleicht sich aus, nichts geschieht mehr.',['In etwa 100 Billionen Jahren erlöschen die letzten Sterne.','Das Universum wird dunkel und kalt und dehnt sich nur noch aus.','Selbst Schwarze Löcher verdampfen langsam.','Ohne Temperaturunterschiede kann nichts mehr geschehen.','Erinnerung, Geschichten, Fortschritt: alles eingeebnet.','100 %.']]]},
+ru:{ui:{hint:'Тяните шкалу / проводите по экрану, чтобы двигаться во времени',endA:'Прогресс 100%.',endB:'Хорошая работа, человечество.',restart:'Начать заново',ago:'{n} лет назад',bce:'{n} г. до н. э.',ce:'{n} г.',fut:'через {n} лет'},e:[
+['Человек разумный','Огонь, отпечатки ладоней и долгая ночь.',['300 000 лет назад в Африке появляется человек разумный.','Огонь сделал ночь короче, а пищу — мягче.','Родился язык — а вместе с ним ложь и истории.','Около 70 000 лет назад люди расселяются за пределы Африки.','На стенах пещер они оставили очертания своих ладоней.','Ледниковый период заканчивается. Времена года начинают повторяться.']],
+['Земледелие','Мы научились ждать пшеницу. Ожидание стало цивилизацией.',['Около 12 000 лет назад в Плодородном полумесяце выращивают пшеницу.','Мы решили остаться на одном месте. Появились деревни.','Излишки зерна породили богатство, налоги и царей.','Знаки на глине фиксировали, кому что принадлежит.','Каналы повернули реки к людям.','Керамика стала инструментом для хранения времени.']],
+['Письменность','Существовало лишь то, что удалось записать.',['Около 3200 г. до н. э. в Уруке появляется клинопись.','Законы были записаны; имена царей остались в камне.','Алфавит освободил письмо из рук немногих.','Философы спрашивали, писцы переписывали, библиотеки горели.','Бумага путешествовала с Востока на Запад.','Бесчисленные незаписанные жизни остались за пределами летописей.']],
+['Книгопечатание','Одни и те же слова одновременно доходят до тысячи людей.',['Около 1450 года в Майнце набирают подвижные литеры.','Книги выходят из монастырей и попадают в руки простых людей.','Карты перерисованы; мир становится круглым рынком.','Появляются газеты, и пробуждается общественное мнение.','Телескоп открыл небо, микроскоп — каплю воды.','Если знание можно копировать, то и власть тоже.']],
+['Паровой двигатель','Время начинают измерять часами.',['1769 год: Джеймс Уатт патентует улучшенную паровую машину.','Добывают уголь; небо над городами темнеет от копоти.','Заводские гудки задавали начало и конец дня.','Железные дороги превратили расстояние в расписание.','Города разрастались; даже дети стояли у станков.','О «прогрессе» говорили почти как о вере.']],
+['Электричество и эфир','Мир переезжает в светящийся ящик.',['Телеграф, телефон, радио. Голоса бегут по проводам.','Две мировые войны. Техника увеличила и масштаб разрушений.','1945 год: человечество получает силу уничтожить само себя.','Антибиотики переписывают продолжительность жизни.','Перед телевизором весь мир смотрел на один и тот же момент.','1969 год: на Луне остаются следы.']],
+['Цифровая эпоха','Всё пересказывается нулями и единицами.',['1971 год: микропроцессор умещается на одном чипе.','Сети соединились и стали сетью сетей.','1991 год: Всемирная паутина становится общедоступной.','Закон Мура каждый год берёт немного взаймы у будущего.','Информация стала богатством, которое не убывает при копировании.','Мы говорим с другой стороной планеты с задержкой 0,2 с.']],
+['Лента','Уведомления. Уведомления. Прогресс опубликован.',['2007 год: интернет помещается в карман.','Больше половины человечества смотрит вниз, в такой же экран.','Лайки, уведомления, рекомендации. Внимание стало валютой.','2020 год: весь мир одновременно остался дома.','Температура продолжала расти, а мы вели прямой эфир.','А потом машины заговорили.']],
+['Сингулярность','Эта шкала теперь движется и без вас.',['[Предположение] Машины прочли всё, что написали люди.','Задавать вопросы и отвечать на них — больше не только человеческое дело.','Исследования, проектирование, творчество: скорость превосходит восприятие человека.','Что доверить, а что не отпускать никогда — вот последняя работа.','Шкала прогресса больше ни в чьих руках.','Дальше — только гипотезы.']],
+['Межзвёздная эпоха','Земля стала названием точки отправления.',['[Предположение] Первый зонд разгоняется за пределы Солнечной системы.','На кораблях поколений рождаются дети, никогда не знавшие Земли.','Даже скорость света оказалась слишком медленной.','Сообщения с родины приходят с опозданием в тысячи лет.','Среди звёзд люди забывают языки друг друга.','«Человечество» больше не название одного вида.']],
+['Красный гигант','Солнце медленно поглощает наш дом.',['Примерно через 5 миллиардов лет Солнце исчерпает водород в своём ядре.','Разбухшее Солнце поглощает Меркурий и Венеру.','Океаны Земли давно испарились.','Галактика Андромеды и Млечный Путь сливаются в одну.','Кто прочтёт оставшиеся записи?','Даже рождение новых звёзд однажды прекратится.']],
+['Тепловая смерть','Звёзды гаснут, тепло выравнивается, ничего не происходит.',['Примерно через 100 триллионов лет догорают последние звёзды.','Вселенная становится тёмной и холодной и лишь продолжает расширяться.','Даже чёрные дыры медленно испаряются.','Без разницы температур ничего не может произойти.','Память, истории, прогресс — всё выровнено.','100%.']]]},
+it:{ui:{hint:'Trascina la barra / scorri ovunque per muoverti nel tempo',endA:'Progresso 100%.',endB:'Ottimo lavoro, umanità.',restart:'Ricomincia',ago:'{n} anni fa',bce:'{n} a.e.v.',ce:'anno {n}',fut:'tra {n} anni'},e:[
+['Homo sapiens','Il fuoco, le impronte delle mani e la lunghezza della notte.',['300.000 anni fa, Homo sapiens compare in Africa.','Il fuoco accorciò la notte e rese il cibo più morbido.','Nacque il linguaggio, e con esso le bugie e le storie.','Circa 70.000 anni fa, gli esseri umani si diffondono fuori dall’Africa.','Sulle pareti delle grotte lasciarono la forma delle proprie mani.','L’era glaciale finisce. Le stagioni iniziano a ripetersi.']],
+['Agricoltura','Abbiamo imparato ad aspettare il grano. L’attesa divenne civiltà.',['Circa 12.000 anni fa, nella Mezzaluna Fertile si coltiva il grano.','Scegliemmo di restare in un luogo. Nacquero i villaggi.','Il grano in eccesso generò ricchezza, tasse e re.','Segni impressi nell’argilla registravano chi possedeva cosa.','I canali piegarono i fiumi verso gli esseri umani.','La ceramica divenne uno strumento per conservare il tempo.']],
+['Scrittura','Esisteva solo ciò che poteva essere registrato.',['Intorno al 3200 a.e.v., a Uruk si incide la scrittura cuneiforme.','Le leggi furono scritte; i nomi dei re rimasero nella pietra.','L’alfabeto liberò la scrittura dalle mani di pochi.','I filosofi domandavano, gli scribi copiavano, le biblioteche bruciavano.','La carta viaggiò da Oriente a Occidente.','Innumerevoli vite mai scritte restano fuori dagli archivi.']],
+['Stampa','Le stesse parole raggiungono mille persone contemporaneamente.',['Intorno al 1450, a Magonza si compongono caratteri mobili.','I libri escono dai monasteri e arrivano nelle mani di tutti.','Le mappe vengono ridisegnate; il mondo diventa un mercato rotondo.','Nascono i giornali e si risveglia l’opinione pubblica.','Il telescopio aprì il cielo; il microscopio, una goccia d’acqua.','Se il sapere si può copiare, anche l’autorità.']],
+['Vapore','Il tempo comincia a essere misurato dagli orologi.',['1769: James Watt brevetta la sua macchina a vapore migliorata.','Si estrae il carbone; il cielo delle città si oscura di fuliggine.','Le sirene delle fabbriche segnavano l’inizio e la fine della giornata.','La ferrovia trasformò la distanza in orari.','Le città si gonfiarono; anche i bambini stavano accanto alle macchine.','Del «progresso» si parlava quasi come di una fede.']],
+['Elettricità e radio','Il mondo trasloca dentro una scatola luminosa.',['Telegrafo, telefono, radio. Le voci corrono lungo i fili.','Due guerre mondiali. La tecnica amplificò anche la distruzione.','1945: l’umanità ottiene il potere di distruggere se stessa.','Gli antibiotici riscrivono l’aspettativa di vita.','Davanti alla TV, il mondo guardava lo stesso istante.','1969: impronte sulla Luna.']],
+['Digitale','Tutto viene riscritto in 0 e 1.',['1971: un microprocessore sta su un solo chip.','Le reti si collegano e diventano una rete di reti.','1991: il World Wide Web diventa pubblico.','La legge di Moore prende ogni anno un po’ di futuro in prestito.','L’informazione diventa una ricchezza che non diminuisce se copiata.','Parliamo con l’altro capo del pianeta con 0,2 s di ritardo.']],
+['Il feed','Notifiche. Notifiche. Il progresso è condiviso.',['2007: internet sta in una tasca.','Più di metà dell’umanità guarda in basso, verso lo stesso schermo.','Like, notifiche, consigli. L’attenzione diventa moneta.','2020: il mondo intero resta in casa nello stesso momento.','Le temperature continuavano a salire, e noi lo trasmettevamo in diretta.','E poi le macchine iniziarono a parlare.']],
+['Singolarità','Questa barra ora avanza anche senza di te.',['[Ipotesi] Le macchine hanno letto tutto ciò che gli umani hanno scritto.','Fare domande e rispondere non è più solo umano.','Ricerca, progettazione, creazione: la velocità supera la percezione umana.','Cosa delegare e cosa non lasciare mai: ecco l’ultimo lavoro.','La barra di avanzamento non è più nelle mani di nessuno.','Da qui in poi, tutto è ipotesi.']],
+['Interstellare','La Terra è diventata il nome di un punto di partenza.',['[Ipotesi] La prima sonda accelera oltre il sistema solare.','Sulle navi generazionali nascono bambini che non hanno mai conosciuto la Terra.','Persino la velocità della luce era troppo lenta.','I messaggi da casa arrivano con millenni di ritardo.','Tra le stelle, gli esseri umani dimenticano le lingue degli altri.','«Umanità» non è più il nome di una sola specie.']],
+['Gigante rossa','Il Sole inghiotte lentamente la nostra casa.',['Tra circa 5 miliardi di anni, il Sole esaurisce l’idrogeno del suo nucleo.','Il Sole, gonfiandosi, inghiotte Mercurio e Venere.','Gli oceani della Terra sono evaporati da tempo.','Andromeda e la Via Lattea si fondono in un’unica galassia.','Chi leggerà gli archivi rimasti?','Anche la nascita di nuove stelle un giorno finirà.']],
+['Morte termica','Le stelle si spengono, il calore si livella, non accade più nulla.',['Tra circa 100.000 miliardi di anni, le ultime stelle si spengono.','L’universo diventa buio e freddo, e continua solo a espandersi.','Persino i buchi neri evaporano lentamente.','Senza differenze di temperatura, nulla può accadere.','Memoria, storie, progresso: tutto appiattito.','100%.']]]},
+};
+const SCRL={ja:'壱弐参肆伍陸漆捌玖零〇之乎',zh:'壹貳參肆伍陸柒捌玖零',ko:'가나다라마바사아자차카타',ru:'АБВГДЖЗИЙЛФЦЧШЩЭЮЯ',lat:'ABCDEFGHKMNPRSTVXZ#*'};
+function pickLang(){
+  try{ const s=localStorage.getItem('hg_lang'); if(s&&I18N[s]) return s; }catch(e){}
+  const L=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'ja']).map(x=>String(x).toLowerCase());
+  for(const l of L){
+    if(l.startsWith('zh')) return (/hant|tw|hk|mo/.test(l))?'zh-Hant':'zh-Hans';
+    const b=l.split('-')[0]; if(I18N[b]) return b;
+  }
+  return 'en';
+}
+let LANG=pickLang();
+const loc=()=>LANG;
+function tpl(s,n){ return s.replace('{n}',n); }
+
+/* ---------- 時代定義 ---------- */
+const ERAS=[
+ {id:'cave',   p:0.00,t:['ybp',300000],j:'ヒト、火を持つ',e:'HOMO SAPIENS',n:'火と、手形と、夜の長さ。',lum:.1},
+ {id:'clay',   p:0.14,t:['ybp',12000], j:'農耕',e:'AGRICULTURE',n:'麦を待つことを覚えた。待つことが、文明になった。',lum:.15},
+ {id:'scroll', p:0.24,t:['ybp',5200],  j:'文字',e:'WRITING',n:'記録できたものだけが、存在したことになった。',lum:.2},
+ {id:'print',  p:0.33,t:['ybp',576],   j:'活版印刷',e:'PRINTING PRESS',n:'同じ言葉が、同時に千人へ届く。',lum:.35},
+ {id:'steam',  p:0.41,t:['ybp',266],   j:'蒸気機関',e:'STEAM POWER',n:'時間が、時計で測られはじめる。',lum:.3},
+ {id:'crt',    p:0.48,t:['ybp',126],   j:'電気と放送',e:'ELECTRIC',n:'世界が、光る箱の中へ引っ越す。',lum:.6},
+ {id:'digital',p:0.55,t:['ybp',56],    j:'デジタル',e:'DIGITAL',n:'すべてが、0と1で言い直される。',lum:.9},
+ {id:'feed',   p:0.62,t:['ybp',19],    j:'タイムライン',e:'THE FEED',n:'通知。通知。通知。進捗は、共有された。',lum:.7},
+ {id:'ai',     p:0.68,t:['fut',0],     j:'特異点',e:'SINGULARITY',n:'このゲージは、もうあなたが動かさなくても進む。',lum:1},
+ {id:'cosmos', p:0.78,t:['fut',100],   j:'星間移住',e:'INTERSTELLAR',n:'地球は、出発点の名前になった。',lum:.5},
+ {id:'giant',  p:0.86,t:['fut',1e9],   j:'赤色巨星',e:'RED GIANT',n:'太陽が、ゆっくりと故郷を飲み込む。',lum:.25},
+ {id:'death',  p:0.92,t:['fut',1e14],  j:'熱的死',e:'HEAT DEATH',n:'星が消え、熱が均され、何も起きなくなる。',lum:.05},
+];
+const END={p:1,t:['fut',1e100]};
+const NOW_P=0.68, BW=0.014, END_P=0.999;
+const LIGHT_BG={print:1,feed:1};
+
+ERAS.forEach((e,i)=>{ if(i===0) return; const t=document.createElement('i'); t.style.left=(e.p*100)+'%'; E.ticks.appendChild(t); });
+
+function eraIndex(p){ let i=0; for(let k=0;k<ERAS.length;k++) if(p>=ERAS[k].p) i=k; return i; }
+function eraK(i,p){ const a=ERAS[i], b=ERAS[i+1]||END; return Math.min(1,Math.max(0,(p-a.p)/(b.p-a.p))); }
+function timeAt(p){
+  const i=eraIndex(p), a=ERAS[i], b=ERAS[i+1]||END, k=eraK(i,p);
+  if(a.t[0]==='ybp'){ const bv=b.t[0]==='ybp'?b.t[1]:0; const la=Math.log(a.t[1]+1), lb=Math.log(bv+1); return {kind:'ybp',v:Math.exp(la+(lb-la)*k)-1}; }
+  const la=Math.log10(a.t[1]+1), lb=Math.log10(b.t[1]+1); return {kind:'fut',v:Math.pow(10,la+(lb-la)*k)-1};
+}
+function cnum(v){ try{ return new Intl.NumberFormat(LANG,{notation:'compact',maximumFractionDigits:1}).format(v); }catch(e){ return String(Math.round(v)); } }
+function inum(v){ try{ return new Intl.NumberFormat(LANG).format(v); }catch(e){ return String(v); } }
+function fmtYear(t){
+  const U=I18N[LANG].ui;
+  if(t.kind==='ybp'){
+    if(t.v>=10000) return tpl(U.ago,inum(Math.round(t.v)));
+    const y=Math.round(2026-t.v); return y<=0?tpl(U.bce,inum(1-y)):tpl(U.ce,String(y));
+  }
+  const f=t.v;
+  if(f<8000) return tpl(U.ce,String(Math.round(2026+f)));
+  if(f<(CJK[LANG]?1e20:1e15)) return tpl(U.fut,cnum(f));
+  return tpl(U.fut,'10<sup>'+Math.floor(Math.log10(f))+'</sup>');
+}
+
+/* ---------- 乱数・ノイズ ---------- */
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hsh(i){const s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+function noise1(x){const i=Math.floor(x),f=x-i,u=f*f*(3-2*f);return hsh(i)*(1-u)+hsh(i+1)*u}
+const mk=(w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,w);c.height=Math.max(1,h);return c};
+const pair=(w,h)=>{const c=mk(w,h);return {c,x:c.getContext('2d')}};
+
+/* ---------- 描画モード判定 ---------- */
+let mode=(typeof ctx.drawElementImage==='function')?'hic':'fo';
+if(mode==='hic'){ cv.setAttribute('layoutsubtree',''); cv.setAttribute('content','drawable'); }
+else $('shelf').appendChild(G);
+let hicOK=0,hicFail=0;
+function showMode(){ modeEl.textContent= mode==='hic'
+  ? 'RENDER: HTML-in-Canvas (drawElementImage)'
+  : 'RENDER: FALLBACK (SVG foreignObject)'; }
+showMode();
+function toFO(){ mode='fo'; cv.removeAttribute('layoutsubtree'); cv.removeAttribute('content'); $('shelf').appendChild(G); foDirty=true; showMode(); }
+
+/* ---------- サイズ ---------- */
+let VW=360,VH=640,VX=0,VY=0,PR=1,K=1,dpr=1,W=0,H=0,GW=1,GH=1,GX=0,GY=0,gwC=340,ghC=200,gxC=0,gyC=0;
+const src=pair(1,1), T1=pair(1,1), T2=pair(1,1), small=pair(1,1), spk=pair(1,1);
+const layer=pair(1,1), fb=pair(1,1), fb2=pair(1,1);
+let srcReady=false;
+function resize(){
+  PR=Math.min(2,window.devicePixelRatio||1);
+  const br=cv.getBoundingClientRect(); VW=br.width||innerWidth; VH=br.height||innerHeight; VX=br.left; VY=br.top;
+  W=cv.width=Math.round(VW*PR); H=cv.height=Math.round(VH*PR);
+  // 動画と同じ構図：540×960の設計座標をビューポートに収める（scale = contain）
+  K=Math.min(VW/540,VH/960); dpr=PR*K;
+  for(const q of [layer,fb,fb2]){ q.c.width=W; q.c.height=H; }
+  const S=Math.max(.7,Math.min(1.6,(VW*.86)/340,(VH*.46)/260)); G.style.setProperty('--u',S.toFixed(4)+'px'); hicR=0; calWait=4;
+  buildTextures(); stars.length=0; foDirty=true;
+}
+function measure(){
+  gwC=G.offsetWidth||gwC; ghC=G.offsetHeight||ghC;
+  gxC=Math.round((VW-gwC)/2); gyC=Math.round(VH/2-ghC/2);
+  const nw=Math.round(gwC*PR), nh=Math.round(ghC*PR);
+  GX=Math.round(gxC*PR); GY=Math.round(gyC*PR);
+  if(mode==='hic' && (nw!==GW||nh!==GH)) setSrcSize(nw,nh);
+}
+function setSrcSize(w,h){
+  GW=w; GH=h;
+  for(const q of [src,T1,T2,spk]){ q.c.width=w; q.c.height=h; }
+  // 侵食用スペックル
+  const id=spk.x.createImageData(w,h), d=id.data, r=mul(99);
+  for(let i=0;i<d.length;i+=4){ if(r()<.16){ d[i+3]=255; } }
+  spk.x.putImageData(id,0,0);
+  spk.x.fillStyle='#000';
+  for(let i=0;i<60;i++){ spk.x.beginPath(); spk.x.arc(r()*w,r()*h,(1+r()*3)*dpr,0,7); spk.x.fill(); }
+}
+
+/* ---------- テクスチャ ---------- */
+const pat={}; let handCv, puffCv, cracks=[];
+function buildTextures(){
+  const R=mul(7);
+  // 岩肌
+  const rock=pair(256,256); rock.x.fillStyle='#2a1a10'; rock.x.fillRect(0,0,256,256);
+  for(let i=0;i<900;i++){ const l=20+R()*40; rock.x.fillStyle=`hsla(25,35%,${l}%,${.05+R()*.08})`; rock.x.beginPath(); const x=R()*256,y=R()*256,rr=2+R()*26; for(const dx of [-256,0,256]) for(const dy of [-256,0,256]){ rock.x.moveTo(x+dx+rr,y+dy); rock.x.arc(x+dx,y+dy,rr,0,7);} rock.x.fill(); }
+  pat.rock=ctx.createPattern(rock.c,'repeat');
+  // 紙の粒子
+  const gr=pair(180,180), gd=gr.x.createImageData(180,180);
+  for(let i=0;i<gd.data.length;i+=4){ gd.data[i]=gd.data[i+1]=gd.data[i+2]=60; gd.data[i+3]=R()*38; }
+  gr.x.putImageData(gd,0,0); pat.grain=ctx.createPattern(gr.c,'repeat');
+  // パピルス繊維
+  const fi=pair(256,256);
+  for(let i=0;i<140;i++){ fi.x.fillStyle=`rgba(110,80,30,${.05+R()*.15})`; fi.x.fillRect(0,R()*256,256,1+R()*2); }
+  for(let i=0;i<60;i++){ fi.x.fillStyle=`rgba(90,60,20,${.04+R()*.08})`; fi.x.fillRect(R()*256,0,1+R()*2,256); }
+  pat.fiber=ctx.createPattern(fi.c,'repeat');
+  // 網点
+  const s=Math.max(4,Math.round(5*dpr)), dt=pair(s,s); dt.x.fillStyle='#000'; dt.x.beginPath(); dt.x.arc(s/2,s/2,s*.42,0,7); dt.x.fill();
+  pat.dots=ctx.createPattern(dt.c,'repeat');
+  // 走査線
+  const sl=Math.max(3,Math.round(3*dpr)), sc=pair(4,sl); sc.x.fillStyle='rgba(0,0,0,.85)'; sc.x.fillRect(0,0,4,Math.max(1,Math.round(dpr)));
+  pat.scan=ctx.createPattern(sc.c,'repeat');
+  // ピクセルグリッド
+  const pg=Math.round(8*dpr), pq=pair(pg,pg); pq.x.fillStyle='rgba(120,140,255,.35)'; pq.x.fillRect(0,0,Math.max(1,dpr|0),Math.max(1,dpr|0));
+  pat.pix=ctx.createPattern(pq.c,'repeat');
+  // 煙
+  const pf=pair(64,64), g=pf.x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(200,190,170,.5)'); g.addColorStop(1,'rgba(200,190,170,0)'); pf.x.fillStyle=g; pf.x.fillRect(0,0,64,64); puffCv=pf.c;
+  // 手形ステンシル
+  handCv=makeHand();
+  // 粘土板のひび
+  cracks=[]; for(let i=0;i<7;i++){ const pts=[]; let x=R(),y=R()<.5?0:1; if(R()<.5){ [x,y]=[y,x]; } for(let k=0;k<7;k++){ pts.push([x,y]); x+= (R()-.5)*.18; y+= (y<.5?1:-1)*R()*.08+(R()-.5)*.08; } cracks.push(pts); }
+}
+function makeHand(){
+  const S=200, c=pair(S,S), m=pair(S,S);
+  m.x.fillStyle='#000'; m.x.beginPath(); m.x.ellipse(100,132,36,42,0,0,7); m.x.fill();
+  m.x.lineCap='round'; m.x.strokeStyle='#000';
+  [[74,110,52,40,16],[90,96,84,22,16],[106,94,110,18,16],[121,100,134,32,15],[132,134,172,104,19]].forEach(f=>{ m.x.lineWidth=f[4]; m.x.beginPath(); m.x.moveTo(f[0],f[1]); m.x.lineTo(f[2],f[3]); m.x.stroke(); });
+  const r=mul(3);
+  for(let i=0;i<6000;i++){ const a=r()*6.283, rad=Math.pow(r(),.55)*96; c.x.fillStyle=`rgba(${150+r()*40|0},${40+r()*25|0},18,${.22*r()})`; c.x.fillRect(100+Math.cos(a)*rad,100+Math.sin(a)*rad*1.02,2,2); }
+  c.x.globalCompositeOperation='destination-out'; c.x.drawImage(m.c,0,0);
+  return c.c;
+}
+const HANDS=[[.12,.2,-.4,1.1,.55],[.86,.16,.5,.9,.45],[.1,.8,.2,1.3,.5],[.9,.74,-.3,1.2,.5],[.32,.92,.9,.8,.35],[.7,.9,-.9,1,.4],[.5,.1,3.1,.7,.3]];
+
+/* ---------- 共通ヘルパー ---------- */
+function tint(T,col){ const x=T.x; x.globalCompositeOperation='source-over'; x.clearRect(0,0,GW,GH); x.drawImage(src.c,0,0); x.globalCompositeOperation='source-in'; x.fillStyle=col; x.fillRect(0,0,GW,GH); x.globalCompositeOperation='source-over'; return T.c; }
+function erode(T,a){ T.x.globalCompositeOperation='destination-out'; T.x.globalAlpha=a; T.x.drawImage(spk.c,0,0); T.x.globalAlpha=1; T.x.globalCompositeOperation='source-over'; }
+function halftone(T){ T.x.globalCompositeOperation='destination-in'; T.x.fillStyle=pat.dots; T.x.fillRect(0,0,GW,GH); T.x.globalCompositeOperation='source-over'; }
+function put(c,img,ox=0,oy=0,s=1,a=1){ c.globalAlpha=a; const w=GW*s,h=GH*s; c.drawImage(img,GX+GW/2-w/2+ox,GY+GH/2-h/2+oy,w,h); c.globalAlpha=1; }
+function rr(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+function vignette(c,a){ const g=c.createRadialGradient(W/2,H/2,Math.min(W,H)*.25,W/2,H/2,Math.hypot(W,H)*.6); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,`rgba(0,0,0,${a})`); c.fillStyle=g; c.fillRect(0,0,W,H); }
+function fillPat(c,p,a,op){ c.save(); if(op) c.globalCompositeOperation=op; c.globalAlpha=a; c.fillStyle=p; c.fillRect(0,0,W,H); c.restore(); }
+function gear(c,x,y,r,n,a,col){ c.save(); c.translate(x,y); c.rotate(a); c.beginPath(); const st=Math.PI/n; for(let i=0;i<n*2;i++){ const R2=i%2?r*.8:r; c.lineTo(Math.cos(i*st-st*.45)*R2,Math.sin(i*st-st*.45)*R2); c.lineTo(Math.cos(i*st+st*.45)*R2,Math.sin(i*st+st*.45)*R2); } c.closePath(); c.moveTo(r*.32,0); c.arc(0,0,r*.32,0,6.2832,true); c.fillStyle=col; c.fill('evenodd'); c.restore(); }
+const lerp=(a,b,t)=>a+(b-a)*t;
+
+
+/* ---------- ストーリー（背景テキスト） ---------- */
+const FONTS={mincho:'"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif',mono:'ui-monospace,Menlo,Consolas,monospace',sans:'system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif',serif:'Georgia,"Hiragino Mincho ProN","Yu Mincho",serif'};
+const SCR={mincho:'壱弐参肆伍陸漆捌玖零〇之乎',mono:'01#$%&*+<>/\\=_|',sans:'■□▲△●○◆◇',serif:'§¶†‡*~'};
+const SST={
+ cave:{f:'mincho',c:'235,150,95',m:'lanes',a:.9},
+ clay:{f:'mincho',c:'240,205,160',m:'lanes',a:.8},
+ scroll:{f:'mincho',c:'225,200,145',m:'vert',a:.9},
+ print:{f:'mincho',c:'25,25,25',m:'lanes',a:.9},
+ steam:{f:'serif',c:'235,190,120',m:'lanes',a:.85},
+ crt:{f:'mono',c:'80,255,140',m:'lanes',a:1},
+ digital:{f:'mono',c:'126,246,255',m:'lanes',a:1},
+ feed:{f:'sans',c:'20,20,30',m:'lanes',a:.9},
+ ai:{f:'mono',c:'255,255,255',m:'lanes',a:1},
+ cosmos:{f:'sans',c:'205,228,255',m:'warp',a:1},
+ giant:{f:'mincho',c:'255,215,150',m:'lanes',a:.9},
+ death:{f:'mincho',c:'255,150,115',m:'lanes',a:.8},
+};
+const sstate={}, laneW={};
+const scanCv=pair(8,8);
+function laneWidth(c,key,txt){ // measureTextがフォールバック字形の幅を過小評価する環境があるため、実ピクセルで幅を測る
+  const k=key+'|'+c.font+'|'+txt; if(laneW[k]) return laneW[k];
+  const m=c.measureText(txt).width, fs=parseFloat((c.font.match(/(\d+(?:\.\d+)?)px/)||[0,16])[1]);
+  const w=Math.ceil(Math.max(m,txt.length*fs*1.2)+fs), h=Math.ceil(fs*1.8);
+  let res=m;
+  try{ scanCv.c.width=w; scanCv.c.height=h; const x=scanCv.x; x.font=c.font; x.textBaseline='middle'; x.fillStyle='#000'; x.fillText(txt,0,h/2);
+    const d=x.getImageData(0,0,w,h).data; let mx=0; for(let yy=0;yy<h;yy+=2) for(let xx=w-1;xx>mx;xx--){ if(d[(yy*w+xx)*4+3]>8){ mx=xx; break; } }
+    const trail=txt.length-txt.trimEnd().length; res=Math.max(m,mx+x.measureText(' ').width*Math.max(2,trail)+fs*.2);
+  }catch(e){}
+  laneW[k]=res; return res; }
+function story(c,t,k,id){
+  const st=SST[id], ei=ERAS.findIndex(e=>e.id===id), era=ERAS[ei], TR=I18N[LANG].e[ei], L=TR[2], n=L.length, fam=FONTS[st.f], cjk=!!CJK[LANG];
+  const fade=id==='death'?Math.pow(1-k,1.2):1, A=st.a*fade;
+  const col=a=>id==='ai'?`hsla(${(t*80)%360},100%,72%,${a*A})`:`rgba(${st.c},${a*A})`;
+  const li=Math.min(n-1,Math.floor(k*n));
+  let s=sstate[id]; if(!s) s=sstate[id]={li:-1,t0:t};
+  if(s.li!==li||t<s.t0){ s.li=li; s.t0=t; }
+  c.save(); c.globalCompositeOperation='source-over';
+  const cx=W/2, top=GY, bot=GY+GH;
+  // (1) テクニカルなログ：全面を上へスクロール
+  if(st.m!=='warp'){
+    const fs=Math.round(9.5*dpr), lh=Math.round(15*dpr), sp=(id==='feed'?40:22)*dpr*(id==='ai'?3:1), sc=t*sp, base=Math.floor(sc/lh);
+    c.font=`500 ${fs}px ${FONTS.mono}`; c.textAlign='left'; c.textBaseline='top';
+    const rows=Math.ceil(H/lh)+2;
+    for(let r=0;r<rows;r++){
+      const y=r*lh-(sc%lh); const g=base+r, idx=((g%n)+n)%n;
+      const tc=(ERAS[ei].p+ (idx/n)*((ERAS[ei+1]||END).p-ERAS[ei].p));
+      const head=`${(g&0xffff).toString(16).padStart(4,'0').toUpperCase()} | E${String(ei+1).padStart(2,'0')} | ${fmtYear(timeAt(tc)).replace(/10<sup>(\d+)<\/sup>/,'10^$1')} |`;
+      const on=idx===li; c.fillStyle=col(on?.42:.16);
+      const x=12*dpr+((g*37)%5)*2*dpr;
+      c.fillText(head+' '+L[idx],x,y);
+      if(on){ c.fillRect(x-6*dpr,y+2*dpr,2*dpr,lh-6*dpr); }
+    }
+  }
+  // (2) 巨大アウトライン・レーン（上） / 本文レーン（下）
+  if(st.m==='lanes'){
+    const big=Math.round(Math.min(H*.1,W*.2,96*dpr));
+    c.font=`900 ${big}px ${fam}`; c.textBaseline='middle'; c.textAlign='left';
+    const ta=LANG==='en'?`${era.e}   `:`${era.e}  ${TR[0]}  `, wa=laneWidth(c,LANG+id+'a'+big,ta), ya=Math.max(84*dpr,top*.5);
+    let xa=-((t*(id==='feed'?120:46)*dpr)%wa);
+    c.lineWidth=Math.max(1,1.3*dpr); c.strokeStyle=col(.38);
+    if(id==='digital'||id==='crt'){ const r=mul(Math.floor(t*10)); const j=r()<.2?(r()-.5)*24*dpr:0; xa+=j; }
+    for(let x=xa;x<W;x+=wa) c.strokeText(ta,x,ya);
+    const mid=Math.round(big*.36); c.font=`700 ${mid}px ${fam}`;
+    const tb=cjk?L.join('　／　')+'　／　':L.join('  /  ')+'  /  ', wb=laneWidth(c,LANG+id+'b'+mid,tb), yb=bot+(H-bot)*.66;
+    const xb=((t*(id==='feed'?90:30)*dpr)%wb)-wb; c.fillStyle=col(.24);
+    for(let x=xb;x<W;x+=wb) c.fillText(tb,x,yb);
+  } else if(st.m==='vert'){
+    const fs=Math.round(17*dpr), gap=Math.round(30*dpr); c.font=`600 ${fs}px ${fam}`; c.textAlign='center'; c.textBaseline='middle';
+    for(let ci=0, x=W-gap*.7; x>0; ci++, x-=gap){
+      const spd=(16+(ci*13%5)*7)*dpr; c.fillStyle=col(ci%n===li?.5:.2);
+      if(!cjk){ const ln=L[ci%n]+'   ', cw=laneWidth(c,LANG+'v'+ci+fs,ln), off2=(t*spd+ci*97*dpr)%cw; c.save(); c.translate(x,0); c.rotate(Math.PI/2); c.textAlign='left'; for(let y=-cw+off2;y<H;y+=cw) c.fillText(ln,y,0); c.restore(); continue; }
+      const line=L[ci%n]+'　　', len=line.length, colH=len*fs*1.15, off=(t*spd+ci*97*dpr)%colH;
+      for(let y=-colH+off; y<H; y+=colH) for(let j=0;j<len;j++){ const yy=y+j*fs*1.15; if(yy>-fs&&yy<H+fs) c.fillText(line[j],x,yy); }
+    }
+  } else if(st.m==='warp'){
+    c.textAlign='center'; c.textBaseline='middle';
+    for(let j=0;j<14;j++){ const ph=(t*.09+j/14)%1, a=j*2.399+.3, d=Math.pow(ph,2.2);
+      const fs=Math.round((7+ph*30)*dpr); c.font=`300 ${fs}px ${fam}`; c.fillStyle=col(Math.sin(ph*Math.PI)*.55*Math.min(1,Math.max(0,d*3-.25)));
+      c.fillText(L[j%n],cx+Math.cos(a)*d*W*.75,(top+bot)/2+Math.sin(a)*d*H*.6); }
+  }
+  // (3) 見出し：現在のストーリー行をデコード表示
+  const line=L[li], el=t-s.t0, rv=Math.floor(el*26), pool=st.f==='mono'?SCR.mono:(LANG==='ja'?SCRL.ja:LANG.startsWith('zh')?SCRL.zh:LANG==='ko'?SCRL.ko:LANG==='ru'?SCRL.ru:SCRL.lat);
+  let shown=line.slice(0,rv); if(rv<line.length){ const r=mul(Math.floor(t*30)); for(let q=0;q<Math.min(5,line.length-rv);q++) shown+=pool[(r()*pool.length)|0]; }
+  let hs=Math.round(15*dpr); c.font=`700 ${hs}px ${fam}`; const mw=W-48*dpr, tw=c.measureText(shown).width; if(tw>mw){ hs=Math.floor(hs*mw/tw); c.font=`700 ${hs}px ${fam}`; }
+  const hy=bot+30*dpr+(id==='giant'?Math.pow(k,1.35)*GH*.6:0);
+  c.textAlign='center'; c.textBaseline='top';
+  c.font=`700 ${Math.round(8.5*dpr)}px ${FONTS.mono}`; c.fillStyle=col(.75);
+  c.fillText(`STORY ${String(li+1).padStart(2,'0')}/${String(n).padStart(2,'0')}  ·  ${era.e}`,cx,hy);
+  c.font=`700 ${hs}px ${fam}`; c.fillStyle=col(1);
+  if(id==='crt'||id==='digital'){ c.shadowColor=col(.8); c.shadowBlur=10*dpr; }
+  c.fillText(shown,cx,hy+16*dpr);
+  if(rv>=line.length && (t*2|0)%2===0){ const w2=c.measureText(shown).width; c.fillRect(cx+w2/2+4*dpr,hy+17*dpr,Math.max(2,hs*.5),hs); }
+  // 時代内の進行ドット
+  c.shadowBlur=0; for(let q=0;q<n;q++){ c.fillStyle=col(q===li?.95:.3); c.fillRect(cx+(q-(n-1)/2)*12*dpr-2*dpr,hy+hs+28*dpr,q===li?8*dpr:4*dpr,2*dpr); }
+  c.restore();
+}
+
+/* ---------- 各時代のレンダラー ---------- */
+const R={};
+R.cave=(c,t,k)=>{
+  c.fillStyle='#24160d'; c.fillRect(0,0,W,H); fillPat(c,pat.rock,.95); story(c,t,k,'cave');
+  for(const h of HANDS){ c.save(); c.translate(h[0]*W,h[1]*H); c.rotate(h[2]); const z=h[3]*dpr*.9; c.globalAlpha=h[4]*(.6+.4*k); c.drawImage(handCv,-100*z,-100*z,200*z,200*z); c.restore(); }
+  const fl=.6+.22*Math.sin(t*7.3)*Math.sin(t*3.1+1)+.12*Math.random();
+  const g=c.createRadialGradient(W/2,H*1.05,0,W/2,H*1.05,Math.max(W,H)*.95);
+  g.addColorStop(0,`rgba(255,150,60,${.42*fl})`); g.addColorStop(.45,`rgba(210,80,20,${.16*fl})`); g.addColorStop(1,'rgba(0,0,0,0)');
+  c.save(); c.globalCompositeOperation='lighter'; c.fillStyle=g; c.fillRect(0,0,W,H); c.restore();
+  const r=mul(Math.floor(t*11));
+  tint(T1,'#0d0704'); erode(T1,1);
+  for(let i=0;i<3;i++) put(c,T1.c,(r()-.5)*5*dpr,(r()-.5)*5*dpr,1,.32);
+  tint(T2,'#c9592a'); erode(T2,.9);
+  put(c,T2.c,(r()-.5)*1.4*dpr,(r()-.5)*1.4*dpr,1,.95);
+  vignette(c,.8);
+};
+R.clay=(c,t,k)=>{
+  const bg=c.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#3e2a1b'); bg.addColorStop(1,'#140d07'); c.fillStyle=bg; c.fillRect(0,0,W,H); story(c,t,k,'clay');
+  const pad=26*dpr, x=GX-pad, y=GY-pad, w=GW+pad*2, h=GH+pad*2;
+  c.save(); c.shadowColor='rgba(0,0,0,.7)'; c.shadowBlur=50*dpr; c.shadowOffsetY=18*dpr; rr(c,x,y,w,h,34*dpr); c.fillStyle='#b98d62'; c.fill(); c.restore();
+  c.save(); rr(c,x,y,w,h,34*dpr); c.clip(); c.globalCompositeOperation='multiply'; c.fillStyle=pat.grain; c.globalAlpha=1; c.fillRect(x,y,w,h); c.globalAlpha=1;
+  c.strokeStyle='rgba(90,58,32,.55)'; c.lineWidth=1.3*dpr; for(const pts of cracks){ c.beginPath(); pts.forEach((q,i)=>{ const px=x+q[0]*w, py=y+q[1]*h; i?c.lineTo(px,py):c.moveTo(px,py); }); c.stroke(); }
+  c.globalCompositeOperation='soft-light'; const sw=(t*.15)%1.6-.3; const lg=c.createLinearGradient(x+w*sw-w*.3,y,x+w*sw+w*.3,y+h); lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(.5,'rgba(255,240,210,.5)'); lg.addColorStop(1,'rgba(255,255,255,0)'); c.fillStyle=lg; c.fillRect(x,y,w,h);
+  c.restore();
+  put(c,tint(T1,'#4e3018'),2*dpr,2.6*dpr,1,.95);
+  put(c,tint(T1,'#f5dcb8'),-1*dpr,-1*dpr,1,.6);
+  put(c,tint(T1,'#a57b52'),0,0,1,1);
+  vignette(c,.6);
+};
+R.scroll=(c,t,k)=>{
+  c.fillStyle='#140e08'; c.fillRect(0,0,W,H); story(c,t,k,'scroll');
+  const open=Math.min(1,.15+k*5), ease=1-Math.pow(1-open,3);
+  const fullW=GW+100*dpr, sw=fullW*ease, x=W/2-sw/2, y=GY-36*dpr, h=GH+72*dpr;
+  c.save(); c.shadowColor='rgba(0,0,0,.6)'; c.shadowBlur=30*dpr; c.fillStyle='#d8c08b'; c.fillRect(x,y,sw,h); c.restore();
+  c.save(); c.beginPath(); c.rect(x,y,sw,h); c.clip(); c.globalCompositeOperation='multiply'; c.fillStyle=pat.fiber; c.fillRect(x,y,sw,h); c.fillStyle=pat.grain; c.fillRect(x,y,sw,h);
+  c.globalCompositeOperation='source-over';
+  const ink=tint(T1,'#24160a'), sh=Math.max(1,Math.round(2*dpr));
+  for(let yy=0;yy<GH;yy+=sh){ const off=Math.sin(yy*.03/dpr+t*2.2)*2.6*dpr*(1+k); c.drawImage(ink,0,yy,GW,sh,GX+off,GY+yy,GW,sh); }
+  put(c,ink,0,0,1.012,.14);
+  c.restore();
+  for(const ex of [x-12*dpr,x+sw-6*dpr]){ const g=c.createLinearGradient(ex,0,ex+18*dpr,0); g.addColorStop(0,'#3a2412'); g.addColorStop(.5,'#9a6a3a'); g.addColorStop(1,'#2a180a'); c.fillStyle=g; rr(c,ex,y-14*dpr,18*dpr,h+28*dpr,8*dpr); c.fill(); }
+  vignette(c,.7);
+};
+R.print=(c,t,k)=>{
+  c.fillStyle='#ede6d5'; c.fillRect(0,0,W,H); fillPat(c,pat.grain,.9); story(c,t,k,'print');
+  const ph=(t%1.6)/1.6, th=Math.exp(-ph*14), s=1+.035*th;
+  c.fillStyle=`rgba(0,0,0,${.06*th})`; c.fillRect(0,0,W,H);
+  c.save(); c.globalCompositeOperation='multiply';
+  const mis=(1+th*4)*(1.2-k*.6)*dpr;
+  const plates=[['#00a3e0',Math.sin(t*1.7)*3,Math.cos(t*1.1)*2],['#e6007e',Math.cos(t*1.3)*3,Math.sin(t*2.1)*2],['#ffd400',Math.sin(t*.9+2)*4,Math.cos(t*1.9)*3]];
+  for(const [col,dx,dy] of plates){ tint(T1,col); halftone(T1); put(c,T1.c,dx*mis,dy*mis,s,.95); }
+  put(c,tint(T1,'#151515'),0,0,s,.9);
+  c.restore();
+  vignette(c,.25);
+};
+const puffs=Array.from({length:34},(_,i)=>{const r=mul(i+40);return [r(),r(),r(),r()]});
+R.steam=(c,t,k)=>{
+  const bg=c.createRadialGradient(W/2,H*.45,0,W/2,H*.45,Math.hypot(W,H)*.6); bg.addColorStop(0,'#5a4126'); bg.addColorStop(1,'#120b05'); c.fillStyle=bg; c.fillRect(0,0,W,H); story(c,t,k,'steam');
+  const big=GH*.95, sm=GH*.55;
+  gear(c,GX+GW*.12,GY+GH*.15,big,14,t*.35,'rgba(170,125,60,.28)');
+  gear(c,GX+GW*.12+big*.98+sm*.82,GY+GH*.15+sm*.2,sm,8,-t*.35*14/8+.2,'rgba(170,125,60,.22)');
+  gear(c,GX+GW*.92,GY+GH*1.05,GH*.7,11,-t*.5,'rgba(120,85,40,.3)');
+  for(const q of puffs){ const sp=(.04+q[2]*.06)*H; const yy=H*1.1-((t*sp+q[1]*H*1.4)%(H*1.4)); const life=1-(yy/H); const xx=q[0]*W+Math.sin(t*.7+q[3]*6)*30*dpr*life; const sz=(40+life*160)*dpr*(.6+q[3]); c.globalAlpha=.35*(1-Math.abs(life-.5)*1.6)*(.4+k*.8); c.drawImage(puffCv,xx-sz/2,yy-sz/2,sz,sz); }
+  c.globalAlpha=1;
+  const jolt=(t%2.3)<.08?3*dpr:0, j=(Math.sin(t*53)+Math.sin(t*37.7))*.6*dpr+jolt;
+  put(c,tint(T1,'#120a03'),4*dpr,6*dpr+j,1,.55);
+  put(c,tint(T1,'#e7bd78'),0,j,1,1);
+  vignette(c,.85);
+};
+R.crt=(c,t,k)=>{
+  c.fillStyle='#020402'; c.fillRect(0,0,W,H); story(c,t,k,'crt');
+  const g=c.createRadialGradient(W/2,GY+GH/2,0,W/2,GY+GH/2,Math.max(GW,GH)*1.1); g.addColorStop(0,'rgba(40,120,70,.22)'); g.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle=g; c.fillRect(0,0,W,H);
+  c.save(); c.globalCompositeOperation='lighter';
+  const ofs=(1.6+(Math.random()<.05?7:0)+Math.sin(t*3)*.8)*dpr;
+  const band=((t*.33)%1.4)*GH*1.4-GH*.2, st=Math.max(1,Math.round(3*dpr));
+  const slices=(img,ox)=>{ for(let y=0;y<GH;y+=st){ const d=Math.abs(y-band); const off=d<16*dpr?(Math.random()-.5)*12*dpr:0; c.drawImage(img,0,y,GW,st,GX+ox+off,GY+y,GW,st); } };
+  slices(tint(T1,'#ff2a2a'),-ofs); slices(tint(T1,'#2aff5a'),0); slices(tint(T1,'#3a5cff'),ofs);
+  const gl=tint(T1,'#50ff90'); put(c,gl,0,0,1.03,.16); put(c,gl,0,0,1.1,.06);
+  const by=((t*.18)%1)*H; const bg2=c.createLinearGradient(0,by-60*dpr,0,by+60*dpr); bg2.addColorStop(0,'rgba(120,255,160,0)'); bg2.addColorStop(.5,'rgba(120,255,160,.06)'); bg2.addColorStop(1,'rgba(120,255,160,0)'); c.fillStyle=bg2; c.fillRect(0,by-60*dpr,W,120*dpr);
+  c.restore();
+  fillPat(c,pat.scan,.55);
+  c.fillStyle=`rgba(0,0,0,${Math.random()*.09})`; c.fillRect(0,0,W,H);
+  vignette(c,.95);
+};
+R.digital=(c,t,k)=>{
+  c.fillStyle='#05051a'; c.fillRect(0,0,W,H); fillPat(c,pat.pix,1); story(c,t,k,'digital');
+  const px=Math.max(1,Math.round(lerp(11,2.2,Math.pow(k,.7))*dpr));
+  const sw=Math.ceil(GW/px), sh=Math.ceil(GH/px);
+  if(small.c.width!==sw||small.c.height!==sh){ small.c.width=sw; small.c.height=sh; }
+  small.x.clearRect(0,0,sw,sh); small.x.imageSmoothingEnabled=true; small.x.drawImage(tint(T1,'#7ef6ff'),0,0,sw,sh);
+  c.save(); c.imageSmoothingEnabled=false;
+  c.shadowColor='rgba(60,200,255,.7)'; c.shadowBlur=18*dpr;
+  c.drawImage(small.c,0,0,sw,sh,GX,GY,sw*px,sh*px);
+  c.shadowBlur=0;
+  const r=mul(Math.floor(t*9)); const n=r()<.55?3+(r()*6|0):0;
+  for(let i=0;i<n;i++){ const bx=r()*sw|0, by=r()*sh|0, bw=4+r()*24|0, bh=1+r()*4|0, dx=(r()-.5)*50*dpr; c.drawImage(small.c,bx,by,bw,bh,GX+bx*px+dx,GY+by*px,bw*px,bh*px); c.globalCompositeOperation='source-atop'; c.fillStyle=r()<.5?'rgba(255,0,150,.55)':'rgba(255,240,0,.45)'; c.fillRect(GX+bx*px+dx,GY+by*px,bw*px,bh*px); c.globalCompositeOperation='source-over'; }
+  c.restore();
+  vignette(c,.6);
+};
+const BADGES=Array.from({length:18},(_,i)=>{const r=mul(i*7+5); return [r(),r(),r()]});
+function badge(c,x,y,txt,s){ if(s<=0) return; c.save(); c.translate(x,y); c.scale(s,s); c.font=`800 ${13*dpr}px system-ui,-apple-system,sans-serif`; const w=Math.max(24*dpr,c.measureText(txt).width+16*dpr), h=24*dpr; c.shadowColor='rgba(255,45,85,.45)'; c.shadowBlur=12*dpr; rr(c,-w/2,-h/2,w,h,h/2); c.fillStyle='#ff2d55'; c.fill(); c.shadowBlur=0; c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(txt,0,dpr); c.restore(); }
+R.feed=(c,t,k)=>{
+  c.fillStyle='#e8e8ee'; c.fillRect(0,0,W,H);
+  const s=.6, cw=GW*s, ch=GH*s, gap=14*dpr, step=ch+gap;
+  const spd=(30+k*k*1400)*dpr, off=(t*spd)%step;
+  c.save(); c.globalAlpha=.5;
+  for(let col=-2;col<=2;col++){ const x=W/2+col*(cw+gap)-cw/2; const o=(col%2?off*1.3:off)%step; for(let y=-step+((col&1)?step/2:0)-o;y<H+step;y+=step){ c.shadowColor='rgba(0,0,0,.12)'; c.shadowBlur=14*dpr; c.shadowOffsetY=5*dpr; c.drawImage(src.c,x,y,cw,ch); } }
+  c.restore();
+  c.fillStyle=`rgba(232,232,238,${.55})`; c.fillRect(0,0,W,H); story(c,t,k,'feed');
+  c.save(); c.shadowColor='rgba(0,0,0,.28)'; c.shadowBlur=40*dpr; c.shadowOffsetY=16*dpr; put(c,src.c,0,0,1,1); c.restore();
+  const n=BADGES.length;
+  for(let i=0;i<n;i++){ const ki=i/(n+2); if(k<ki) continue; const a=Math.min(1,(k-ki)*28); const sc=a<1?Math.sin(a*Math.PI*.5)*1.25-(a>.8?(a-.8)*1.25:0):1+Math.sin(t*8+i)*.03; const q=BADGES[i];
+    let x,y; if(i<3){ const cs=[[GX+GW-4*dpr,GY+4*dpr],[GX+6*dpr,GY+GH-6*dpr],[GX+GW*.55,GY-6*dpr]][i]; [x,y]=cs; } else { x=(.06+q[0]*.88)*W; y=(.08+q[1]*.84)*H; }
+    const cnt=Math.floor(Math.pow(10,1+k*3.2+q[2]*.8)); badge(c,x,y,cnt>999?'999+':String(cnt),sc*dpr/dpr*(i<3?1.1:.9)); }
+};
+let fbLast=-1;
+R.ai=(c,t,k)=>{
+  if(t-fbLast>.5){ fb.x.clearRect(0,0,W,H); } fbLast=t;
+  fb2.x.clearRect(0,0,W,H); fb2.x.drawImage(fb.c,0,0);
+  fb.x.clearRect(0,0,W,H); fb.x.save(); const cy=GY+GH/2; fb.x.translate(W/2,cy); fb.x.rotate(.014+k*.03); const s=.95-k*.03; fb.x.scale(s,s); fb.x.translate(-W/2,-cy); fb.x.globalAlpha=.955; fb.x.drawImage(fb2.c,0,0); fb.x.restore(); fb.x.globalAlpha=1;
+  fb.x.drawImage(tint(T1,`hsl(${(t*80)%360},100%,62%)`),GX,GY);
+  c.fillStyle='#000'; c.fillRect(0,0,W,H); story(c,t,k,'ai');
+  c.drawImage(fb.c,0,0);
+  const pulse=(t*.8)%1; c.save(); c.strokeStyle=`rgba(255,255,255,${.25*(1-pulse)})`; c.lineWidth=1.5*dpr; c.beginPath(); c.arc(W/2,cy,(GW*.6)+pulse*Math.max(W,H)*.6,0,7); c.stroke(); c.restore();
+  put(c,tint(T1,'#ffffff'),0,0,1,1);
+};
+const stars=[];
+R.cosmos=(c,t,k,dt)=>{
+  c.fillStyle='#000'; c.fillRect(0,0,W,H); story(c,t,k,'cosmos');
+  if(!stars.length){ const r=mul(11); for(let i=0;i<380;i++) stars.push([(r()-.5)*2,(r()-.5)*2,r()]); }
+  const v=(.05+k*k*1.6)*(dt||.016)*4, cx=W/2, cy=GY+GH/2, f=Math.max(W,H)*.5;
+  c.save(); c.globalCompositeOperation='lighter'; c.lineCap='round';
+  for(const s of stars){ const z0=s[2]; s[2]-=v; if(s[2]<=.02){ s[0]=(Math.random()-.5)*2; s[1]=(Math.random()-.5)*2; s[2]=1; continue; }
+    const x1=cx+s[0]/s[2]*f*.3, y1=cy+s[1]/s[2]*f*.3, x0=cx+s[0]/z0*f*.3, y0=cy+s[1]/z0*f*.3; const b=Math.min(1,(1-s[2])*1.4);
+    c.strokeStyle=`rgba(200,220,255,${b})`; c.lineWidth=Math.max(1,(1-s[2])*2.4*dpr); c.beginPath(); c.moveTo(x0,y0); c.lineTo(x1+.01,y1); c.stroke(); }
+  const er=Math.max(.6*dpr,16*dpr*(1-k)); const ey=GY+GH+70*dpr+k*120*dpr; c.fillStyle='rgba(70,140,255,.9)'; c.beginPath(); c.arc(W/2,ey,er,0,7); c.fill();
+  c.font=`700 ${9*dpr}px ui-monospace,monospace`; c.textAlign='center'; c.fillStyle=`rgba(150,190,255,${.7*(1-k)})`; c.fillText('EARTH',W/2,ey+er+14*dpr);
+  const gl=tint(T1,'#dcefff'); put(c,gl,0,0,1,1); put(c,gl,0,0,1.05,.2); put(c,gl,0,0,1.16,.07);
+  for(let i=0;i<7;i++){ const a=t*(.15+i*.03)+i*.9, rx=W*(.3+i*.03), ry=H*(.1+i*.02); c.globalAlpha=.55; c.drawImage(gl,cx+Math.cos(a)*rx-GW*.06,cy+Math.sin(a)*ry-GH*.06,GW*.12,GH*.12); }
+  c.restore();
+};
+R.giant=(c,t,k)=>{
+  const bg=c.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#2b0602'); bg.addColorStop(1,'#a02a08'); c.fillStyle=bg; c.fillRect(0,0,W,H);
+  const Rs=lerp(Math.min(W,H)*.35,Math.hypot(W,H)*1.15,Math.pow(k,1.25)), cx=W/2, cy=H+Rs*(.78-.62*k);
+  const cg=c.createRadialGradient(cx,cy,Rs*.95,cx,cy,Rs*1.5); cg.addColorStop(0,'rgba(255,120,40,.55)'); cg.addColorStop(1,'rgba(255,60,10,0)'); c.fillStyle=cg; c.fillRect(0,0,W,H);
+  const sg=c.createRadialGradient(cx,cy,0,cx,cy,Rs); sg.addColorStop(0,'#fff4cc'); sg.addColorStop(.6,'#ffb347'); sg.addColorStop(.92,'#ff6a1a'); sg.addColorStop(1,'#e8400c');
+  c.fillStyle=sg; c.beginPath(); for(let i=0;i<=120;i++){ const a=i/120*6.2832; const rr2=Rs*(1+(noise1(a*6+t*.8)-.5)*.02); c.lineTo(cx+Math.cos(a)*rr2,cy+Math.sin(a)*rr2); } c.fill(); story(c,t,k,'giant');
+  const cw=Math.max(2,Math.round(3*dpr)), mk2=(img,oy)=>{ for(let x=0;x<GW;x+=cw){ const n=noise1(x/(14*dpr)); const m=Math.pow(k,1.35)*(.25+.75*n); const haze=Math.sin(t*4+x*.02/dpr)*1.6*dpr; c.drawImage(img,x,0,cw,GH,GX+x+haze,GY+m*GH*.28+oy,cw,GH*(1+m*1.7)); } };
+  mk2(tint(T1,'#ffd28c'),-1.6*dpr); mk2(tint(T1,'#1c0400'),0);
+  c.save(); c.globalCompositeOperation='lighter'; for(let i=0;i<60;i++){ const q=hsh(i*3.7), q2=hsh(i*9.1); const yy=H-((t*(40+q*90)*dpr+q2*H)%H); const xx=q2*W+Math.sin(t+i)*20*dpr; c.fillStyle=`rgba(255,${140+q*80|0},60,${.5*(yy/H)})`; c.fillRect(xx,yy,2*dpr,2*dpr); } c.restore();
+};
+let parts=null, partsKey=-1;
+function sampleParticles(){
+  try{ const id=src.x.getImageData(0,0,GW,GH).data, st=Math.max(2,Math.round(2*dpr)); const P=[]; const r=mul(5);
+    for(let y=0;y<GH;y+=st) for(let x=0;x<GW;x+=st){ const i=(y*GW+x)*4; if(id[i+3]>120){ const rx=(x-GW/2)/GW, ry=(y-GH/2)/GH; P.push([x,y,rx*.9+(r()-.5)*.9,ry*.9+(r()-.5)*.9,r(),r()*6.28]); } }
+    parts=P; }catch(e){ parts=[]; }
+}
+R.death=(c,t,k)=>{
+  c.fillStyle='#000'; c.fillRect(0,0,W,H);
+  if(partsKey!==curEnter){ sampleParticles(); partsKey=curEnter; }
+  const e=k, ee=e*e, br=Math.pow(1-e,1.4);
+  const g=c.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.hypot(W,H)*.6); g.addColorStop(0,`rgba(60,10,6,${.25*br})`); g.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle=g; c.fillRect(0,0,W,H); story(c,t,k,'death');
+  if(parts && parts.length){
+    const sz=Math.max(1,1.4*dpr); const col=e<.3?`rgb(255,${lerp(235,140,e/.3)|0},${lerp(220,90,e/.3)|0})`:`rgb(${lerp(255,120,(e-.3)/.7)|0},${lerp(140,30,(e-.3)/.7)|0},${lerp(90,20,(e-.3)/.7)|0})`;
+    c.fillStyle=col;
+    for(const q of parts){ const a=br*(.35+.65*q[4]); if(a<.01) continue; c.globalAlpha=a; const x=GX+q[0]+q[2]*ee*W*.9+Math.sin(t*.25+q[5])*e*8*dpr, y=GY+q[1]+q[3]*ee*H*.9+Math.cos(t*.2+q[5])*e*8*dpr; c.fillRect(x,y,sz,sz); }
+    c.globalAlpha=1;
+  } else { put(c,tint(T1,'#ffb080'),0,0,1+e*.3,br); }
+};
+let endT=-1;
+function rEnd(c,t){
+  if(endT<0) endT=t; const a=Math.min(1,(t-endT)/2.5);
+  c.fillStyle='#000'; c.fillRect(0,0,W,H);
+  const U=I18N[LANG].ui, cx=W/2, cy=H/2;
+  // 画面幅に合わせた大きめの文字（CSS px基準で 22〜40px）
+  const fs=Math.round(Math.max(22,Math.min(40,VW*.075))*PR), lh=fs*1.55;
+  c.textAlign='center'; c.textBaseline='middle';
+  c.font=`300 ${fs}px "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif`;
+  const mw=W*.88; let s1=1; const w1=Math.max(c.measureText(U.endA).width,c.measureText(U.endB).width); if(w1>mw) s1=mw/w1;
+  if(s1<1) c.font=`300 ${Math.floor(fs*s1)}px "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif`;
+  const pu=.4+.3*Math.sin(t*1.3); c.fillStyle=`rgba(255,220,200,${pu})`; c.beginPath(); c.arc(cx,cy-lh*1.6,2*PR,0,7); c.fill();
+  c.fillStyle=`rgba(225,225,225,${a*.92})`;
+  // 見た目中央：末尾の句読点（。.！!）はぶら下げ扱いにして、本文の幅で中央を取る
+  const optic=(str,y)=>{ const body=str.replace(/[。．.、，,！!？?]+$/,''); const wb=c.measureText(body).width; c.textAlign='left'; c.fillText(str,cx-wb/2,y); };
+  optic(U.endA,cy-lh*.5); optic(U.endB,cy+lh*.5); c.textAlign='center';
+}
+
+/* ---------- 状態 ---------- */
+let p=0, auto=false, drag=null, T=0, last=performance.now(), curEra=-1, curEnter=0, bangT=-9, lastEraForSound=-1;
+function setP(v){ p=Math.min(1,Math.max(0,v)); }
+
+/* ---------- DOM更新（実HTML側） ---------- */
+const lastTxt={}; let foDirty=true;
+function setTxt(el,key,val,html){ if(lastTxt[key]===val) return; lastTxt[key]=val; if(html) el.innerHTML=val; else el.textContent=val; foDirty=true; }
+let scr=0;
+function updateDOM(){
+  const i=eraIndex(Math.min(p,.99999)), e=ERAS[i];
+  if(G.dataset.era!==e.id){ G.dataset.era=e.id; foDirty=true; }
+  { const yv=fmtYear(timeAt(p)); if(lastTxt.yr0!==yv){ lastTxt.yr0=yv; E.yr.innerHTML=yv; E.yr.style.fontSize=''; const sw=E.yr.scrollWidth, cw=E.yr.clientWidth; if(cw>0&&sw>cw) E.yr.style.fontSize=Math.floor(parseFloat(getComputedStyle(E.yr).fontSize)*cw/sw)+'px'; foDirty=true; } }
+  const tr=I18N[LANG].e[i]; setTxt(E.eraJ,'j',tr[0]); setTxt(E.eraE,'e',e.e); setTxt(E.note,'n',tr[1]);
+  setTxt(E.eraNo,'no','ERA '+String(i+1).padStart(2,'0')+'/12');
+  let pc=(p*100).toFixed(4);
+  if(e.id==='ai'){ scr++; if(scr%4===0) lastTxt.scr=pc.slice(0,-3)+String(Math.random()*1000|0).padStart(3,'0'); pc=lastTxt.scr||pc; }
+  setTxt(E.pct,'pct',pc+'%');
+  const k=eraK(7,p); setTxt(E.badge,'bd',String(Math.max(1,Math.floor(Math.pow(10,k*3.3)))));
+  const pw=(p*100).toFixed(3); if(lastTxt.pw!==pw){ lastTxt.pw=pw; E.fill.style.width=`calc(${pw}% - 4px * ${p.toFixed(4)})`; E.thumb.style.left=pw+'%'; G.setAttribute('aria-valuenow',(p*100).toFixed(1)); G.setAttribute('aria-valuetext',fmtYear(timeAt(p)).replace(/<\/?sup>/g,'^')+' '+tr[0]); foDirty=true; }
+  const tone=(LIGHT_BG[e.id]&&p<END_P)?'dark':'light'; if(hud.dataset.tone!==tone) hud.dataset.tone=tone;
+  restart.style.display=p>=END_P?'block':'none';
+  if(i!==curEra){ curEra=i; curEnter++; onEra(i); }
+}
+
+/* ---------- ソース取得 ---------- */
+let foBusy=false, foLast=0, hicR=0, calWait=4;
+// iOS / Safari（WebKit）は foreignObject を viewBox で拡大せず左上に等倍で描くため、等倍の画像を作ってCanvas側で拡大する
+const UA=navigator.userAgent, IS_IOS=/iPhone|iPad|iPod/.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1);
+const IS_WEBKIT=IS_IOS||(/AppleWebKit/.test(UA)&&/Safari/.test(UA)&&!/Chrome|Chromium|Edg|OPR|Android/.test(UA));
+const BORDERED={cave:1,clay:1,print:1,steam:1,crt:1,digital:1,ai:1};
+function calibrate(){
+  try{ const w=Math.min(W,Math.ceil(gwC*PR*1.6)+8), h=Math.min(H,Math.ceil(ghC*PR*1.6)+8);
+    const d=ctx.getImageData(0,0,w,h).data; let mx=-1, my=-1;
+    for(let y=0;y<h;y+=2) for(let x=w-1;x>mx;x--){ if(d[(y*w+x)*4+3]>16){ mx=x; if(y>my) my=y; break; } }
+    for(let y=h-1;y>my;y--){ for(let x=0;x<w;x+=2){ if(d[(y*w+x)*4+3]>16){ my=y; break; } } if(my===y) break; }
+    if(mx<20) return 0;
+    let r=(mx+1)/gwC; if(Math.abs(r-1)<.1) r=1; else if(Math.abs(r-PR)<.1*PR) r=PR;
+    return (r>.4&&r<4)?r:0;
+  }catch(e){ return PR; } }
+function acquire(now){
+  if(mode==='hic'){
+    ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,W,H);
+    try{
+      // Chromeのバージョンにより drawElementImage の描画サイズ（CSS px か デバイス px か）や
+      // 幅・高さ引数の扱いが異なるため、原点に素の大きさで描き、実際の描画倍率を一度だけ測ってから切り出す
+      ctx.drawElementImage(G,0,0);
+      if(!hicR && BORDERED[G.dataset.era] && --calWait<=0) hicR=calibrate();
+      const r=hicR||PR;
+      src.x.clearRect(0,0,GW,GH); src.x.drawImage(cv,0,0,Math.max(1,gwC*r),Math.max(1,ghC*r),0,0,GW,GH);
+      srcReady=true; hicOK++;
+    }catch(err){ hicFail++; if(!hicOK && hicFail>90) toFO(); }
+  } else if(foDirty && !foBusy && now-foLast>45){ rebuildFO(); }
+}
+function rebuildFO(){
+  foBusy=true; foDirty=false; foLast=performance.now();
+  const w=gwC, h=ghC, d=IS_WEBKIT?1:PR;
+  let xml; try{ xml=new XMLSerializer().serializeToString(G); }catch(e){ foBusy=false; return; }
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" ${IS_WEBKIT?`width="${w}" height="${h}"`:`width="${Math.round(w*d)}" height="${Math.round(h*d)}" viewBox="0 0 ${w} ${h}"`}><foreignObject x="0" y="0" width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${w}px;margin:0"><style>${GCSS.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</style>${xml}</div></foreignObject></svg>`;
+  const img=new Image();
+  img.onload=()=>{ const nw=Math.round(w*PR), nh=Math.round(h*PR); if(nw!==GW||nh!==GH) setSrcSize(nw,nh); src.x.clearRect(0,0,GW,GH); src.x.drawImage(img,0,0,GW,GH); srcReady=true; foBusy=false; };
+  img.onerror=()=>{ foBusy=false; nativeSrc(); };
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+function nativeSrc(){ // 最終フォールバック：Canvasで素朴に描く
+  const w=Math.round(gwC*PR), h=Math.round(ghC*PR); if(w!==GW||h!==GH) setSrcSize(w,h);
+  const x=src.x; x.clearRect(0,0,GW,GH); x.strokeStyle=x.fillStyle='#fff'; x.lineWidth=2*dpr; x.strokeRect(dpr,dpr,GW-2*dpr,GH-2*dpr);
+  x.font=`800 ${26*dpr}px sans-serif`; x.fillText(E.yr.textContent,20*dpr,50*dpr); x.font=`700 ${15*dpr}px sans-serif`; x.fillText(E.eraJ.textContent+'  '+E.eraE.textContent,20*dpr,78*dpr);
+  x.strokeRect(20*dpr,100*dpr,GW-40*dpr,12*dpr); x.fillRect(20*dpr,100*dpr,(GW-40*dpr)*p,12*dpr); x.font=`700 ${12*dpr}px monospace`; x.fillText(E.pct.textContent,20*dpr,135*dpr);
+  srcReady=true;
+}
+
+/* ---------- 合成 ---------- */
+function render(dt){
+  ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+  if(!srcReady){ ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); return; }
+  if(p>=END_P){ rEnd(ctx,T); } else {
+    endT=-1;
+    const i=eraIndex(p); let A=i,B=-1,w=0;
+    const nb=ERAS[i+1]; if(nb && p>nb.p-BW/2){ B=i+1; w=(p-(nb.p-BW/2))/BW; }
+    else if(i>0 && p<ERAS[i].p+BW/2){ A=i-1; B=i; w=(p-(ERAS[i].p-BW/2))/BW; }
+    const ea=ERAS[A]; ctx.save(); R[ea.id](ctx,T,eraK(A,p),dt); ctx.restore();
+    if(B>=0 && w>0){ const eb=ERAS[B]; layer.x.setTransform(1,0,0,1,0,0); layer.x.clearRect(0,0,W,H); layer.x.save(); R[eb.id](layer.x,T,eraK(B,p),dt); layer.x.restore(); ctx.globalAlpha=Math.min(1,w); ctx.drawImage(layer.c,0,0); ctx.globalAlpha=1; }
+  }
+  const ba=(T-bangT)/1.6; if(ba>=0&&ba<1){ const r=Math.pow(ba,.5)*Math.hypot(W,H); const g=ctx.createRadialGradient(W/2,H*.5,0,W/2,H*.5,Math.max(1,r)); g.addColorStop(0,`rgba(255,255,255,${1-ba})`); g.addColorStop(.7,`rgba(255,240,210,${(1-ba)*.8})`); g.addColorStop(1,'rgba(255,200,150,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
+}
+
+/* ---------- サウンド ---------- */
+let AC=null,o1,o2,flt,gn;
+function initAudio(){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); o1=AC.createOscillator(); o1.type='sawtooth'; o2=AC.createOscillator(); o2.type='sine'; flt=AC.createBiquadFilter(); flt.type='lowpass'; flt.Q.value=6; gn=AC.createGain(); gn.gain.value=0; o1.connect(flt); o2.connect(flt); flt.connect(gn); gn.connect(AC.destination); o1.start(); o2.start(); }catch(e){ AC=null; } }
+function thump(){ if(!AC||!snd) return; const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(32,t+.5); g.gain.setValueAtTime(.35,t); g.gain.exponentialRampToValueAtTime(.001,t+.7); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+.75); }
+let snd=false;
+function audio(){ if(!AC) return; const t=AC.currentTime, i=eraIndex(Math.min(p,.9999)), f=34*Math.pow(2,p*2.6);
+  o1.frequency.setTargetAtTime(f,t,.06); o2.frequency.setTargetAtTime(f*1.498+Math.sin(T*.7)*.4,t,.06);
+  flt.frequency.setTargetAtTime(160+ERAS[i].lum*2400+(ERAS[i].id==='crt'?Math.random()*600:0),t,.08);
+  const vol=!snd?0:(p>=END_P?0:p>.92?.1*Math.pow(1-(p-.92)/.08,2):.1); gn.gain.setTargetAtTime(vol,t,.15); }
+function onEra(i){ thump(); try{ navigator.vibrate&&navigator.vibrate(10); }catch(e){} }
+
+/* ---------- 入力 ---------- */
+function trackRect(){ const t=E.track, b=parseFloat(getComputedStyle(t).borderLeftWidth)||0; return {l:gxC+t.offsetLeft+b,w:Math.max(1,t.clientWidth)}; }
+cv.addEventListener('pointerdown',e=>{
+  try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+  if(p>=END_P) return;
+  setAuto(false);
+  const x=e.clientX-VX,y=e.clientY-VY;
+  if(x>=gxC-12&&x<=gxC+gwC+12&&y>=gyC-12&&y<=gyC+ghC+12){ drag={abs:true}; const r=trackRect(); setP((x-r.l)/r.w); }
+  else drag={abs:false,x0:x,p0:p};
+});
+cv.addEventListener('pointermove',e=>{ if(!drag) return; if(drag.abs){ const r=trackRect(); setP((e.clientX-VX-r.l)/r.w); } else setP(drag.p0+(e.clientX-drag.x0)/VW*.45); });
+const up=()=>{ drag=null; }; cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+addEventListener('wheel',e=>{ if(p>=END_P) return; setP(p+(e.deltaY+e.deltaX)*.00012); },{passive:true});
+addEventListener('keydown',e=>{ const s=e.shiftKey?.02:.002; if(e.key==='ArrowRight'||e.key==='ArrowUp'){ setP(p+s); e.preventDefault(); } else if(e.key==='ArrowLeft'||e.key==='ArrowDown'){ setP(p-s); e.preventDefault(); } else if(e.key===' '){ setAuto(!auto); e.preventDefault(); } });
+function applyLang(){ const U=I18N[LANG].ui; document.documentElement.lang=LANG; $('hint').textContent=U.hint; restart.textContent=U.restart; $('langLbl').textContent=LNAME[LANG]; for(const k in lastTxt) delete lastTxt[k]; for(const k in sstate) delete sstate[k]; foDirty=true; try{ localStorage.setItem('hg_lang',LANG);}catch(e){} }
+$('bLang').addEventListener('click',()=>{ LANG=LANGS[(LANGS.indexOf(LANG)+1)%LANGS.length]; applyLang(); });
+function setAuto(v){ auto=v; bAuto.setAttribute('aria-pressed',String(v)); }
+bAuto.addEventListener('click',()=>{ if(p>=END_P) return; setAuto(!auto); });
+bSnd.addEventListener('click',()=>{ if(!AC) initAudio(); if(AC&&AC.state==='suspended') AC.resume().catch(()=>{}); snd=!snd; bSnd.setAttribute('aria-pressed',String(snd)); });
+restart.addEventListener('click',()=>{ setP(0); setAuto(false); bangT=T; endT=-1; thump(); });
+addEventListener('resize',()=>{ resize(); });
+
+/* ---------- ループ ---------- */
+let CAP=false,capTick=0,capDone=0;
+function frame(now){
+  if(CAP&&capTick<=0){ last=now; requestAnimationFrame(frame); return; }
+  const dt=CAP?1/30:Math.min(.05,(now-last)/1000); last=now; T+=dt; if(CAP){ capTick--; }
+  if(!drag && p<END_P){ if(auto) setP(p+dt/80); else if(p>=ERAS[8].p) setP(p+dt*.0036); }
+  updateDOM(); measure(); acquire(now); render(dt); audio(); if(CAP) capDone++;
+  requestAnimationFrame(frame);
+}
+window.humanityGauge={set:v=>{setP(v);setAuto(false);},get:()=>p,lang:l=>{if(I18N[l]){LANG=l;applyLang();}},cap:v=>{CAP=!!v;},tick:()=>{capTick=1;},done:()=>capDone};
+applyLang();
+resize(); updateDOM(); measure();
+if(mode==='hic'){ try{ cv.requestPaint&&cv.requestPaint(); }catch(e){} }
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

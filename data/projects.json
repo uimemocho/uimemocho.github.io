@@ -668,5 +668,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-09T23:32:25Z",
     "updatedAt": "2026-11-09T23:32:25Z"
+  },
+  {
+    "slug": "humanity-gauge",
+    "title": "人類ゲージ",
+    "kind": "tool",
+    "description": "人類の進捗を、1本のゲージにした。30万年前から宇宙の熱的死まで、12の時代でUIそのものが洞窟画・活版・ブラウン管・特異点へと描き変わる過剰なプログレスバー。HTML-in-Canvasで本物のDOMを加工。9言語対応。",
+    "url": "/apps/humanity-gauge/",
+    "thumbnail": "/project-thumbnails/catalog/humanity-gauge.webp",
+    "sourceFolder": "261109_人類ゲージ",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-09T23:36:43Z",
+    "updatedAt": "2026-11-09T23:36:43Z"
   }
 ]
