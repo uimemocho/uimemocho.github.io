@@ -657,5 +657,40 @@
     "publishedAt": "2026-11-09T21:55:41Z",
     "updatedAt": "2026-11-09T21:55:41Z"
   },
-  {"slug": "color-drop-16", "title": "カラードロップ16", "kind": "game", "description": "Pyxelの16色ドットが空から降ってくる！同じ色のパッドをタップして消す、30秒の反射神経スコアアタック。消した色で描かれるモザイクつきでXに投稿できる。", "url": "/apps/color-drop-16/", "thumbnail": "/project-thumbnails/catalog/color-drop-16.webp", "sourceFolder": "261110_カラードロップ16", "sourceEntry": "index.html", "publishedAt": "2026-11-10T00:01:33Z", "updatedAt": "2026-11-10T00:01:33Z"}
+  {
+    "slug": "color-drop-16",
+    "title": "カラードロップ16",
+    "kind": "game",
+    "description": "Pyxelの16色ドットが空から降ってくる！同じ色のパッドをタップして消す、30秒の反射神経スコアアタック。消した色で描かれるモザイクつきでXに投稿できる。",
+    "url": "/apps/color-drop-16/",
+    "thumbnail": "/project-thumbnails/catalog/color-drop-16.webp",
+    "sourceFolder": "261110_カラードロップ16",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-10T00:01:33Z",
+    "updatedAt": "2026-11-10T00:01:33Z"
+  },
+  {
+    "slug": "densen-gosenfu",
+    "title": "電線五線譜",
+    "kind": "game",
+    "description": "電線は、五線譜だ。タップで電線を飛び移り、仲間のスズメを集めて群れと曲をつくる。止まった線がそのまま音になり、夕焼けから夜へ。カラスとビリビリをかわして、SSSランクを目指せ。自分の曲が譜面になったシェア画像でX投稿も。",
+    "url": "/apps/densen-gosenfu/",
+    "thumbnail": "/project-thumbnails/catalog/densen-gosenfu.webp",
+    "sourceFolder": "261110_電線五線譜",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-09T23:32:25Z",
+    "updatedAt": "2026-11-09T23:32:25Z"
+  },
+  {
+    "slug": "humanity-gauge",
+    "title": "人類ゲージ",
+    "kind": "tool",
+    "description": "人類の進捗を、1本のゲージにした。30万年前から宇宙の熱的死まで、12の時代でUIそのものが洞窟画・活版・ブラウン管・特異点へと描き変わる過剰なプログレスバー。HTML-in-Canvasで本物のDOMを加工。9言語対応。",
+    "url": "/apps/humanity-gauge/",
+    "thumbnail": "/project-thumbnails/catalog/humanity-gauge.webp",
+    "sourceFolder": "261109_人類ゲージ",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-09T23:36:43Z",
+    "updatedAt": "2026-11-09T23:36:43Z"
+  }
 ]
