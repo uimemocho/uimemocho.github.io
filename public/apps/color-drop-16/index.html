@@ -1,0 +1,1161 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:," />
+    <title>カラードロップ16</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --cream:#FFF6E9;
+        --paper:#FFFBF2;
+        --ink:#2B335F;
+        --ink-soft:#565d8a;
+        --red:#FF004D;
+        --orange:#FFA300;
+        --yellow:#FFEC27;
+        --green:#00E436;
+        --blue:#29ADFF;
+        --pink:#FF77A8;
+        --card-border:#2B335F;
+      }
+      *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+      html,body{ height:100%; }
+      body{
+        margin:0;
+        font-family:"Zen Maru Gothic", system-ui, sans-serif;
+        color:var(--ink);
+        background:#F3E3C3;
+        overflow:hidden;
+        -webkit-touch-callout:none;
+        user-select:none;
+        -webkit-user-select:none;
+        touch-action:manipulation;
+      }
+      .app{
+        position:relative;
+        max-width:480px;
+        margin:0 auto;
+        height:100dvh;
+        display:flex;
+        flex-direction:column;
+        background:
+          radial-gradient(circle, rgba(43,51,95,.10) 1.6px, transparent 1.7px) 0 0/22px 22px,
+          var(--cream);
+        box-shadow:0 0 0 1px rgba(43,51,95,.08), 0 0 44px rgba(43,51,95,.18);
+        overflow:hidden;
+      }
+      /* ---------- HUD ---------- */
+      .hud{
+        padding:calc(8px + env(safe-area-inset-top)) 14px 8px;
+        display:flex;
+        align-items:flex-end;
+        gap:12px;
+        z-index:5;
+      }
+      .hud .score-box{ min-width:104px; }
+      .hud .label{
+        font-size:11px; font-weight:900; letter-spacing:.14em; color:var(--ink-soft);
+      }
+      .hud .score{
+        font-family:"Mochiy Pop One", sans-serif;
+        font-size:30px; line-height:1.05; color:var(--ink);
+        font-variant-numeric:tabular-nums;
+      }
+      .hud .mid{ flex:1; padding-bottom:4px; }
+      .timebar{
+        height:14px; border:3px solid var(--ink); border-radius:99px;
+        background:#fff; overflow:hidden;
+      }
+      .timebar > i{
+        display:block; height:100%; width:100%;
+        background:var(--green);
+        transition:width .2s linear;
+      }
+      .timebar.warn > i{ background:var(--red); }
+      .time-num{
+        text-align:right; font-weight:900; font-size:13px; color:var(--ink-soft);
+        font-variant-numeric:tabular-nums; margin-top:2px;
+      }
+      .combo-box{ text-align:right; min-width:86px; }
+      .combo-num{
+        font-family:"Mochiy Pop One", sans-serif;
+        font-size:30px; line-height:1.05; color:var(--orange);
+        display:inline-block;
+      }
+      .combo-num.pop{ animation:comboPop .18s ease-out; }
+      @keyframes comboPop{ 0%{ transform:scale(1.45) rotate(-4deg);} 100%{ transform:scale(1) rotate(0);} }
+      .combo-box .label{ text-align:right; }
+      .icon-btn{
+        flex:none; width:40px; height:40px; border-radius:12px;
+        border:3px solid var(--ink); background:#fff; color:var(--ink);
+        display:flex; align-items:center; justify-content:center; cursor:pointer;
+        box-shadow:0 3px 0 var(--ink);
+      }
+      .icon-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--ink); }
+      /* ---------- Field ---------- */
+      .field-wrap{
+        position:relative; flex:1; min-height:0; margin:2px 12px 0;
+        border:3px solid var(--ink); border-radius:18px;
+        background:
+          radial-gradient(circle, rgba(43,51,95,.07) 1.4px, transparent 1.5px) 0 0/18px 18px,
+          var(--paper);
+        overflow:hidden;
+      }
+      .field-wrap.shake{ animation:shake .28s ease-in-out; }
+      @keyframes shake{
+        0%,100%{ transform:translateX(0);} 20%{ transform:translateX(-7px);}
+        40%{ transform:translateX(6px);} 60%{ transform:translateX(-4px);} 80%{ transform:translateX(3px);}
+      }
+      canvas#game{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+      .danger-line{
+        position:absolute; left:0; right:0; bottom:0; height:10px;
+        background:repeating-linear-gradient(45deg, var(--red) 0 12px, #fff 12px 24px);
+        opacity:.85;
+      }
+      .fever-badge{
+        position:absolute; top:10px; left:50%; transform:translateX(-50%) scale(0);
+        font-family:"Mochiy Pop One", sans-serif; font-size:22px; color:#fff;
+        background:var(--red); border:3px solid var(--ink); border-radius:99px;
+        padding:2px 18px 5px; box-shadow:0 4px 0 var(--ink);
+        transition:transform .18s cubic-bezier(.34,1.8,.5,1), visibility 0s .18s;
+        pointer-events:none; z-index:4; visibility:hidden;
+      }
+      .fever-badge.on{ transform:translateX(-50%) scale(1); visibility:visible; transition:transform .18s cubic-bezier(.34,1.8,.5,1), visibility 0s; }
+      .toast{
+        position:absolute; top:52px; left:50%; transform:translate(-50%,-8px);
+        background:var(--ink); color:#fff; font-weight:900; font-size:14px;
+        padding:7px 16px; border-radius:99px; opacity:0; pointer-events:none;
+        transition:opacity .25s, transform .25s; z-index:4; white-space:nowrap;
+      }
+      .toast.on{ opacity:1; transform:translate(-50%,0); }
+      .count-num{
+        position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+        font-family:"Mochiy Pop One", sans-serif; font-size:110px; color:var(--ink);
+        text-shadow:0 6px 0 rgba(43,51,95,.18); z-index:6; pointer-events:none;
+      }
+      .count-num.on{ display:flex; animation:countIn .55s ease-out; }
+      @keyframes countIn{ 0%{ transform:scale(1.8); opacity:0;} 30%{ transform:scale(1); opacity:1;} 100%{ transform:scale(.94); opacity:1;} }
+      /* ---------- Color pad ---------- */
+      .pad{
+        padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+        display:grid; grid-template-columns:repeat(4,1fr); gap:9px; z-index:5;
+      }
+      .pad-btn{
+        position:relative; height:52px; border-radius:12px; cursor:pointer;
+        border:3px solid rgba(43,51,95,.85);
+        box-shadow:inset 0 -7px 0 rgba(0,0,0,.16), inset 0 5px 0 rgba(255,255,255,.35), 0 3px 0 rgba(43,51,95,.85);
+        touch-action:none; padding:0;
+        transition:transform .05s;
+      }
+      .pad-btn:active{ transform:scale(.92); }
+      .pad-btn .idx{
+        position:absolute; top:2px; left:6px; font-size:10px; font-weight:900;
+        font-variant-numeric:tabular-nums; pointer-events:none;
+      }
+      .pad-btn.locked{
+        filter:grayscale(.9); opacity:.32; pointer-events:none;
+        box-shadow:inset 0 -7px 0 rgba(0,0,0,.16);
+      }
+      .pad-btn.unlock-flash{ animation:unlockFlash .6s ease-out; }
+      @keyframes unlockFlash{ 0%{ transform:scale(1.25);} 100%{ transform:scale(1);} }
+      .pad-btn.wrong{ animation:wrongShake .25s ease-in-out; }
+      @keyframes wrongShake{ 0%,100%{ transform:translateX(0);} 25%{ transform:translateX(-5px);} 75%{ transform:translateX(5px);} }
+      /* ---------- Overlays ---------- */
+      .overlay{
+        position:absolute; inset:0; z-index:20; display:none;
+        flex-direction:column; align-items:center; justify-content:center;
+        padding:22px 20px calc(20px + env(safe-area-inset-bottom));
+        background:
+          radial-gradient(circle, rgba(43,51,95,.10) 1.6px, transparent 1.7px) 0 0/22px 22px,
+          var(--cream);
+        text-align:center; overflow-y:auto;
+      }
+      .overlay.on{ display:flex; }
+      .logo-dots{ display:flex; gap:4px; margin-bottom:14px; flex-wrap:nowrap; justify-content:center; width:100%; max-width:316px; }
+      .logo-dots i{ flex:1 1 0; min-width:0; max-width:16px; aspect-ratio:1/1; border-radius:4px; border:2px solid rgba(43,51,95,.7); display:block; }
+      .game-logo{
+        font-family:"Mochiy Pop One", sans-serif;
+        font-size:clamp(40px, 11.5vw, 56px); line-height:1.12; margin:0; color:var(--ink);
+      }
+      .game-logo .l1{ color:var(--ink); }
+      .game-logo .l2{ color:var(--red); }
+      .game-logo .num{
+        display:inline-block; color:var(--orange);
+        text-shadow:3px 3px 0 var(--ink); margin-left:2px;
+        transform:rotate(4deg);
+      }
+      .catch{
+        font-family:"Mochiy Pop One", sans-serif;
+        font-size:clamp(15px, 4.4vw, 19px); color:var(--ink);
+        margin:14px 0 4px; line-height:1.5;
+      }
+      .sub{ font-size:13px; font-weight:700; color:var(--ink-soft); line-height:1.7; margin:6px 0 0; }
+      .howto{
+        font-size:13.5px; font-weight:700; line-height:1.9; text-align:left;
+      }
+      .howto b{ color:var(--red); }
+      /* ---------- Howto modal ---------- */
+      .modal{
+        position:absolute; inset:0; z-index:40; display:none;
+        align-items:center; justify-content:center; padding:22px 20px;
+      }
+      .modal.on{ display:flex; }
+      .modal-backdrop{
+        position:absolute; inset:0; background:rgba(43,51,95,.48);
+        cursor:pointer;
+      }
+      .modal-card{
+        position:relative; width:100%; max-width:340px;
+        background:#fff; border:3px solid var(--ink); border-radius:18px;
+        padding:20px 20px 18px;
+        box-shadow:0 6px 0 var(--ink), 0 18px 40px rgba(43,51,95,.35);
+        animation:modalIn .22s cubic-bezier(.34,1.5,.5,1) both;
+      }
+      @keyframes modalIn{ 0%{ transform:scale(.88) translateY(10px); opacity:0; } 100%{ transform:scale(1) translateY(0); opacity:1; } }
+      .modal-head{
+        display:flex; align-items:center; justify-content:space-between; gap:12px;
+        margin-bottom:10px;
+      }
+      .modal-title{
+        font-family:"Mochiy Pop One", sans-serif; font-size:20px; margin:0; color:var(--ink);
+      }
+      .modal-close{
+        flex:none; width:38px; height:38px; border-radius:11px;
+        border:3px solid var(--ink); background:var(--cream); color:var(--ink);
+        display:flex; align-items:center; justify-content:center; cursor:pointer;
+        box-shadow:0 3px 0 var(--ink); padding:0;
+      }
+      .modal-close:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--ink); }
+      .modal-ok{
+        font-family:"Mochiy Pop One", sans-serif; background:var(--red); color:#fff;
+        border:3px solid var(--ink); border-radius:14px; cursor:pointer;
+        width:100%; font-size:17px; padding:11px 10px 14px; margin-top:16px;
+        box-shadow:0 4px 0 var(--ink); transition:transform .06s, box-shadow .06s;
+      }
+      .modal-ok:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--ink); }
+      .btn{
+        font-family:"Mochiy Pop One", sans-serif; border:3px solid var(--ink);
+        border-radius:16px; cursor:pointer; color:#fff; width:100%; max-width:340px;
+        box-shadow:0 5px 0 var(--ink); transition:transform .06s, box-shadow .06s;
+      }
+      .btn:active{ transform:translateY(4px); box-shadow:0 1px 0 var(--ink); }
+      .btn-main{ background:var(--red); font-size:24px; padding:15px 10px 18px; margin-top:20px; }
+      .btn-x{ background:var(--ink); font-size:17px; padding:13px 10px 16px; margin-top:14px;
+        display:flex; align-items:center; justify-content:center; gap:9px; }
+      .btn-ghost{ background:#fff; color:var(--ink); font-size:15px; padding:11px 10px 14px; margin-top:10px; }
+      .btn-retry{ background:var(--orange); font-size:19px; padding:13px 10px 16px; margin-top:10px; }
+      .mini-link{
+        margin-top:12px; font-size:12.5px; font-weight:900; color:var(--ink-soft);
+        text-decoration:underline; cursor:pointer; background:none; border:none; font-family:inherit;
+      }
+      .credit{ margin-top:18px; font-size:11px; font-weight:700; color:var(--ink-soft); line-height:1.7; }
+      .credit a{ color:var(--ink-soft); }
+      /* ---------- Result ---------- */
+      #resultScreen{ justify-content:flex-start; padding-top:calc(16px + env(safe-area-inset-top)); }
+      .result-head{ font-family:"Mochiy Pop One", sans-serif; font-size:27px; margin:0 0 6px; }
+      .stamp-wrap{ position:relative; width:128px; height:128px; margin:4px 0 2px; flex:none; }
+      .rank-stamp{
+        position:absolute; inset:0; border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+        border:5px solid var(--ink);
+        box-shadow:inset 0 0 0 4px #fff, inset 0 0 0 9px rgba(43,51,95,.9), 0 8px 18px rgba(43,51,95,.28);
+        transform:rotate(-8deg);
+        animation:stampIn .45s cubic-bezier(.2,2.2,.4,1) both .1s;
+      }
+      @keyframes stampIn{ 0%{ transform:rotate(-8deg) scale(2.4); opacity:0;} 100%{ transform:rotate(-8deg) scale(1); opacity:1;} }
+      .rank-stamp span{
+        font-family:"Mochiy Pop One", sans-serif; color:#fff; line-height:1;
+        text-shadow:0 3px 0 rgba(43,51,95,.35);
+        transform:translateY(-2px);
+      }
+      .rank-title{ font-family:"Mochiy Pop One", sans-serif; font-size:17px; margin-top:6px; }
+      .result-score-label{ font-size:11px; font-weight:900; letter-spacing:.16em; color:var(--ink-soft); margin-top:8px; }
+      .result-score{
+        font-family:"Mochiy Pop One", sans-serif; font-size:46px; line-height:1.1;
+        font-variant-numeric:tabular-nums;
+      }
+      .new-record{
+        display:none; font-family:"Mochiy Pop One", sans-serif; color:var(--red); font-size:15px; margin-top:2px;
+      }
+      .new-record.on{ display:block; animation:comboPop .3s ease-out; }
+      .mosaic-box{
+        margin-top:12px; background:#fff; border:3px solid var(--ink); border-radius:14px;
+        padding:10px; box-shadow:0 4px 0 rgba(43,51,95,.9); width:100%; max-width:340px;
+      }
+      .mosaic-box .cap{ font-size:11.5px; font-weight:900; color:var(--ink-soft); margin-bottom:7px; letter-spacing:.06em; }
+      canvas#mosaic{ width:100%; height:auto; display:block; border-radius:6px; }
+      .stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; width:100%; max-width:340px; margin-top:12px; }
+      .stat{
+        background:#fff; border:3px solid var(--ink); border-radius:14px; padding:8px 4px 10px;
+        box-shadow:0 3px 0 rgba(43,51,95,.9);
+      }
+      .stat .v{ font-family:"Mochiy Pop One", sans-serif; font-size:23px; font-variant-numeric:tabular-nums; }
+      .stat .k{ font-size:11px; font-weight:900; color:var(--ink-soft); margin-top:1px; }
+      @media (max-height:700px){
+        .stamp-wrap{ width:104px; height:104px; }
+        .result-score{ font-size:38px; }
+        .result-head{ font-size:23px; }
+      }
+      @media (prefers-reduced-motion: reduce){
+        *{ animation-duration:.01s !important; transition-duration:.01s !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" id="app">
+      <!-- HUD -->
+      <header class="hud">
+        <div class="score-box">
+          <div class="label">SCORE</div>
+          <div class="score" id="scoreVal">0</div>
+        </div>
+        <div class="mid">
+          <div class="timebar" id="timebar"><i id="timeFill"></i></div>
+          <div class="time-num"><span id="timeVal">30</span>秒</div>
+        </div>
+        <div class="combo-box">
+          <div><span class="combo-num" id="comboVal">0</span></div>
+          <div class="label">COMBO</div>
+        </div>
+        <button class="icon-btn" id="muteBtn" aria-label="サウンド ON/OFF">
+          <svg id="soundOnIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.4 5.6a9 9 0 0 1 0 12.8"/></svg>
+          <svg id="soundOffIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor" stroke="none"/><line x1="16" y1="9" x2="22" y2="15"/><line x1="22" y1="9" x2="16" y2="15"/></svg>
+        </button>
+      </header>
+
+      <!-- Play field -->
+      <div class="field-wrap" id="fieldWrap">
+        <canvas id="game"></canvas>
+        <div class="fever-badge" id="feverBadge">FEVER!</div>
+        <div class="toast" id="toast"></div>
+        <div class="count-num" id="countNum">3</div>
+        <div class="danger-line"></div>
+      </div>
+
+      <!-- Color pad (Pyxel palette order 0-15) -->
+      <div class="pad" id="pad"></div>
+
+      <!-- Title screen -->
+      <section class="overlay on" id="titleScreen">
+        <div class="logo-dots" id="logoDots"></div>
+        <h1 class="game-logo"><span class="l1">カラー</span><span class="l2">ドロップ</span><span class="num">16</span></h1>
+        <p class="catch">落ちてくる色を、同じ色で消せ！<br />16色・30秒の反射神経バトル</p>
+        <button class="btn btn-main" id="startBtn">はじめる</button>
+        <button class="mini-link" id="howtoBtn" style="margin-top:16px; font-size:14px;">あそびかた</button>
+        <p class="credit">Pyxel（© Takashi Kitao / MIT License）の16色パレットを使用<br />
+          <a href="https://kitao.dev/pyxel/" target="_blank" rel="noopener">kitao.dev/pyxel</a></p>
+      </section>
+
+      <!-- Howto modal -->
+      <div class="modal" id="howtoModal" role="dialog" aria-modal="true" aria-labelledby="howtoTitle">
+        <div class="modal-backdrop" id="howtoBackdrop"></div>
+        <div class="modal-card">
+          <div class="modal-head">
+            <h2 class="modal-title" id="howtoTitle">あそびかた</h2>
+            <button class="modal-close" id="howtoCloseBtn" aria-label="とじる">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+            </button>
+          </div>
+          <div class="howto">
+            ・落ちてくるドットと<b>同じ色のボタン</b>をタップして消そう<br />
+            ・れんぞく成功で<b>コンボ倍率アップ</b>、15コンボでFEVER<br />
+            ・ちがう色・取りこぼしはミス。コンボが0にもどる<br />
+            ・時間がたつほど色が増えて、速くなる！<br />
+            ・色はレトロゲームエンジン「Pyxel」の公式16色パレット
+          </div>
+          <button class="modal-ok" id="howtoOkBtn">とじる</button>
+        </div>
+      </div>
+
+      <!-- Result screen -->
+      <section class="overlay" id="resultScreen">
+        <h2 class="result-head">けっかはっぴょう</h2>
+        <div class="stamp-wrap">
+          <div class="rank-stamp" id="rankStamp"><span id="rankText">S</span></div>
+        </div>
+        <div class="rank-title" id="rankTitle">色彩マスター</div>
+        <div class="result-score-label">SCORE</div>
+        <div class="result-score" id="resultScore">0</div>
+        <div class="new-record" id="newRecord">新記録！</div>
+        <div class="mosaic-box">
+          <div class="cap">きみが消した色のモザイク</div>
+          <canvas id="mosaic" width="640" height="320"></canvas>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="v" id="statPops">0</div><div class="k">消した数</div></div>
+          <div class="stat"><div class="v" id="statCombo">0</div><div class="k">最大コンボ</div></div>
+          <div class="stat"><div class="v" id="statMiss">0</div><div class="k">ミス</div></div>
+        </div>
+        <button class="btn btn-x" id="shareImgBtn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23.3 22h-6.3l-4.9-6.4L6.4 22H3.3l7.3-8.3L1 2h6.5l4.4 5.9L18.9 2zm-1.1 18h1.7L7.6 3.9H5.8L17.8 20z"/></svg>
+          画像つきでXに投稿
+        </button>
+        <button class="btn btn-ghost" id="shareTextBtn">Xに投稿（テキストのみ）</button>
+        <button class="btn btn-retry" id="retryBtn">もういちど</button>
+        <button class="mini-link" id="saveImgBtn">リザルト画像を保存する</button>
+      </section>
+    </div>
+
+    <script>
+    "use strict";
+    /* ================= Config ================= */
+    var GAME_URL = "https://uimemocho.github.io/apps/color-drop-16/";
+    var HASHTAGS = "#カラードロップ16 #ゲーム開発 #個人開発 #gamedev";
+    var GAME_TIME = 30;
+
+    /* Pyxel official 16-color palette (index 0-15) */
+    var PALETTE = [
+      "#000000", "#2B335F", "#7E2553", "#008751",
+      "#AB5236", "#5F574F", "#C2C3C7", "#FFF1E8",
+      "#FF004D", "#FFA300", "#FFEC27", "#00E436",
+      "#29ADFF", "#83769C", "#FF77A8", "#FFCCAA"
+    ];
+    /* Colors unlock in this order (bright & distinct first, tricky shades last) */
+    var UNLOCK_ORDER = [8, 12, 10, 11, 9, 14, 3, 2, 15, 6, 13, 4, 0, 1, 5, 7];
+    var PHASES = [
+      { until: 6,  count: 6,  speed: 138, spawn: 0.82 },
+      { until: 14, count: 9,  speed: 176, spawn: 0.64 },
+      { until: 21, count: 12, speed: 218, spawn: 0.52 },
+      { until: 30, count: 16, speed: 268, spawn: 0.42 }
+    ];
+    /* 30秒版バランス: 消せる数が従来の約半分になるため境界を約55%に再配分。
+       目安: 上手いプレイで約35〜45個消し・コンボ倍率込みで9,000点前後に届く想定 */
+    var RANKS = [
+      { min: 9000, rank: "SSS", title: "16色の神",        color: "#FFB800" },
+      { min: 7500, rank: "SS",  title: "カラードロップ王", color: "#FF7A00" },
+      { min: 6000, rank: "S",   title: "虹色の達人",      color: "#FF004D" },
+      { min: 4500, rank: "A",   title: "色彩マスター",    color: "#29ADFF" },
+      { min: 3200, rank: "B",   title: "ドット職人",      color: "#00C853" },
+      { min: 2000, rank: "C",   title: "カラーハンター",  color: "#83769C" },
+      { min: 1000, rank: "D",   title: "色さがし中",      color: "#AB5236" },
+      { min: 0,     rank: "E",   title: "ドット見習い",    color: "#5F574F" }
+    ];
+
+    /* ================= Helpers ================= */
+    function hexRgb(hex) {
+      return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+    }
+    function shade(hex, f) {
+      var c = hexRgb(hex).map(function (v) {
+        return Math.max(0, Math.min(255, Math.round(f < 1 ? v * f : v + (255 - v) * (f - 1))));
+      });
+      return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+    }
+    function luminance(hex) {
+      var c = hexRgb(hex);
+      return (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255;
+    }
+    function rand(a, b) { return a + Math.random() * (b - a); }
+    function $(id) { return document.getElementById(id); }
+
+    /* ================= Audio (WebAudio, procedural chiptune) ================= */
+    var AC = null, muted = false, bgmTimer = null, bgmStep = 0, nextNoteTime = 0;
+    function ensureAudio() {
+      if (!AC) {
+        try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; }
+      }
+      if (AC && AC.state === "suspended") AC.resume();
+    }
+    function tone(freq, dur, type, vol, slideTo, delay) {
+      if (!AC || muted) return;
+      var t = AC.currentTime + (delay || 0);
+      var o = AC.createOscillator(), g = AC.createGain();
+      o.type = type || "square";
+      o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(30, slideTo), t + dur);
+      g.gain.setValueAtTime(vol || 0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g); g.connect(AC.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    }
+    function sfxPop(combo) {
+      var f = 520 + Math.min(combo, 40) * 16;
+      tone(f, 0.09, "square", 0.14, f * 1.6);
+      tone(f * 2, 0.06, "square", 0.06, f * 2.4, 0.02);
+    }
+    function sfxMiss() { tone(210, 0.22, "sawtooth", 0.13, 70); }
+    function sfxUnlock() { [660, 880, 1320].forEach(function (f, i) { tone(f, 0.1, "square", 0.11, null, i * 0.07); }); }
+    function sfxCount(final) { tone(final ? 1040 : 620, final ? 0.28 : 0.13, "square", 0.13); }
+    function sfxMilestone() { [880, 1108, 1318].forEach(function (f, i) { tone(f, 0.09, "square", 0.1, null, i * 0.05); }); }
+    function sfxFanfare() {
+      [523, 659, 784, 1046, 784, 1046, 1318].forEach(function (f, i) { tone(f, 0.16, "square", 0.12, null, i * 0.11); });
+    }
+    /* Chiptune BGM: C - Am - F - G, bass + arpeggio on square waves */
+    var CHORDS = [
+      { bass: 130.81, arp: [261.63, 329.63, 392.00, 523.25] },
+      { bass: 110.00, arp: [220.00, 261.63, 329.63, 440.00] },
+      { bass: 87.31,  arp: [174.61, 220.00, 261.63, 349.23] },
+      { bass: 98.00,  arp: [196.00, 246.94, 293.66, 392.00] }
+    ];
+    var STEP_DUR = 60 / 138 / 2; /* 138 BPM, 8th notes */
+    function bgmTick() {
+      if (!AC) return;
+      while (nextNoteTime < AC.currentTime + 0.14) {
+        if (!muted) {
+          var chord = CHORDS[Math.floor(bgmStep / 8) % 4];
+          var s = bgmStep % 8;
+          var t = nextNoteTime, d = STEP_DUR;
+          var o1 = AC.createOscillator(), g1 = AC.createGain();
+          o1.type = "square"; o1.frequency.value = chord.arp[s % 4] * (s >= 4 ? 1 : 1);
+          g1.gain.setValueAtTime(0.055, t); g1.gain.exponentialRampToValueAtTime(0.001, t + d * 0.95);
+          o1.connect(g1); g1.connect(AC.destination); o1.start(t); o1.stop(t + d);
+          if (s % 2 === 0) {
+            var o2 = AC.createOscillator(), g2 = AC.createGain();
+            o2.type = "triangle"; o2.frequency.value = chord.bass;
+            g2.gain.setValueAtTime(0.11, t); g2.gain.exponentialRampToValueAtTime(0.001, t + d * 1.8);
+            o2.connect(g2); g2.connect(AC.destination); o2.start(t); o2.stop(t + d * 2);
+          }
+          if (s % 2 === 1) { /* hat: short noise-ish blip */
+            var o3 = AC.createOscillator(), g3 = AC.createGain();
+            o3.type = "square"; o3.frequency.value = 6200;
+            g3.gain.setValueAtTime(0.016, t); g3.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+            o3.connect(g3); g3.connect(AC.destination); o3.start(t); o3.stop(t + 0.04);
+          }
+        }
+        nextNoteTime += STEP_DUR;
+        bgmStep++;
+      }
+    }
+    function startBgm() {
+      if (!AC) return;
+      stopBgm();
+      bgmStep = 0; nextNoteTime = AC.currentTime + 0.06;
+      bgmTimer = setInterval(bgmTick, 30);
+    }
+    function stopBgm() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
+
+    /* ================= Dot sprites (pixel art, pre-rendered) ================= */
+    var MASK = [
+      "..######....",
+      ".########...",
+      "##########..",
+      "##########..",
+      "##########..",
+      "##########..",
+      "##########..",
+      "##########..",
+      "##########..",
+      ".########...",
+      "..######....",
+      "............"
+    ];
+    /* trim mask to its content box for a squarer blob */
+    MASK = [
+      "..######..",
+      ".########.",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      ".########.",
+      "..######.."
+    ];
+    var sprites = [];
+    function buildSprites() {
+      var S = 120, rows = MASK.length, cols = MASK[0].length, u = S / cols;
+      PALETTE.forEach(function (hex) {
+        var c = document.createElement("canvas"); c.width = S; c.height = S;
+        var x = c.getContext("2d");
+        var dark = luminance(hex) < 0.45;
+        function drawMask(scale, color) {
+          x.fillStyle = color;
+          var off = (S - S * scale) / 2, uu = u * scale;
+          for (var r = 0; r < rows; r++) for (var col = 0; col < cols; col++) {
+            if (MASK[r][col] === "#") x.fillRect(off + col * uu, off + r * uu, Math.ceil(uu), Math.ceil(uu));
+          }
+        }
+        drawMask(1.14, "#2B335F");           /* ink outline */
+        drawMask(1.0, hex);                  /* body */
+        /* bottom shading */
+        x.fillStyle = shade(hex, 0.78);
+        for (var r = rows - 3; r < rows; r++) for (var col = 0; col < cols; col++) {
+          if (MASK[r][col] === "#") x.fillRect(col * u, r * u, Math.ceil(u), Math.ceil(u));
+        }
+        drawMask(1.0, "rgba(0,0,0,0)");      /* no-op keep order clear */
+        /* re-draw body over shading top area: highlight pixels */
+        x.fillStyle = "rgba(255,255,255,0.6)";
+        x.fillRect(2 * u, 1 * u, u, u); x.fillRect(3 * u, 1 * u, u, u); x.fillRect(2 * u, 2 * u, u, u);
+        /* face: eyes */
+        x.fillStyle = dark ? "#FFF1E8" : "#2B335F";
+        x.fillRect(3 * u, 4 * u, u, u * 1.4);
+        x.fillRect(6 * u, 4 * u, u, u * 1.4);
+        sprites.push(c);
+      });
+    }
+
+    /* ================= Game state ================= */
+    var canvas = $("game"), ctx = canvas.getContext("2d");
+    var W = 0, H = 0, DPR = 1;
+    var state = "title"; /* title | countdown | playing | result */
+    var dots = [], particles = [], floaters = [];
+    var score = 0, combo = 0, maxCombo = 0, pops = 0, misses = 0;
+    var poppedColors = [];
+    var elapsed = 0, spawnTimer = 0, phaseIdx = -1, activeCount = 0;
+    var countT = 0, countStep = -1;
+    var bestScore = 0; /* session only */
+    var raf = null, lastTs = 0;
+    var feverOn = false;
+
+    function resize() {
+      var wrap = $("fieldWrap");
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      W = wrap.clientWidth; H = wrap.clientHeight;
+      canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+    }
+    window.addEventListener("resize", resize);
+
+    function currentPhase() {
+      for (var i = 0; i < PHASES.length; i++) if (elapsed < PHASES[i].until) return i;
+      return PHASES.length - 1;
+    }
+    function activeColors() { return UNLOCK_ORDER.slice(0, activeCount); }
+
+    function spawnDot(ambient) {
+      var cols = Math.max(4, Math.floor(W / 62));
+      var colW = W / cols;
+      var col = Math.floor(Math.random() * cols);
+      /* avoid spawning on top of a fresh dot in the same column */
+      for (var tries = 0; tries < 4; tries++) {
+        var blocked = dots.some(function (d) { return Math.abs(d.x - (col * colW + colW / 2)) < colW * 0.7 && d.y < 66; });
+        if (!blocked) break;
+        col = Math.floor(Math.random() * cols);
+      }
+      var set = ambient ? UNLOCK_ORDER : activeColors();
+      var ci = set[Math.floor(Math.random() * set.length)];
+      var ph = PHASES[currentPhase()];
+      dots.push({
+        ci: ci,
+        x: col * colW + colW / 2 + rand(-6, 6),
+        y: -30,
+        vy: ambient ? rand(36, 60) : ph.speed * rand(0.88, 1.14),
+        r: rand(21, 25),
+        wob: rand(0, Math.PI * 2),
+        ambient: !!ambient
+      });
+    }
+
+    function burst(x, y, ci, n) {
+      for (var i = 0; i < n; i++) {
+        particles.push({
+          x: x, y: y, vx: rand(-150, 150), vy: rand(-190, 40),
+          life: rand(0.35, 0.6), t: 0, ci: ci, s: rand(4, 8)
+        });
+      }
+    }
+    function addFloater(x, y, text, color) {
+      floaters.push({ x: x, y: y, text: text, color: color, t: 0, life: 0.8 });
+    }
+
+    /* ================= Input ================= */
+    function onPadTap(ci) {
+      if (state !== "playing") return;
+      ensureAudio();
+      /* find the lowest falling dot of this color */
+      var target = null;
+      dots.forEach(function (d) {
+        if (!d.ambient && d.ci === ci && (!target || d.y > target.y)) target = d;
+      });
+      var btn = padButtons[ci];
+      if (target) {
+        dots.splice(dots.indexOf(target), 1);
+        combo++; pops++;
+        if (combo > maxCombo) maxCombo = combo;
+        var mult = Math.min(5, 1 + Math.floor(combo / 10));
+        var gain = 100 * mult;
+        score += gain;
+        poppedColors.push(ci);
+        burst(target.x, target.y, ci, 12);
+        addFloater(target.x, target.y - 26, "+" + gain, "#2B335F");
+        sfxPop(combo);
+        if (combo % 10 === 0) sfxMilestone();
+        updateHud(true);
+      } else {
+        combo = 0; misses++;
+        sfxMiss();
+        flashWrong(btn);
+        updateHud(false);
+      }
+      updateFever();
+    }
+    function flashWrong(btn) {
+      if (!btn) return;
+      btn.classList.remove("wrong"); void btn.offsetWidth; btn.classList.add("wrong");
+      var wrap = $("fieldWrap");
+      wrap.classList.remove("shake"); void wrap.offsetWidth; wrap.classList.add("shake");
+    }
+    function updateFever() {
+      var on = combo >= 15;
+      if (on !== feverOn) {
+        feverOn = on;
+        $("feverBadge").classList.toggle("on", on);
+        if (on) showToast("FEVER！ スコア倍率アップ中");
+      }
+    }
+
+    /* ================= HUD ================= */
+    function updateHud(popAnim) {
+      $("scoreVal").textContent = score.toLocaleString("ja-JP");
+      var cv = $("comboVal");
+      cv.textContent = combo;
+      if (popAnim) { cv.classList.remove("pop"); void cv.offsetWidth; cv.classList.add("pop"); }
+    }
+    var toastTimer = null;
+    function showToast(msg, hold) {
+      var t = $("toast");
+      t.textContent = msg; t.classList.add("on");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { t.classList.remove("on"); }, hold || 1600);
+    }
+
+    /* ================= Flow ================= */
+    function startGame() {
+      ensureAudio();
+      $("howtoModal").classList.remove("on");
+      score = 0; combo = 0; maxCombo = 0; pops = 0; misses = 0;
+      poppedColors = []; dots = []; particles = []; floaters = [];
+      elapsed = 0; spawnTimer = 0.3; phaseIdx = -1; activeCount = 0; feverOn = false;
+      $("feverBadge").classList.remove("on");
+      updateHud(false);
+      refreshPadLocks();
+      $("timeFill").style.width = "100%";
+      $("timebar").classList.remove("warn");
+      $("timeVal").textContent = GAME_TIME;
+      $("titleScreen").classList.remove("on");
+      $("resultScreen").classList.remove("on");
+      state = "countdown"; countT = 0; countStep = -1;
+      stopBgm();
+    }
+    function beginPlay() {
+      state = "playing";
+      $("countNum").classList.remove("on");
+      startBgm();
+    }
+    function endGame() {
+      state = "result";
+      stopBgm();
+      sfxFanfare();
+      var info = rankFor(score);
+      var isRecord = score > bestScore;
+      if (isRecord) bestScore = score;
+      /* rank stamp */
+      var stamp = $("rankStamp");
+      stamp.style.background = "radial-gradient(circle at 32% 28%, " + shade(info.color, 1.35) + ", " + info.color + " 62%, " + shade(info.color, 0.82) + ")";
+      var rt = $("rankText");
+      rt.textContent = info.rank;
+      rt.style.fontSize = info.rank.length >= 3 ? "44px" : info.rank.length === 2 ? "54px" : "66px";
+      $("rankTitle").textContent = info.title;
+      $("resultScore").textContent = score.toLocaleString("ja-JP");
+      $("newRecord").classList.toggle("on", isRecord && score > 0);
+      $("statPops").textContent = pops;
+      $("statCombo").textContent = maxCombo;
+      $("statMiss").textContent = misses;
+      drawMosaic($("mosaic").getContext("2d"), 640, 320, 28, 14);
+      $("resultScreen").classList.add("on");
+      $("resultScreen").scrollTop = 0;
+    }
+    function rankFor(s) {
+      for (var i = 0; i < RANKS.length; i++) if (s >= RANKS[i].min) return RANKS[i];
+      return RANKS[RANKS.length - 1];
+    }
+
+    /* ================= Mosaic ================= */
+    function mosaicCells(cols, rows) {
+      var total = cols * rows, cells = [];
+      if (poppedColors.length === 0) {
+        for (var i = 0; i < total; i++) cells.push(UNLOCK_ORDER[i % 16]);
+        return cells;
+      }
+      /* 30秒では消した数が減るため、単純な繰り返しだと単調になる。
+         1サイクルごとに並びをシャッフルし直して全セルを埋め、
+         色の比率は実際のプレイ結果を保ちながらスカスカに見せない */
+      var bag = [];
+      while (bag.length < total) {
+        var cycle = poppedColors.slice();
+        for (var s = cycle.length - 1; s > 0; s--) {
+          var r = Math.floor(Math.random() * (s + 1));
+          var t = cycle[s]; cycle[s] = cycle[r]; cycle[r] = t;
+        }
+        bag = bag.concat(cycle);
+      }
+      /* 全体も軽くシャッフルして周期感を消す */
+      for (var j = bag.length - 1; j > 0; j--) {
+        var k = Math.floor(Math.random() * (j + 1));
+        var tmp = bag[j]; bag[j] = bag[k]; bag[k] = tmp;
+      }
+      return bag.slice(0, total);
+    }
+    function drawMosaic(c2, w, h, cols, rows) {
+      /* 消した数が少ないときはグリッドを粗くして1セルを大きくし、
+         モザイクが細かくスカスカに見えないようにする（30秒版対応） */
+      if (poppedColors.length > 0 && poppedColors.length < 40) {
+        if (poppedColors.length < 22) { cols = 18; rows = 9; }
+        else { cols = 22; rows = 11; }
+      }
+      var cells = mosaicCells(cols, rows);
+      var cw = w / cols, ch = h / rows, gap = Math.max(2, cw * 0.14);
+      c2.fillStyle = "#FFF6E9"; c2.fillRect(0, 0, w, h);
+      for (var r = 0; r < rows; r++) for (var col = 0; col < cols; col++) {
+        c2.fillStyle = PALETTE[cells[r * cols + col]];
+        c2.fillRect(col * cw + gap / 2, r * ch + gap / 2, cw - gap, ch - gap);
+      }
+    }
+
+    /* ================= Main loop ================= */
+    function frame(ts) {
+      raf = requestAnimationFrame(frame);
+      if (!lastTs) lastTs = ts;
+      var dt = Math.min(0.05, (ts - lastTs) / 1000);
+      lastTs = ts;
+
+      if (state === "countdown") {
+        countT += dt;
+        var step = Math.floor(countT / 0.62);
+        if (step !== countStep && step <= 3) {
+          countStep = step;
+          var el = $("countNum");
+          el.textContent = step < 3 ? String(3 - step) : "GO!";
+          el.style.fontSize = step < 3 ? "110px" : "84px";
+          el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
+          sfxCount(step === 3);
+        }
+        if (countT >= 0.62 * 4) beginPlay();
+      }
+
+      if (state === "title") {
+        if (Math.random() < dt * 1.6 && dots.length < 9) spawnDot(true);
+      }
+
+      if (state === "playing") {
+        elapsed += dt;
+        var remain = Math.max(0, GAME_TIME - elapsed);
+        $("timeFill").style.width = (remain / GAME_TIME * 100) + "%";
+        $("timebar").classList.toggle("warn", remain <= 5);
+        $("timeVal").textContent = Math.ceil(remain);
+        var pi = currentPhase();
+        if (pi !== phaseIdx) {
+          var prevCount = activeCount;
+          phaseIdx = pi; activeCount = PHASES[pi].count;
+          refreshPadLocks();
+          if (prevCount > 0 && activeCount > prevCount) {
+            sfxUnlock();
+            showToast("あたらしい色が追加された！");
+            UNLOCK_ORDER.slice(prevCount, activeCount).forEach(function (ci) {
+              var b = padButtons[ci];
+              if (b) { b.classList.remove("unlock-flash"); void b.offsetWidth; b.classList.add("unlock-flash"); }
+            });
+          }
+        }
+        spawnTimer -= dt;
+        if (spawnTimer <= 0) {
+          spawnDot(false);
+          spawnTimer = PHASES[pi].spawn * rand(0.75, 1.25);
+        }
+        if (remain <= 0) { endGame(); }
+      }
+
+      /* update dots */
+      for (var i = dots.length - 1; i >= 0; i--) {
+        var d = dots[i];
+        d.y += d.vy * dt;
+        d.wob += dt * 2.2;
+        if (d.y - d.r > H + 6) {
+          dots.splice(i, 1);
+          if (state === "playing" && !d.ambient) {
+            combo = 0; misses++;
+            burst(d.x, H - 8, d.ci, 8);
+            addFloater(d.x, H - 34, "MISS", "#FF004D");
+            sfxMiss();
+            updateHud(false); updateFever();
+          }
+        }
+      }
+      /* particles */
+      for (var p = particles.length - 1; p >= 0; p--) {
+        var pt = particles[p];
+        pt.t += dt; pt.x += pt.vx * dt; pt.y += pt.vy * dt; pt.vy += 620 * dt;
+        if (pt.t > pt.life) particles.splice(p, 1);
+      }
+      /* floaters */
+      for (var f = floaters.length - 1; f >= 0; f--) {
+        var fl = floaters[f];
+        fl.t += dt; fl.y -= 44 * dt;
+        if (fl.t > fl.life) floaters.splice(f, 1);
+      }
+
+      /* render */
+      ctx.clearRect(0, 0, W, H);
+      dots.forEach(function (d) {
+        var s = d.r * 2.35;
+        var x = d.x + Math.sin(d.wob) * 3;
+        ctx.globalAlpha = d.ambient ? 0.5 : 1;
+        ctx.drawImage(sprites[d.ci], x - s / 2, d.y - s / 2, s, s);
+        ctx.globalAlpha = 1;
+      });
+      particles.forEach(function (pt) {
+        ctx.globalAlpha = Math.max(0, 1 - pt.t / pt.life);
+        ctx.fillStyle = PALETTE[pt.ci];
+        ctx.fillRect(pt.x - pt.s / 2, pt.y - pt.s / 2, pt.s, pt.s);
+        ctx.globalAlpha = 1;
+      });
+      floaters.forEach(function (fl) {
+        ctx.globalAlpha = Math.max(0, 1 - fl.t / fl.life);
+        ctx.font = "900 17px 'Zen Maru Gothic', sans-serif";
+        ctx.textAlign = "center";
+        ctx.lineWidth = 4; ctx.strokeStyle = "#FFFBF2";
+        ctx.strokeText(fl.text, fl.x, fl.y);
+        ctx.fillStyle = fl.color;
+        ctx.fillText(fl.text, fl.x, fl.y);
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    /* ================= Pad build ================= */
+    var padButtons = [];
+    function buildPad() {
+      var pad = $("pad");
+      PALETTE.forEach(function (hex, ci) {
+        var b = document.createElement("button");
+        b.className = "pad-btn locked";
+        b.style.background = hex;
+        b.setAttribute("aria-label", "色 " + ci);
+        var idx = document.createElement("span");
+        idx.className = "idx";
+        idx.textContent = ci;
+        idx.style.color = luminance(hex) > 0.6 ? "rgba(43,51,95,.75)" : "rgba(255,241,232,.85)";
+        b.appendChild(idx);
+        b.addEventListener("pointerdown", function (e) { e.preventDefault(); onPadTap(ci); });
+        pad.appendChild(b);
+        padButtons[ci] = b;
+      });
+      /* logo dots on title */
+      var ld = $("logoDots");
+      PALETTE.forEach(function (hex) {
+        var i = document.createElement("i");
+        i.style.background = hex;
+        ld.appendChild(i);
+      });
+    }
+    function refreshPadLocks() {
+      var active = {};
+      activeColors().forEach(function (ci) { active[ci] = true; });
+      padButtons.forEach(function (b, ci) {
+        b.classList.toggle("locked", !active[ci]);
+      });
+    }
+
+    /* ================= Share ================= */
+    function shareText() {
+      var info = rankFor(score);
+      var text = "カラードロップ16で " + score.toLocaleString("ja-JP") + "点！ ランク" + info.rank + "「" + info.title + "」 消した数" + pops + "・最大" + maxCombo + "コンボ";
+      if (GAME_URL) text += "\n" + GAME_URL;
+      text += "\n" + HASHTAGS;
+      return text;
+    }
+    function buildShareImage() {
+      var c = document.createElement("canvas");
+      c.width = 1200; c.height = 630;
+      var x = c.getContext("2d");
+      var info = rankFor(score);
+      /* bg */
+      x.fillStyle = "#FFF6E9"; x.fillRect(0, 0, 1200, 630);
+      x.fillStyle = "rgba(43,51,95,0.08)";
+      for (var gy = 12; gy < 630; gy += 26) for (var gx = 12; gx < 1200; gx += 26) {
+        x.beginPath(); x.arc(gx, gy, 2.4, 0, 7); x.fill();
+      }
+      /* decorative pixel dots along the top */
+      for (var i = 0; i < 16; i++) {
+        x.fillStyle = PALETTE[i];
+        x.fillRect(36 + i * 34, 26, 24, 24);
+        x.strokeStyle = "rgba(43,51,95,.7)"; x.lineWidth = 2;
+        x.strokeRect(36 + i * 34, 26, 24, 24);
+      }
+      /* title */
+      x.textAlign = "left";
+      x.fillStyle = "#2B335F";
+      x.font = "64px 'Mochiy Pop One', sans-serif";
+      x.fillText("カラー", 560, 148);
+      var w1 = x.measureText("カラー").width;
+      x.fillStyle = "#FF004D";
+      x.fillText("ドロップ", 560 + w1, 148);
+      var w2 = x.measureText("ドロップ").width;
+      x.fillStyle = "#FFA300";
+      x.save();
+      x.translate(560 + w1 + w2 + 8, 148); x.rotate(0.06);
+      x.fillText("16", 0, 0);
+      x.restore();
+      x.fillStyle = "#2B335F";
+      x.font = "700 25px 'Zen Maru Gothic', sans-serif";
+      x.fillText("落ちてくる色を、同じ色で消す30秒バトル", 562, 192);
+      /* score */
+      x.font = "500 22px 'Zen Maru Gothic', sans-serif";
+      x.fillStyle = "#565d8a";
+      x.fillText("S C O R E", 562, 258);
+      x.fillStyle = "#2B335F";
+      x.font = "76px 'Mochiy Pop One', sans-serif";
+      x.fillText(score.toLocaleString("ja-JP"), 560, 336);
+      /* stats */
+      x.font = "700 27px 'Zen Maru Gothic', sans-serif";
+      x.fillStyle = "#2B335F";
+      x.fillText("消した数 " + pops + "　最大コンボ " + maxCombo + "　ミス " + misses, 562, 396);
+      /* ---- bottom zone: three dedicated, non-overlapping areas ----
+         left  : rank title + hashtags (text block, ends well before the stamp)
+         right : rank stamp (its own zone, below the divider)
+         The decorative dots live under the mosaic panel (see below). */
+      x.strokeStyle = "rgba(43,51,95,.30)";
+      x.lineWidth = 2;
+      x.beginPath(); x.moveTo(562, 424); x.lineTo(1164, 424); x.stroke();
+      /* text block */
+      x.textAlign = "left"; x.textBaseline = "alphabetic";
+      x.fillStyle = "#2B335F";
+      x.font = "30px 'Mochiy Pop One', sans-serif";
+      x.fillText("称号：" + info.title, 562, 488);
+      x.font = "700 20px 'Zen Maru Gothic', sans-serif";
+      x.fillStyle = "#565d8a";
+      x.fillText("#カラードロップ16 #ゲーム開発", 562, 532);
+      x.fillText("#個人開発 #gamedev", 562, 562);
+      if (GAME_URL) {
+        var urlSize = 17;
+        x.fillStyle = "#565d8a";
+        do {
+          x.font = "700 " + urlSize + "px 'Zen Maru Gothic', sans-serif";
+          urlSize--;
+        } while (x.measureText(GAME_URL).width > 395 && urlSize > 11);
+        x.fillText(GAME_URL, 562, 592);
+      }
+      /* rank stamp */
+      var cx = 1055, cy = 514, R = 80;
+      x.fillStyle = "rgba(43,51,95,.18)";
+      x.beginPath(); x.ellipse(cx, cy + R + 10, R * 0.72, 10, 0, 0, 7); x.fill();
+      x.save();
+      x.translate(cx, cy); x.rotate(-0.14);
+      var grad = x.createRadialGradient(-R * 0.3, -R * 0.32, R * 0.2, 0, 0, R);
+      grad.addColorStop(0, shade(info.color, 1.35));
+      grad.addColorStop(0.62, info.color);
+      grad.addColorStop(1, shade(info.color, 0.82));
+      x.fillStyle = grad;
+      x.beginPath(); x.arc(0, 0, R, 0, 7); x.fill();
+      x.lineWidth = 7; x.strokeStyle = "#2B335F"; x.stroke();
+      x.lineWidth = 4; x.strokeStyle = "#FFF6E9";
+      x.beginPath(); x.arc(0, 0, R - 11, 0, 7); x.stroke();
+      x.fillStyle = "#fff";
+      x.textAlign = "center"; x.textBaseline = "middle";
+      x.font = (info.rank.length >= 3 ? 54 : info.rank.length === 2 ? 66 : 86) + "px 'Mochiy Pop One', sans-serif";
+      x.fillText(info.rank, 0, 4);
+      x.restore();
+      x.textBaseline = "alphabetic";
+      /* mosaic panel (left) */
+      x.fillStyle = "#fff";
+      roundRect(x, 36, 84, 480, 380, 16); x.fill();
+      x.lineWidth = 5; x.strokeStyle = "#2B335F";
+      roundRect(x, 36, 84, 480, 380, 16); x.stroke();
+      x.save();
+      roundRect(x, 52, 100, 448, 300, 8); x.clip();
+      x.translate(52, 100);
+      drawMosaic(x, 448, 300, 28, 14);
+      x.restore();
+      x.fillStyle = "#565d8a";
+      x.font = "700 21px 'Zen Maru Gothic', sans-serif";
+      x.fillText("きみが消した色のモザイク", 52, 440);
+      /* decorative dots parade: dedicated strip under the mosaic panel,
+         an area that carries no text, so nothing can overlap */
+      [[112, 542], [208, 558], [304, 540], [400, 556]].forEach(function (pos, idx2) {
+        var spr = sprites[UNLOCK_ORDER[idx2 * 3 % 16]];
+        x.drawImage(spr, pos[0] - 29, pos[1] - 29, 58, 58);
+      });
+      return c;
+    }
+    function roundRect(x, px, py, w, h, r) {
+      x.beginPath();
+      x.moveTo(px + r, py);
+      x.arcTo(px + w, py, px + w, py + h, r);
+      x.arcTo(px + w, py + h, px, py + h, r);
+      x.arcTo(px, py + h, px, py, r);
+      x.arcTo(px, py, px + w, py, r);
+      x.closePath();
+    }
+    function canvasBlob(c) {
+      return new Promise(function (res) { c.toBlob(res, "image/png"); });
+    }
+    async function shareWithImage() {
+      ensureFonts();
+      var blob = await canvasBlob(buildShareImage());
+      if (!blob) { shareTextOnly(); return; }
+      var file = new File([blob], "color-drop16-result.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], text: shareText() });
+          return;
+        } catch (e) { if (e && e.name === "AbortError") return; }
+      }
+      downloadBlob(blob);
+      shareTextOnly();
+      showToast("画像を保存しました。投稿に添付してね");
+    }
+    function shareTextOnly() {
+      var url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText());
+      window.open(url, "_blank", "noopener");
+    }
+    function downloadBlob(blob) {
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "color-drop16-result.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    }
+    var fontsReady = false;
+    function ensureFonts() {
+      if (fontsReady || !document.fonts) return;
+      fontsReady = true;
+      document.fonts.load("64px 'Mochiy Pop One'");
+      document.fonts.load("700 25px 'Zen Maru Gothic'");
+    }
+
+    /* ================= Wiring ================= */
+    buildSprites();
+    buildPad();
+    resize();
+    requestAnimationFrame(function () { resize(); });
+    raf = requestAnimationFrame(frame);
+
+    $("startBtn").addEventListener("click", function () { ensureAudio(); tone(880, 0.1, "square", 0.1); startGame(); });
+    function openHowto() { ensureAudio(); $("howtoModal").classList.add("on"); }
+    function closeHowto() { $("howtoModal").classList.remove("on"); }
+    $("howtoBtn").addEventListener("click", openHowto);
+    $("howtoCloseBtn").addEventListener("click", closeHowto);
+    $("howtoOkBtn").addEventListener("click", closeHowto);
+    $("howtoBackdrop").addEventListener("click", closeHowto);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeHowto();
+    });
+    $("retryBtn").addEventListener("click", function () { ensureAudio(); startGame(); });
+    $("shareImgBtn").addEventListener("click", shareWithImage);
+    $("shareTextBtn").addEventListener("click", shareTextOnly);
+    $("saveImgBtn").addEventListener("click", async function () {
+      ensureFonts();
+      var blob = await canvasBlob(buildShareImage());
+      if (blob) { downloadBlob(blob); showToast("リザルト画像を保存しました"); }
+    });
+    $("muteBtn").addEventListener("click", function () {
+      muted = !muted;
+      $("soundOnIcon").style.display = muted ? "none" : "";
+      $("soundOffIcon").style.display = muted ? "" : "none";
+      if (muted) stopBgm();
+      else if (state === "playing") { ensureAudio(); startBgm(); }
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) stopBgm();
+      else if (state === "playing" && !muted) { ensureAudio(); startBgm(); }
+    });
+    document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+    </script>
+  </body>
+</html>
