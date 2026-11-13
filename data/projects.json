@@ -692,5 +692,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-09T23:36:43Z",
     "updatedAt": "2026-11-09T23:36:43Z"
+  },
+  {
+    "slug": "okan-taisen",
+    "title": "オカン大戦",
+    "kind": "game",
+    "description": "閉店までに、セール会場へ駆け込め。立ちはだかる連中をなぎ倒す3D無双アクション。全10の街でライバルオカンと鍋の具を奪い合い、得意武器を奪って強くなる。ダッシュ残像、ラッシュ、ボスカットイン。オンライン対戦あり。SSSを目指せ。音ありプレイ推奨。",
+    "url": "/apps/okan-taisen/",
+    "thumbnail": "/project-thumbnails/catalog/okan-taisen.webp",
+    "sourceFolder": "261111_オカン大戦",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-13T00:49:33Z",
+    "updatedAt": "2026-11-13T00:49:33Z"
   }
 ]
