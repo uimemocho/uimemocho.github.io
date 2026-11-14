@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ラベンダーキャッチ | 無料ブラウザゲーム</title>
+<meta name="description" content="3Dのラベンダーを左右に動かして、降ってくる星とハートをキャッチ！爆弾に当たるとタイムが減る60秒スコアアタック。">
+<meta property="og:title" content="ラベンダーキャッチ">
+<meta property="og:description" content="3Dキャラを動かして星をキャッチする60秒スコアアタック。ブラウザで今すぐ遊べます。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://uimemocho.github.io/apps/lavender-catch/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b335f; --cream:#f7f1e3; --paper:#fffbf2; --accent:#ff4d8d; --gold:#ffa300;
+    --lav:#83769c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:"M PLUS Rounded 1c",sans-serif; color:var(--ink); background:var(--cream);
+    background-image:radial-gradient(#e7dcc3 1.6px, transparent 1.7px);
+    background-size:22px 22px;
+    user-select:none;-webkit-user-select:none;touch-action:none;
+  }
+  #app{position:fixed;inset:0;display:flex;flex-direction:column;max-width:560px;margin:0 auto}
+  /* HUD */
+  #hud{
+    display:flex;align-items:center;gap:8px;padding:10px 12px 6px;z-index:5;
+  }
+  .hud-box{
+    background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;
+    padding:4px 10px;min-width:86px;text-align:center;
+    box-shadow:0 3px 0 rgba(43,51,95,.18);
+  }
+  .hud-box .label{font-size:10px;font-weight:800;letter-spacing:.12em;opacity:.65}
+  .hud-box .value{font-size:21px;font-weight:800;line-height:1.05}
+  #timeWrap{flex:1}
+  #timeBarOuter{height:14px;border:2.5px solid var(--ink);border-radius:99px;background:var(--paper);overflow:hidden}
+  #timeBar{height:100%;width:100%;background:linear-gradient(90deg,#00e436,#29adff);border-radius:99px;transition:width .2s linear}
+  #timeBar.low{background:linear-gradient(90deg,#ff004d,#ffa300)}
+  #timeText{font-size:12px;font-weight:800;text-align:center;margin-top:2px}
+  #comboBox{min-width:74px}
+  #comboBox .value{color:var(--accent)}
+  #feverBanner{
+    position:absolute;top:64px;left:50%;transform:translateX(-50%) scale(.6);
+    font-family:"Mochiy Pop One",sans-serif;font-size:30px;color:#fff;
+    background:linear-gradient(90deg,#ff004d,#ffa300);border:3px solid var(--ink);border-radius:99px;
+    padding:4px 22px;opacity:0;pointer-events:none;z-index:6;transition:all .18s ease-out;
+    box-shadow:0 4px 0 rgba(43,51,95,.25);
+  }
+  #feverBanner.on{opacity:1;transform:translateX(-50%) scale(1)}
+  /* 3D stage */
+  #stage{position:relative;flex:1;min-height:0}
+  #stage canvas{display:block}
+  #flash{
+    position:absolute;inset:0;background:#ff004d;opacity:0;pointer-events:none;transition:opacity .35s;
+  }
+  #popLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .pop{
+    position:absolute;font-family:"Mochiy Pop One",sans-serif;font-size:22px;color:var(--gold);
+    text-shadow:0 2px 0 var(--ink),2px 0 0 var(--ink),-2px 0 0 var(--ink),0 -2px 0 var(--ink);
+    transform:translate(-50%,-50%);animation:popUp .6s ease-out forwards;white-space:nowrap;
+  }
+  .pop.bad{color:#5f575f}
+  @keyframes popUp{
+    0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}
+    25%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}
+    100%{opacity:0;transform:translate(-50%,-130%) scale(1)}
+  }
+  /* Overlays */
+  .overlay{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(247,241,227,.55);z-index:10;padding:18px;
+  }
+  .panel{
+    background:var(--paper);border:3px solid var(--ink);border-radius:22px;
+    box-shadow:0 8px 0 rgba(43,51,95,.18);padding:26px 22px;text-align:center;
+    max-width:400px;width:100%;max-height:100%;overflow-y:auto;margin:auto;
+  }
+  .logo{
+    font-family:"Mochiy Pop One",sans-serif;line-height:1.15;
+    font-size:clamp(30px,9vw,44px);color:var(--ink);
+  }
+  .logo .lav{color:var(--lav)}
+  .logo .catch{color:var(--accent)}
+  .catchcopy{font-weight:800;margin:10px 0 4px;font-size:15px}
+  .sub{font-size:12.5px;opacity:.75;font-weight:500;line-height:1.6}
+  .btn{
+    display:block;width:100%;border:3px solid var(--ink);border-radius:99px;cursor:pointer;
+    font-family:"Mochiy Pop One",sans-serif;color:#fff;background:var(--accent);
+    font-size:21px;padding:13px 10px;margin-top:16px;box-shadow:0 5px 0 rgba(43,51,95,.35);
+    transition:transform .06s, box-shadow .06s;
+  }
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(43,51,95,.35)}
+  .btn:disabled{opacity:.45;cursor:wait}
+  .btn.ghost{background:#fff;color:var(--ink);font-size:16px;padding:11px 10px}
+  .btn.blue{background:#29adff;font-size:16px;padding:11px 10px}
+  .howto{
+    text-align:left;background:#fdf6e3;border:2px dashed var(--lav);border-radius:14px;
+    padding:12px 14px;margin-top:16px;font-size:13px;line-height:1.75;font-weight:500;
+  }
+  /* Result */
+  #resultPanel .rankRow{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0 2px}
+  #rankStamp{
+    width:104px;height:104px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Mochiy Pop One",sans-serif;color:#fff;
+    background:radial-gradient(circle at 35% 30%, #ffb3cd, #ff4d8d 60%, #e0336b);
+    border:4px solid var(--ink);box-shadow:inset 0 0 0 4px #fff, 0 5px 0 rgba(43,51,95,.25);
+    transform:rotate(-8deg);
+  }
+  #rankTitle{font-family:"Mochiy Pop One",sans-serif;font-size:19px}
+  #finalScore{font-size:44px;font-weight:800;line-height:1}
+  .statGrid{display:flex;gap:8px;margin-top:14px}
+  .stat{
+    flex:1;border:2.5px solid var(--ink);border-radius:12px;padding:7px 2px;background:#fff;
+  }
+  .stat .v{font-size:19px;font-weight:800}
+  .stat .k{font-size:10.5px;font-weight:800;opacity:.6;letter-spacing:.08em}
+  .hidden{display:none !important}
+  #toast{
+    position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;font-weight:800;font-size:13px;border-radius:99px;
+    padding:8px 18px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:20;white-space:nowrap;
+  }
+  #toast.on{opacity:.92}
+  #muteBtn{
+    position:absolute;top:8px;right:10px;z-index:15;background:var(--paper);
+    border:2.5px solid var(--ink);border-radius:99px;font-weight:800;font-size:12px;
+    padding:5px 12px;cursor:pointer;color:var(--ink);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="hud-box"><div class="label">SCORE</div><div class="value" id="scoreVal">0</div></div>
+    <div id="timeWrap">
+      <div id="timeBarOuter"><div id="timeBar"></div></div>
+      <div id="timeText">60秒</div>
+    </div>
+    <div class="hud-box" id="comboBox"><div class="label">COMBO</div><div class="value" id="comboVal">0</div></div>
+  </div>
+  <div id="stage">
+    <div id="feverBanner">FEVER!</div>
+    <div id="flash"></div>
+    <div id="popLayer"></div>
+    <button id="muteBtn">音 ON</button>
+
+    <div class="overlay" id="titleScreen">
+      <div class="panel">
+        <div class="logo"><span class="lav">ラベンダー</span><br><span class="catch">キャッチ</span></div>
+        <div class="catchcopy">星空から降ってくる星をキャッチ！</div>
+        <div class="sub">ラベンダーを左右にドラッグして動かし、<br>星とハートを集める60秒スコアアタック。</div>
+        <button class="btn" id="startBtn" disabled>よみこみ中…</button>
+        <div class="howto">
+          <b>あそびかた</b><br>
+          ・指（マウス）で左右にドラッグして移動<br>
+          ・星 = 100点、ハート = 150点<br>
+          ・爆弾に当たると −3秒＆コンボ消滅<br>
+          ・15コンボでFEVER（8秒間 2倍）
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="resultScreen">
+      <div class="panel" id="resultPanel">
+        <div style="font-family:'Mochiy Pop One',sans-serif;font-size:22px">けっかはっぴょう</div>
+        <div class="rankRow">
+          <div id="rankStamp">S</div>
+          <div>
+            <div id="rankTitle">星屑マエストロ</div>
+            <div style="font-size:11px;font-weight:800;opacity:.6;letter-spacing:.15em">SCORE</div>
+            <div id="finalScore">0</div>
+          </div>
+        </div>
+        <div class="statGrid">
+          <div class="stat"><div class="v" id="statCatch">0</div><div class="k">キャッチ数</div></div>
+          <div class="stat"><div class="v" id="statCombo">0</div><div class="k">最大コンボ</div></div>
+          <div class="stat"><div class="v" id="statBomb">0</div><div class="k">爆弾</div></div>
+        </div>
+        <button class="btn blue" id="shareBtn">画像つきでXに投稿</button>
+        <button class="btn ghost" id="shareTextBtn">Xに投稿（テキストのみ）</button>
+        <button class="btn" id="retryBtn">もういちど</button>
+      </div>
+    </div>
+    <div id="toast"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+(function(){
+"use strict";
+var GAME_URL = "https://uimemocho.github.io/apps/lavender-catch/";
+var HASHTAGS = "#ラベンダーキャッチ #ゲーム開発 #個人開発 #gamedev";
+var GAME_TIME = 60;
+var FIELD_X = 1.3;
+
+/* ---------- state ---------- */
+var score = 0, combo = 0, maxCombo = 0, catches = 0, bombsHit = 0;
+var timeLeft = GAME_TIME, playing = false, feverUntil = 0, elapsed = 0;
+var charX = 0, targetX = 0, modelReady = false;
+var items = [], particles = [];
+var lastTs = 0, spawnTimer = 0;
+
+/* ---------- DOM ---------- */
+function $(id){ return document.getElementById(id); }
+var stageEl = $("stage"), scoreEl = $("scoreVal"), comboEl = $("comboVal"),
+    timeBarEl = $("timeBar"), timeTextEl = $("timeText"), feverEl = $("feverBanner"),
+    flashEl = $("flash"), popLayer = $("popLayer"), toastEl = $("toast");
+var toastTimer = null;
+function showToast(msg){
+  toastEl.textContent = msg; toastEl.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove("on"); }, 2200);
+}
+
+/* ---------- audio ---------- */
+var AC = null, muted = false;
+function audio(){
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
+  if (AC && AC.state === "suspended") AC.resume();
+  return AC;
+}
+function beep(freq, dur, type, vol, slideTo){
+  if (muted) return;
+  var ac = audio(); if (!ac) return;
+  var o = ac.createOscillator(), g = ac.createGain();
+  o.type = type || "sine";
+  o.frequency.setValueAtTime(freq, ac.currentTime);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, ac.currentTime + dur);
+  g.gain.setValueAtTime(vol || 0.15, ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+  o.connect(g); g.connect(ac.destination);
+  o.start(); o.stop(ac.currentTime + dur);
+}
+function seCatch(){ beep(660 + Math.min(combo, 20) * 22, 0.12, "triangle", 0.20, 990 + Math.min(combo, 20) * 30); }
+function seHeart(){ beep(880, 0.10, "sine", 0.18); setTimeout(function(){ beep(1318, 0.16, "sine", 0.18); }, 70); }
+function seBomb(){ beep(160, 0.30, "sawtooth", 0.20, 55); }
+function seFever(){ [523, 659, 784, 1046].forEach(function(f, i){ setTimeout(function(){ beep(f, 0.14, "square", 0.10); }, i * 80); }); }
+function seEnd(){ [784, 659, 523, 392].forEach(function(f, i){ setTimeout(function(){ beep(f, 0.20, "triangle", 0.16); }, i * 130); }); }
+$("muteBtn").addEventListener("click", function(){
+  muted = !muted;
+  this.textContent = muted ? "音 OFF" : "音 ON";
+});
+
+/* ---------- three setup ---------- */
+var renderer, scene, camera, charWrap = null, ringMesh = null;
+var charGroundY = 0, charOffX = 0;
+var stageW = 300, stageH = 300;
+function initThree(){
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  stageEl.insertBefore(renderer.domElement, stageEl.firstChild);
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf7f1e3);
+  scene.fog = new THREE.Fog(0xf7f1e3, 11, 20);
+  camera = new THREE.PerspectiveCamera(58, 1, 0.1, 60);
+  camera.position.set(0, 2.05, 6.0);
+  camera.lookAt(0, 1.05, 0);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.78));
+  var dl = new THREE.DirectionalLight(0xffffff, 0.55);
+  dl.position.set(3, 6, 4); scene.add(dl);
+  var dl2 = new THREE.DirectionalLight(0xfff2d9, 0.25);
+  dl2.position.set(-4, 3, -2); scene.add(dl2);
+  /* ground stage */
+  var ground = new THREE.Mesh(
+    new THREE.CylinderGeometry(3.4, 3.6, 0.22, 40),
+    new THREE.MeshLambertMaterial({ color: 0xfffbf2 })
+  );
+  ground.position.y = -0.11; scene.add(ground);
+  var rim = new THREE.Mesh(
+    new THREE.TorusGeometry(3.4, 0.045, 10, 48),
+    new THREE.MeshLambertMaterial({ color: 0xff4d8d })
+  );
+  rim.rotation.x = Math.PI / 2; rim.position.y = 0.005; scene.add(rim);
+  /* background floating color dots */
+  var dotCols = [0xff004d, 0xffa300, 0xffec27, 0x00e436, 0x29adff, 0xff77a8, 0x83769c];
+  for (var i = 0; i < 22; i++){
+    var d = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05 + Math.random() * 0.06, 10, 10),
+      new THREE.MeshLambertMaterial({ color: dotCols[i % dotCols.length] })
+    );
+    d.position.set((Math.random() - 0.5) * 9, 0.6 + Math.random() * 4.6, -2.5 - Math.random() * 4);
+    d.userData.ph = Math.random() * Math.PI * 2;
+    scene.add(d); bgDots.push(d);
+  }
+  /* fever ring */
+  ringMesh = new THREE.Mesh(
+    new THREE.TorusGeometry(0.95, 0.06, 10, 40),
+    new THREE.MeshBasicMaterial({ color: 0xffa300 })
+  );
+  ringMesh.rotation.x = Math.PI / 2; ringMesh.position.y = 0.06; ringMesh.visible = false;
+  scene.add(ringMesh);
+  resize();
+}
+var bgDots = [];
+function resize(){
+  var w = stageEl.clientWidth, h = stageEl.clientHeight;
+  if (!w || !h) return;
+  stageW = w; stageH = h;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener("resize", resize);
+
+function loadModel(){
+  var loader = new THREE.GLTFLoader();
+  loader.load("model.glb", function(gltf){
+    var inner = gltf.scene;
+    inner.traverse(function(o){
+      if (o.isMesh){
+        o.geometry.computeVertexNormals();
+        o.material = new THREE.MeshLambertMaterial({ vertexColors: true });
+      }
+    });
+    inner.rotation.x = -Math.PI / 2;
+    charWrap = new THREE.Group();
+    charWrap.add(inner);
+    charWrap.rotation.y = -Math.PI / 2;
+    var box = new THREE.Box3().setFromObject(charWrap);
+    var size = box.getSize(new THREE.Vector3());
+    charWrap.scale.setScalar(1.9 / size.y);
+    charBaseScale = charWrap.scale.x;
+    var box2 = new THREE.Box3().setFromObject(charWrap);
+    charGroundY = -box2.min.y;
+    charOffX = -(box2.min.x + box2.max.x) / 2;
+    charWrap.position.y = charGroundY;
+    charWrap.position.x = charOffX;
+    scene.add(charWrap);
+    modelReady = true;
+    var btn = $("startBtn");
+    btn.disabled = false; btn.textContent = "はじめる";
+  }, undefined, function(){
+    showToast("モデルの読み込みに失敗しました");
+  });
+}
+
+/* ---------- items ---------- */
+var starGeo = null, heartGeo = null, bombGeo = null, fuseGeo = null;
+function makeGeos(){
+  var s = new THREE.Shape();
+  for (var i = 0; i < 10; i++){
+    var r = i % 2 === 0 ? 0.34 : 0.15;
+    var a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    var px = Math.cos(a) * r, py = Math.sin(a) * r;
+    if (i === 0) s.moveTo(px, py); else s.lineTo(px, py);
+  }
+  s.closePath();
+  starGeo = new THREE.ExtrudeGeometry(s, { depth: 0.12, bevelEnabled: false });
+  heartGeo = new THREE.SphereGeometry(0.21, 14, 12);
+  bombGeo = new THREE.SphereGeometry(0.24, 14, 12);
+  fuseGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.16, 6);
+}
+var MATS = {
+  star: null, heart: null, bomb: null, fuse: null
+};
+function spawnItem(forceType, forceX){
+  var r = Math.random();
+  var type = forceType || (r < 0.16 ? "bomb" : (r < 0.30 ? "heart" : "star"));
+  var mesh;
+  if (type === "star"){
+    mesh = new THREE.Mesh(starGeo, MATS.star);
+  } else if (type === "heart"){
+    mesh = new THREE.Mesh(heartGeo, MATS.heart);
+    mesh.scale.set(1, 0.92, 1);
+  } else {
+    mesh = new THREE.Group();
+    var b = new THREE.Mesh(bombGeo, MATS.bomb);
+    var f = new THREE.Mesh(fuseGeo, MATS.fuse);
+    f.position.y = 0.28; f.rotation.z = 0.4;
+    mesh.add(b); mesh.add(f);
+  }
+  var x = (forceX !== undefined) ? forceX : (Math.random() * 2 - 1) * FIELD_X;
+  mesh.position.set(x, 4.35, 0);
+  scene.add(mesh);
+  items.push({ mesh: mesh, type: type, speed: fallSpeed() * (0.9 + Math.random() * 0.25), spin: (Math.random() - 0.5) * 2.4, caught: false });
+}
+function fallSpeed(){
+  var t = Math.min(elapsed / GAME_TIME, 1);
+  return 2.1 + t * 1.5;
+}
+function spawnInterval(){
+  var t = Math.min(elapsed / GAME_TIME, 1);
+  var base = 0.92 - t * 0.34;
+  return isFever() ? base * 0.78 : base;
+}
+function isFever(){ return elapsed < feverUntil && feverUntil > 0; }
+
+function burst(x, y, colorHex, n){
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(n * 3);
+  var vels = [];
+  for (var i = 0; i < n; i++){
+    pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = 0.2;
+    var a = Math.random() * Math.PI * 2, sp = 0.8 + Math.random() * 1.6;
+    vels.push([Math.cos(a) * sp, Math.sin(a) * sp + 0.8]);
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  var mat = new THREE.PointsMaterial({ color: colorHex, size: 0.11, transparent: true, opacity: 1 });
+  var pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+  particles.push({ pts: pts, vels: vels, life: 0.55 });
+}
+
+/* ---------- popups ---------- */
+function popText(worldX, worldY, text, bad){
+  var v = new THREE.Vector3(worldX, worldY, 0).project(camera);
+  var sx = (v.x * 0.5 + 0.5) * stageW, sy = (-v.y * 0.5 + 0.5) * stageH;
+  var el = document.createElement("div");
+  el.className = "pop" + (bad ? " bad" : "");
+  el.textContent = text;
+  el.style.left = sx + "px"; el.style.top = sy + "px";
+  popLayer.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 650);
+}
+
+/* ---------- input ---------- */
+var dragging = false;
+function pointerToTarget(clientX){
+  var rect = stageEl.getBoundingClientRect();
+  var f = (clientX - rect.left) / rect.width;
+  targetX = Math.max(-FIELD_X - 0.25, Math.min(FIELD_X + 0.25, (f * 2 - 1) * (FIELD_X + 0.25)));
+}
+stageEl.addEventListener("pointerdown", function(e){
+  if (!playing) return;
+  dragging = true; pointerToTarget(e.clientX);
+});
+window.addEventListener("pointermove", function(e){ if (dragging) pointerToTarget(e.clientX); });
+window.addEventListener("pointerup", function(){ dragging = false; });
+window.addEventListener("pointercancel", function(){ dragging = false; });
+
+/* ---------- game flow ---------- */
+function rankFor(s){
+  if (s >= 8000) return { rank: "SSS", title: "星空の女王", fs: 34 };
+  if (s >= 6500) return { rank: "SS", title: "星屑マエストロ", fs: 40 };
+  if (s >= 5200) return { rank: "S", title: "キャッチ名人", fs: 52 };
+  if (s >= 4000) return { rank: "A", title: "星追い人", fs: 52 };
+  if (s >= 2800) return { rank: "B", title: "星あつめ名人", fs: 52 };
+  if (s >= 1600) return { rank: "C", title: "星見習い", fs: 52 };
+  if (s >= 700)  return { rank: "D", title: "星のたまご", fs: 52 };
+  return { rank: "E", title: "星見の初心者", fs: 52 };
+}
+function startGame(){
+  audio();
+  score = 0; combo = 0; maxCombo = 0; catches = 0; bombsHit = 0;
+  timeLeft = GAME_TIME; elapsed = 0; feverUntil = 0; spawnTimer = 0.3;
+  charX = 0; targetX = 0;
+  items.forEach(function(it){ scene.remove(it.mesh); });
+  items = [];
+  $("titleScreen").classList.add("hidden");
+  $("resultScreen").classList.add("hidden");
+  playing = true;
+  updateHud();
+}
+function endGame(){
+  playing = false;
+  seEnd();
+  items.forEach(function(it){ scene.remove(it.mesh); });
+  items = [];
+  feverEl.classList.remove("on");
+  if (ringMesh) ringMesh.visible = false;
+  var info = rankFor(score);
+  var stamp = $("rankStamp");
+  stamp.textContent = info.rank;
+  stamp.style.fontSize = info.fs + "px";
+  $("rankTitle").textContent = info.title;
+  $("finalScore").textContent = score.toLocaleString("ja-JP");
+  $("statCatch").textContent = catches;
+  $("statCombo").textContent = maxCombo;
+  $("statBomb").textContent = bombsHit;
+  $("resultScreen").classList.remove("hidden");
+}
+function updateHud(){
+  scoreEl.textContent = score.toLocaleString("ja-JP");
+  comboEl.textContent = combo;
+  var f = Math.max(timeLeft, 0) / GAME_TIME;
+  timeBarEl.style.width = (f * 100) + "%";
+  timeBarEl.className = timeLeft <= 10 ? "low" : "";
+  timeBarEl.id = "timeBar";
+  timeTextEl.textContent = Math.ceil(Math.max(timeLeft, 0)) + "秒";
+}
+
+/* ---------- main loop ---------- */
+var catchPop = 0;
+function animate(ts){
+  requestAnimationFrame(animate);
+  var dt = Math.min((ts - lastTs) / 1000 || 0, 0.05);
+  lastTs = ts;
+  var t = ts / 1000;
+  /* background dots drift */
+  for (var i = 0; i < bgDots.length; i++){
+    bgDots[i].position.y += Math.sin(t * 0.9 + bgDots[i].userData.ph) * 0.0016;
+    bgDots[i].rotation.y += 0.01;
+  }
+  if (charWrap){
+    /* bobbing run feel */
+    var bob = playing ? Math.abs(Math.sin(t * 11)) * 0.055 : Math.sin(t * 2) * 0.02;
+    charX += (targetX - charX) * Math.min(dt * 14, 1);
+    charWrap.position.x = charX + charOffX;
+    charWrap.position.y = charGroundY + bob + catchPop * 0.1;
+    charWrap.rotation.z = (targetX - charX) * -0.10 + Math.sin(t * 11) * (playing ? 0.02 : 0);
+    var sc = 1 + catchPop * 0.06;
+    charWrap.scale.setScalar(charBaseScale * sc);
+    catchPop = Math.max(0, catchPop - dt * 5);
+    if (ringMesh){
+      ringMesh.visible = isFever() && playing;
+      if (ringMesh.visible){
+        ringMesh.position.x = charX;
+        ringMesh.rotation.z = t * 2.4;
+        var rp = 1 + Math.sin(t * 9) * 0.05;
+        ringMesh.scale.setScalar(rp);
+      }
+    }
+  }
+  if (playing){
+    elapsed += dt;
+    timeLeft -= dt;
+    /* spawn */
+    spawnTimer -= dt;
+    if (spawnTimer <= 0){ spawnItem(); spawnTimer = spawnInterval(); }
+    /* items */
+    for (var j = items.length - 1; j >= 0; j--){
+      var it = items[j];
+      it.mesh.position.y -= it.speed * dt;
+      it.mesh.rotation.y += it.spin * dt;
+      if (it.type === "star") it.mesh.rotation.z += dt * 1.6;
+      var iy = it.mesh.position.y, ix = it.mesh.position.x;
+      if (!it.caught && iy <= 1.28 && iy > 0.55 && Math.abs(ix - charX) < 0.66){
+        it.caught = true;
+        onCatch(it);
+        scene.remove(it.mesh); items.splice(j, 1);
+        continue;
+      }
+      if (iy < 0.1){
+        if (it.type !== "bomb" && combo > 0){
+          combo = 0;
+          popText(ix, 0.7, "MISS", true);
+        }
+        scene.remove(it.mesh); items.splice(j, 1);
+      }
+    }
+    if (isFever()) feverEl.classList.add("on"); else feverEl.classList.remove("on");
+    if (timeLeft <= 0){ timeLeft = 0; updateHud(); endGame(); }
+    updateHud();
+  }
+  /* particles */
+  for (var k = particles.length - 1; k >= 0; k--){
+    var p = particles[k];
+    p.life -= dt;
+    var arr = p.pts.geometry.attributes.position.array;
+    for (var m = 0; m < p.vels.length; m++){
+      arr[m * 3] += p.vels[m][0] * dt;
+      arr[m * 3 + 1] += p.vels[m][1] * dt;
+      p.vels[m][1] -= 3.2 * dt;
+    }
+    p.pts.geometry.attributes.position.needsUpdate = true;
+    p.pts.material.opacity = Math.max(p.life / 0.55, 0);
+    if (p.life <= 0){ scene.remove(p.pts); particles.splice(k, 1); }
+  }
+  renderer.render(scene, camera);
+}
+var charBaseScale = 1;
+function onCatch(it){
+  var fever = isFever();
+  if (it.type === "bomb"){
+    bombsHit++;
+    combo = 0;
+    timeLeft = Math.max(timeLeft - 3, 0.1);
+    seBomb();
+    flashEl.style.opacity = "0.28";
+    setTimeout(function(){ flashEl.style.opacity = "0"; }, 60);
+    burst(it.mesh.position.x, 1.2, 0x5f575f, 12);
+    popText(it.mesh.position.x, 1.6, "-3秒", true);
+    updateHud();
+    return;
+  }
+  catches++;
+  combo++;
+  if (combo > maxCombo) maxCombo = combo;
+  var base = it.type === "heart" ? 150 : 100;
+  var pts = base * (fever ? 2 : 1);
+  score += pts;
+  catchPop = 1;
+  if (it.type === "heart"){ seHeart(); burst(it.mesh.position.x, 1.3, 0xff77a8, 14); }
+  else { seCatch(); burst(it.mesh.position.x, 1.3, 0xffc93c, 12); }
+  popText(it.mesh.position.x, 1.7, "+" + pts, false);
+  if (combo === 15 && !fever){
+    feverUntil = elapsed + 8;
+    seFever();
+    showToast("FEVER！ 8秒間ポイント2倍");
+  }
+  updateHud();
+}
+
+/* ---------- share ---------- */
+function shareText(){
+  var info = rankFor(score);
+  var text = "ラベンダーキャッチで " + score.toLocaleString("ja-JP") + "点！ ランク" + info.rank + "「" + info.title + "」 キャッチ" + catches + "・最大" + maxCombo + "コンボ";
+  if (GAME_URL) text += "\n" + GAME_URL;
+  text += "\n" + HASHTAGS;
+  return text;
+}
+function buildShareImage(){
+  var c = document.createElement("canvas");
+  c.width = 1200; c.height = 630;
+  var x = c.getContext("2d");
+  x.fillStyle = "#f7f1e3"; x.fillRect(0, 0, 1200, 630);
+  x.fillStyle = "#e7dcc3";
+  for (var gy = 14; gy < 630; gy += 26) for (var gx = 14; gx < 1200; gx += 26){
+    x.beginPath(); x.arc(gx, gy, 2, 0, 7); x.fill();
+  }
+  /* game canvas snapshot, letterboxed right side */
+  try {
+    var src = renderer.domElement;
+    var sh = 560, sw = sh * (src.width / src.height);
+    x.save();
+    x.beginPath();
+    var rx = 1200 - sw - 40, ry = 35;
+    x.moveTo(rx + 18, ry); x.lineTo(rx + sw - 18, ry); x.quadraticCurveTo(rx + sw, ry, rx + sw, ry + 18);
+    x.lineTo(rx + sw, ry + sh - 18); x.quadraticCurveTo(rx + sw, ry + sh, rx + sw - 18, ry + sh);
+    x.lineTo(rx + 18, ry + sh); x.quadraticCurveTo(rx, ry + sh, rx, ry + sh - 18);
+    x.lineTo(rx, ry + 18); x.quadraticCurveTo(rx, ry, rx + 18, ry); x.closePath();
+    x.clip();
+    x.drawImage(src, rx, ry, sw, sh);
+    x.restore();
+    x.strokeStyle = "#2b335f"; x.lineWidth = 5;
+    x.strokeRect(rx, ry, sw, sh);
+  } catch(e){}
+  var info = rankFor(score);
+  x.fillStyle = "#2b335f";
+  x.textAlign = "left";
+  try { x.font = "54px 'Mochiy Pop One', sans-serif"; } catch(e){}
+  x.fillText("ラベンダー", 56, 120);
+  x.fillStyle = "#ff4d8d";
+  x.fillText("キャッチ", 56, 182);
+  x.fillStyle = "#2b335f";
+  x.font = "800 30px 'M PLUS Rounded 1c', sans-serif";
+  x.fillText("ランク" + info.rank + "「" + info.title + "」", 56, 268);
+  x.font = "800 74px 'M PLUS Rounded 1c', sans-serif";
+  x.fillText(score.toLocaleString("ja-JP") + "点", 56, 356);
+  x.font = "800 27px 'M PLUS Rounded 1c', sans-serif";
+  x.fillText("キャッチ " + catches + " / 最大 " + maxCombo + " コンボ", 56, 420);
+  x.fillStyle = "#83769c";
+  x.font = "800 24px 'M PLUS Rounded 1c', sans-serif";
+  if (GAME_URL) x.fillText(GAME_URL, 56, 540);
+  x.fillStyle = "#2b335f";
+  x.font = "800 22px 'M PLUS Rounded 1c', sans-serif";
+  x.fillText(HASHTAGS, 56, 578);
+  /* rank stamp */
+  x.save();
+  x.translate(950, 480); x.rotate(-0.14);
+  x.beginPath(); x.arc(0, 0, 78, 0, 7);
+  x.fillStyle = "#ff4d8d"; x.fill();
+  x.lineWidth = 6; x.strokeStyle = "#2b335f"; x.stroke();
+  x.beginPath(); x.arc(0, 0, 64, 0, 7);
+  x.lineWidth = 3; x.strokeStyle = "#ffffff"; x.stroke();
+  x.fillStyle = "#ffffff"; x.textAlign = "center";
+  try { x.font = (info.rank.length >= 3 ? "44px" : "62px") + " 'Mochiy Pop One', sans-serif"; } catch(e){}
+  x.fillText(info.rank, 0, info.rank.length >= 3 ? 16 : 22);
+  x.restore();
+  return c;
+}
+function canvasBlob(c){
+  return new Promise(function(res){ c.toBlob(res, "image/png"); });
+}
+async function shareWithImage(){
+  var blob = await canvasBlob(buildShareImage());
+  if (!blob){ shareTextOnly(); return; }
+  var file = new File([blob], "lavender-catch-result.png", { type: "image/png" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })){
+    try {
+      await navigator.share({ files: [file], text: shareText() });
+      return;
+    } catch(e){ if (e && e.name === "AbortError") return; }
+  }
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "lavender-catch-result.png";
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  shareTextOnly();
+  showToast("画像を保存しました。投稿に添付してね");
+}
+function shareTextOnly(){
+  var url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText());
+  window.open(url, "_blank", "noopener");
+}
+
+/* ---------- boot ---------- */
+$("startBtn").addEventListener("click", startGame);
+$("retryBtn").addEventListener("click", startGame);
+$("shareBtn").addEventListener("click", shareWithImage);
+$("shareTextBtn").addEventListener("click", shareTextOnly);
+initThree();
+MATS.star = new THREE.MeshLambertMaterial({ color: 0xffc93c, emissive: 0x8a5a00 });
+MATS.heart = new THREE.MeshLambertMaterial({ color: 0xff77a8, emissive: 0x7a2044 });
+MATS.bomb = new THREE.MeshLambertMaterial({ color: 0x3a3f4a });
+MATS.fuse = new THREE.MeshLambertMaterial({ color: 0xab5236 });
+makeGeos();
+loadModel();
+requestAnimationFrame(animate);
+/* debug hooks for verification */
+window.__game = {
+  start: startGame,
+  spawn: spawnItem,
+  state: function(){ return { playing: playing, score: score, combo: combo, timeLeft: timeLeft, items: items.length, modelReady: modelReady }; },
+  setTime: function(s){ timeLeft = s; },
+  setTarget: function(x){ targetX = x; }
+};
+})();
+</script>
+</body>
+</html>

@@ -704,5 +704,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-13T00:49:33Z",
     "updatedAt": "2026-11-13T00:49:33Z"
+  },
+  {
+    "slug": "lavender-catch",
+    "title": "ラベンダーキャッチ",
+    "kind": "game",
+    "description": "3Dのラベンダーを左右にドラッグして、空から降る星とハートをキャッチ！爆弾に当たると−3秒。15コンボでFEVERになる60秒スコアアタック。",
+    "url": "/apps/lavender-catch/",
+    "thumbnail": "/project-thumbnails/catalog/lavender-catch.webp",
+    "sourceFolder": "261114_ラベンダーキャッチ",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-14T04:14:04Z",
+    "updatedAt": "2026-11-14T04:14:04Z"
   }
 ]
