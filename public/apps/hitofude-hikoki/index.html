@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#141a2e">
+<title>一筆飛行機</title>
+<meta name="description" content="一筆飛行機。一筆で描いた形がそのまま紙飛行機になる。全国8か所の高台から、今この瞬間のリアルな風を読んで飛距離を競う3Dゲーム。">
+<meta property="og:type" content="website"><meta property="og:site_name" content="uimemocho"><meta property="og:title" content="一筆飛行機">
+<meta property="og:description" content="一筆で描いた紙飛行機を、全国の高台からリアルタイムの風に乗せて飛ばす。投稿した機体で友達も挑戦できる。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/hitofude-hikoki/"><meta property="og:image" content="https://uimemocho.github.io/apps/hitofude-hikoki/ogp.png">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="一筆飛行機">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%230e1a2b%22/%3E%3Cpath d=%22M32 8 L50 52 L32 44 L14 52Z%22 fill=%22%23ffd60a%22/%3E%3C/svg%3E"><link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"./three.module.js","three/addons/":"./addons/"}}</script>
+<link rel="modulepreload" href="three.module.js"><link rel="modulepreload" href="game.js">
+</head><body data-screen="title">
+<canvas id="world" aria-label="一筆飛行機のゲーム画面"></canvas><div id="shade"></div>
+<div id="flash" aria-hidden="true"></div><div id="speedLines" aria-hidden="true"></div>
+
+<header>
+ <div id="brandMini" aria-hidden="true">一筆飛行機</div>
+ <div class="headerbuttons">
+  <button id="pauseBtn" class="icon-button" data-i18n-aria="pause" aria-label="一時停止">Ⅱ</button>
+  <button id="settingsBtn" class="icon-button" data-i18n-aria="settings" aria-label="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.808 10.049 L22.000 12.000 L19.846 13.561 L19.391 15.061 L20.315 17.556 L19.071 19.071 L16.445 18.652 L15.061 19.391 L13.951 21.808 L12.000 22.000 L10.439 19.846 L8.939 19.391 L6.444 20.315 L4.929 19.071 L5.348 16.445 L4.609 15.061 L2.192 13.951 L2.000 12.000 L4.154 10.439 L4.609 8.939 L3.685 6.444 L4.929 4.929 L7.555 5.348 L8.939 4.609 L10.049 2.192 L12.000 2.000 L13.561 4.154 L15.061 4.609 L17.556 3.685 L19.071 4.929 L18.652 7.555 L19.391 8.939 Z"/><circle cx="12" cy="12" r="3.3"/></svg></button>
+ </div>
+</header>
+
+<main>
+<section id="titleScreen" class="screen title-screen" aria-label="タイトル">
+ <div class="title-block">
+  <h1 id="title"><span>一筆</span><em>飛行機</em></h1>
+  <p class="title-sub" data-i18n="sub">ONE-STROKE PLANE</p>
+ </div>
+ <div class="title-actions">
+  <div id="challengeBox" class="challenge" hidden><canvas id="challengeImg" width="120" height="120"></canvas><div><small data-i18n="challenge">挑戦状の機体</small><strong id="challengeType"></strong></div></div>
+  <button id="flyBtn" class="primary" data-i18n="fly">飛ばす</button>
+  <button id="drawBtn" class="ghost dress-btn"><span data-i18n="draw">機体を描く</span><small id="planeName"></small></button>
+  <div class="title-foot"><button id="howtoBtn" class="text-button" data-i18n="howto">遊び方</button><span id="bestLine"></span></div>
+ </div>
+</section>
+
+<section id="drawScreen" class="screen draw-screen" hidden>
+ <div class="screen-kicker"><span data-i18n="draw">機体を描く</span><button id="drawBack" class="text-button" data-i18n="back">もどる</button></div>
+ <div class="draw-body">
+  <div class="paper-wrap"><canvas id="paper" width="600" height="600" aria-label="描画用の紙"></canvas><span class="nose-tag" data-i18n="nose">機首</span><p id="drawHint" class="draw-hint" data-i18n="drawHint">機首を上にして、一筆で描く</p></div>
+  <div class="type-row"><strong id="typeName">—</strong><label class="mirror"><input id="mirrorChk" type="checkbox"><span data-i18n="mirror">左右対称</span></label></div>
+  <div id="statBars" class="stat-bars"></div>
+ </div>
+ <div class="dress-actions three"><button id="randomPlane" class="ghost" data-i18n="random">おまかせ</button><button id="clearPlane" class="ghost" data-i18n="redraw">描き直す</button><button id="drawDone" class="primary" data-i18n="flyThis">これで飛ぶ</button></div>
+</section>
+
+<section id="stageScreen" class="screen stage-screen" hidden>
+ <div class="screen-kicker"><span data-i18n="where">どこから飛ばす？</span><button id="stageBack" class="text-button" data-i18n="back">もどる</button></div>
+ <div id="spotList" class="spot-list" role="listbox"></div>
+ <p id="wxSource" class="wx-source"></p>
+ <button id="stageGo" class="primary" data-i18n="goHere">ここから飛ばす</button>
+</section>
+
+<section id="resultScreen" class="screen result-screen" hidden>
+ <div class="result-heading"><p id="resultFrom"></p><h2 id="resultDist"><b>0</b><small>m</small></h2><p id="resultLand"></p></div>
+ <div id="rankHero" class="rank-hero"><span class="rank-caption">RANK</span><strong id="rankGrade">S</strong><p id="rankTitle"></p></div>
+ <div class="result-stats">
+  <div><small data-i18n="airtime">滞空</small><strong id="statAir">0</strong><span class="unit" data-i18n="sec">秒</span></div>
+  <div><small data-i18n="maxAlt">最高高度</small><strong id="statAlt">0</strong><span class="unit">m</span></div>
+  <div class="wide"><small data-i18n="windAt">当時の風</small><span id="statWind" class="wind-text"></span></div>
+ </div>
+ <p id="bestNote" class="streak-line"></p>
+ <div id="resultActions">
+  <button id="shareBtn" class="share"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span data-i18n="share">Xに投稿</span></button>
+  <button id="againBtn" class="primary" data-i18n="again">もう一度投げる</button>
+  <div class="result-secondary"><button id="resultDraw" class="ghost" data-i18n="redraw">描き直す</button><button id="resultStage" class="ghost" data-i18n="toStage">場所をえらぶ</button></div>
+ </div>
+</section>
+</main>
+
+<div id="hud" hidden>
+ <div class="plates">
+  <div class="plate me"><div class="plate-name"><span id="hudSpot"></span></div><div class="hud-sub"><span id="hudWx"></span></div></div>
+  <div id="compass" class="compass" aria-hidden="true"><svg viewBox="-50 -50 100 100"><circle r="44" class="ring"/><path id="compassArrow" d="M0 -34 L10 -10 L4 -12 L4 30 L-4 30 L-4 -12 L-10 -10Z"/><circle r="3" class="dot"/></svg><small id="compassTxt"></small></div>
+  <div class="plate op"><div class="plate-name dist"><b id="hudDist">0</b><span class="unit">m</span></div><div class="hud-sub right"><span data-i18n="alt">高度</span> <b id="hudAlt">0</b>m</div></div>
+ </div>
+ <div id="gustBox" class="gust-box"><small data-i18n="catchNow">風をつかめ</small><div class="gust-meter"><i id="gustFill"></i><b class="zone"></b></div></div>
+ <div id="pullGuide" class="pull-guide" hidden><strong data-i18n="pullHint">下へ引いて、離して投げる</strong><small data-i18n="pullSub"></small><div class="pull-meter"><i id="pullFill"></i><b class="sweet"></b></div><div class="pull-arrow" aria-hidden="true"></div></div>
+ <p id="steerHint" class="wait-msg" hidden data-i18n="steer">左右にドラッグで旋回</p>
+</div>
+
+<div id="catchCut" aria-hidden="true"><i class="band b1"></i><i class="band b2"></i><div class="crit-text"><strong id="catchMain">風</strong><span>CATCH THE WIND</span></div></div>
+<div id="impact" aria-hidden="true"><strong id="impactMain"></strong><span id="impactSub"></span></div>
+
+<div id="sheet" class="sheet" hidden>
+ <div class="sheet-card" role="dialog" aria-modal="true">
+  <div id="settingsBody" hidden>
+   <h3 data-i18n="settings">設定</h3>
+   <div class="set-row"><span data-i18n="se">効果音</span><button class="toggle" data-key="se"></button></div>
+   <div class="set-row"><span data-i18n="bgm">BGM</span><button class="toggle" data-key="bgm"></button></div>
+   <div class="set-row"><span data-i18n="vib">振動</span><button class="toggle" data-key="vib"></button></div>
+   <div class="set-row"><span data-i18n="quality">画質</span><button class="toggle" data-key="hq"></button></div>
+   <div class="set-row"><span data-i18n="lang">言語</span><select id="langSelect"></select></div>
+  </div>
+  <div id="howtoBody" hidden>
+   <h3 data-i18n="howto">遊び方</h3>
+   <ol class="howto"><li data-i18n="how1"></li><li data-i18n="how2"></li><li data-i18n="how3"></li><li data-i18n="how4"></li></ol>
+   <p class="wx-source" data-i18n="liveSrc"></p>
+  </div>
+  <div id="shareBody" hidden>
+   <h3 data-i18n="shareSheet">投稿用の画像</h3>
+   <img id="sharePreview" class="share-preview" alt="">
+   <p class="share-note" data-i18n="saveHint"></p>
+   <a id="shareXLink" class="primary share-x" target="_blank" rel="noopener" data-i18n="openX">Xの投稿画面を開く</a>
+   <button id="copyText" class="ghost" data-i18n="copyText">投稿文をコピー</button>
+  </div>
+  <div id="pauseBody" hidden><h3 data-i18n="pause">一時停止</h3></div>
+  <div class="sheet-actions"><button id="sheetTitle" class="ghost" data-i18n="toTitle" hidden>タイトルへ</button><button id="sheetClose" class="primary" data-i18n="close">とじる</button></div>
+ </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="boot"><strong>一筆飛行機</strong><span id="bootMsg">…</span></div>
+<script type="module" src="game.js"></script>
+</body></html>

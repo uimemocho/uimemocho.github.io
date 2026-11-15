@@ -704,5 +704,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-13T00:49:33Z",
     "updatedAt": "2026-11-13T00:49:33Z"
+  },
+  {
+    "slug": "hitofude-hikoki",
+    "title": "一筆飛行機",
+    "kind": "game",
+    "description": "一筆で描いた形が、そのまま紙飛行機になる。全国8か所の高台から、今この瞬間のリアルな風と天気に乗せて飛距離を競う3Dゲーム。おすすめの場所は今よく伸びる。結果は機体の画像つきで投稿でき、同じ機体で友達も挑戦できる。SSSを目指せ。",
+    "url": "/apps/hitofude-hikoki/",
+    "thumbnail": "/project-thumbnails/catalog/hitofude-hikoki.webp",
+    "sourceFolder": "261115_一筆飛行機",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-15T14:00:00Z",
+    "updatedAt": "2026-11-15T14:00:00Z"
   }
 ]
