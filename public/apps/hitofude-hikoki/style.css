@@ -330,3 +330,7 @@ a.share-x{text-decoration:none}
 .spot .rec{top:-10px;left:10px;padding:3px 9px;line-height:1.4;z-index:1}
 .spot-list{display:flex;flex-direction:column;align-items:stretch}
 .spot{flex:0 0 auto}
+/* おすすめバッジ：セルの左上角に吸着 */
+.spot{overflow:hidden}
+.spot .rec{top:0;left:0;margin:0;line-height:1.4;padding:3px 9px}
+.spot:has(.rec){padding-top:26px}
