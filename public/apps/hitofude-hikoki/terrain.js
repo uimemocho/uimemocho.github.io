@@ -79,5 +79,30 @@ export function makeTerrain(spotId) {
     top: 0,
   };
   T.top = height(0, 0); // 展望台の高さ
+  // 30m区画ごとの建物・家（描画と当たり判定で共有）
+  const cells = new Map();
+  T.structs = (gx, gz) => {
+    const key = gx * 100003 + gz; let v = cells.get(key); if (v !== undefined) return v;
+    if (cells.size > 30000) cells.clear();
+    v = null;
+    const C = 30, x = (gx + 0.5) * C, z = (gz + 0.5) * C;
+    const mid = hash2(gx * 2.7 + 1, gz * 1.9 + 4);
+    if (kindAt(x, -z) === 1 && mid >= 0.09) {
+      const r = hash2(gx * 1.3, gz * 0.7), core = fbm(x * 0.0009 + 9, z * 0.0009, 2) * (P.town || 1);
+      if ((core > 0.38 && r < 0.62) || mid > 0.9) {
+        const h = core > 0.38 && r < 0.62 ? 10 + Math.pow(hash2(gz, gx), 3) * 30 + Math.max(0, core - 0.42) * 240 * hash2(gx + 3, gz) : 12 + hash2(gz, gx) * 14;
+        v = { tall: true, list: [{ x, z, w: 11 + hash2(gx + 7, gz) * 9, d: 11 + hash2(gx, gz + 7) * 9, h, y: height(x, z) - 1 }] };
+      } else {
+        const gap = 0.06 + fbm(x * 0.004 + 3, z * 0.004, 2) * 0.5, list = [];
+        for (let q = 0; q < 4; q++) {
+          const hx = hash2(gx * 3.1 + q, gz * 1.7), hz = hash2(gz * 2.3 + q, gx * 0.9); if (hx < gap) continue;
+          const px = x + ((q & 1) - 0.5) * 11.5 + (hz - 0.5) * 2, pz = z + ((q >> 1) - 0.5) * 11.5 + (hx - 0.5) * 2;
+          list.push({ x: px, z: pz, w: 6 + hz * 4, d: 6 + hash2(hx * 5, hz * 3) * 4, h: 5.5 + hash2(hx * 9, hz * 9) * 4.5, y: height(px, pz) - 0.6, hx, hz });
+        }
+        v = { tall: false, list };
+      }
+    }
+    cells.set(key, v); return v;
+  };
   return T;
 }

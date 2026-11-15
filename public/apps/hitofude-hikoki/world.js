@@ -93,19 +93,19 @@ export function createWorld(canvas) {
         c=mix(c,c*mix(.5,1.3,can)*(.85+can2*.3*near),vK.y);
         vec2 fs=vec2(46.,28.);vec2 fc=floor(p/fs),ff=fract(p/fs);float fh=hh(fc);
         vec3 fcol=fh<.35?vec3(.3,.42,.16):fh<.6?vec3(.5,.47,.22):fh<.82?vec3(.22,.34,.14):vec3(.4,.31,.2);
-        float rows=.92+.08*sin(p.x*(fh>.5?2.2:0.)+p.y*(fh>.5?0.:2.2));
-        float fb2=min(1.,step(ff.x,.035)+step(ff.y,.055));
+        float fw=fwidth(p.x)+fwidth(p.y);float rows=1.-.08*near*(.5+.5*sin(p.x*(fh>.5?2.2:0.)+p.y*(fh>.5?0.:2.2)));
+        float fb2=min(1.,step(ff.x,.035)+step(ff.y,.055))*(1.-smoothstep(.6,2.5,fw));
         c=mix(c,fcol*(.75+n2*.5)*rows*(1.-fb2*.4),vK.z*.88);
-        vec2 rf=abs(fract(p/30.)-.5);float rm=max(rf.x,rf.y);float road=smoothstep(.39,.405,rm);gRoad=road*vK.x;
-        vec3 lot=vec3(.47,.46,.44)*(.7+hh(floor(p/10.))*.45);
-        float dash=step(.488,rm)*step(.5,fract((rf.x>rf.y?p.y:p.x)/7.));float walk=step(rm,.415)*road;
+        vec2 rf=abs(fract(p/30.)-.5);float rm=max(rf.x,rf.y);float ra=1.-smoothstep(1.2,5.,fw);float road=mix(.3,smoothstep(.385,.41,rm),ra);gRoad=road*vK.x;
+        vec3 lot=vec3(.47,.46,.44)*mix(.92,.7+hh(floor(p/10.))*.45,1.-smoothstep(.8,3.,fw));
+        float dash=step(.488,rm)*step(.5,fract((rf.x>rf.y?p.y:p.x)/7.))*(1.-smoothstep(.15,.6,fw));float walk=step(rm,.415)*road*ra;
         vec3 tc=mix(lot,vec3(.17,.18,.2)+dash*.4*near+walk*.16,road);
         c=mix(c,tc*(.82+n3*.36),smoothstep(.25,.6,vK.x));
         c=mix(c,vec3(.9,.93,.97)*(.82+n2*.25),uSnow*(1.-gRoad*.55)*step(1.,vTP.y));
         diffuseColor.rgb=c;`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         {vec2 q=fract(gP/30.+.5)-.5;float lamp=smoothstep(.16,0.,length(q));
-        float far=smoothstep(300.,1400.,length(vTP-cameraPosition));float hl=step(.86,hh(floor(gP/6.)))*(1.-gRoad)*(.5+hh(floor(gP/6.)+7.));
+        float far=smoothstep(300.,1400.,length(vTP-cameraPosition));float fw2=fwidth(gP.x)+fwidth(gP.y);float hn=step(.86,hh(floor(gP/6.)))*(.5+hh(floor(gP/6.)+7.));float hl=mix(hn,smoothstep(.5,.72,texture2D(uDetail,gP*.045).g)*.45,smoothstep(.4,1.6,fw2))*(1.-gRoad);lamp*=1.-smoothstep(1.,4.,fw2)*.7;
         totalEmissiveRadiance+=uNight*smoothstep(.3,.7,vK.x)*(lamp*vec3(1.,.72,.38)*mix(1.1,.35,far)+gRoad*vec3(.05,.035,.02)+hl*mix(vec3(1.,.78,.5),vec3(.8,.88,1.),step(.8,hh(floor(gP/6.)+3.)))*mix(.25,1.1,far));}`);
   };
   const terrainMesh = new THREE.Mesh(tGeo, tMat); scene.add(terrainMesh);
@@ -139,12 +139,13 @@ export function createWorld(canvas) {
       float bid=wh(floor(vWP.xz/30.));float grime=texture2D(uDetail,q*.021).r,fine=texture2D(uDetail,q*.3).g;
       diffuseColor.rgb*=(.74+grime*.4)*(.92+fine*.16);
       float style=step(.5,bid);float wx0=mix(.12,.04,style),wy0=mix(.3,.22,style);
+      float aa=1.-smoothstep(.25,.7,max(fwidth(g.x),fwidth(g.y)));
       float win=step(wx0,f.x)*step(f.x,1.-wx0)*step(wy0,f.y)*step(f.y,.84);
-      diffuseColor.rgb*=1.-step(f.y,.07)*.28;diffuseColor.rgb*=1.-(1.-step(.03,f.x))*style*.3;
+      diffuseColor.rgb*=1.-step(f.y,.07)*.28*aa;diffuseColor.rgb*=1.-(1.-step(.03,f.x))*style*.3*aa;
       float lit=step(.5,wh(cell+bid*91.));float rfl=.3+.45*wh(cell*.7+3.);
       vec3 glass=mix(vec3(.07,.1,.15),uSky*.9,rfl*(1.-uNight*.8));
-      diffuseColor.rgb=mix(diffuseColor.rgb,glass,win*.92);
-      totalEmissiveRadiance+=win*lit*uNight*mix(vec3(1.,.76,.42),vec3(.72,.84,1.),step(.7,wh(cell*1.7+bid)))*(1.+wh(cell*3.1)*1.2);
+      diffuseColor.rgb=mix(diffuseColor.rgb,mix(mix(vec3(.07,.1,.15),uSky*.9,.5*(1.-uNight*.8)),glass,aa),mix(.4,win*.92,aa));
+      totalEmissiveRadiance+=uNight*mix(vec3(1.,.78,.5)*.28,win*lit*mix(vec3(1.,.76,.42),vec3(.72,.84,1.),step(.7,wh(cell*1.7+bid)))*(1.+wh(cell*3.1)*1.2),aa);
       totalEmissiveRadiance+=win*(1.-uNight)*uSky*rfl*.12;}
     else{float rn=texture2D(uDetail,vWP.xz*.06).b;float unit=step(.72,wh(floor(vWP.xz/3.5)));
       diffuseColor.rgb=mix(vec3(.36,.37,.39),vec3(.5,.5,.5),rn)*(1.-unit*.3);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.92,.94,.97),uSnow*.85);
@@ -161,12 +162,13 @@ export function createWorld(canvas) {
   const houses = new THREE.InstancedMesh(hGeo, instMat(`
     float hid=wh(floor(vWP.xz/11.)+.5);
     if(vLY>.601){vec3 rc=hid<.4?vec3(.2,.22,.26):hid<.65?vec3(.16,.2,.3):hid<.85?vec3(.36,.2,.15):vec3(.24,.3,.24);
-      float tile=.82+.18*sin(vWP.y*9.)+(texture2D(uDetail,vWP.xz*.2).g-.5)*.3;diffuseColor.rgb=mix(rc*tile,vec3(.92,.94,.97),uSnow*.85);}
+      float tile=1.-.18*(.5+.5*sin(vWP.y*9.))*(1.-smoothstep(.1,.4,fwidth(vWP.y)))+(texture2D(uDetail,vWP.xz*.2).g-.5)*.3;diffuseColor.rgb=mix(rc*tile,vec3(.92,.94,.97),uSnow*.85);}
     else{vec2 q=vec2(abs(vWN.x)>.5?vWP.z:vWP.x,vWP.y);vec2 g=q/vec2(2.4,2.9);vec2 cell=floor(g),f=fract(g);
       diffuseColor.rgb*=.8+texture2D(uDetail,q*.05).r*.35;
-      float win=step(.28,f.x)*step(f.x,.72)*step(.34,f.y)*step(f.y,.74)*step(.35,wh(cell+hid));
+      float aa=1.-smoothstep(.25,.7,max(fwidth(g.x),fwidth(g.y)));
+      float win=step(.28,f.x)*step(f.x,.72)*step(.34,f.y)*step(f.y,.74)*step(.35,wh(cell+hid))*aa;
       diffuseColor.rgb=mix(diffuseColor.rgb,mix(vec3(.1,.13,.18),uSky*.8,.35*(1.-uNight)),win);
-      totalEmissiveRadiance+=win*step(.45,wh(cell*2.3+hid*7.))*uNight*vec3(1.,.74,.4)*1.5;}`), MAXH);
+      totalEmissiveRadiance+=(win*step(.45,wh(cell*2.3+hid*7.))*1.5+(1.-aa)*.07)*uNight*vec3(1.,.74,.4);}`), MAXH);
   houses.count = 0; houses.frustumCulled = false; scene.add(houses);
   // 木（丸い樹冠）
   const trGeo = (() => {
@@ -251,13 +253,13 @@ export function createWorld(canvas) {
   // ポストエフェクト
   let composer, bloom, grain, hq = true;
   function setupComposer() {
-    composer = new EffectComposer(renderer);
+    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: 4 }));
     composer.addPass(new RenderPass(scene, camera));
-    bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.55, 0.82); composer.addPass(bloom);
+    bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.32, 0.6, 0.9); composer.addPass(bloom);
     grain = new ShaderPass({
       uniforms: { tDiffuse: { value: null }, t: { value: 0 }, amt: { value: 0.045 } },
       vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      fragmentShader: 'uniform sampler2D tDiffuse;uniform float t,amt;varying vec2 vUv;float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233))+t)*43758.5453);}void main(){vec4 c=texture2D(tDiffuse,vUv);vec2 d=vUv-.5;c.rgb*=1.-dot(d,d)*.55;c.rgb+=(h(vUv*913.)-.5)*amt;gl_FragColor=c;}',
+      fragmentShader: 'uniform sampler2D tDiffuse;uniform float t,amt;varying vec2 vUv;float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233))+t)*43758.5453);}void main(){vec4 c=texture2D(tDiffuse,vUv);vec2 d=vUv-.5;c.rgb*=1.-dot(d,d)*.5;gl_FragColor=c;}',
     });
     composer.addPass(grain);
     composer.addPass(new OutputPass());
@@ -287,32 +289,22 @@ export function createWorld(canvas) {
     // 建物と家
     let nb = 0, nh = 0; const R = 1500, RH = 1150, C = 30;
     const gx0 = Math.floor((cx - R) / C), gx1 = Math.floor((cx + R) / C), gz0 = Math.floor((cz - R) / C), gz1 = Math.floor((cz + R) / C);
-    const dens = T.P.town || 1;
     for (let gx = gx0; gx <= gx1; gx++) for (let gz = gz0; gz <= gz1; gz++) {
       const x = (gx + 0.5) * C, z = (gz + 0.5) * C, d2 = (x - cx) ** 2 + (z - cz) ** 2;
       if (d2 > R * R) continue;
-      if (T.kind(x, z) !== 1) continue;
-      const r = hash2(gx * 1.3, gz * 0.7);
-      const core = fbm(x * 0.0009 + 9, z * 0.0009, 2) * dens;
-      const mid = hash2(gx * 2.7 + 1, gz * 1.9 + 4);
-      if (mid < 0.09) continue; // 空き地・公園
-      if ((core > 0.38 && r < 0.62) || mid > 0.9) {
-        if (nb >= MAXB) continue;
-        const hgt = core > 0.38 && r < 0.62 ? 10 + Math.pow(hash2(gz, gx), 3) * 30 + Math.max(0, core - 0.42) * 240 * hash2(gx + 3, gz) : 12 + hash2(gz, gx) * 14;
-        const w = 11 + hash2(gx + 7, gz) * 9, d = 11 + hash2(gx, gz + 7) * 9;
-        tmpP.set(x, T.height(x, z) - 1, z); tmpQ.identity(); tmpS.set(w, hgt, d);
+      const cs = T.structs(gx, gz); if (!cs) continue;
+      if (cs.tall) {
+        if (nb >= MAXB) continue; const b = cs.list[0];
+        tmpP.set(b.x, b.y, b.z); tmpQ.identity(); tmpS.set(b.w, b.h, b.d);
         tmpM.compose(tmpP, tmpQ, tmpS); buildings.setMatrixAt(nb, tmpM);
         tmpC.setHSL(0.07 + hash2(gx, gz + 1) * 0.08, 0.04 + hash2(gz, gx + 1) * 0.1, 0.5 + hash2(gx + 2, gz) * 0.32); buildings.setColorAt(nb, tmpC);
         nb++;
       } else if (d2 < RH * RH) {
-        const gap = 0.06 + fbm(x * 0.004 + 3, z * 0.004, 2) * 0.5;
-        for (let q = 0; q < 4 && nh < MAXH; q++) {
-          const hx = hash2(gx * 3.1 + q, gz * 1.7), hz = hash2(gz * 2.3 + q, gx * 0.9); if (hx < gap) continue;
-          const px = x + ((q & 1) - 0.5) * 11.5 + (hz - 0.5) * 2, pz = z + ((q >> 1) - 0.5) * 11.5 + (hx - 0.5) * 2;
-          const w = 6 + hz * 4, d = 6 + hash2(hx * 5, hz * 3) * 4, hh = 5.5 + hash2(hx * 9, hz * 9) * 4.5;
-          tmpP.set(px, T.height(px, pz) - 0.6, pz); tmpQ.identity(); tmpS.set(w, hh, d);
+        for (const h of cs.list) {
+          if (nh >= MAXH) break;
+          tmpP.set(h.x, h.y, h.z); tmpQ.identity(); tmpS.set(h.w, h.h, h.d);
           tmpM.compose(tmpP, tmpQ, tmpS); houses.setMatrixAt(nh, tmpM);
-          tmpC.setHSL(0.08 + hz * 0.06, 0.08 + hx * 0.14, 0.62 + hash2(hz, hx) * 0.26); houses.setColorAt(nh, tmpC);
+          tmpC.setHSL(0.08 + h.hz * 0.06, 0.08 + h.hx * 0.14, 0.62 + hash2(h.hz, h.hx) * 0.26); houses.setColorAt(nh, tmpC);
           nh++;
         }
       }

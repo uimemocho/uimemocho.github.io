@@ -148,7 +148,7 @@ export class Flight {
     this.s = shape; this.T = terrain; this.air = air;
     this.p = { x: 0, y: terrain.top + 1.5, z: -0.6 };
     this.v = { x: 0, y: 0, z: 0 };
-    this.V = 0; this.gam = 0; this.psi = 0; this.phi = 0; this.input = 0;
+    this.V = 0; this.gam = 0; this.psi = 0; this.phi = 0; this.input = 0; this.pitch = 0; this.crashed = false; this.fallV = 0; this.spin = 0; this.noHit = false;
     this.t = 0; this.age = 0; this.done = false; this.maxY = this.p.y; this.maxAlt = 0; this.lift = 0; this.stall = 0;
     this.thermalTime = 0; this.events = []; this.trace = [];
     this._w = { x: 0, y: 0, z: 0, g: 0 };
@@ -157,21 +157,30 @@ export class Flight {
   }
   launch(power, aim, catchBonus) {
     // power 0..1.3（1超は力みすぎ）、aim ラジアン（右+）
-    this.V = this.Vt * (0.55 + power * 1.05) * (catchBonus ? 1.12 : 1);
+    const b = +catchBonus || 0;
+    this.V = this.Vt * (0.55 + power * 1.05) * (1 + 0.22 * b);
     this.gam = 0.07 + Math.max(0, power - 0.95) * 1.6; // 力むと機首が上がる
     this.psi = aim;
-    this.boost = catchBonus ? 2.5 : 0;
+    this.boost = b >= 1 ? 3 : b > 0 ? 1.2 : 0;
     this.launchT = 0;
   }
   step(dt) {
     if (this.done) return;
+    if (this.crashed) { // 建物に当たって、ひらひら落ちる
+      this.fallV = Math.min(6.5, this.fallV + G * dt * 0.55); this.p.y -= this.fallV * dt; this.spin += dt * 7; this.t += dt; this.age += dt;
+      this.v.x = this.v.y = this.v.z = 0; this.V = 0;
+      const gh0 = Math.max(0, this.T.height(this.p.x, this.p.z));
+      if (this.p.y <= gh0 + 0.15) { this.p.y = gh0 + 0.15; this.done = true; this.landKind = 'bldg'; }
+      return;
+    }
     const s = this.s, w = this.air.at(this.p.x, this.p.y, this.p.z, this.t, this._w);
     const Vr = this.V / this.Vt;
     // 失速：速度が落ちると揚力が抜ける
     const cl = Vr < 0.5 ? clamp((Vr - 0.25) / 0.25) * 0.8 : 1;
     this.stall = cl < 0.95 ? Math.min(1, this.stall + dt * 2) : Math.max(0, this.stall - dt);
     const Lm = G * Vr * Vr * cl;
-    const Dm = G * Vr * Vr / this.LD * (1 + Math.abs(this.phi) * 0.6) + (cl < 1 ? G * 0.25 : 0);
+    const slow = Vr < 0.95 ? (0.95 - Vr) * 2.2 : 0; // 遅く飛ぶほど効率が落ちる
+    const Dm = G * Vr * Vr / this.LD * (1 + Math.abs(this.phi) * 0.6 + Math.max(0, this.pitch) * 0.9 + slow) + (cl < 1 ? G * 0.25 : 0) + G * slow * 0.05;
     // 入力とクセによるバンク
     const tgtPhi = clamp(this.input * 0.75 + s.bias * (0.6 + Vr * 0.4), -0.95, 0.95);
     this.phi += (tgtPhi - this.phi) * Math.min(1, dt * 2.6);
@@ -179,7 +188,8 @@ export class Flight {
     this.V = Math.max(1.2, this.V);
     const gs = -Math.atan(1 / this.LD);
     let dg = (Lm * Math.cos(this.phi) - G * Math.cos(this.gam)) / this.V;
-    dg -= s.damp * (this.gam - gs) * 0.9;
+    const ctl = Math.abs(this.pitch) > 0.05;
+    dg -= (ctl ? Math.max(s.damp, 1.6) : s.damp) * (this.gam - (gs + this.pitch * 0.55 * Math.min(1, Vr * 1.2))) * 0.9;
     // 不安定な機体はふらつく
     dg += (1 - s.stab) * Math.sin(this.t * 3.7 + s.A * 9) * 0.35;
     this.gam = clamp(this.gam + dg * dt, -1.35, 1.35);
@@ -190,7 +200,19 @@ export class Flight {
     this.v.x = Math.sin(this.psi) * ch * this.V + w.x + bx;
     this.v.z = -Math.cos(this.psi) * ch * this.V + w.z + bz;
     this.v.y = Math.sin(this.gam) * this.V + w.y;
+    const px0 = this.p.x, py0 = this.p.y, pz0 = this.p.z;
     this.p.x += this.v.x * dt; this.p.y += this.v.y * dt; this.p.z += this.v.z * dt;
+    if (!this.noHit && this.T.structs) {
+      const cs = this.T.structs(Math.floor(this.p.x / 30), Math.floor(this.p.z / 30));
+      if (cs) for (const b of cs.list) {
+        const top = b.y + b.h * (cs.tall ? 1 : 0.88);
+        if (this.p.y < top && Math.abs(this.p.x - b.x) < b.w / 2 + 0.25 && Math.abs(this.p.z - b.z) < b.d / 2 + 0.25) {
+          if (py0 >= top - 0.4) { this.p.y = top + 0.15; this.done = true; this.landKind = 'roof'; }
+          else { this.p.x = px0; this.p.z = pz0; this.p.y = py0; this.crashed = true; this.fallV = 0; }
+          this.t += dt; this.age += dt; return;
+        }
+      }
+    }
     this.t += dt; this.age += dt;
     if (w.y > 1.2) this.thermalTime += dt;
     this.lift = w.y;
@@ -210,7 +232,7 @@ export class Flight {
 
 // 標準機・理想的な投げでの試算（おすすめ判定用）
 export function estimate(shape, terrain, air) {
-  const f = new Flight(shape, terrain, air);
+  const f = new Flight(shape, terrain, air); f.noHit = true;
   f.launch(0.85, 0, false);
   for (let i = 0; i < 12000 && !f.done; i++) f.step(0.05);
   return f.dist;

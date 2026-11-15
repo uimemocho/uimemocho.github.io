@@ -104,7 +104,8 @@ function show(name) {
   $('hud').hidden = !(name === 'aim' || name === 'flight' || name === 'land');
   document.body.classList.toggle('playing', name === 'aim' || name === 'flight');
   document.body.classList.toggle('aiming', name === 'aim');
-  $('pullGuide').hidden = name !== 'aim'; $('steerHint').hidden = name !== 'flight';
+  $('pullGuide').hidden = name !== 'aim'; $('steerHint').hidden = name !== 'flight'; $('ring').hidden = true;
+  camera.near = (name === 'flight' || name === 'land' || name === 'result') ? 0.4 : 0.08; camera.updateProjectionMatrix();
   sound.duck(name === 'flight' || name === 'aim');
 }
 function toast(msg) { const e = $('toast'); e.textContent = msg; e.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => e.classList.remove('on'), 2600); }
@@ -275,8 +276,8 @@ const stage = $('world');
 function hudPointer(e) { return { x: e.clientX, y: e.clientY }; }
 addEventListener('pointerdown', (e) => {
   if (e.target.closest('button,select,input,.sheet,header')) return;
-  if (screen === 'aim' && aimState) { const p = hudPointer(e); Object.assign(aimState, { down: true, x0: p.x, y0: p.y, power: 0, id: e.pointerId }); sound.paper(); }
-  else if (screen === 'flight') { steer = { x0: e.clientX, id: e.pointerId }; }
+  if (screen === 'aim' && aimState) { const p = hudPointer(e); Object.assign(aimState, { down: true, x0: p.x, y0: p.y, power: 0, id: e.pointerId, ringT: 0, ringS: 9 }); $('ring').hidden = false; sound.paper(); }
+  else if (screen === 'flight') { steer = { x0: e.clientX, y0: e.clientY, id: e.pointerId }; }
 });
 addEventListener('pointermove', (e) => {
   if (screen === 'aim' && aimState && aimState.down) {
@@ -286,29 +287,31 @@ addEventListener('pointermove', (e) => {
     aimState.power = np; aimState.aim = clamp(dx * 0.75, -0.75, 0.75);
   } else if (screen === 'flight' && steer && flight) {
     flight.input = clamp((e.clientX - steer.x0) / (innerWidth * 0.28), -1, 1);
+    flight.pitch = clamp((steer.y0 - e.clientY) / (innerHeight * 0.16), -1, 1);
   }
 });
 const pointerUp = () => {
   if (screen === 'aim' && aimState && aimState.down) {
-    aimState.down = false;
+    aimState.down = false; $('ring').hidden = true;
     if (aimState.power < 0.12) { aimState.power = 0; return; }
     launch();
-  } else if (screen === 'flight') { steer = null; if (flight) flight.input = 0; }
+  } else if (screen === 'flight') { steer = null; if (flight) { flight.input = 0; flight.pitch = 0; } }
 };
 addEventListener('pointerup', pointerUp); addEventListener('pointercancel', pointerUp);
 
 function launch() {
-  const g = air.gust(simT), caught = g > 0.84 && air.base + 0.1 > 0;
+  const rq = Math.abs((aimState.ringS ?? 9) - 1), bonus = rq < 0.13 ? 1 : rq < 0.3 ? 0.5 : 0, caught = bonus === 1;
   flight = new Flight(shape, T, air); flight.t = simT;
   flight.p.x = planeObj.position.x; flight.p.y = planeObj.position.y; flight.p.z = planeObj.position.z;
-  flight.launch(aimState.power, aimState.aim, caught);
+  flight.launch(aimState.power, aimState.aim, bonus);
   world.trail.visible = false;
-  flightReal = 0; timeScale = caught ? 0.35 : 1; lastEvent = { thermal: -9, stall: -9 };
+  flightReal = 0; timeScale = caught ? 0.35 : 1; lastEvent = { thermal: -9, stall: -9, crash: false };
   resultData = { caught, power: aimState.power, spot: SPOTS[spotIdx].id };
   show('flight'); sound.throw(aimState.power);
   if (caught) { catchCut(); sound.catchWind(); flash(); }
   else if (aimState.power > 1.03) impact(t('i_over'), 'TOO HARD', 'bad');
   else if (aimState.power < 0.4) impact(t('i_weak'), 'WEAK', 'bad');
+  else if (bonus > 0) impact(t('i_good'), 'GOOD');
   speedLines();
 }
 function catchCut() {
@@ -317,7 +320,7 @@ function catchCut() {
 }
 
 // ───────── 結果 ─────────
-const LAND = { 0: 'sea', 1: 'town', 2: 'forest', 3: 'field', 4: 'river', 5: 'deck', sea: 'sea' };
+const LAND = { 0: 'sea', 1: 'town', 2: 'forest', 3: 'field', 4: 'river', 5: 'deck', sea: 'sea', bldg: 'bldg', roof: 'roof' };
 function finish() {
   const f = flight, spot = SPOTS[spotIdx], wx = wxList[spotIdx];
   let land = LAND[f.landKind] || 'field'; if (f.dist < 30 && f.p.y > T.top - 25) land = 'deck';
@@ -425,6 +428,11 @@ function frame() {
       hand.set(0.16 + Math.sin(a.aim) * 0.1, top + 1.38 - pw * 0.22, 0.35 + pw * 0.55);
       planeObj.position.lerp(hand, Math.min(1, dt * 14));
       planeObj.rotation.set(0.1 + pw * 0.18, -a.aim, Math.sin(camT * 2) * 0.02 - a.aim * 0.3, 'YXZ');
+      if (a.down) { // スタートダッシュのリング
+        a.ringT += dt; const ph = (a.ringT / 1.05) % 1; a.ringS = 2.3 - 1.75 * ph;
+        const fx = $('ringFx'); fx.style.transform = `scale(${a.ringS.toFixed(3)})`; fx.style.opacity = Math.min(1, ph * 5).toFixed(2);
+        $('ring').classList.toggle('on', Math.abs(a.ringS - 1) < 0.13);
+      }
       const g = air.gust(simT);
       $('gustFill').style.width = (g * 100).toFixed(1) + '%';
       $('gustBox').classList.toggle('peak', g > 0.84);
@@ -446,7 +454,9 @@ function frame() {
     const f = flight;
     const agl = f.p.y - Math.max(0, T.height(f.p.x, f.p.z));
     let target = flightReal < 0.9 ? (resultData.caught ? 0.35 + flightReal * 0.7 : 1) : Math.min(24, 1.6 + (flightReal - 0.9) * 0.95);
-    target = Math.min(target, 1.2 + Math.max(0, agl) * 0.22);
+    target = Math.min(target, 16, 1.2 + Math.max(0, agl) * 0.1);
+    if (steer) target = Math.min(target, 3.5);
+    if (f.crashed) target = 1;
     timeScale += (target - timeScale) * Math.min(1, dt * 3);
     let simDt = dt * timeScale;
     while (simDt > 0 && !f.done) { const h = Math.min(0.04, simDt); f.step(h); simDt -= h; }
@@ -456,7 +466,10 @@ function frame() {
     if (f.stall > 0.7 && f.age - lastEvent.stall > 6 && f.age > 0.5) { lastEvent.stall = f.age; impact(t('i_stall'), 'STALL', 'bad'); sound.stall(); }
     // 機体の姿勢
     planeObj.position.set(f.p.x, f.p.y, f.p.z);
-    planeObj.rotation.set(f.gam + 0.06, -f.psi, -f.phi, 'YXZ');
+    if (f.crashed) {
+      planeObj.rotation.set(f.spin * 0.7, -f.psi + f.spin * 0.4, Math.sin(f.spin) * 1.2, 'YXZ');
+      if (!lastEvent.crash) { lastEvent.crash = true; impact(t('i_crash'), 'CRASH', 'bad'); sound.land('town'); sound.stall(); flash(); sound.buzz([40, 30, 60]); }
+    } else planeObj.rotation.set(f.gam + 0.06, -f.psi, -f.phi, 'YXZ');
     world.trailPush(planeObj.position);
     // 追従カメラ
     const hv = Math.hypot(f.v.x, f.v.z);
@@ -506,4 +519,4 @@ loadWeather();
 setTimeout(() => { $('boot').classList.add('gone'); }, 350);
 document.addEventListener('visibilitychange', () => { if (document.hidden && (screen === 'flight' || screen === 'aim')) openSheet('pause'); });
 // 開発・検証用
-window.__game = { world, get T() { return T; }, get flight() { return flight; }, get screen() { return screen; }, get shape() { return shape; }, setStroke, startAim, launch: (p, a) => { aimState.power = p; aimState.aim = a; launch(); }, get air() { return air; }, rankFor, loadSpot, get wx() { return wxList; }, get rated() { return rated; } };
+window.__game = { world, get T() { return T; }, get flight() { return flight; }, get screen() { return screen; }, get shape() { return shape; }, setStroke, startAim, launch: (p, a, rs) => { aimState.power = p; aimState.aim = a; aimState.ringS = rs ?? 9; launch(); }, get air() { return air; }, rankFor, loadSpot, get wx() { return wxList; }, get rated() { return rated; } };
