@@ -221,48 +221,73 @@ export function createWorld(canvas) {
     const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, transparent: true, opacity: 0.92 })); m.visible = false; scene.add(m); return m;
   })();
 
-  // 雲
-  const puff = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 128; const c = cv.getContext('2d'); for (let i = 0; i < 14; i++) { const x = 30 + Math.random() * 68, y = 44 + Math.random() * 44, r = 18 + Math.random() * 26; const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, 128, 128); } const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; })();
   const clouds = [];
-  for (let i = 0; i < 36; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: puff, transparent: true, depthWrite: false, fog: true, color: '#ffffff' })); scene.add(s); clouds.push(s); }
-
   // 雨・雪
-  const RAIN = 1400;
+  const RAIN = 1600;
   const rainGeo = new THREE.BufferGeometry(); rainGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(RAIN * 6), 3));
-  const rain = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: '#c9d6ea', transparent: true, opacity: 0.45, fog: false })); rain.frustumCulled = false; scene.add(rain);
-  const rainP = new Float32Array(RAIN * 3).map(() => (Math.random() - 0.5) * 80);
+  rainGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(RAIN * 6), 3));
+  const rain = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); rain.frustumCulled = false; scene.add(rain);
+  const rainP = new Float32Array(RAIN * 4).map((_, i) => i % 4 === 3 ? Math.random() : (Math.random() - 0.5) * 60);
+  const flakeTex = (() => { const N = 64, cv = document.createElement('canvas'); cv.width = cv.height = N; const c = cv.getContext('2d'), img = c.createImageData(N, N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const d = Math.hypot(x - N / 2 + 0.5, y - N / 2 + 0.5) / (N / 2); const i = (y * N + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = 255; img.data[i + 3] = Math.round(Math.pow(Math.max(0, 1 - d), 1.8) * 255); }
+    c.putImageData(img, 0, 0); return new THREE.CanvasTexture(cv); })();
+  const SNOW = 1400;
+  const snowGeo = new THREE.BufferGeometry(); snowGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SNOW * 3), 3));
+  const snowPts = new THREE.Points(snowGeo, new THREE.PointsMaterial({ map: flakeTex, size: 0.14, sizeAttenuation: true, transparent: true, depthWrite: false, color: '#ffffff', fog: false })); snowPts.frustumCulled = false; snowPts.visible = false; scene.add(snowPts);
+  const snowP = new Float32Array(SNOW * 4).map((_, i) => i % 4 === 3 ? Math.random() * 6.28 : (Math.random() - 0.5) * 50);
+  const flowV = { x: 0, y: 0, z: 0 };
   // 風の筋
   const WS = 140;
   const wsGeo = new THREE.BufferGeometry(); wsGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(WS * 6), 3));
   wsGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(WS * 6), 3));
   const streaks = new THREE.LineSegments(wsGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); streaks.frustumCulled = false; scene.add(streaks);
   const wsP = new Float32Array(WS * 4).map((_, i) => i % 4 === 3 ? Math.random() : (Math.random() - 0.5) * 40);
-  // 上昇気流の目印（光の粒）
-  const TH = 600;
-  const thGeo = new THREE.BufferGeometry(); thGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TH * 3), 3));
-  const thermalPts = new THREE.Points(thGeo, new THREE.PointsMaterial({ color: '#ffe9a8', size: 3.2, sizeAttenuation: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); thermalPts.frustumCulled = false; scene.add(thermalPts);
-  const thSeed = new Float32Array(TH * 3).map(() => Math.random());
-
   // 軌跡
   const TRAIL = 70;
   const trGeo2 = new THREE.BufferGeometry(); trGeo2.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TRAIL * 3), 3));
   trGeo2.setAttribute('color', new THREE.BufferAttribute(new Float32Array(TRAIL * 3), 3));
   const trail = new THREE.Line(trGeo2, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); trail.frustumCulled = false; scene.add(trail);
   let trailN = 0;
-  // 翼端の風切り線
-  const TIP = 14;
-  const tips = [0, 1].map(() => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TIP * 3), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(TIP * 3), 3));
-    const l = new THREE.Line(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); l.frustumCulled = false; l.visible = false; scene.add(l); return l; });
-  let tipN = 0;
-  function tipPush(pl, pr, k) {
-    if (tipN < TIP) tipN++;
-    [pl, pr].forEach((p, s) => { const g = tips[s].geometry, a = g.attributes.position.array, c = g.attributes.color.array;
-      a.copyWithin(3, 0, (TIP - 1) * 3); a[0] = p.x; a[1] = p.y; a[2] = p.z;
-      c.copyWithin(3, 0, (TIP - 1) * 3); c[0] = c[1] = c[2] = k;
-      for (let i = 1; i < tipN; i++) { const f = 0.72; c[i * 3] *= f; c[i * 3 + 1] *= f; c[i * 3 + 2] *= f; }
-      g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; g.setDrawRange(0, tipN); tips[s].visible = true; });
+  // 外形に沿ったエフェクト：翼端から伸びるリボンと、輪郭の空気の縁取り
+  const RIB = 24;
+  const ribMat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+    uniforms: { k: { value: 0 } },
+    vertexShader: 'attribute float aT;varying float vT;varying float vS;void main(){vT=aT;vS=uv.y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader: 'uniform float k;varying float vT;varying float vS;void main(){float e=1.-abs(vS*2.-1.);float a=pow(1.-vT,1.6)*smoothstep(0.,.9,e)*k;gl_FragColor=vec4(vec3(.92,.96,1.)*a,a);}',
+  });
+  const ribbons = [0, 1].map(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(RIB * 2 * 3), 3));
+    const uv = new Float32Array(RIB * 4), at = new Float32Array(RIB * 2), idx = [];
+    for (let i = 0; i < RIB; i++) { uv[i * 4 + 1] = 0; uv[i * 4 + 3] = 1; at[i * 2] = at[i * 2 + 1] = i / (RIB - 1); if (i < RIB - 1) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } }
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setAttribute('aT', new THREE.BufferAttribute(at, 1)); g.setIndex(idx);
+    const m = new THREE.Mesh(g, ribMat); m.frustumCulled = false; m.visible = false; scene.add(m);
+    return { m, hist: [] };
+  });
+  const ribV = new THREE.Vector3(), ribC = new THREE.Vector3(), ribW = new THREE.Vector3();
+  function ribbonPush(pl, pr, k, width, maxLen = 1.6) {
+    ribMat.uniforms.k.value = k;
+    [pl, pr].forEach((p, s) => {
+      const r = ribbons[s]; r.hist.unshift(p.clone()); if (r.hist.length > 90) r.hist.length = 90;
+      // 一定の長さまでの軌跡を等間隔に取り直す（速さに関係なく短い筋になる）
+      const pts = [r.hist[0]]; let acc = 0, seg = maxLen / (RIB - 1);
+      for (let i = 1; i < r.hist.length && pts.length < RIB; i++) {
+        const A = r.hist[i - 1], B = r.hist[i], d = A.distanceTo(B); let used = 0;
+        while (acc + d - used >= seg && pts.length < RIB) { const t = (seg - acc + used) / d; used += seg - acc; acc = 0; pts.push(A.clone().lerp(B, Math.min(1, t))); }
+        acc += d - used;
+      }
+      const a = r.m.geometry.attributes.position.array, n = pts.length;
+      for (let i = 0; i < RIB; i++) {
+        const q = pts[Math.min(i, n - 1)], q2 = pts[Math.min(i + 1, n - 1)], q0 = pts[Math.max(0, Math.min(i, n - 1) - 1)];
+        ribV.subVectors(q0, q2); if (ribV.lengthSq() < 1e-8) ribV.set(0, 0, 1);
+        ribC.subVectors(camera.position, q); ribW.crossVectors(ribV, ribC).normalize().multiplyScalar(width * (1 - i / RIB * 0.75) * (i < n ? 1 : 0));
+        a[i * 6] = q.x - ribW.x; a[i * 6 + 1] = q.y - ribW.y; a[i * 6 + 2] = q.z - ribW.z; a[i * 6 + 3] = q.x + ribW.x; a[i * 6 + 4] = q.y + ribW.y; a[i * 6 + 5] = q.z + ribW.z;
+      }
+      r.m.geometry.attributes.position.needsUpdate = true; r.m.visible = n > 2 && k > 0.005;
+    });
   }
-  function tipClear() { tipN = 0; tips.forEach(l => { l.visible = false; }); }
+  function ribbonClear() { ribbons.forEach(r => { r.hist.length = 0; r.m.visible = false; }); }
 
   // ポストエフェクト
   let composer, bloom, grain, hq = true;
@@ -377,18 +402,8 @@ export function createWorld(canvas) {
     water.material.color.set(phase === 'night' ? '#0b1a2c' : phase === 'twilight' ? '#2a2f4a' : '#1d4766');
     deck.position.set(0, T.top, 0);
     fuji.visible = !!T.P.fuji && !wet && kind !== 'fog';
-    // 雲の配置
-    const n = wet ? 0 : Math.round(3 + cl * 7);
-    clouds.forEach((s, i) => {
-      s.visible = i < n;
-      const a = hash2(i, 3) * Math.PI * 2, r = 600 + hash2(i, 9) * 3400;
-      s.position.set(Math.cos(a) * r, T.top + 380 + hash2(i, 5) * 700, -Math.abs(Math.sin(a)) * r - 300);
-      const sc = 500 + hash2(i, 7) * 900; s.scale.set(sc * 1.8, sc, 1);
-      s.material.color.set(phase === 'night' ? '#39445e' : phase === 'twilight' ? '#e8a58f' : wet ? '#a3abb6' : '#ffffff');
-      s.material.opacity = phase === 'night' ? 0.5 : 0.85;
-    });
-    rain.visible = wet; rain.material.color.set(kind === 'snow' ? '#ffffff' : '#c9d6ea');
-    trailN = 0; trGeo2.setDrawRange(0, 0);
+    rain.visible = wet && kind !== 'snow'; snowPts.visible = kind === 'snow'; snowPts.material.color.set(phase === 'night' ? '#aab4c8' : '#ffffff');
+    trailN = 0; trGeo2.setDrawRange(0, 0); ribbonClear();
     rebuild(0, -TSIZE * 0.3);
   }
 
@@ -422,6 +437,21 @@ export function createWorld(canvas) {
     const bump = new THREE.CanvasTexture(tex.bump); bump.anisotropy = 4;
     const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map, side: THREE.DoubleSide, roughness: 0.94, metalness: 0, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.05 + night.value * 0.1 }));
     const grp = new THREE.Group(); grp.add(m);
+    { // 輪郭に沿った空気の縁取り（外側へ薄く広がる帯）
+      const cx = shape.cx, cy = shape.cy, rp = [], ru = [], ri = [], N = contour.length;
+      contour.forEach((p) => { const dx = p.x - cx, dy = p.y - cy, l = Math.hypot(dx, dy) || 1, o = 0.045;
+        rp.push(p.x * S, Math.abs(p.x) * dihedral * S + 0.002, -p.y * S, (p.x + dx / l * o) * S, Math.abs(p.x) * dihedral * S + 0.002, -(p.y + dy / l * o) * S); ru.push(0, 1); });
+      for (let i = 0; i < N; i++) { const a = i * 2, b = ((i + 1) % N) * 2; ri.push(a, a + 1, b, a + 1, b + 1, b); }
+      const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute(rp, 3)); rg.setAttribute('aE', new THREE.Float32BufferAttribute(ru, 1)); rg.setIndex(ri);
+      const rim = new THREE.Mesh(rg, new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, uniforms: { k: { value: 0 } },
+        vertexShader: 'attribute float aE;varying float vE;void main(){vE=aE;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+        fragmentShader: 'uniform float k;varying float vE;void main(){float a=(1.-vE)*(1.-vE)*k;gl_FragColor=vec4(vec3(.9,.95,1.)*a,a);}' }));
+      rim.position.z = shape.cy * S; rim.renderOrder = 2; grp.add(rim); grp.userData.rim = rim;
+      // 翼端（左右の最も外側の点）
+      let L = contour[0], R = contour[0]; contour.forEach(p => { if (p.x < L.x) L = p; if (p.x > R.x) R = p; });
+      grp.userData.tipL = new THREE.Vector3(L.x * S, Math.abs(L.x) * dihedral * S, -L.y * S + shape.cy * S);
+      grp.userData.tipR = new THREE.Vector3(R.x * S, Math.abs(R.x) * dihedral * S, -R.y * S + shape.cy * S);
+    }
     // 重心が原点に来るように
     m.position.z = shape.cy * S;
     return grp;
@@ -467,6 +497,8 @@ export function createWorld(canvas) {
     if (air) {
       const a = wsGeo.attributes.position.array, ca = wsGeo.attributes.color.array, cam = camera.position;
       air.at(cam.x, cam.y, cam.z, sim, wv);
+      flowV.x = flow ? -flow.x * 0.5 : 0; flowV.y = flow ? -flow.y * 0.5 : 0; flowV.z = flow ? -flow.z * 0.5 : 0;
+      streaks.visible = !flow || flow.k > 0.01;
       if (flow) { wv.x = flow.x; wv.y = flow.y; wv.z = flow.z; } // 飛行中は機体から見た空気の流れ
       const sp = Math.hypot(wv.x, wv.y, wv.z) + 0.3, ux = wv.x / sp, uy = wv.y / sp, uz = wv.z / sp;
       const vis = flow ? flow.k : Math.min(1, 0.15 + sp / 10) * (0.35 + (gust || 0) * 0.65);
@@ -475,47 +507,51 @@ export function createWorld(canvas) {
         wsP[o] += wv.x * dt * 2; wsP[o + 1] += wv.y * dt * 2; wsP[o + 2] += wv.z * dt * 2; wsP[o + 3] += dt * 0.6;
         for (let k = 0; k < 3; k++) if (Math.abs(wsP[o + k]) > 22) wsP[o + k] = -Math.sign(wsP[o + k]) * 20;
         if (wsP[o + 3] > 1) wsP[o + 3] = 0;
-        const x = cam.x + wsP[o], y = cam.y + wsP[o + 1] * 0.5, z = cam.z + wsP[o + 2], L = flow ? 0.5 + sp * 0.22 * flow.k : 0.8 + sp * 0.35;
+        const x = cam.x + wsP[o], y = cam.y + wsP[o + 1] * 0.5, z = cam.z + wsP[o + 2], L = Math.min(flow ? 2.2 : 3, flow ? 0.4 + sp * 0.12 * flow.k : 0.8 + sp * 0.35);
         a[i * 6] = x; a[i * 6 + 1] = y; a[i * 6 + 2] = z; a[i * 6 + 3] = x - ux * L; a[i * 6 + 4] = y - (flow ? uy * L : 0); a[i * 6 + 5] = z - uz * L;
-        const f = Math.sin(wsP[o + 3] * Math.PI) * vis * 0.55;
+        const dc = Math.hypot(wsP[o], wsP[o + 1] * 0.5, wsP[o + 2]);
+        const f = Math.sin(wsP[o + 3] * Math.PI) * vis * 0.45 * Math.min(1, Math.max(0, (dc - 3) / 4));
         ca[i * 6] = ca[i * 6 + 1] = ca[i * 6 + 2] = f; ca[i * 6 + 3] = ca[i * 6 + 4] = ca[i * 6 + 5] = 0;
       }
       wsGeo.attributes.position.needsUpdate = true; wsGeo.attributes.color.needsUpdate = true;
     }
-    // 雨・雪
+    // 雨・雪（カメラの周りに循環させる）
     if (rain.visible) {
-      const a = rainGeo.attributes.position.array, cam = camera.position, snow = kind === 'snow';
-      const fall = snow ? 2.2 : 24, wx = air ? air.wxv * air.base : 0, wz = air ? air.wzv * air.base : 0;
+      const a = rainGeo.attributes.position.array, ca = rainGeo.attributes.color.array, cam = camera.position;
+      const wx = air ? air.wxv * air.base : 0, wz = air ? air.wzv * air.base : 0, fv = flowV;
+      const vx = wx - fv.x, vy = -26 - fv.y, vz = wz - fv.z, vl = Math.hypot(vx, vy, vz);
+      const L = Math.min(2.2, 0.55 + vl * 0.03), br = phase === 'night' ? 0.22 : 0.42;
       for (let i = 0; i < RAIN; i++) {
-        rainP[i * 3] += wx * dt * 0.6; rainP[i * 3 + 1] -= fall * dt; rainP[i * 3 + 2] += wz * dt * 0.6;
-        if (rainP[i * 3 + 1] < -40) rainP[i * 3 + 1] += 80; for (const k of [0, 2]) if (Math.abs(rainP[i * 3 + k]) > 40) rainP[i * 3 + k] *= -0.98;
-        const x = cam.x + rainP[i * 3], y = cam.y + rainP[i * 3 + 1], z = cam.z + rainP[i * 3 + 2];
-        const L = snow ? 0.08 : 0.9;
-        a[i * 6] = x; a[i * 6 + 1] = y; a[i * 6 + 2] = z; a[i * 6 + 3] = x - wx * 0.02; a[i * 6 + 4] = y + L; a[i * 6 + 5] = z - wz * 0.02;
+        const o = i * 4;
+        rainP[o] += vx * dt; rainP[o + 1] += vy * dt; rainP[o + 2] += vz * dt;
+        for (let k = 0; k < 3; k++) { const lim = k === 1 ? 20 : 30; if (rainP[o + k] < -lim) rainP[o + k] += lim * 2; else if (rainP[o + k] > lim) rainP[o + k] -= lim * 2; }
+        const x = cam.x + rainP[o], y = cam.y + rainP[o + 1], z = cam.z + rainP[o + 2];
+        a[i * 6] = x; a[i * 6 + 1] = y; a[i * 6 + 2] = z; a[i * 6 + 3] = x - vx / vl * L; a[i * 6 + 4] = y - vy / vl * L; a[i * 6 + 5] = z - vz / vl * L;
+        const d = Math.hypot(rainP[o], rainP[o + 1] * 1.5, rainP[o + 2]) / 30, f = br * (0.35 + rainP[o + 3] * 0.65) * Math.max(0, 1 - d);
+        ca[i * 6] = ca[i * 6 + 1] = ca[i * 6 + 2] = f * 0.9; ca[i * 6 + 3] = ca[i * 6 + 4] = ca[i * 6 + 5] = 0;
       }
-      rainGeo.attributes.position.needsUpdate = true;
+      rainGeo.attributes.position.needsUpdate = true; rainGeo.attributes.color.needsUpdate = true;
     }
-    // 上昇気流の粒（近くの熱上昇の柱）
-    if (air && air.thermal > 0) {
-      thermalPts.visible = true;
-      const a = thGeo.attributes.position.array, C = 520, f = focus;
-      const gx = Math.floor(f.x / C), gz = Math.floor(f.z / C); let k = 0;
-      for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
-        const h = hash2(gx + i + 101, gz + j + 37); if (h < 0.5) continue;
-        const ox = (gx + i + 0.5 + (hash2(gx + i, gz + j) - 0.5) * 0.5) * C, oz = (gz + j + 0.5 + (hash2(gz + j, gx + i) - 0.5) * 0.5) * C;
-        const rad = 60 + h * 60;
-        for (let q = 0; q < 66 && k < TH; q++, k++) {
-          const s0 = thSeed[k * 3], s1 = thSeed[k * 3 + 1], s2 = thSeed[k * 3 + 2];
-          const ang = s0 * 6.283 + t * 0.4, rr = Math.sqrt(s1) * rad;
-          const base = Math.max(0, T.height(ox, oz));
-          a[k * 3] = ox + Math.cos(ang) * rr; a[k * 3 + 2] = oz + Math.sin(ang) * rr; a[k * 3 + 1] = base + ((s2 * 900 + t * 40 * (0.6 + h)) % 900);
-        }
+    if (snowPts.visible) {
+      const a = snowGeo.attributes.position.array, cam = camera.position, fv = flowV;
+      const wx = air ? air.wxv * air.base * 0.8 : 0, wz = air ? air.wzv * air.base * 0.8 : 0;
+      for (let i = 0; i < SNOW; i++) {
+        const o = i * 4; snowP[o + 3] += dt * (0.8 + (i % 7) * 0.1);
+        snowP[o] += (wx - fv.x + Math.sin(snowP[o + 3]) * 0.6) * dt; snowP[o + 1] += (-1.3 - (i % 5) * 0.15 - fv.y) * dt; snowP[o + 2] += (wz - fv.z + Math.cos(snowP[o + 3] * 0.8) * 0.6) * dt;
+        for (let k = 0; k < 3; k++) { const lim = 25; if (snowP[o + k] < -lim) snowP[o + k] += lim * 2; else if (snowP[o + k] > lim) snowP[o + k] -= lim * 2; }
+        a[i * 3] = cam.x + snowP[o]; a[i * 3 + 1] = cam.y + snowP[o + 1]; a[i * 3 + 2] = cam.z + snowP[o + 2];
       }
-      for (; k < TH; k++) a[k * 3 + 1] = -9999;
-      thGeo.attributes.position.needsUpdate = true;
-    } else thermalPts.visible = false;
+      snowGeo.attributes.position.needsUpdate = true;
+    }
   }
 
+  const rc = new THREE.Raycaster(), rcO = new THREE.Vector3(), rcD = new THREE.Vector3(0, -1, 0);
+  function groundAt(x, z, withStructs = true) {
+    rcO.set(x, 6000, z); rc.set(rcO, rcD); rc.far = 12000;
+    const hits = rc.intersectObjects(withStructs ? [terrainMesh, buildings, houses] : [terrainMesh], false);
+    let g = 0; for (const h of hits) { g = Math.max(g, h.point.y); break; }
+    return Math.max(0, g);
+  }
   function resize(w, h, dpr) {
     renderer.setPixelRatio(dpr); renderer.setSize(w, h, false);
     composer.setPixelRatio(dpr); composer.setSize(w, h);
@@ -523,5 +559,5 @@ export function createWorld(canvas) {
   }
   function render() { if (hq) composer.render(); else renderer.render(scene, camera); }
   function setHQ(v) { hq = v; }
-  return { tipPush, tipClear, fuji, trail, renderer, scene, camera, setSpot, update, render, resize, makePlane, trailPush, trailClear, setHQ, get T() { return T; }, deck };
+  return { ribbonPush, ribbonClear, groundAt, fuji, trail, streaks, renderer, scene, camera, setSpot, update, render, resize, makePlane, trailPush, trailClear, setHQ, get T() { return T; }, deck };
 }

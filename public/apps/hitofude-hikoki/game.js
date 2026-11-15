@@ -60,7 +60,7 @@ function planeTexture(pts) {
   const S = 512, mk = () => { const cv = document.createElement('canvas'); cv.width = cv.height = S; return cv; };
   const cv = mk(), c = cv.getContext('2d'), bv = mk(), b = bv.getContext('2d');
   c.fillStyle = '#f3efe4'; c.fillRect(0, 0, S, S); b.fillStyle = '#808080'; b.fillRect(0, 0, S, S);
-  for (let i = 0; i < 26; i++) { const x = Math.random() * S, y = Math.random() * S, r = 40 + Math.random() * 110, g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, Math.random() < 0.5 ? 'rgba(120,100,70,.05)' : 'rgba(255,255,255,.08)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, S, S); }
+  for (let i = 0; i < 900; i++) { c.fillStyle = Math.random() < 0.5 ? 'rgba(120,100,70,.025)' : 'rgba(255,255,255,.04)'; const r = 8 + Math.random() * 30; c.beginPath(); c.arc(Math.random() * S, Math.random() * S, r, 0, 6.29); c.fill(); }
   c.strokeStyle = 'rgba(70,110,170,.2)'; c.lineWidth = 1;
   for (let i = 1; i < 16; i++) { const p = i * S / 16 + 0.5; c.beginPath(); c.moveTo(p, 0); c.lineTo(p, S); c.moveTo(0, p); c.lineTo(S, p); c.stroke(); }
   for (let i = 0; i < 5200; i++) { // 紙の繊維
@@ -72,8 +72,8 @@ function planeTexture(pts) {
   }
   // 折り目：中央と左右の翼の折り返し
   const crease = (x, w, dark) => {
-    let g = c.createLinearGradient(x - w, 0, x + w, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.46, `rgba(40,30,20,${dark})`); g.addColorStop(0.54, 'rgba(255,255,255,.5)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(x - w, 0, w * 2, S);
-    g = b.createLinearGradient(x - w * 0.6, 0, x + w * 0.6, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, 'rgba(0,0,0,.75)'); g.addColorStop(1, 'rgba(0,0,0,0)'); b.fillStyle = g; b.fillRect(x - w, 0, w * 2, S);
+    for (let k = -w; k <= w; k++) { const u = k / w, a = (1 - Math.abs(u)) ** 2;
+      c.fillStyle = u < 0 ? `rgba(40,30,20,${(dark * a).toFixed(3)})` : `rgba(255,255,255,${(0.5 * a).toFixed(3)})`; c.fillRect(x + k, 0, 1, S); }
   };
   crease(S / 2, 12, 0.2);
   const off = Math.max(0.1, Math.min(0.22, shape.span * 0.11)) * S / 2; crease(S / 2 - off, 8, 0.1); crease(S / 2 + off, 8, 0.1);
@@ -247,7 +247,7 @@ async function loadWeather() {
 
 // ───────── 投げる ─────────
 let simT = 0, aimState = null, flight = null, flightReal = 0, landT = 0, resultData = null, lastEvent = {};
-let timeScale = 1, camYaw = 0, steer = null, mileN = 0, ringOn = false;
+let timeScale = 1, camYaw = 0, steer = null, mileN = 0, ringOn = false, landPose = null;
 const hand = new THREE.Vector3();
 function startAim() {
   if (planeObj) placePlane();
@@ -312,7 +312,7 @@ function launch() {
   else if (aimState.power > 1.03) impact(t('i_over'), 'TOO HARD', 'bad');
   else if (aimState.power < 0.4) impact(t('i_weak'), 'WEAK', 'bad');
   else if (bonus > 0) impact(t('i_good'), 'GOOD');
-  world.tipClear(); mileN = 0;
+  world.ribbonClear(); mileN = 0; landPose = null;
 }
 function catchCut() {
   const e = $('catchCut'); $('catchMain').textContent = t('i_catch').length <= 6 ? t('i_catch') : t('i_catch').slice(0, 6);
@@ -467,6 +467,7 @@ function frame() {
     if (f.stall > 0.7 && f.age - lastEvent.stall > 6 && f.age > 0.5) { lastEvent.stall = f.age; impact(t('i_stall'), 'STALL', 'bad'); sound.stall(); }
     // 機体の姿勢
     planeObj.position.set(f.p.x, f.p.y, f.p.z);
+    if (agl < 4) { const gy = world.groundAt(f.p.x, f.p.z, false) + 0.06; if (planeObj.position.y < gy) planeObj.position.y = gy; }
     if (f.crashed) {
       planeObj.rotation.set(f.spin * 0.7, -f.psi + f.spin * 0.4, Math.sin(f.spin) * 1.2, 'YXZ');
       if (!lastEvent.crash) { lastEvent.crash = true; impact(t('i_crash'), 'CRASH', 'bad'); sound.land('town'); sound.stall(); flash(); sound.buzz([40, 30, 60]); }
@@ -483,9 +484,11 @@ function frame() {
     camera.lookAt(look);
     const Vr = f.V / f.Vt, rush = clamp((Vr - 0.75) * 1.4 + Math.max(0, f.boost) * 0.35 + Math.min(0.25, timeScale * 0.015), 0, 1.3) * (f.crashed ? 0 : 1);
     camera.fov += ((58 + Math.min(10, timeScale * 0.5) + rush * 9) - camera.fov) * Math.min(1, dt * 3); camera.updateProjectionMatrix();
-    { // 翼端の風切り線
-      planeObj.updateMatrixWorld(); const hw = shape.span * 0.16, k = f.crashed ? 0 : clamp(rush * 0.5 + Math.abs(f.phi) * 0.5 + Math.max(0, f.pitch) * 0.25, 0, 0.8);
-      world.tipPush(tipL.set(-hw, hw * 0.22, 0.04).applyMatrix4(planeObj.matrixWorld), tipR.set(hw, hw * 0.22, 0.04).applyMatrix4(planeObj.matrixWorld), k);
+    { // 外形に沿ったエフェクト
+      planeObj.updateMatrixWorld(); const ud = planeObj.userData;
+      const k = f.crashed ? 0 : clamp(0.1 + rush * 0.3 + Math.abs(f.phi) * 0.35 + Math.max(0, f.pitch) * 0.15, 0, 0.5);
+      if (ud.rim) ud.rim.material.uniforms.k.value = f.crashed ? 0 : clamp(0.08 + rush * 0.5, 0, 0.55);
+      world.ribbonPush(tipL.copy(ud.tipL).applyMatrix4(planeObj.matrixWorld), tipR.copy(ud.tipR).applyMatrix4(planeObj.matrixWorld), k, 0.005 + rush * 0.003, 0.45 + rush * 0.55);
     }
     if (Math.floor(f.dist / 500) > mileN) { mileN = Math.floor(f.dist / 500); sound.mile(mileN); }
     $('hudDist').textContent = Math.round(f.dist).toLocaleString('en-US');
@@ -495,7 +498,11 @@ function frame() {
     const fs = Math.min(1.6, 0.5 + timeScale * 0.08);
     world.update(dt, camT, { x: f.p.x, z: f.p.z, vx: f.v.x, vz: f.v.z }, air.gust(simT), simT, { x: -f.v.x * fs, y: -f.v.y * fs, z: -f.v.z * fs, k: clamp(0.12 + rush * 0.75, 0, 1) });
     if (f.done) {
-      screen = 'land'; landT = 0; world.trail.visible = true;
+      screen = 'land'; landT = 0; world.trail.visible = false; world.ribbonClear(); if (planeObj.userData.rim) planeObj.userData.rim.material.uniforms.k.value = 0;
+      { // 描画された地面・屋根の上に、機体を平らに置く
+        const gy = f.landKind === 'sea' || f.landKind === 0 ? 0.02 : world.groundAt(f.p.x, f.p.z) + 0.04;
+        f.p.y = gy; landPose = { y: gy, yaw: -f.psi, roll: (Math.random() - 0.5) * 0.12, from: planeObj.rotation.clone(), y0: planeObj.position.y };
+      }
       const land = LAND[f.landKind] || 'field';
       sound.land(land); flash();
       impact(t('land_' + land), Math.round(f.dist).toLocaleString('en-US') + ' m', 'crit');
@@ -504,11 +511,14 @@ function frame() {
   } else if (screen === 'land' && flight) {
     landT += dt;
     const f = flight, a = landT * 0.35;
+    if (landPose) { const u = Math.min(1, landT / 0.25), e = 1 - (1 - u) * (1 - u);
+      planeObj.position.set(f.p.x, landPose.y0 + (landPose.y - landPose.y0) * e, f.p.z);
+      planeObj.rotation.set(landPose.from.x * (1 - e), landPose.yaw, landPose.from.z * (1 - e) + landPose.roll * e, 'YXZ'); }
     camera.fov += (50 - camera.fov) * Math.min(1, dt * 2); camera.updateProjectionMatrix();
     camPos.set(f.p.x - heading.x * (2.2 + landT) + Math.sin(a) * 1.4, f.p.y + 1.2 + landT * 0.5, f.p.z - heading.y * (2.2 + landT) + Math.cos(a) * 1.4);
     camera.position.lerp(camPos, Math.min(1, dt * 3));
     camera.lookAt(f.p.x, f.p.y, f.p.z);
-    world.update(dt, camT, { x: f.p.x, z: f.p.z }, air.gust(simT), simT);
+    world.update(dt, camT, { x: f.p.x, z: f.p.z }, air.gust(simT), simT, { x: 0, y: 0, z: 0, k: 0 });
     sound.wind(0.15);
     if (landT > 2.3) finish();
   } else if (screen === 'result' && flight) {
@@ -516,7 +526,7 @@ function frame() {
     camPos.set(f.p.x + Math.sin(a) * 5, f.p.y + 3, f.p.z + Math.cos(a) * 5);
     camera.position.lerp(camPos, Math.min(1, dt * 1.5));
     camera.lookAt(f.p.x, f.p.y + 0.3, f.p.z);
-    world.update(dt, camT, { x: f.p.x, z: f.p.z }, air.gust(simT), simT);
+    world.update(dt, camT, { x: f.p.x, z: f.p.z }, air.gust(simT), simT, { x: 0, y: 0, z: 0, k: 0 });
     sound.wind(0.1);
   }
   world.render();
@@ -527,4 +537,4 @@ loadWeather();
 setTimeout(() => { $('boot').classList.add('gone'); }, 350);
 document.addEventListener('visibilitychange', () => { if (document.hidden && (screen === 'flight' || screen === 'aim')) openSheet('pause'); });
 // 開発・検証用
-window.__game = { world, get T() { return T; }, get flight() { return flight; }, get screen() { return screen; }, get shape() { return shape; }, setStroke, startAim, launch: (p, a, rs) => { aimState.power = p; aimState.aim = a; aimState.ringS = rs ?? 9; launch(); }, get air() { return air; }, rankFor, loadSpot, get wx() { return wxList; }, get rated() { return rated; } };
+window.__game = { world, get T() { return T; }, get flight() { return flight; }, get screen() { return screen; }, get shape() { return shape; }, setStroke, startAim, get planeObj() { return planeObj; }, launch: (p, a, rs) => { aimState.power = p; aimState.aim = a; aimState.ringS = rs ?? 9; launch(); }, get air() { return air; }, rankFor, loadSpot, get wx() { return wxList; }, get rated() { return rated; } };
