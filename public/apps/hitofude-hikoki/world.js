@@ -61,7 +61,7 @@ export function createWorld(canvas) {
       float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}
       float fb(vec2 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*n(p);p=p*2.03+7.3;a*=.5;}return s;}
       void main(){vec3 d=normalize(v);float y=max(d.y,0.);vec3 c=mix(hor,top,pow(y,.5));
-      c=mix(c,hor*1.06,exp(-y*9.)*.6);c=mix(c,hor*.8,smoothstep(0.,-.2,d.y));
+      c=mix(c,hor*1.06,exp(-y*9.)*.6);c=mix(c,hor*.8,(1.-smoothstep(-.2,0.,d.y)));
       vec3 sd=normalize(sunDir);float s=max(dot(d,sd),0.);c+=sunCol*(pow(s,900.)*(1.-cloud)*3.+pow(s,60.)*.35*(1.-cloud)+pow(s,6.)*.22);
       vec2 g=floor(d.xz/(d.y+1.2)*1100.);float st=step(.9985,h(g))*smoothstep(.05,.35,d.y)*night*(1.-cloud*.9);c+=vec3(st)*(.5+.5*h(g+3.));
       if(d.y>.005){vec2 cp=d.xz/(d.y+.14)*1.5+vec2(time*.006,time*.002);float dn=fb(cp);float cov=mix(.6,.26,cover);
@@ -104,7 +104,7 @@ export function createWorld(canvas) {
         c=mix(c,vec3(.9,.93,.97)*(.82+n2*.25),uSnow*(1.-gRoad*.55)*step(1.,vTP.y));
         diffuseColor.rgb=c;`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-        {vec2 q=fract(gP/30.+.5)-.5;float lamp=smoothstep(.16,0.,length(q));
+        {vec2 q=fract(gP/30.+.5)-.5;float lamp=1.-smoothstep(0.,.16,length(q));
         float far=smoothstep(300.,1400.,length(vTP-cameraPosition));float fw2=fwidth(gP.x)+fwidth(gP.y);float hn=step(.86,hh(floor(gP/6.)))*(.5+hh(floor(gP/6.)+7.));float hl=mix(hn,smoothstep(.5,.72,texture2D(uDetail,gP*.045).g)*.45,smoothstep(.4,1.6,fw2))*(1.-gRoad);lamp*=1.-smoothstep(1.,4.,fw2)*.7;
         totalEmissiveRadiance+=uNight*smoothstep(.3,.7,vK.x)*(lamp*vec3(1.,.72,.38)*mix(1.1,.35,far)+gRoad*vec3(.05,.035,.02)+hl*mix(vec3(1.,.78,.5),vec3(.8,.88,1.),step(.8,hh(floor(gP/6.)+3.)))*mix(.25,1.1,far));}`);
   };
@@ -255,6 +255,11 @@ export function createWorld(canvas) {
   function setupComposer() {
     composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: 4 }));
     composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(new ShaderPass({
+      uniforms: { tDiffuse: { value: null } },
+      vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+      fragmentShader: 'uniform sampler2D tDiffuse;varying vec2 vUv;void main(){vec4 c=texture2D(tDiffuse,vUv);if(!(c.r>=0.&&c.r<1e4&&c.g>=0.&&c.g<1e4&&c.b>=0.&&c.b<1e4))c=vec4(0.,0.,0.,1.);gl_FragColor=vec4(min(c.rgb,vec3(40.)),1.);}',
+    }));
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.32, 0.6, 0.9); composer.addPass(bloom);
     grain = new ShaderPass({
       uniforms: { tDiffuse: { value: null }, t: { value: 0 }, amt: { value: 0.045 } },
@@ -398,9 +403,10 @@ export function createWorld(canvas) {
     const k0 = vtx(0, yTop), k1 = vtx(0, yTail), k2 = pos.length / 3; pos.push(0, -0.1 * S, -(yTail + shape.len * 0.15) * S); uv.push(0.5, (yTail + 1) / 2);
     idx.push(k0, k1, k2);
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+    { const nn = g.attributes.normal; for (let i = 0; i < nn.count; i++) { const l = Math.hypot(nn.getX(i), nn.getY(i), nn.getZ(i)); if (!(l > 0.5)) nn.setXYZ(i, 0, 1, 0); } }
     const map = new THREE.CanvasTexture(tex.map); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8;
     const bump = new THREE.CanvasTexture(tex.bump); bump.anisotropy = 4;
-    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 1.4, side: THREE.DoubleSide, roughness: 0.94, metalness: 0, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.05 + night.value * 0.1 }));
+    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map, side: THREE.DoubleSide, roughness: 0.94, metalness: 0, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.05 + night.value * 0.1 }));
     const grp = new THREE.Group(); grp.add(m);
     // 重心が原点に来るように
     m.position.z = shape.cy * S;
@@ -441,6 +447,7 @@ export function createWorld(canvas) {
         p.setXYZ(i, bx * (0.55 + amp * 0.45), by - droop * 0.9 + wave * 0.3, wave);
       }
       p.needsUpdate = true; flagGeo.computeVertexNormals();
+      { const nn = flagGeo.attributes.normal; for (let i = 0; i < nn.count; i++) if (!(Math.abs(nn.getX(i)) + Math.abs(nn.getY(i)) + Math.abs(nn.getZ(i)) > 0.5)) nn.setXYZ(i, 0, 0, 1); }
     }
     // 風の筋（カメラの周り）
     if (air) {

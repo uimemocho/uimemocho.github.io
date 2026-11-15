@@ -65,7 +65,7 @@ function planeTexture(pts) {
   for (let i = 1; i < 16; i++) { const p = i * S / 16 + 0.5; c.beginPath(); c.moveTo(p, 0); c.lineTo(p, S); c.moveTo(0, p); c.lineTo(S, p); c.stroke(); }
   for (let i = 0; i < 5200; i++) { // 紙の繊維
     const x = Math.random() * S, y = Math.random() * S, a = Math.random() * 6.28, l = 2 + Math.random() * 7, dk = Math.random() < 0.55;
-    c.strokeStyle = dk ? `rgba(110,95,70,${0.03 + Math.random() * 0.07})` : `rgba(255,255,255,${0.05 + Math.random() * 0.12})`; c.lineWidth = 0.6 + Math.random() * 0.6;
+    c.strokeStyle = dk ? `rgba(110,95,70,${0.05 + Math.random() * 0.1})` : `rgba(255,255,255,${0.08 + Math.random() * 0.16})`; c.lineWidth = 0.6 + Math.random() * 0.6;
     c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); c.stroke();
     b.strokeStyle = dk ? `rgba(0,0,0,${0.05 + Math.random() * 0.1})` : `rgba(255,255,255,${0.05 + Math.random() * 0.1})`; b.lineWidth = 1;
     b.beginPath(); b.moveTo(x, y); b.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); b.stroke();
