@@ -311,3 +311,8 @@ a.share-x{text-decoration:none}
 .ring .tgt{box-shadow:inset 0 0 0 3px #ffffffcc,0 0 0 1px #0e1a2b66;transition:box-shadow .06s}
 .ring .fx{box-shadow:inset 0 0 0 4px var(--sun),0 0 18px #ffd60a88;will-change:transform,opacity}
 .ring.on .tgt{box-shadow:inset 0 0 0 5px var(--sun),0 0 26px #ffd60a}
+
+/* 力加減はリングだけで見せる */
+.pull-meter,.pull-arrow{display:none!important}
+.ring .tgt{background:rgba(255,255,255,calc(var(--pw,0)*.2))}
+.ring.over .tgt{box-shadow:inset 0 0 0 4px var(--peach),0 0 18px #ff4d5e88;background:rgba(255,77,94,.22)}

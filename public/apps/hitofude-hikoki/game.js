@@ -247,7 +247,7 @@ async function loadWeather() {
 
 // ───────── 投げる ─────────
 let simT = 0, aimState = null, flight = null, flightReal = 0, landT = 0, resultData = null, lastEvent = {};
-let timeScale = 1, camYaw = 0, steer = null;
+let timeScale = 1, camYaw = 0, steer = null, mileN = 0, ringOn = false;
 const hand = new THREE.Vector3();
 function startAim() {
   if (planeObj) placePlane();
@@ -308,11 +308,11 @@ function launch() {
   flightReal = 0; timeScale = caught ? 0.35 : 1; lastEvent = { thermal: -9, stall: -9, crash: false };
   resultData = { caught, power: aimState.power, spot: SPOTS[spotIdx].id };
   show('flight'); sound.throw(aimState.power);
-  if (caught) { catchCut(); sound.catchWind(); flash(); }
+  if (caught) { sound.catchWind(); impact(t('i_catch'), 'START DASH'); speedLines(); }
   else if (aimState.power > 1.03) impact(t('i_over'), 'TOO HARD', 'bad');
   else if (aimState.power < 0.4) impact(t('i_weak'), 'WEAK', 'bad');
   else if (bonus > 0) impact(t('i_good'), 'GOOD');
-  speedLines();
+  world.tipClear(); mileN = 0;
 }
 function catchCut() {
   const e = $('catchCut'); $('catchMain').textContent = t('i_catch').length <= 6 ? t('i_catch') : t('i_catch').slice(0, 6);
@@ -403,7 +403,7 @@ applyI18n(); refreshTitle(); syncToggles();
 
 // ───────── ループ ─────────
 const clock = new THREE.Clock();
-const tmpV = new THREE.Vector3(), look = new THREE.Vector3(), camPos = new THREE.Vector3();
+const tmpV = new THREE.Vector3(), look = new THREE.Vector3(), camPos = new THREE.Vector3(), tipL = new THREE.Vector3(), tipR = new THREE.Vector3();
 let camT = 0, heading = new THREE.Vector2(0, -1), titleT = 0, lastThermalMsg = -9;
 function frame() {
   requestAnimationFrame(frame);
@@ -431,7 +431,8 @@ function frame() {
       if (a.down) { // スタートダッシュのリング
         a.ringT += dt; const ph = (a.ringT / 1.05) % 1; a.ringS = 2.3 - 1.75 * ph;
         const fx = $('ringFx'); fx.style.transform = `scale(${a.ringS.toFixed(3)})`; fx.style.opacity = Math.min(1, ph * 5).toFixed(2);
-        $('ring').classList.toggle('on', Math.abs(a.ringS - 1) < 0.13);
+        const on = Math.abs(a.ringS - 1) < 0.13; if (on && !ringOn) sound.tick(); ringOn = on;
+        $('ring').classList.toggle('on', on); $('ring').classList.toggle('over', a.power > 1.03); $('ring').style.setProperty('--pw', Math.min(1, a.power).toFixed(2));
       }
       const g = air.gust(simT);
       $('gustFill').style.width = (g * 100).toFixed(1) + '%';
@@ -480,12 +481,19 @@ function frame() {
     camera.position.copy(camPos);
     look.set(f.p.x + heading.x * 9, f.p.y - 0.15, f.p.z + heading.y * 9);
     camera.lookAt(look);
-    camera.fov += ((58 + Math.min(14, timeScale * 0.6)) - camera.fov) * Math.min(1, dt * 2); camera.updateProjectionMatrix();
+    const Vr = f.V / f.Vt, rush = clamp((Vr - 0.75) * 1.4 + Math.max(0, f.boost) * 0.35 + Math.min(0.25, timeScale * 0.015), 0, 1.3) * (f.crashed ? 0 : 1);
+    camera.fov += ((58 + Math.min(10, timeScale * 0.5) + rush * 9) - camera.fov) * Math.min(1, dt * 3); camera.updateProjectionMatrix();
+    { // 翼端の風切り線
+      planeObj.updateMatrixWorld(); const hw = shape.span * 0.16, k = f.crashed ? 0 : clamp(rush * 0.5 + Math.abs(f.phi) * 0.5 + Math.max(0, f.pitch) * 0.25, 0, 0.8);
+      world.tipPush(tipL.set(-hw, hw * 0.22, 0.04).applyMatrix4(planeObj.matrixWorld), tipR.set(hw, hw * 0.22, 0.04).applyMatrix4(planeObj.matrixWorld), k);
+    }
+    if (Math.floor(f.dist / 500) > mileN) { mileN = Math.floor(f.dist / 500); sound.mile(mileN); }
     $('hudDist').textContent = Math.round(f.dist).toLocaleString('en-US');
     $('hudAlt').textContent = Math.max(0, Math.round(agl));
     windHud();
     sound.wind(0.35 + Math.min(0.6, timeScale / 30), f.V);
-    world.update(dt, camT, { x: f.p.x, z: f.p.z, vx: f.v.x, vz: f.v.z }, air.gust(simT), simT);
+    const fs = Math.min(1.6, 0.5 + timeScale * 0.08);
+    world.update(dt, camT, { x: f.p.x, z: f.p.z, vx: f.v.x, vz: f.v.z }, air.gust(simT), simT, { x: -f.v.x * fs, y: -f.v.y * fs, z: -f.v.z * fs, k: clamp(0.12 + rush * 0.75, 0, 1) });
     if (f.done) {
       screen = 'land'; landT = 0; world.trail.visible = true;
       const land = LAND[f.landKind] || 'field';

@@ -249,6 +249,20 @@ export function createWorld(canvas) {
   trGeo2.setAttribute('color', new THREE.BufferAttribute(new Float32Array(TRAIL * 3), 3));
   const trail = new THREE.Line(trGeo2, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); trail.frustumCulled = false; scene.add(trail);
   let trailN = 0;
+  // 翼端の風切り線
+  const TIP = 14;
+  const tips = [0, 1].map(() => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TIP * 3), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(TIP * 3), 3));
+    const l = new THREE.Line(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); l.frustumCulled = false; l.visible = false; scene.add(l); return l; });
+  let tipN = 0;
+  function tipPush(pl, pr, k) {
+    if (tipN < TIP) tipN++;
+    [pl, pr].forEach((p, s) => { const g = tips[s].geometry, a = g.attributes.position.array, c = g.attributes.color.array;
+      a.copyWithin(3, 0, (TIP - 1) * 3); a[0] = p.x; a[1] = p.y; a[2] = p.z;
+      c.copyWithin(3, 0, (TIP - 1) * 3); c[0] = c[1] = c[2] = k;
+      for (let i = 1; i < tipN; i++) { const f = 0.72; c[i * 3] *= f; c[i * 3 + 1] *= f; c[i * 3 + 2] *= f; }
+      g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; g.setDrawRange(0, tipN); tips[s].visible = true; });
+  }
+  function tipClear() { tipN = 0; tips.forEach(l => { l.visible = false; }); }
 
   // ポストエフェクト
   let composer, bloom, grain, hq = true;
@@ -424,7 +438,7 @@ export function createWorld(canvas) {
   function trailClear() { trailN = 0; trGeo2.setDrawRange(0, 0); }
 
   const wv = { x: 0, y: 0, z: 0, g: 0 };
-  function update(dt, t, focus, gust, sim) {
+  function update(dt, t, focus, gust, sim, flow) {
     // focus: 追従位置（飛行機）
     if (Math.hypot(focus.x - center.x, focus.z - center.z) > 650) rebuild(Math.round(focus.x / 40) * 40 + (focus.vx || 0) * 20, Math.round(focus.z / 40) * 40 + (focus.vz || 0) * 20);
     sky.position.copy(camera.position);
@@ -453,15 +467,16 @@ export function createWorld(canvas) {
     if (air) {
       const a = wsGeo.attributes.position.array, ca = wsGeo.attributes.color.array, cam = camera.position;
       air.at(cam.x, cam.y, cam.z, sim, wv);
-      const sp = Math.hypot(wv.x, wv.z) + 0.3, ux = wv.x / sp, uz = wv.z / sp;
-      const vis = Math.min(1, 0.15 + sp / 10) * (0.35 + (gust || 0) * 0.65);
+      if (flow) { wv.x = flow.x; wv.y = flow.y; wv.z = flow.z; } // 飛行中は機体から見た空気の流れ
+      const sp = Math.hypot(wv.x, wv.y, wv.z) + 0.3, ux = wv.x / sp, uy = wv.y / sp, uz = wv.z / sp;
+      const vis = flow ? flow.k : Math.min(1, 0.15 + sp / 10) * (0.35 + (gust || 0) * 0.65);
       for (let i = 0; i < WS; i++) {
         const o = i * 4;
         wsP[o] += wv.x * dt * 2; wsP[o + 1] += wv.y * dt * 2; wsP[o + 2] += wv.z * dt * 2; wsP[o + 3] += dt * 0.6;
         for (let k = 0; k < 3; k++) if (Math.abs(wsP[o + k]) > 22) wsP[o + k] = -Math.sign(wsP[o + k]) * 20;
         if (wsP[o + 3] > 1) wsP[o + 3] = 0;
-        const x = cam.x + wsP[o], y = cam.y + wsP[o + 1] * 0.5, z = cam.z + wsP[o + 2], L = 0.8 + sp * 0.35;
-        a[i * 6] = x; a[i * 6 + 1] = y; a[i * 6 + 2] = z; a[i * 6 + 3] = x - ux * L; a[i * 6 + 4] = y; a[i * 6 + 5] = z - uz * L;
+        const x = cam.x + wsP[o], y = cam.y + wsP[o + 1] * 0.5, z = cam.z + wsP[o + 2], L = flow ? 0.5 + sp * 0.22 * flow.k : 0.8 + sp * 0.35;
+        a[i * 6] = x; a[i * 6 + 1] = y; a[i * 6 + 2] = z; a[i * 6 + 3] = x - ux * L; a[i * 6 + 4] = y - (flow ? uy * L : 0); a[i * 6 + 5] = z - uz * L;
         const f = Math.sin(wsP[o + 3] * Math.PI) * vis * 0.55;
         ca[i * 6] = ca[i * 6 + 1] = ca[i * 6 + 2] = f; ca[i * 6 + 3] = ca[i * 6 + 4] = ca[i * 6 + 5] = 0;
       }
@@ -508,5 +523,5 @@ export function createWorld(canvas) {
   }
   function render() { if (hq) composer.render(); else renderer.render(scene, camera); }
   function setHQ(v) { hq = v; }
-  return { fuji, trail, renderer, scene, camera, setSpot, update, render, resize, makePlane, trailPush, trailClear, setHQ, get T() { return T; }, deck };
+  return { tipPush, tipClear, fuji, trail, renderer, scene, camera, setSpot, update, render, resize, makePlane, trailPush, trailClear, setHQ, get T() { return T; }, deck };
 }

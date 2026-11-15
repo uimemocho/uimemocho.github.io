@@ -27,7 +27,8 @@ export class Sound {
   setSe(v) { this.se = v; if (this.sfx) this.sfx.gain.value = v ? 1 : 0; }
   setBgm(v) { this.bgm = v; if (v) this.startBgm(); else this.stopBgm(); }
   buzz(p) { if (this.vib && navigator.vibrate) try { navigator.vibrate(p); } catch {} }
-  wind(level, speed = 0) {
+  wind() { return; } // 風の環境音は鳴らさない
+  _windOld(level, speed = 0) {
     if (!this.ctx) return;
     const t = this.t, l = Math.max(0, Math.min(1, level));
     this.windG.gain.setTargetAtTime(this.se ? 0.04 + l * 0.32 : 0, t, 0.25);
@@ -53,16 +54,19 @@ export class Sound {
   stretch(p) { if (!this.ctx || !this.se) return; this._tone(this.t, 220 + p * 380, 'sine', 0.03, 0.06); }
   throw(power) {
     if (!this.ctx || !this.se) return; const t = this.t;
-    const f = this._noiseHit(t, 900, 0.8, 0.5, 0.45 + power * 0.2, 'bandpass'); f.frequency.exponentialRampToValueAtTime(3600, t + 0.35);
-    this._noiseHit(t, 5200, 1.5, 0.12, 0.06, 'highpass');
+    this._tone(t, 260, 'sine', 0.16, 0.16 + power * 0.05, null, 980);
+    this._tone(t + 0.02, 1900, 'triangle', 0.04, 0.09, this.verb, 2600);
+    this._noiseHit(t, 5200, 1.5, 0.05, 0.035, 'highpass');
     this.buzz(18);
   }
   catchWind() {
     if (!this.ctx || !this.se) return; const t = this.t, v = this.verb;
     [784, 988, 1175, 1568].forEach((f, i) => this._tone(t + i * 0.055, f, 'triangle', 0.13, 0.7, v));
-    const fl = this._noiseHit(t, 600, 0.6, 0.35, 1.0, 'bandpass', v); fl.frequency.exponentialRampToValueAtTime(4000, t + 0.8);
+    this._tone(t, 392, 'sine', 0.1, 0.35, null, 1568);
     this.buzz([20, 40, 30]);
   }
+  tick() { if (!this.ctx || !this.se) return; this._tone(this.t, 1760, 'triangle', 0.05, 0.05); }
+  mile(n) { if (!this.ctx || !this.se) return; const t = this.t, f = 660 * Math.pow(2, (n % 8) * 2 / 12); this._tone(t, f, 'sine', 0.06, 0.25, this.verb); this._tone(t + 0.07, f * 1.5, 'sine', 0.05, 0.35, this.verb); }
   thermal() { if (!this.ctx || !this.se) return; const t = this.t; [523, 659, 784].forEach((f, i) => this._tone(t + i * 0.08, f, 'sine', 0.08, 0.6, this.verb)); }
   stall() { if (!this.ctx || !this.se) return; this._tone(this.t, 440, 'sawtooth', 0.05, 0.4, null, 140); }
   land(kind) {
