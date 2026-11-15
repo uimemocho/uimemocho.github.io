@@ -55,7 +55,37 @@ function loadSpot(i) {
   world.setSpot(spot, wxList[i], T, air);
   placePlane();
 }
-function planeTexture(pts) { return paperImage(pts, 512, { fill: '#fbf8f0' }); }
+// 方眼ノートを切り抜いた紙の質感（色と凹凸）
+function planeTexture(pts) {
+  const S = 512, mk = () => { const cv = document.createElement('canvas'); cv.width = cv.height = S; return cv; };
+  const cv = mk(), c = cv.getContext('2d'), bv = mk(), b = bv.getContext('2d');
+  c.fillStyle = '#f3efe4'; c.fillRect(0, 0, S, S); b.fillStyle = '#808080'; b.fillRect(0, 0, S, S);
+  for (let i = 0; i < 26; i++) { const x = Math.random() * S, y = Math.random() * S, r = 40 + Math.random() * 110, g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, Math.random() < 0.5 ? 'rgba(120,100,70,.05)' : 'rgba(255,255,255,.08)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, S, S); }
+  c.strokeStyle = 'rgba(70,110,170,.2)'; c.lineWidth = 1;
+  for (let i = 1; i < 16; i++) { const p = i * S / 16 + 0.5; c.beginPath(); c.moveTo(p, 0); c.lineTo(p, S); c.moveTo(0, p); c.lineTo(S, p); c.stroke(); }
+  for (let i = 0; i < 5200; i++) { // 紙の繊維
+    const x = Math.random() * S, y = Math.random() * S, a = Math.random() * 6.28, l = 2 + Math.random() * 7, dk = Math.random() < 0.55;
+    c.strokeStyle = dk ? `rgba(110,95,70,${0.03 + Math.random() * 0.07})` : `rgba(255,255,255,${0.05 + Math.random() * 0.12})`; c.lineWidth = 0.6 + Math.random() * 0.6;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); c.stroke();
+    b.strokeStyle = dk ? `rgba(0,0,0,${0.05 + Math.random() * 0.1})` : `rgba(255,255,255,${0.05 + Math.random() * 0.1})`; b.lineWidth = 1;
+    b.beginPath(); b.moveTo(x, y); b.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); b.stroke();
+  }
+  // 折り目：中央と左右の翼の折り返し
+  const crease = (x, w, dark) => {
+    let g = c.createLinearGradient(x - w, 0, x + w, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.46, `rgba(40,30,20,${dark})`); g.addColorStop(0.54, 'rgba(255,255,255,.5)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(x - w, 0, w * 2, S);
+    g = b.createLinearGradient(x - w * 0.6, 0, x + w * 0.6, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, 'rgba(0,0,0,.75)'); g.addColorStop(1, 'rgba(0,0,0,0)'); b.fillStyle = g; b.fillRect(x - w, 0, w * 2, S);
+  };
+  crease(S / 2, 12, 0.2);
+  const off = Math.max(0.1, Math.min(0.22, shape.span * 0.11)) * S / 2; crease(S / 2 - off, 8, 0.1); crease(S / 2 + off, 8, 0.1);
+  // 鉛筆の線
+  const P = (p) => [(p[0] + 1) / 2 * S, (1 - p[1]) / 2 * S];
+  c.lineJoin = c.lineCap = 'round';
+  for (let pass = 0; pass < 3; pass++) {
+    c.beginPath(); pts.forEach((p, i) => { const [x, y] = P(p); const j = pass ? 1.2 : 0; const xx = x + (Math.random() - 0.5) * j, yy = y + (Math.random() - 0.5) * j; i ? c.lineTo(xx, yy) : c.moveTo(xx, yy); }); c.closePath();
+    c.strokeStyle = pass ? 'rgba(45,52,70,.35)' : 'rgba(40,46,62,.78)'; c.lineWidth = pass ? 2.2 : 5; c.stroke();
+  }
+  return { map: cv, bump: bv };
+}
 function placePlane() {
   if (planeObj) world.scene.remove(planeObj);
   planeObj = world.makePlane(shape, planeTexture(shape.pts));
@@ -205,7 +235,7 @@ async function loadWeather() {
   try { wxList = await fetchWeather(); wxLive = true; }
   catch { wxList = fallbackWeather(); wxLive = false; }
   const dbg = new URLSearchParams(location.search).get('debugwx');
-  if (dbg) wxList = wxList.map(w => ({ ...w, isDay: dbg !== 'night', code: dbg === 'rain' ? 63 : dbg === 'snow' ? 73 : dbg === 'fog' ? 45 : 1, cloud: dbg === 'day' ? 15 : 90 }));
+  if (dbg) wxList = wxList.map(w => ({ ...w, isDay: dbg !== 'night', code: dbg === 'rain' ? 63 : dbg === 'snow' ? 73 : dbg === 'fog' ? 45 : 1, cloud: dbg === 'day' ? 35 : 90, phase: dbg === 'day' ? 'day' : undefined }));
   try { rated = rateSpots(wxList); } catch { rated = null; }
   wxLoading = false;
   // 初回はおすすめの場所を選んでおく
