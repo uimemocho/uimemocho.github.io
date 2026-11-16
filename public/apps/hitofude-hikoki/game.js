@@ -425,8 +425,12 @@ function frame() {
       camera.lookAt(look);
       // 手に持った機体
       const pw = a.power;
-      hand.set(0.16 + Math.sin(a.aim) * 0.1, top + 1.38 - pw * 0.22, 0.35 + pw * 0.55);
-      planeObj.position.lerp(hand, Math.min(1, dt * 14));
+      // 画面の中心に、機体の幅が画面に収まる距離で置く（引くほど手前・下へ）
+      const halfW = Math.tan(camera.fov * Math.PI / 360) * camera.aspect;
+      const dist = clamp((shape.span * 0.16 + 0.05) / (0.62 * halfW), 1.1, 3.2) * (1 - pw * 0.18);
+      camera.getWorldDirection(tmpV);
+      hand.copy(camera.position).addScaledVector(tmpV, dist); hand.y -= pw * 0.05;
+      if (planeObj.position.distanceTo(hand) > 3) planeObj.position.copy(hand); else planeObj.position.lerp(hand, Math.min(1, dt * 14));
       planeObj.rotation.set(0.1 + pw * 0.18, -a.aim, Math.sin(camT * 2) * 0.02 - a.aim * 0.3, 'YXZ');
       if (a.down) { // スタートダッシュのリング
         a.ringT += dt; const ph = (a.ringT / 1.05) % 1; a.ringS = 2.3 - 1.75 * ph;
