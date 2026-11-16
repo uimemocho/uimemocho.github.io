@@ -716,5 +716,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-16T04:30:00Z",
     "updatedAt": "2026-11-16T04:30:00Z"
+  },
+  {
+    "slug": "overkill-editor",
+    "title": "OVERKILL EDITOR",
+    "kind": "tool",
+    "description": "打つたびに、無駄に派手。1文字ごとに光って弾け、漢字に変換すると衝撃波、速く打つほどコンボが伸びる、演出を無駄遣いしたテキストエディタ。NEON／BLAZE／MANGAの3テーマ、txtの保存・読み込み対応。HTML-in-Canvas対応。音ありがおすすめ。",
+    "url": "/apps/overkill-editor/",
+    "thumbnail": "/project-thumbnails/catalog/overkill-editor.webp",
+    "sourceFolder": "261110_OVERKILL EDITOR",
+    "sourceEntry": "overkill_editor_v1.2.html",
+    "publishedAt": "2026-11-16T12:17:45Z",
+    "updatedAt": "2026-11-16T12:17:45Z"
   }
 ]
