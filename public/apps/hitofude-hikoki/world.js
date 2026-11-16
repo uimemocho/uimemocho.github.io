@@ -112,12 +112,36 @@ export function createWorld(canvas) {
   const baseXZ = Float32Array.from(tGeo.attributes.position.array);
 
   // 海
+  // 海：周期的なノイズで作った継ぎ目のない法線マップを、世界座標で2層重ねて貼る（繰り返しも目立たない）
   const waterTex = (() => {
-    const cv = document.createElement('canvas'); cv.width = cv.height = 128; const c = cv.getContext('2d'), img = c.createImageData(128, 128);
-    for (let y = 0; y < 128; y++) for (let x = 0; x < 128; x++) { const n1 = fbm(x / 16, y / 16, 3), n2 = fbm(x / 16 + 5, y / 16 + 9, 3); const i = (y * 128 + x) * 4; img.data[i] = 128 + (n1 - 0.5) * 180; img.data[i + 1] = 128 + (n2 - 0.5) * 180; img.data[i + 2] = 255; img.data[i + 3] = 255; }
-    c.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(160, 160); return t;
+    const N = 256, P = 16, cv = document.createElement('canvas'); cv.width = cv.height = N; const c = cv.getContext('2d'), img = c.createImageData(N, N);
+    const lat = (x, y, p, seed) => hash2(((x % p) + p) % p + seed, ((y % p) + p) % p + seed * 1.7);
+    const pn = (x, y, p, seed) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+      const a = lat(xi, yi, p, seed), b = lat(xi + 1, yi, p, seed), cc = lat(xi, yi + 1, p, seed), d = lat(xi + 1, yi + 1, p, seed); return a + (b - a) * u + (cc - a) * v + (a - b - cc + d) * u * v; };
+    const H = new Float32Array(N * N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let h = 0, amp = 0.5, p = P; for (let o = 0; o < 4; o++) { h += amp * pn(x / N * p, y / N * p, p, o * 13); p *= 2; amp *= 0.5; } H[y * N + x] = h; }
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const hx = H[y * N + (x + 1) % N] - H[y * N + (x - 1 + N) % N], hy = H[((y + 1) % N) * N + x] - H[((y - 1 + N) % N) * N + x];
+      let nx = -hx * 6, ny = -hy * 6, nz = 1; const l = Math.hypot(nx, ny, nz); const k = (y * N + x) * 4;
+      img.data[k] = (nx / l * 0.5 + 0.5) * 255; img.data[k + 1] = (ny / l * 0.5 + 0.5) * 255; img.data[k + 2] = (nz / l * 0.5 + 0.5) * 255; img.data[k + 3] = 255;
+    }
+    c.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t;
   })();
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(14000, 14000), new THREE.MeshPhongMaterial({ color: '#1d4766', specular: '#bcd4ff', shininess: 90, normalMap: waterTex, normalScale: new THREE.Vector2(0.35, 0.35) }));
+  const waterT = { value: 0 };
+  const waterMat = new THREE.MeshPhongMaterial({ color: '#1d4766', specular: '#9fb6d8', shininess: 120, normalMap: waterTex, normalScale: new THREE.Vector2(0.28, 0.28) });
+  waterMat.onBeforeCompile = (sh) => {
+    sh.uniforms.uWT = waterT;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vWXZ;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWXZ=(modelMatrix*vec4(transformed,1.)).xz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vWXZ;uniform float uWT;')
+      .replace('#include <normal_fragment_maps>', `
+        vec2 w1=vWXZ/97.+vec2(uWT*.011,uWT*.007);vec2 w2=mat2(.8,-.6,.6,.8)*vWXZ/41.-vec2(uWT*.017,-uWT*.009);
+        float fade=1.-smoothstep(300.,2500.,length(vWXZ-cameraPosition.xz));
+        vec3 n1=texture2D(normalMap,w1).xyz*2.-1.,n2=texture2D(normalMap,w2).xyz*2.-1.;
+        vec3 mapN=normalize(vec3((n1.xy+n2.xy*.7)*normalScale*mix(.35,1.,fade),1.));
+        normal=normalize(vec3(mapN.x,mapN.y,mapN.z));
+        normal=normalize((viewMatrix*vec4(normal.x,normal.z,-normal.y,0.)).xyz);`);
+  };
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(14000, 14000), waterMat);
   water.rotation.x = -Math.PI / 2; water.position.y = 0; scene.add(water);
 
   // 建物・家・木（世界座標ベースの質感シェーダー）
@@ -475,7 +499,7 @@ export function createWorld(canvas) {
     if (moon.visible) { moon.position.copy(camera.position).addScaledVector(moon.userData.dir, 7000); moon.lookAt(camera.position); }
     if (fuji.visible) { const b = -0.32; fuji.position.set(camera.position.x + Math.sin(b) * 7600, -200, camera.position.z - Math.cos(b) * 7600); }
     water.position.x = Math.round(camera.position.x / 50) * 50; water.position.z = Math.round(camera.position.z / 50) * 50;
-    waterTex.offset.x = t * 0.01; waterTex.offset.y = t * 0.006;
+    waterT.value = t;
     sun.position.copy(camera.position).addScaledVector(skyU.sunDir.value, 500); sun.target.position.copy(camera.position);
     grain.uniforms.t.value = t % 10; skyU.time.value = t;
     for (const c of clouds) { if (!c.visible) continue; const dx = c.position.x - camera.position.x, dz = c.position.z - camera.position.z; if (Math.abs(dx) > 4200) c.position.x -= Math.sign(dx) * 8400; if (Math.abs(dz) > 4200) c.position.z -= Math.sign(dz) * 8400; }
