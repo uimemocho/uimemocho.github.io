@@ -8,8 +8,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { hash2, fbm } from './terrain.js';
 import { wxKind } from './weather.js';
 
-const TSIZE = 4200, TN = 150; // 地形グリッド
-const MAXB = 2400, MAXT = 2600;
+const TSIZE = 5600, TN = 160, TSTEP = TSIZE / TN; // 地形グリッド（35m間隔）
+const MAXB = 3200, MAXT = 2600;
 
 // 時間帯（JST）から空の色
 export function skyPhase(wx, now = new Date()) {
@@ -103,6 +103,7 @@ export function createWorld(canvas) {
         c=mix(c,tc*(.82+n3*.36),smoothstep(.25,.6,vK.x));
         c=mix(c,vec3(.9,.93,.97)*(.82+n2*.25),uSnow*(1.-gRoad*.55)*step(1.,vTP.y));
         diffuseColor.rgb=c;`)
+      .replace('#include <fog_fragment>', '#include <fog_fragment>\ngl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,smoothstep(2050.,2380.,length(vTP.xz-cameraPosition.xz)));')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         {vec2 q=fract(gP/30.+.5)-.5;float lamp=1.-smoothstep(0.,.16,length(q));
         float far=smoothstep(300.,1400.,length(vTP-cameraPosition));float fw2=fwidth(gP.x)+fwidth(gP.y);float hn=step(.86,hh(floor(gP/6.)))*(.5+hh(floor(gP/6.)+7.));float hl=mix(hn,smoothstep(.5,.72,texture2D(uDetail,gP*.045).g)*.45,smoothstep(.4,1.6,fw2))*(1.-gRoad);lamp*=1.-smoothstep(1.,4.,fw2)*.7;
@@ -145,16 +146,18 @@ export function createWorld(canvas) {
   water.rotation.x = -Math.PI / 2; water.position.y = 0; scene.add(water);
 
   // 建物・家・木（世界座標ベースの質感シェーダー）
-  const instMat = (body) => {
+  const instMat = (body, fade) => {
     const m = new THREE.MeshLambertMaterial({ color: '#ffffff' });
+    const uFade = { value: new THREE.Vector2(fade[0], fade[1]) };
     m.onBeforeCompile = (sh) => {
-      sh.uniforms.uNight = night; sh.uniforms.uDetail = detailU; sh.uniforms.uSky = skyColU; sh.uniforms.uSnow = snowU;
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWP;varying vec3 vWN;varying float vLY;')
+      sh.uniforms.uNight = night; sh.uniforms.uFade = uFade; sh.uniforms.uDetail = detailU; sh.uniforms.uSky = skyColU; sh.uniforms.uSnow = snowU;
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec2 uFade;varying vec3 vWP;varying vec3 vWN;varying float vLY;varying float vFade;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvec3 iO=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;vFade=1.-smoothstep(uFade.x,uFade.y,distance(iO.xz,cameraPosition.xz));transformed.y*=mix(.03,1.,smoothstep(0.,.6,vFade));')
         .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWP=(modelMatrix*instanceMatrix*vec4(transformed,1.)).xyz;vWN=normalize(mat3(modelMatrix*instanceMatrix)*objectNormal);vLY=position.y;');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uNight,uSnow;uniform sampler2D uDetail;uniform vec3 uSky;varying vec3 vWP;varying vec3 vWN;varying float vLY;float wh(vec2 p){return fract(sin(dot(p,vec2(41.3,289.1)))*43758.5453);}')
+      sh.fragmentShader = sh.fragmentShader.replace('#include <fog_fragment>', '#include <fog_fragment>\ngl_FragColor.rgb=mix(fogColor,gl_FragColor.rgb,smoothstep(0.,1.,vFade));').replace('#include <common>', '#include <common>\nuniform float uNight,uSnow;uniform sampler2D uDetail;uniform vec3 uSky;varying vec3 vWP;varying vec3 vWN;varying float vLY;varying float vFade;float wh(vec2 p){return fract(sin(dot(p,vec2(41.3,289.1)))*43758.5453);}')
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + body);
     };
-    m.customProgramCacheKey = () => body;
+    m.customProgramCacheKey = () => body + fade.join(',');
     return m;
   };
   const bGeo = new THREE.BoxGeometry(1, 1, 1); bGeo.translate(0, 0.5, 0);
@@ -173,7 +176,7 @@ export function createWorld(canvas) {
       totalEmissiveRadiance+=win*(1.-uNight)*uSky*rfl*.12;}
     else{float rn=texture2D(uDetail,vWP.xz*.06).b;float unit=step(.72,wh(floor(vWP.xz/3.5)));
       diffuseColor.rgb=mix(vec3(.36,.37,.39),vec3(.5,.5,.5),rn)*(1.-unit*.3);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.92,.94,.97),uSnow*.85);
-      totalEmissiveRadiance+=uNight*vec3(.015,.015,.025);}`), MAXB);
+      totalEmissiveRadiance+=uNight*vec3(.015,.015,.025);}`, [1050, 1330]), MAXB);
   buildings.count = 0; buildings.frustumCulled = false; scene.add(buildings);
   // 家（寄棟屋根）
   const hGeo = (() => {
@@ -182,7 +185,7 @@ export function createWorld(canvas) {
     for (const k of ['position', 'normal']) { const A = a.attributes[k].array, B = b.attributes[k].array, o = new Float32Array(A.length + B.length); o.set(A); o.set(B, A.length); g.setAttribute(k, new THREE.BufferAttribute(o, 3)); }
     return g;
   })();
-  const MAXH = 7000;
+  const MAXH = 11000;
   const houses = new THREE.InstancedMesh(hGeo, instMat(`
     float hid=wh(floor(vWP.xz/11.)+.5);
     if(vLY>.601){vec3 rc=hid<.4?vec3(.2,.22,.26):hid<.65?vec3(.16,.2,.3):hid<.85?vec3(.36,.2,.15):vec3(.24,.3,.24);
@@ -192,7 +195,7 @@ export function createWorld(canvas) {
       float aa=1.-smoothstep(.25,.7,max(fwidth(g.x),fwidth(g.y)));
       float win=step(.28,f.x)*step(f.x,.72)*step(.34,f.y)*step(f.y,.74)*step(.35,wh(cell+hid))*aa;
       diffuseColor.rgb=mix(diffuseColor.rgb,mix(vec3(.1,.13,.18),uSky*.8,.35*(1.-uNight)),win);
-      totalEmissiveRadiance+=(win*step(.45,wh(cell*2.3+hid*7.))*1.5+(1.-aa)*.07)*uNight*vec3(1.,.74,.4);}`), MAXH);
+      totalEmissiveRadiance+=(win*step(.45,wh(cell*2.3+hid*7.))*1.5+(1.-aa)*.07)*uNight*vec3(1.,.74,.4);}`, [640, 880]), MAXH);
   houses.count = 0; houses.frustumCulled = false; scene.add(houses);
   // 木（丸い樹冠）
   const trGeo = (() => {
@@ -207,7 +210,7 @@ export function createWorld(canvas) {
   const trees = new THREE.InstancedMesh(trGeo, instMat(`
     float tn=texture2D(uDetail,vWP.xz*.09+vWP.y*.07).g,tb=texture2D(uDetail,vWP.xz*.02).b;
     diffuseColor.rgb*=mix(.38,1.25,smoothstep(.2,2.3,vLY))*(.7+tn*.6)*(.85+tb*.3);
-    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.9,.93,.97),uSnow*smoothstep(1.,2.2,vLY)*.8);`), MAXT);
+    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.9,.93,.97),uSnow*smoothstep(1.,2.2,vLY)*.8);`, [420, 620]), MAXT);
   trees.count = 0; trees.frustumCulled = false; scene.add(trees);
 
   // 展望台
@@ -355,7 +358,7 @@ export function createWorld(canvas) {
     }
     pos.needsUpdate = true; col.needsUpdate = true; aK.needsUpdate = true; tGeo.computeVertexNormals(); tGeo.computeBoundingSphere();
     // 建物と家
-    let nb = 0, nh = 0; const R = 1500, RH = 1150, C = 30;
+    let nb = 0, nh = 0; const R = 1750, RH = 1300, C = 30;
     const gx0 = Math.floor((cx - R) / C), gx1 = Math.floor((cx + R) / C), gz0 = Math.floor((cz - R) / C), gz1 = Math.floor((cz + R) / C);
     for (let gx = gx0; gx <= gx1; gx++) for (let gz = gz0; gz <= gz1; gz++) {
       const x = (gx + 0.5) * C, z = (gz + 0.5) * C, d2 = (x - cx) ** 2 + (z - cz) ** 2;
@@ -380,7 +383,7 @@ export function createWorld(canvas) {
     buildings.count = nb; buildings.instanceMatrix.needsUpdate = true; if (buildings.instanceColor) buildings.instanceColor.needsUpdate = true;
     houses.count = nh; houses.instanceMatrix.needsUpdate = true; if (houses.instanceColor) houses.instanceColor.needsUpdate = true;
     // 木
-    let nt = 0; const RT = 1000, CT = 20;
+    let nt = 0; const RT = 1040, CT = 20;
     for (let gx = Math.floor((cx - RT) / CT); gx <= Math.floor((cx + RT) / CT) && nt < MAXT; gx++) for (let gz = Math.floor((cz - RT) / CT); gz <= Math.floor((cz + RT) / CT) && nt < MAXT; gz++) {
       const x = (gx + hash2(gx, gz)) * CT, z = (gz + hash2(gz, gx)) * CT;
       if ((x - cx) ** 2 + (z - cz) ** 2 > RT * RT) continue;
@@ -407,7 +410,7 @@ export function createWorld(canvas) {
     if (wet || kind === 'fog' || cl > 0.7) { const grey = new THREE.Color(phase === 'night' ? '#151a26' : '#9aa4b2'); top.lerp(grey, 0.55 + (wet ? 0.2 : 0)); hor.lerp(grey, 0.5); }
     skyU.top.value.copy(top); skyU.hor.value.copy(hor); skyU.night.value = P.night; skyU.cloud.value = wet ? 1 : cl * 0.6;
     scene.fog.color.copy(hor);
-    scene.fog.near = kind === 'fog' ? 60 : wet ? 200 : 500; scene.fog.far = kind === 'fog' ? 900 : wet ? 2600 : 4800;
+    scene.fog.near = kind === 'fog' ? 60 : wet ? 150 : 350; scene.fog.far = kind === 'fog' ? 900 : wet ? 2100 : 2600;
     // 太陽／月の向き：時間帯で高さ、方角は投げる向きに対してやや斜め前
     const elev = phase === 'day' ? 0.9 : phase === 'golden' ? 0.22 : phase === 'twilight' ? 0.06 : 0.6;
     const az = (spot.heading > 90 && spot.heading < 270) ? 0.7 : -0.6;
@@ -428,7 +431,7 @@ export function createWorld(canvas) {
     fuji.visible = !!T.P.fuji && !wet && kind !== 'fog';
     rain.visible = wet && kind !== 'snow'; snowPts.visible = kind === 'snow'; snowPts.material.color.set(phase === 'night' ? '#aab4c8' : '#ffffff');
     trailN = 0; trGeo2.setDrawRange(0, 0); ribbonClear();
-    rebuild(0, -TSIZE * 0.3);
+    rebuild(0, -Math.round(500 / TSTEP) * TSTEP);
   }
 
   // 紙飛行機の3Dモデル
@@ -494,7 +497,8 @@ export function createWorld(canvas) {
   const wv = { x: 0, y: 0, z: 0, g: 0 };
   function update(dt, t, focus, gust, sim, flow) {
     // focus: 追従位置（飛行機）
-    if (Math.hypot(focus.x - center.x, focus.z - center.z) > 650) rebuild(Math.round(focus.x / 40) * 40 + (focus.vx || 0) * 20, Math.round(focus.z / 40) * 40 + (focus.vz || 0) * 20);
+    { const lx = focus.x + Math.max(-150, Math.min(150, (focus.vx || 0) * 8)), lz = focus.z + Math.max(-150, Math.min(150, (focus.vz || 0) * 8));
+      if (Math.hypot(lx - center.x, lz - center.z) > 260) rebuild(Math.round(lx / TSTEP) * TSTEP, Math.round(lz / TSTEP) * TSTEP); }
     sky.position.copy(camera.position);
     if (moon.visible) { moon.position.copy(camera.position).addScaledVector(moon.userData.dir, 7000); moon.lookAt(camera.position); }
     if (fuji.visible) { const b = -0.32; fuji.position.set(camera.position.x + Math.sin(b) * 7600, -200, camera.position.z - Math.cos(b) * 7600); }
