@@ -728,5 +728,17 @@
     "sourceEntry": "overkill_editor_v1.2.html",
     "publishedAt": "2026-11-16T12:17:45Z",
     "updatedAt": "2026-11-16T12:17:45Z"
+  },
+  {
+    "slug": "azure-ace",
+    "title": "AZURE ACE",
+    "kind": "game",
+    "description": "ステージごとに視点が変わるドット絵シューティング。縦スクロール、3Dレール、横スクロール、完全俯瞰、全方位ドッグファイト、コクピット宇宙戦。地球から宇宙へ、人類の移住先を探す全7ステージの物語。各面にボス、パワーアップ、SSSまでのランク。音ありプレイ推奨。",
+    "url": "/apps/azure-ace/",
+    "thumbnail": "/project-thumbnails/catalog/azure-ace.webp",
+    "sourceFolder": "261117_AZURE ACE",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-18T04:38:28Z",
+    "updatedAt": "2026-11-18T04:38:28Z"
   }
 ]
