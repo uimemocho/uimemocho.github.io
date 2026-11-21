@@ -752,5 +752,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-21T05:55:35Z",
     "updatedAt": "2026-11-21T05:55:35Z"
+  },
+  {
+    "slug": "track-voxel-forge",
+    "title": "TRACK VOXEL FORGE",
+    "kind": "tool",
+    "description": "どう並べても継ぎ目がそろう道路タイルと、街・海岸・雪山・サーキット・王国・魔の森などの景観をボクセルで自動生成するツール。マップを描いてコースを組み、そのまま試走できます。GLB／VOX／PNG／JSONで書き出せます。",
+    "url": "/apps/track-voxel-forge/",
+    "thumbnail": "/project-thumbnails/catalog/track-voxel-forge.webp",
+    "sourceFolder": "261117_TRACK VOXEL FORGE",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-21T06:01:47Z",
+    "updatedAt": "2026-11-21T06:01:47Z"
   }
 ]
