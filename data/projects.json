@@ -740,5 +740,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-18T04:38:28Z",
     "updatedAt": "2026-11-18T04:38:28Z"
+  },
+  {
+    "slug": "vehicle-voxel-forge",
+    "title": "VEHICLE VOXEL FORGE",
+    "kind": "tool",
+    "description": "4面図のドット絵から、ボクセルの乗り物を自動生成するツール。車・バイク・戦闘機・船・飛空艇・宇宙船の23タイプ。タイヤの回転、曲がる時のサスペンション、ジェット噴射のアニメーション付き。GLB／VOX／方向別スプライトで書き出せます。",
+    "url": "/apps/vehicle-voxel-forge/",
+    "thumbnail": "/project-thumbnails/catalog/vehicle-voxel-forge.webp",
+    "sourceFolder": "261117_VEHICLE VOXEL FORGE",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-21T05:55:35Z",
+    "updatedAt": "2026-11-21T05:55:35Z"
   }
 ]
