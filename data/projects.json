@@ -776,5 +776,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-21T06:03:50Z",
     "updatedAt": "2026-11-21T06:03:50Z"
+  },
+  {
+    "slug": "moses-ibuki",
+    "title": "モーゼの息吹",
+    "kind": "game",
+    "description": "スマホのマイクに、ひと息で吹きかけて海を割る縦型ブラウザゲーム。声ではなく息の音だけを聞き分け、強い息を長く保つほど持続倍率が上がって割れる速さが一気に伸びる。割れた距離でE〜SSSのランク。結果は割れた海の画像つきでXに投稿できる。対岸到達を目指せ。",
+    "url": "/apps/moses-ibuki/",
+    "thumbnail": "/project-thumbnails/catalog/moses-ibuki.webp",
+    "sourceFolder": "261122_モーゼの息吹",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-21T16:00:00Z",
+    "updatedAt": "2026-11-21T16:00:00Z"
   }
 ]

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0e1a2b">
+<title>モーゼの息吹</title>
+<meta name="description" content="モーゼの息吹。スマホのマイクに、ひと息で吹きかけて海を割る。息の強さと長さで割れた距離を競う縦型ブラウザゲーム。">
+<meta property="og:type" content="website"><meta property="og:site_name" content="uimemocho"><meta property="og:title" content="モーゼの息吹">
+<meta property="og:description" content="スマホのマイクに、ひと息。息の強さと長さで海が割れる。割れた距離を競ってXに投稿しよう。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/moses-ibuki/"><meta property="og:image" content="https://uimemocho.github.io/apps/moses-ibuki/ogp.png">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="モーゼの息吹">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%230e1a2b%22/%3E%3Cpath d=%22M8 20 Q20 14 26 20 L26 60 L8 60Z M56 20 Q44 14 38 20 L38 60 L56 60Z%22 fill=%22%2316a39a%22/%3E%3Cpath d=%22M26 60 L38 60 L34 22 L30 22Z%22 fill=%22%23ffd60a%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="style.css">
+<link rel="modulepreload" href="game.js"><link rel="modulepreload" href="ocean.js">
+</head><body data-screen="title">
+<canvas id="world" aria-label="海の画面"></canvas><div id="shade"></div>
+<div id="flash" aria-hidden="true"></div>
+
+<header>
+ <div id="brandMini" aria-hidden="true" data-i18n="name">モーゼの息吹</div>
+ <div class="headerbuttons">
+  <button id="settingsBtn" class="icon-button" data-i18n-aria="settings" aria-label="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button>
+ </div>
+</header>
+
+<main>
+<section id="titleScreen" class="screen title-screen" aria-label="タイトル">
+ <div class="title-block">
+  <h1 id="title"><small id="tA">モーゼの</small><em id="tB">息吹</em></h1>
+  <p class="title-sub" data-i18n="sub">BREATH OF MOSES</p>
+ </div>
+ <div class="title-actions">
+  <p class="mic-note" data-i18n="micNote"></p>
+  <button id="playBtn" class="primary" data-i18n="play">海を割る</button>
+  <div class="pair"><button id="howtoBtn" class="ghost" data-i18n="howto">遊び方</button><button id="modeBtn" class="ghost mode-btn"><span data-i18n="input">入力</span><small id="modeName"></small></button></div>
+  <div class="title-foot"><span id="bestLine"></span></div>
+ </div>
+</section>
+
+<section id="resultScreen" class="screen result-screen" hidden>
+ <div class="result-heading"><p data-i18n="lead">ひと息で割れた海</p><h2 id="resultDist"><b>0</b><small>m</small></h2><p id="resultMode"></p></div>
+ <div id="rankHero" class="rank-hero"><span class="rank-caption">RANK</span><strong id="rankGrade">S</strong><p id="rankTitle"></p></div>
+ <div class="result-stats three">
+  <div><small data-i18n="statSec">息の長さ</small><strong id="statSec">0</strong><span class="unit" data-i18n="sec">秒</span></div>
+  <div><small data-i18n="statPeak">最大の息圧</small><strong id="statPeak">0</strong><span class="unit">%</span></div>
+  <div><small data-i18n="statMult">最大倍率</small><strong id="statMult">×1</strong></div>
+ </div>
+ <p id="bestNote" class="streak-line"></p>
+ <div id="resultActions">
+  <button id="shareBtn" class="share"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span data-i18n="share">Xに投稿</span></button>
+  <button id="againBtn" class="primary" data-i18n="again">もう一度割る</button>
+  <button id="resultTitle" class="text-button center" data-i18n="toTitle">タイトルへ</button>
+ </div>
+</section>
+</main>
+
+<div id="hud" hidden>
+ <div class="dist-box">
+  <small data-i18n="split">割れた距離</small>
+  <div class="dist-num"><b id="hudDist">0</b><span id="hudUnit">m</span></div>
+  <div id="multBox" class="mult"><span data-i18n="sustain">持続</span><b id="hudMult">×1.0</b></div>
+ </div>
+ <div id="calib" class="calib" hidden><strong data-i18n="calib"></strong><div class="calib-bar"><i id="calibFill"></i></div></div>
+ <div id="count" class="count" hidden></div>
+ <div id="blowGuide" class="blow-guide" hidden>
+  <strong id="blowHint" data-i18n="blowHint"></strong>
+  <small id="blowSub" data-i18n="blowSub"></small>
+  <div class="breath-row"><span data-i18n="breath">息</span><div class="breath-meter"><i id="breathFill"></i><b class="peak" id="breathPeak"></b></div></div>
+  <div class="time-row"><div class="time-bar"><i id="timeFill"></i></div></div>
+  <div class="mic-arrow" aria-hidden="true"></div>
+ </div>
+ <button id="holdBtn" class="hold-btn" hidden><span data-i18n="holdHint">長押しで息を吹く</span></button>
+</div>
+
+<div id="cut" aria-hidden="true"><div class="cut-lines"></div><strong><span id="cutText">吹け</span><em>!!</em></strong><small>BREATH OF MOSES</small></div>
+
+<div id="sheet" class="sheet" hidden>
+ <div class="sheet-card" role="dialog" aria-modal="true">
+  <div id="settingsBody" hidden>
+   <h3 data-i18n="settings">設定</h3>
+   <div class="set-row"><span data-i18n="input">入力</span><button class="toggle wide" id="modeToggle"></button></div>
+   <div class="set-row"><span data-i18n="se">効果音</span><button class="toggle" data-key="se"></button></div>
+   <div class="set-row"><span data-i18n="bgm">BGM</span><button class="toggle" data-key="bgm"></button></div>
+   <div class="set-row"><span data-i18n="vib">振動</span><button class="toggle" data-key="vib"></button></div>
+   <div class="set-row"><span data-i18n="quality">高画質</span><button class="toggle" data-key="hq"></button></div>
+   <div class="set-row"><span data-i18n="lang">言語</span><select id="langSelect"></select></div>
+  </div>
+  <div id="howtoBody" hidden>
+   <h3 data-i18n="howto">遊び方</h3>
+   <ol class="howto"><li data-i18n="how1"></li><li data-i18n="how2"></li><li data-i18n="how3"></li><li data-i18n="how4"></li></ol>
+  </div>
+  <div id="shareBody" hidden>
+   <h3 data-i18n="shareSheet">投稿用の画像</h3>
+   <img id="sharePreview" class="share-preview" alt="">
+   <p class="share-note" data-i18n="saveHint"></p>
+   <a id="shareXLink" class="primary share-x" target="_blank" rel="noopener" data-i18n="openX">Xの投稿画面を開く</a>
+   <button id="copyText" class="ghost" data-i18n="copyText">投稿文をコピー</button>
+  </div>
+  <div class="sheet-actions"><button id="sheetClose" class="primary" data-i18n="close">とじる</button></div>
+ </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="boot"><strong>モーゼの息吹</strong><span id="bootMsg">LOADING</span></div>
+<script type="module" src="game.js"></script>
+</body></html>
