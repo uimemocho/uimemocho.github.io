@@ -1,0 +1,2495 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>CHARA VOXEL FORGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg:#08080b;--surface:#101016;--surface2:#16161e;--surface3:#1c1c26;
+  --border:#252530;--border-hi:#35354a;--text:#d8d8e4;--text-dim:#7a7a92;--text-muted:#4a4a5c;
+  --accent:#00e878;--accent-glow:rgba(0,232,120,.22);--accent2:#ff2e5c;--accent3:#2e8cff;
+  --warn:#ffa726;--purple:#a855f7;--cyan:#22d3ee;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'JetBrains Mono','Noto Sans JP',monospace;-webkit-text-size-adjust:100%}
+body{overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 14px;height:42px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+header h1{font-size:13px;font-weight:700;letter-spacing:4px;color:var(--accent);text-shadow:0 0 12px var(--accent-glow)}
+header h1 small{color:var(--text-dim);font-size:9px;letter-spacing:2px;margin-left:8px;font-weight:500}
+#statusText{font-size:9px;letter-spacing:1.5px;color:var(--text-dim);display:flex;align-items:center;gap:6px}
+#statusText::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.progress{height:2px;background:transparent;flex-shrink:0}
+.progress i{display:block;height:100%;width:0;background:var(--accent);box-shadow:0 0 8px var(--accent);transition:width .2s}
+main{flex:1;display:grid;grid-template-columns:320px 1fr 280px;min-height:0}
+.panel{overflow-y:auto;background:var(--surface);-webkit-overflow-scrolling:touch}
+.panel-left{border-right:1px solid var(--border)}
+.panel-right{border-left:1px solid var(--border)}
+.panel-center{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
+.section{padding:12px 14px;border-bottom:1px solid var(--border)}
+.section-title{display:flex;align-items:center;gap:7px;font-size:9px;font-weight:600;letter-spacing:2.5px;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px}
+.section-title i{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.section-title i.b{background:var(--accent3);box-shadow:0 0 6px var(--accent3)}
+.section-title i.p{background:var(--purple);box-shadow:0 0 6px var(--purple)}
+.section-title i.c{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.section-title i.o{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.section-title i.r{background:var(--accent2);box-shadow:0 0 6px var(--accent2)}
+.mode-tabs{display:flex;border-bottom:1px solid var(--border)}
+.mode-tab{flex:1;padding:11px 0;text-align:center;font-size:10px;letter-spacing:1.5px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;background:none;border-top:0;border-left:0;border-right:0}
+.mode-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,232,120,.04)}
+.templates-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.templates-grid.g3{grid-template-columns:1fr 1fr 1fr}
+.template-card{border:1px solid var(--border);border-radius:3px;padding:8px 6px;text-align:center;cursor:pointer;background:var(--surface2);font-family:inherit;color:var(--text)}
+.template-card:hover{border-color:var(--border-hi)}
+.template-card.active{border-color:var(--accent);background:rgba(0,232,120,.07)}
+.template-name{font-size:10px;font-weight:600;letter-spacing:.3px}
+.template-desc{font-size:8px;color:var(--text-dim);margin-top:3px;letter-spacing:.2px}
+.param-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;min-height:22px}
+.param-label{width:76px;font-size:10px;color:var(--text-dim);letter-spacing:.3px;flex-shrink:0}
+.param-slider{flex:1;-webkit-appearance:none;appearance:none;height:2px;background:var(--border-hi);outline:none;min-width:0}
+.param-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent-glow);cursor:pointer}
+.param-slider::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:var(--accent)}
+.param-value{width:34px;text-align:right;font-size:10px;font-weight:500;color:var(--accent)}
+.num-input,.param-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:11px;padding:5px 6px;border-radius:3px;outline:none}
+.num-input{width:72px;text-align:center}
+.param-select{flex:1;min-width:0}
+.num-input:focus,.param-select:focus{border-color:var(--accent)}
+input[type=color]{-webkit-appearance:none;appearance:none;width:100%;height:26px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);padding:2px;cursor:pointer}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:0;border-radius:2px}
+.color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 8px}
+.color-grid label{font-size:8px;color:var(--text-dim);letter-spacing:.5px;display:flex;flex-direction:column;gap:3px}
+.swatches{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.swatches button{width:22px;height:22px;border-radius:3px;border:1px solid var(--border-hi);cursor:pointer}
+.check-row{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--text);margin-bottom:8px;cursor:pointer}
+.check-row input{accent-color:var(--accent);width:14px;height:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 12px;min-height:34px;border:1px solid var(--border-hi);border-radius:3px;background:var(--surface2);color:var(--text);font-family:inherit;font-size:10px;font-weight:500;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s}
+.btn:hover{border-color:var(--accent)}
+.btn:active{transform:translateY(1px)}
+.btn-accent{background:var(--accent);color:#04140b;border-color:var(--accent);font-weight:700;box-shadow:0 0 14px var(--accent-glow)}
+.btn-accent:hover{background:#2bff96}
+.btn-sm{padding:6px 9px;min-height:30px;font-size:9px}
+.btn-group{display:flex;gap:5px;flex-wrap:wrap}
+.btn-group .btn{flex:1}
+.btn.on{border-color:var(--accent);color:var(--accent);background:rgba(0,232,120,.07)}
+.seg{display:flex;gap:4px;margin-bottom:8px}
+.seg .btn{flex:1;min-height:30px;padding:6px 4px;font-size:10px;letter-spacing:.5px}
+.hint{font-size:9px;color:var(--text-dim);line-height:1.7;margin-top:8px}
+.preview-area{flex:1;position:relative;min-height:0;overflow:hidden;touch-action:none}
+#glCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;display:block}
+.overlay-info{position:absolute;left:10px;top:8px;font-size:9px;color:rgba(30,30,40,.55);letter-spacing:1px;pointer-events:none}
+.overlay-info.dark{color:rgba(220,220,235,.45)}
+.overlay-anim{position:absolute;right:10px;top:8px;font-size:9px;letter-spacing:1px;color:var(--accent);pointer-events:none;text-align:right;line-height:1.6}
+.controls-bar{display:flex;align-items:center;gap:6px;padding:7px 10px;border-top:1px solid var(--border);background:var(--surface);flex-wrap:wrap;flex-shrink:0}
+.controls-bar .param-select{flex:0 0 auto}
+.controls-bar .mini{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--text-dim)}
+.controls-bar .mini input{width:70px}
+.face-strip{border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:6px;padding:7px 10px;overflow-x:auto;flex-shrink:0}
+.face-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:1px solid var(--border);border-radius:3px;padding:4px 4px 3px;background:var(--surface2);font-family:inherit;color:var(--text-dim)}
+.face-chip canvas{width:40px;height:40px;image-rendering:pixelated;display:block}
+.face-chip span{font-size:8px;letter-spacing:.3px}
+.face-chip.active{border-color:var(--accent);color:var(--accent)}
+.face-chip.auto{justify-content:center;width:50px;height:58px;font-size:9px}
+.info-table{width:100%;font-size:10px;border-collapse:collapse}
+.info-table td{padding:4px 0;border-bottom:1px solid var(--border)}
+.info-table td:first-child{color:var(--text-dim)}
+.info-table td:last-child{text-align:right;color:var(--accent)}
+#log{max-height:170px;overflow-y:auto;font-size:9px;color:var(--text-dim);line-height:1.7}
+#log div span{color:var(--text-muted);margin-right:6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--accent);color:#04140b;font-size:11px;font-weight:600;padding:9px 16px;border-radius:3px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.toast.err{background:var(--accent2);color:#fff}
+.collapse-toggle{display:none}
+.hidden{display:none!important}
+.modal{position:fixed;inset:0;background:rgba(4,4,8,.72);display:flex;align-items:center;justify-content:center;z-index:40}
+.modal-box{background:var(--surface);border:1px solid var(--border-hi);border-radius:4px;padding:14px;max-width:96vw;max-height:94vh;overflow:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
+.modal-head b{font-size:11px;letter-spacing:2px;color:var(--accent)}
+#editCanvas{display:block;image-rendering:pixelated;cursor:crosshair;touch-action:none;margin:0 auto;background:#888}
+.pal{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.pal button{width:28px;height:28px;border-radius:3px;border:1px solid var(--border-hi);cursor:pointer;position:relative}
+.pal button.on{outline:2px solid var(--accent);outline-offset:1px}
+.pal button.erase{background:repeating-conic-gradient(#555 0 25%,#333 0 50%) 0 0/8px 8px}
+.pal input[type=color]{width:34px;height:28px}
+#sprPrev{width:128px;height:128px;image-rendering:pixelated;display:block;margin:0 auto;background:repeating-conic-gradient(#1c1c26 0 25%,#14141b 0 50%) 0 0/12px 12px}
+@media (max-width:1024px){
+  body{overflow:auto}
+  .app{height:auto;min-height:100vh}
+  main{display:flex;flex-direction:column}
+  .panel-center{order:1;height:64vh;min-height:380px;position:sticky;top:0;z-index:5}
+  .panel-left{order:2;border-right:0}
+  .panel-right{order:3;border-left:0}
+  .panel{overflow:visible}
+  .collapse-toggle{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;font-size:10px;letter-spacing:2px;color:var(--text-dim);border-bottom:1px solid var(--border);background:var(--surface2);cursor:pointer}
+  .panel.collapsed>.section,.panel.collapsed>.mode-tabs,.panel.collapsed>.tabbody{display:none}
+}
+@media (max-width:600px){
+  .section{padding:11px 12px}
+  .panel-center{height:62vh}
+  .controls-bar{gap:5px;padding:6px 8px}
+  .controls-bar .mini input{width:56px}
+  .face-chip canvas{width:34px;height:34px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>CHARA VOXEL FORGE<small>v1.0</small></h1>
+    <div style="display:flex;align-items:center;gap:10px"><select class="param-select" id="langSel" style="flex:0 0 auto;font-size:10px;padding:3px 4px"></select><div id="statusText">READY</div></div>
+  </header>
+  <div class="progress"><i id="progressFill"></i></div>
+  <main>
+    <!-- LEFT -->
+    <div class="panel panel-left" id="panelLeft">
+      <div class="collapse-toggle" data-target="panelLeft">キャラ設定<span>▾</span></div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-cat="human">人間</button>
+        <button class="mode-tab" data-cat="animal">動物</button>
+        <button class="mode-tab" data-cat="monster">モンスター</button>
+      </div>
+
+      <!-- HUMAN -->
+      <div class="tabbody" id="tab_human">
+        <div class="section">
+          <div class="section-title"><i></i>年齢・性別</div>
+          <div class="seg" id="segAge"></div>
+          <div class="seg" id="segGender"></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="b"></i>職業・衣装</div>
+          <div class="templates-grid g3" id="jobGrid"></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="c"></i>体型</div>
+          <div class="param-row"><span class="param-label">頭身</span><input class="param-slider" id="h_heads" type="range" min="20" max="70" value="42"><span class="param-value" id="v_heads">4.2</span></div>
+          <div class="param-row"><span class="param-label">サイズ</span><input class="param-slider" id="h_scale" type="range" min="70" max="150" value="100"><span class="param-value" id="v_scale">100</span></div>
+          <div class="param-row"><span class="param-label">体格</span><input class="param-slider" id="h_build" type="range" min="0" max="100" value="40"><span class="param-value" id="v_build">40</span></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="p"></i>外見・装備</div>
+          <div class="param-row"><span class="param-label">髪型</span><select class="param-select" id="h_hair"></select></div>
+          <div class="param-row"><span class="param-label">帽子</span><select class="param-select" id="h_hat"></select></div>
+          <div class="param-row"><span class="param-label">ひげ</span><select class="param-select" id="h_beard"></select></div>
+          <div class="param-row"><span class="param-label">耳</span><select class="param-select" id="h_ears"><option value="normal">ふつう</option><option value="pointy">とがり耳</option><option value="none">なし</option></select></div>
+          <div class="param-row"><span class="param-label">ボトム</span><select class="param-select" id="h_bottom"><option value="auto">自動（職業）</option><option value="pants">パンツ</option><option value="shorts">ショート</option><option value="skirt">スカート</option><option value="robe">ローブ</option></select></div>
+          <div class="param-row"><span class="param-label">武器</span><select class="param-select" id="h_weapon"></select></div>
+          <div class="param-row"><span class="param-label">盾</span><select class="param-select" id="h_shield"><option value="auto">自動（職業）</option><option value="1">あり</option><option value="0">なし</option></select></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="o"></i>カラー</div>
+          <div class="color-grid" id="h_colors"></div>
+          <div class="swatches" id="skinSw"></div>
+          <div class="btn-group" style="margin-top:9px"><button class="btn btn-sm" id="h_pal">配色ランダム</button></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="r"></i>ランダム</div>
+          <div class="param-row"><input class="num-input" id="h_seed" type="number" value="1"><button class="btn btn-accent" id="h_rand" style="flex:1">ランダム生成</button></div>
+          <div class="hint">年齢・性別・職業・髪型・配色をまとめて振り直します。</div>
+        </div>
+      </div>
+
+      <!-- ANIMAL -->
+      <div class="tabbody hidden" id="tab_animal">
+        <div class="section">
+          <div class="section-title"><i></i>種類</div>
+          <div class="templates-grid" id="animalGrid"></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="c"></i>体型</div>
+          <div class="param-row"><span class="param-label">サイズ</span><input class="param-slider" id="a_size" type="range" min="60" max="160" value="100"><span class="param-value" id="v_asize">100</span></div>
+          <div class="param-row"><span class="param-label">脚の長さ</span><input class="param-slider" id="a_leg" type="range" min="60" max="150" value="100"><span class="param-value" id="v_aleg">100</span></div>
+          <div class="param-row"><span class="param-label">模様</span><select class="param-select" id="a_pattern"><option value="none">標準</option><option value="spots">ぶち</option><option value="stripes">しま</option></select></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="o"></i>カラー</div>
+          <div class="color-grid" id="a_colors"></div>
+          <div class="btn-group" style="margin-top:9px"><button class="btn btn-sm" id="a_pal">配色ランダム</button><button class="btn btn-sm" id="a_reset">標準色</button></div>
+        </div>
+      </div>
+
+      <!-- MONSTER -->
+      <div class="tabbody hidden" id="tab_monster">
+        <div class="section">
+          <div class="section-title"><i></i>種類</div>
+          <div class="templates-grid" id="monsterGrid"></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="c"></i>調整</div>
+          <div class="param-row"><span class="param-label">サイズ</span><input class="param-slider" id="m_size" type="range" min="60" max="180" value="100"><span class="param-value" id="v_msize">100</span></div>
+          <div class="param-row" id="m_varRow"><span class="param-label">バリエーション</span><select class="param-select" id="m_var"><option value="normal">ノーマル</option><option value="king">キング（王冠）</option></select></div>
+          <div class="param-row" id="m_wRow"><span class="param-label">武器</span><select class="param-select" id="m_weapon"></select></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><i class="o"></i>カラー</div>
+          <div class="color-grid" id="m_colors"></div>
+          <div class="btn-group" style="margin-top:9px"><button class="btn btn-sm" id="m_pal">配色ランダム</button><button class="btn btn-sm" id="m_reset">標準色</button></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="b"></i>表示</div>
+        <label class="check-row"><input type="checkbox" id="p_grain" checked>ドット質感（微ノイズ）</label>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="panel-center">
+      <div class="preview-area" id="previewArea">
+        <canvas id="glCanvas"></canvas>
+        <div class="overlay-info" id="overlayInfo">DRAG: 回転 / PINCH・WHEEL: ズーム</div>
+        <div class="overlay-anim" id="overlayAnim"></div>
+      </div>
+      <div class="controls-bar">
+        <select class="param-select" id="p_anim"></select>
+        <button class="btn btn-sm on" id="btnPlay">再生中</button>
+        <span class="mini">速度<input class="param-slider" id="p_speed" type="range" min="10" max="200" value="100"></span>
+        <button class="btn btn-sm" id="btnBones">ボーン</button>
+        <button class="btn btn-sm" id="btnSpin">自動回転</button>
+        <select class="param-select" id="p_bg"><option value="dark">背景:ダーク</option><option value="light">背景:ライト</option><option value="blue">背景:ブルー</option><option value="green">背景:グリーン</option></select>
+        <span class="mini">ドット<input class="param-slider" id="p_pix" type="range" min="15" max="100" value="50"></span>
+      </div>
+      <div class="face-strip" id="faceStrip"></div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel panel-right" id="panelRight">
+      <div class="collapse-toggle" data-target="panelRight">出力・情報<span>▾</span></div>
+      <div class="section">
+        <div class="section-title"><i></i>出力設定</div>
+        <div class="param-row"><span class="param-label">スプライト方向</span><select class="param-select" id="o_dirs"><option value="1">1（正面）</option><option value="4">4</option><option value="8" selected>8</option></select></div>
+        <div class="param-row"><span class="param-label">スプライト寸法</span><select class="param-select" id="o_size"><option value="64">64px</option><option value="96" selected>96px</option><option value="128">128px</option><option value="192">192px</option></select></div>
+        <div class="param-row"><span class="param-label">コマ / 秒</span><select class="param-select" id="o_fps"><option value="8">8</option><option value="12" selected>12</option><option value="15">15</option><option value="24">24</option></select></div>
+        <div class="param-row"><span class="param-label">俯角</span><input class="param-slider" id="o_elev" type="range" min="0" max="75" value="30"><span class="param-value" id="v_elev">30</span></div>
+        <label class="check-row"><input type="checkbox" id="o_shadow">スプライトに影を入れる</label>
+        <div class="param-row"><span class="param-label">モデル寸法</span><select class="param-select" id="o_scale"><option value="0.0625">1voxel = 1/16 m</option><option value="0.1">1voxel = 0.1</option><option value="1">1voxel = 1</option></select></div>
+        <div class="btn-group" style="margin-bottom:6px"><button class="btn btn-accent" id="btnZip">ZIP一括出力</button></div>
+        <div class="btn-group">
+          <button class="btn btn-sm" id="btnGlb">GLB</button>
+          <button class="btn btn-sm" id="btnSprite">スプライトPNG</button>
+        </div>
+        <div class="btn-group" style="margin-top:5px">
+          <button class="btn btn-sm" id="btnAtlas">表情PNG</button>
+          <button class="btn btn-sm" id="btnVox">VOX</button>
+        </div>
+        <div class="btn-group" style="margin-top:5px">
+          <button class="btn btn-sm" id="btnJson">JSON保存</button>
+          <button class="btn btn-sm" id="btnJsonLoad">JSON読込</button>
+        </div>
+        <input type="file" id="jsonInput" accept=".json,application/json" hidden>
+        <div class="hint">ZIP：GLB（ボーン＋全モーション、Unity / Godot / Blender）・VOX・表情アトラス・モーション別スプライトシート・設定JSON・README</div>
+      </div>
+      <div class="section">
+        <div class="section-title"><i class="o"></i>スプライトプレビュー</div>
+        <canvas id="sprPrev" width="96" height="96"></canvas>
+        <div class="btn-group" style="margin-top:8px"><button class="btn btn-sm" id="btnSprPrev">現在のモーションで焼く</button></div>
+      </div>
+      <div class="section">
+        <div class="section-title"><i class="b"></i>モデル情報</div>
+        <table class="info-table">
+          <tr><td>リグ</td><td id="i_rig">-</td></tr>
+          <tr><td>ボーン数</td><td id="i_bones">-</td></tr>
+          <tr><td>ボクセル数</td><td id="i_vox">-</td></tr>
+          <tr><td>三角形数</td><td id="i_tris">-</td></tr>
+          <tr><td>モーション</td><td id="i_anims">-</td></tr>
+          <tr><td>表情</td><td id="i_expr">-</td></tr>
+          <tr><td>グリッド (W×H×D)</td><td id="i_grid">-</td></tr>
+        </table>
+      </div>
+      <div class="section">
+        <div class="section-title"><i class="r"></i>操作ログ</div>
+        <div id="log"></div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="modal hidden" id="faceModal">
+  <div class="modal-box">
+    <div class="modal-head"><b id="editTitle">表情を編集</b><button class="btn btn-sm" id="editClose">閉じる</button></div>
+    <canvas id="editCanvas"></canvas>
+    <div class="pal" id="editPal"></div>
+    <div class="btn-group" style="margin-top:10px"><button class="btn btn-sm" id="editReset">この表情を初期化</button><button class="btn btn-sm" id="editResetAll">全表情を初期化</button></div>
+    <div class="hint">ドラッグで塗り、市松は透明（肌が見えます）。編集は書き出しにも反映されます。</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* =========================================================
+   I18N (ja / en / zh-Hans / zh-Hant / ko / fr / de / ru / it)
+   ========================================================= */
+const LANGS=['ja','en','zh-Hans','zh-Hant','ko','fr','de','ru','it'];
+const LANG_NAMES={ja:'日本語',en:'English','zh-Hans':'简体中文','zh-Hant':'繁體中文',ko:'한국어',fr:'Français',de:'Deutsch',ru:'Русский',it:'Italiano'};
+const DICT_RAW=`人間|Human|人类|人類|인간|Humain|Mensch|Человек|Umano
+動物|Animal|动物|動物|동물|Animal|Tier|Животное|Animale
+モンスター|Monster|怪物|怪物|몬스터|Monstre|Monster|Монстр|Mostro
+キャラ設定|Character|角色设置|角色設定|캐릭터 설정|Personnage|Charakter|Персонаж|Personaggio
+年齢・性別|Age / Gender|年龄・性别|年齡・性別|나이・성별|Âge / Genre|Alter / Geschlecht|Возраст / Пол|Età / Genere
+子供|Child|儿童|兒童|어린이|Enfant|Kind|Ребёнок|Bambino
+若者|Young|青年|青年|청년|Jeune|Jung|Юный|Giovane
+大人|Adult|成人|成人|어른|Adulte|Erwachsen|Взрослый|Adulto
+老人|Elder|老人|老人|노인|Aîné|Senior|Пожилой|Anziano
+男性|Male|男性|男性|남성|Homme|Männlich|Мужской|Maschio
+女性|Female|女性|女性|여성|Femme|Weiblich|Женский|Femmina
+職業・衣装|Job / Outfit|职业・服装|職業・服裝|직업・의상|Métier / Tenue|Klasse / Outfit|Класс / Одежда|Classe / Abito
+私服|Casual|便装|便裝|평상복|Décontracté|Freizeit|Повседневный|Casual
+現代カジュアル|Modern casual|现代休闲|現代休閒|모던 캐주얼|Moderne|Modern lässig|Современный|Moderno
+村人|Villager|村民|村民|마을 사람|Villageois|Dorfbewohner|Житель|Paesano
+チュニック|Tunic|束腰外衣|束腰外衣|튜닉|Tunique|Tunika|Туника|Tunica
+剣士|Swordsman|剑士|劍士|검사|Épéiste|Schwertkämpfer|Мечник|Spadaccino
+片手剣|One-handed sword|单手剑|單手劍|한손검|Épée à une main|Einhandschwert|Одноручный меч|Spada a una mano
+騎士|Knight|骑士|騎士|기사|Chevalier|Ritter|Рыцарь|Cavaliere
+鎧＋盾|Armor + shield|铠甲＋盾|鎧甲＋盾|갑옷＋방패|Armure + bouclier|Rüstung + Schild|Доспех + щит|Armatura + scudo
+魔法使い|Mage|魔法师|魔法師|마법사|Mage|Magier|Маг|Mago
+ローブ＋杖|Robe + staff|长袍＋法杖|長袍＋法杖|로브＋지팡이|Robe + bâton|Robe + Stab|Мантия + посох|Tunica + bastone
+盗賊|Thief|盗贼|盜賊|도적|Voleur|Dieb|Вор|Ladro
+フード＋短剣|Hood + dagger|兜帽＋短剑|兜帽＋短劍|후드＋단검|Capuche + dague|Kapuze + Dolch|Капюшон + кинжал|Cappuccio + pugnale
+弓使い|Archer|弓箭手|弓箭手|궁수|Archer|Bogenschütze|Лучник|Arciere
+弓＋矢筒|Bow + quiver|弓＋箭筒|弓＋箭筒|활＋화살통|Arc + carquois|Bogen + Köcher|Лук + колчан|Arco + faretra
+僧侶|Healer|治疗师|治療師|힐러|Soigneur|Heiler|Целитель|Guaritore
+白ローブ|White robe|白袍|白袍|흰 로브|Robe blanche|Weiße Robe|Белая мантия|Tunica bianca
+商人|Merchant|商人|商人|상인|Marchand|Händler|Торговец|Mercante
+エプロン|Apron|围裙|圍裙|앞치마|Tablier|Schürze|Фартук|Grembiule
+武闘家|Martial artist|武斗家|武鬥家|무도가|Combattant|Kampfkünstler|Боец|Lottatore
+道着＋素手|Gi + bare hands|道服＋空手|道服＋空手|도복＋맨손|Kimono + mains nues|Gi + bloße Hände|Ги + без оружия|Gi + mani nude
+忍者|Ninja|忍者|忍者|닌자|Ninja|Ninja|Ниндзя|Ninja
+覆面＋短刀|Mask + short blade|蒙面＋短刀|蒙面＋短刀|복면＋단도|Masque + lame courte|Maske + Kurzklinge|Маска + клинок|Maschera + lama corta
+体型|Body|体型|體型|체형|Silhouette|Körper|Телосложение|Corporatura
+頭身|Head ratio|头身比|頭身比|등신|Proportion tête|Kopfverhältnis|Пропорции|Proporzione testa
+サイズ|Size|尺寸|尺寸|크기|Taille|Größe|Размер|Dimensione
+体格|Build|体格|體格|체격|Carrure|Statur|Комплекция|Corporatura
+外見・装備|Look / Gear|外观・装备|外觀・裝備|외형・장비|Apparence / Équipement|Aussehen / Ausrüstung|Внешность / Снаряжение|Aspetto / Equipaggiamento
+髪型|Hair|发型|髮型|헤어|Coiffure|Frisur|Причёска|Capelli
+帽子|Hat|帽子|帽子|모자|Chapeau|Hut|Головной убор|Cappello
+ひげ|Beard|胡子|鬍子|수염|Barbe|Bart|Борода|Barba
+耳|Ears|耳朵|耳朵|귀|Oreilles|Ohren|Уши|Orecchie
+ボトム|Bottom|下装|下裝|하의|Bas|Unterteil|Низ|Parte inferiore
+武器|Weapon|武器|武器|무기|Arme|Waffe|Оружие|Arma
+盾|Shield|盾|盾|방패|Bouclier|Schild|Щит|Scudo
+ふつう|Normal|普通|普通|보통|Normales|Normal|Обычные|Normali
+とがり耳|Pointed|尖耳|尖耳|뾰족 귀|Pointues|Spitz|Острые|A punta
+なし|None|无|無|없음|Aucun|Keine|Нет|Nessuno
+自動（職業）|Auto (job)|自动（职业）|自動（職業）|자동（직업）|Auto (métier)|Auto (Klasse)|Авто (класс)|Auto (classe)
+パンツ|Pants|长裤|長褲|바지|Pantalon|Hose|Брюки|Pantaloni
+ショート|Shorts|短裤|短褲|반바지|Short|Shorts|Шорты|Pantaloncini
+スカート|Skirt|裙子|裙子|치마|Jupe|Rock|Юбка|Gonna
+ローブ|Robe|长袍|長袍|로브|Robe|Robe|Мантия|Tunica
+あり|Yes|有|有|있음|Oui|Ja|Да|Sì
+カラー|Colors|颜色|顏色|색상|Couleurs|Farben|Цвета|Colori
+肌|Skin|皮肤|皮膚|피부|Peau|Haut|Кожа|Pelle
+髪|Hair|头发|頭髮|머리|Cheveux|Haare|Волосы|Capelli
+目|Eyes|眼睛|眼睛|눈|Yeux|Augen|Глаза|Occhi
+服|Top|上衣|上衣|상의|Haut|Oberteil|Верх|Maglia
+アクセント|Accent|强调色|強調色|포인트|Accent|Akzent|Акцент|Accento
+靴|Shoes|鞋|鞋|신발|Chaussures|Schuhe|Обувь|Scarpe
+金属|Metal|金属|金屬|금속|Métal|Metall|Металл|Metallo
+肌色|Skin tone|肤色|膚色|피부색|Teint|Hautton|Тон кожи|Carnagione
+配色ランダム|Random colors|随机配色|隨機配色|랜덤 색상|Couleurs aléatoires|Zufallsfarben|Случайные цвета|Colori casuali
+ランダム|Random|随机|隨機|랜덤|Aléatoire|Zufall|Случайно|Casuale
+ランダム生成|Randomize|随机生成|隨機生成|랜덤 생성|Générer au hasard|Zufällig erzeugen|Сгенерировать|Genera a caso
+年齢・性別・職業・髪型・配色をまとめて振り直します。|Rerolls age, gender, job, hair and colors at once.|一次性重新随机年龄、性别、职业、发型和配色。|一次重新隨機年齡、性別、職業、髮型與配色。|나이・성별・직업・헤어・색상을 한 번에 다시 뽑습니다.|Retire âge, genre, métier, coiffure et couleurs.|Würfelt Alter, Geschlecht, Klasse, Frisur und Farben neu.|Заново выбирает возраст, пол, класс, причёску и цвета.|Rigenera età, genere, classe, capelli e colori.
+種類|Type|种类|種類|종류|Type|Art|Вид|Tipo
+脚の長さ|Leg length|腿长|腿長|다리 길이|Longueur des pattes|Beinlänge|Длина ног|Lunghezza zampe
+模様|Pattern|花纹|花紋|무늬|Motif|Muster|Узор|Motivo
+標準|Default|标准|標準|기본|Standard|Standard|Стандарт|Standard
+ぶち|Spots|斑点|斑點|얼룩|Taches|Flecken|Пятна|Macchie
+しま|Stripes|条纹|條紋|줄무늬|Rayures|Streifen|Полосы|Strisce
+メイン|Main|主色|主色|메인|Principal|Haupt|Основной|Principale
+サブ|Sub|副色|副色|서브|Secondaire|Neben|Доп.|Secondario
+標準色|Default colors|默认颜色|預設顏色|기본 색상|Couleurs d'origine|Standardfarben|Исходные цвета|Colori originali
+調整|Adjust|调整|調整|조정|Réglages|Anpassen|Настройка|Regola
+バリエーション|Variant|变体|變體|변형|Variante|Variante|Вариант|Variante
+ノーマル|Normal|普通|普通|노멀|Normal|Normal|Обычный|Normale
+キング（王冠）|King (crown)|国王（王冠）|國王（王冠）|킹（왕관）|Roi (couronne)|König (Krone)|Король (корона)|Re (corona)
+表示|View|显示|顯示|표시|Affichage|Ansicht|Вид|Vista
+ドット質感（微ノイズ）|Pixel texture (fine noise)|像素质感（微噪点）|像素質感（微雜訊）|도트 질감（미세 노이즈）|Texture pixel (bruit fin)|Pixeltextur (feines Rauschen)|Пиксельная текстура|Texture pixel (rumore fine)
+DRAG: 回転 / PINCH・WHEEL: ズーム|DRAG: rotate / PINCH・WHEEL: zoom|拖动：旋转 / 双指・滚轮：缩放|拖曳：旋轉 / 雙指・滾輪：縮放|드래그: 회전 / 핀치・휠: 확대|GLISSER : tourner / PINCER・MOLETTE : zoom|ZIEHEN: drehen / PINCH・RAD: Zoom|ТЯНИТЕ: вращение / ЩИПОК・КОЛЕСО: масштаб|TRASCINA: ruota / PIZZICA・ROTELLA: zoom
+再生中|Playing|播放中|播放中|재생 중|Lecture|Läuft|Воспроизведение|In riproduzione
+停止中|Paused|已暂停|已暫停|정지|Pause|Pausiert|Пауза|In pausa
+速度|Speed|速度|速度|속도|Vitesse|Tempo|Скорость|Velocità
+ボーン|Bones|骨骼|骨骼|본|Os|Knochen|Кости|Ossa
+自動回転|Auto rotate|自动旋转|自動旋轉|자동 회전|Rotation auto|Auto-Drehung|Автоповорот|Rotazione auto
+背景:ダーク|BG: Dark|背景：暗|背景：暗|배경: 다크|Fond : sombre|Hgr: Dunkel|Фон: тёмный|Sfondo: scuro
+背景:ライト|BG: Light|背景：亮|背景：亮|배경: 라이트|Fond : clair|Hgr: Hell|Фон: светлый|Sfondo: chiaro
+背景:ブルー|BG: Blue|背景：蓝|背景：藍|배경: 블루|Fond : bleu|Hgr: Blau|Фон: синий|Sfondo: blu
+背景:グリーン|BG: Green|背景：绿幕|背景：綠幕|배경: 그린|Fond : vert|Hgr: Grün|Фон: зелёный|Sfondo: verde
+ドット|Pixel|像素|像素|도트|Pixel|Pixel|Пиксели|Pixel
+出力・情報|Export / Info|导出・信息|匯出・資訊|출력・정보|Export / Infos|Export / Info|Экспорт / Инфо|Esporta / Info
+出力設定|Export settings|导出设置|匯出設定|출력 설정|Réglages d'export|Export-Einstellungen|Настройки экспорта|Impostazioni esportazione
+スプライト方向|Sprite dirs|精灵方向|精靈方向|스프라이트 방향|Directions|Richtungen|Направления|Direzioni
+1（正面）|1 (front)|1（正面）|1（正面）|1（정면）|1 (face)|1 (vorne)|1 (спереди)|1 (fronte)
+スプライト寸法|Sprite size|精灵尺寸|精靈尺寸|스프라이트 크기|Taille sprite|Sprite-Größe|Размер спрайта|Dimensione sprite
+コマ / 秒|Frames / sec|帧 / 秒|幀 / 秒|프레임 / 초|Images / s|Bilder / s|Кадров / с|Fotogrammi / s
+俯角|Camera angle|俯角|俯角|부감 각도|Angle caméra|Kamerawinkel|Угол камеры|Angolo camera
+スプライトに影を入れる|Add shadow to sprites|精灵加阴影|精靈加陰影|스프라이트에 그림자|Ombre sur les sprites|Schatten in Sprites|Тень в спрайтах|Ombra negli sprite
+モデル寸法|Model scale|模型尺寸|模型尺寸|모델 크기|Échelle modèle|Modellmaßstab|Масштаб модели|Scala modello
+ZIP一括出力|Export all (ZIP)|ZIP全部导出|ZIP全部匯出|ZIP 일괄 출력|Tout exporter (ZIP)|Alles exportieren (ZIP)|Экспорт всего (ZIP)|Esporta tutto (ZIP)
+スプライトPNG|Sprite PNG|精灵PNG|精靈PNG|스프라이트 PNG|Sprite PNG|Sprite-PNG|Спрайт PNG|Sprite PNG
+表情PNG|Face PNG|表情PNG|表情PNG|표정 PNG|Visages PNG|Gesichter-PNG|Лица PNG|Volti PNG
+JSON保存|Save JSON|保存JSON|儲存JSON|JSON 저장|Enregistrer JSON|JSON speichern|Сохранить JSON|Salva JSON
+JSON読込|Load JSON|读取JSON|讀取JSON|JSON 불러오기|Charger JSON|JSON laden|Загрузить JSON|Carica JSON
+ZIP：GLB（ボーン＋全モーション、Unity / Godot / Blender）・VOX・表情アトラス・モーション別スプライトシート・設定JSON・README|ZIP: GLB (bones + all motions, Unity / Godot / Blender), VOX, face atlas, sprite sheet per motion, settings JSON, README|ZIP：GLB（骨骼＋全部动作，Unity / Godot / Blender）・VOX・表情图集・各动作精灵表・设置JSON・README|ZIP：GLB（骨骼＋全部動作，Unity / Godot / Blender）・VOX・表情圖集・各動作精靈表・設定JSON・README|ZIP: GLB（본＋전체 모션, Unity / Godot / Blender）・VOX・표정 아틀라스・모션별 스프라이트 시트・설정 JSON・README|ZIP : GLB (os + toutes les animations, Unity / Godot / Blender), VOX, atlas des visages, planches par animation, JSON, README|ZIP: GLB (Knochen + alle Animationen, Unity / Godot / Blender), VOX, Gesichtsatlas, Sprite-Sheets je Animation, JSON, README|ZIP: GLB (кости + все анимации, Unity / Godot / Blender), VOX, атлас лиц, спрайт-листы, JSON, README|ZIP: GLB (ossa + tutte le animazioni, Unity / Godot / Blender), VOX, atlante volti, sprite sheet per animazione, JSON, README
+スプライトプレビュー|Sprite preview|精灵预览|精靈預覽|스프라이트 미리보기|Aperçu sprite|Sprite-Vorschau|Превью спрайта|Anteprima sprite
+現在のモーションで焼く|Bake current motion|烘焙当前动作|烘焙目前動作|현재 모션으로 굽기|Générer l'animation|Aktuelle Animation rendern|Запечь текущую анимацию|Genera animazione attuale
+モデル情報|Model info|模型信息|模型資訊|모델 정보|Infos modèle|Modellinfo|Информация|Info modello
+リグ|Rig|骨架|骨架|리그|Rig|Rig|Риг|Rig
+ボーン数|Bones|骨骼数|骨骼數|본 수|Os|Knochen|Костей|Ossa
+ボクセル数|Voxels|体素数|體素數|복셀 수|Voxels|Voxel|Вокселей|Voxel
+三角形数|Triangles|三角形数|三角形數|삼각형 수|Triangles|Dreiecke|Треугольников|Triangoli
+モーション|Motions|动作|動作|모션|Animations|Animationen|Анимации|Animazioni
+表情|Faces|表情|表情|표정|Visages|Gesichter|Эмоции|Espressioni
+グリッド (W×H×D)|Grid (W×H×D)|网格 (W×H×D)|網格 (W×H×D)|그리드 (W×H×D)|Grille (L×H×P)|Raster (B×H×T)|Сетка (Ш×В×Г)|Griglia (L×A×P)
+操作ログ|Log|操作日志|操作紀錄|작업 로그|Journal|Protokoll|Журнал|Registro
+表情を編集|Edit face|编辑表情|編輯表情|표정 편집|Éditer le visage|Gesicht bearbeiten|Редактировать лицо|Modifica volto
+表情を編集：|Edit face: |编辑表情：|編輯表情：|표정 편집: |Éditer : |Bearbeiten: |Лицо: |Modifica: 
+閉じる|Close|关闭|關閉|닫기|Fermer|Schließen|Закрыть|Chiudi
+この表情を初期化|Reset this face|重置此表情|重設此表情|이 표정 초기화|Réinitialiser ce visage|Dieses zurücksetzen|Сбросить это|Ripristina questo
+全表情を初期化|Reset all faces|重置全部表情|重設全部表情|모든 표정 초기화|Tout réinitialiser|Alle zurücksetzen|Сбросить все|Ripristina tutti
+ドラッグで塗り、市松は透明（肌が見えます）。編集は書き出しにも反映されます。|Drag to paint. Checkered = transparent (skin shows). Edits are included in exports.|拖动涂色，棋盘格为透明（显示皮肤）。编辑会反映到导出中。|拖曳塗色，棋盤格為透明（顯示皮膚）。編輯會反映到匯出。|드래그로 칠하기. 체크무늬는 투명(피부가 보임). 편집은 출력에도 반영됩니다.|Glissez pour peindre. Damier = transparent (peau visible). Inclus dans l'export.|Zum Malen ziehen. Karo = transparent (Haut sichtbar). Wird mit exportiert.|Рисуйте перетаскиванием. Клетка = прозрачно. Правки попадают в экспорт.|Trascina per dipingere. Scacchiera = trasparente. Le modifiche vengono esportate.
+透明|Transparent|透明|透明|투명|Transparent|Transparent|Прозрачно|Trasparente
+自動|Auto|自动|自動|자동|Auto|Auto|Авто|Auto
+通常|Neutral|普通|普通|기본|Neutre|Neutral|Обычное|Neutro
+まばたき|Blink|眨眼|眨眼|눈 깜빡|Clin d'œil|Blinzeln|Моргание|Battito
+笑顔|Smile|微笑|微笑|미소|Sourire|Lächeln|Улыбка|Sorriso
+大笑い|Laugh|大笑|大笑|큰 웃음|Rire|Lachen|Смех|Risata
+会話|Talk|对话|對話|대화|Parler|Reden|Разговор|Parlare
+怒り|Angry|生气|生氣|화남|Colère|Wütend|Гнев|Rabbia
+悲しみ|Sad|悲伤|悲傷|슬픔|Triste|Traurig|Грусть|Tristezza
+驚き|Surprise|惊讶|驚訝|놀람|Surprise|Überrascht|Удивление|Sorpresa
+ダメージ|Hurt|受伤|受傷|대미지|Blessé|Getroffen|Урон|Colpito
+照れ|Shy|害羞|害羞|부끄러움|Timide|Verlegen|Смущение|Timido
+戦闘不能|Knocked out|战斗不能|戰鬥不能|전투 불능|K.O.|K.O.|Нокаут|K.O.
+待機|Idle|待机|待機|대기|Repos|Idle|Ожидание|Attesa
+歩き|Walk|行走|行走|걷기|Marche|Gehen|Ходьба|Camminata
+走り|Run|奔跑|奔跑|달리기|Course|Laufen|Бег|Corsa
+ジャンプ|Jump|跳跃|跳躍|점프|Saut|Sprung|Прыжок|Salto
+斬り|Slash|斩击|斬擊|베기|Taillade|Hieb|Удар мечом|Fendente
+突き|Thrust|突刺|突刺|찌르기|Estoc|Stich|Выпад|Affondo
+魔法|Magic|魔法|魔法|마법|Magie|Magie|Магия|Magia
+射撃|Shoot|射击|射擊|사격|Tir|Schuss|Выстрел|Tiro
+防御|Guard|防御|防禦|방어|Garde|Abwehr|Защита|Guardia
+被弾|Hit|受击|受擊|피격|Touché|Treffer|Попадание|Colpito
+勝利|Victory|胜利|勝利|승리|Victoire|Sieg|Победа|Vittoria
+かみつき|Bite|啃咬|啃咬|물기|Morsure|Biss|Укус|Morso
+おすわり|Sit|坐下|坐下|앉아|Assis|Sitz|Сидеть|Seduto
+飛行|Fly|飞行|飛行|비행|Vol|Flug|Полёт|Volo
+待機（ホバー）|Idle (hover)|待机（悬停）|待機（懸停）|대기（호버）|Repos (vol stationnaire)|Idle (schweben)|Ожидание (парение)|Attesa (librarsi)
+急降下|Dive|俯冲|俯衝|급강하|Piqué|Sturzflug|Пикирование|Picchiata
+移動|Move|移动|移動|이동|Déplacement|Bewegen|Движение|Movimento
+体当たり|Tackle|冲撞|衝撞|몸통 박치기|Charge|Rempler|Таран|Carica
+ショートヘア|Short|短发|短髮|숏컷|Court|Kurz|Короткая|Corti
+ボブ|Bob|波波头|鮑伯頭|단발|Carré|Bob|Каре|Caschetto
+ロング|Long|长发|長髮|롱|Long|Lang|Длинные|Lunghi
+姫カット|Hime cut|公主切|公主切|히메컷|Coupe hime|Hime-Schnitt|Химэ|Taglio hime
+ポニーテール|Ponytail|马尾|馬尾|포니테일|Queue de cheval|Pferdeschwanz|Хвост|Coda
+ツインテール|Twin tails|双马尾|雙馬尾|트윈테일|Couettes|Zöpfe|Два хвостика|Codini
+お団子|Bun|丸子头|丸子頭|번 헤어|Chignon|Dutt|Пучок|Chignon
+ツンツン|Spiky|刺猬头|刺蝟頭|삐죽머리|Hérissés|Stachelig|Ёжик|A punte
+アフロ|Afro|爆炸头|爆炸頭|아프로|Afro|Afro|Афро|Afro
+モヒカン|Mohawk|莫西干|莫西干|모히칸|Iroquoise|Irokese|Ирокез|Moicano
+坊主|Buzz cut|寸头|平頭|까까머리|Rasé court|Kurzhaar|Под ноль|Rasato
+薄毛|Thinning|稀疏|稀疏|탈모|Dégarni|Licht|Залысины|Diradati
+スキンヘッド|Bald|光头|光頭|민머리|Chauve|Glatze|Лысый|Calvo
+兜|Helmet|头盔|頭盔|투구|Casque|Helm|Шлем|Elmo
+とんがり帽子|Pointy hat|尖帽|尖帽|뾰족 모자|Chapeau pointu|Spitzhut|Остроконечная шляпа|Cappello a punta
+フード|Hood|兜帽|兜帽|후드|Capuche|Kapuze|Капюшон|Cappuccio
+羽根帽子|Feather cap|羽毛帽|羽毛帽|깃털 모자|Chapeau à plume|Federhut|Шляпа с пером|Cappello piumato
+バンダナ|Bandana|头巾|頭巾|반다나|Bandana|Bandana|Бандана|Bandana
+はちまき|Headband|头带|頭帶|머리띠|Bandeau|Stirnband|Повязка|Fascia
+王冠|Crown|王冠|王冠|왕관|Couronne|Krone|Корона|Corona
+麦わら帽子|Straw hat|草帽|草帽|밀짚모자|Chapeau de paille|Strohhut|Соломенная шляпа|Cappello di paglia
+覆面|Mask|蒙面|蒙面|복면|Masque|Maske|Маска|Maschera
+ツノ|Horns|角|角|뿔|Cornes|Hörner|Рога|Corna
+なし（素手）|None (bare hands)|无（空手）|無（空手）|없음（맨손）|Aucune (mains nues)|Keine (Hände)|Нет (кулаки)|Nessuna (mani nude)
+剣|Sword|剑|劍|검|Épée|Schwert|Меч|Spada
+短剣|Dagger|短剑|短劍|단검|Dague|Dolch|Кинжал|Pugnale
+槍|Spear|枪|槍|창|Lance|Speer|Копьё|Lancia
+斧|Axe|斧|斧|도끼|Hache|Axt|Топор|Ascia
+こん棒|Club|棍棒|棍棒|곤봉|Massue|Keule|Дубина|Clava
+杖|Staff|法杖|法杖|지팡이|Bâton|Stab|Посох|Bastone
+弓|Bow|弓|弓|활|Arc|Bogen|Лук|Arco
+ステッキ|Cane|手杖|手杖|지팡이(노인)|Canne|Gehstock|Трость|Bastone da passeggio
+口ひげ|Mustache|小胡子|小鬍子|콧수염|Moustache|Schnurrbart|Усы|Baffi
+あごひげ|Goatee|山羊胡|山羊鬍|턱수염|Bouc|Spitzbart|Бородка|Pizzetto
+たっぷりひげ|Full beard|大胡子|大鬍子|풍성한 수염|Barbe fournie|Vollbart|Густая борода|Barba folta
+イヌ|Dog|狗|狗|개|Chien|Hund|Собака|Cane
+柴犬|Shiba-like|柴犬风|柴犬風|시바견풍|Style shiba|Shiba-Stil|Сиба|Stile shiba
+ネコ|Cat|猫|貓|고양이|Chat|Katze|Кошка|Gatto
+しましま|Striped|条纹|條紋|줄무늬|Rayé|Gestreift|Полосатая|A strisce
+オオカミ|Wolf|狼|狼|늑대|Loup|Wolf|Волк|Lupo
+灰色|Gray|灰色|灰色|회색|Gris|Grau|Серый|Grigio
+クマ|Bear|熊|熊|곰|Ours|Bär|Медведь|Orso
+がっしり|Sturdy|健壮|健壯|튼튼|Costaud|Kräftig|Крепкий|Robusto
+ウマ|Horse|马|馬|말|Cheval|Pferd|Лошадь|Cavallo
+長い脚|Long legs|长腿|長腿|긴 다리|Longues pattes|Lange Beine|Длинные ноги|Zampe lunghe
+ブタ|Pig|猪|豬|돼지|Cochon|Schwein|Свинья|Maiale
+まんまる|Round|圆滚滚|圓滾滾|동글동글|Tout rond|Kugelrund|Круглый|Rotondo
+ウサギ|Rabbit|兔子|兔子|토끼|Lapin|Hase|Кролик|Coniglio
+長い耳|Long ears|长耳朵|長耳朵|긴 귀|Longues oreilles|Lange Ohren|Длинные уши|Orecchie lunghe
+コトリ|Bird|小鸟|小鳥|작은 새|Oiseau|Vogel|Птичка|Uccellino
+スライム|Slime|史莱姆|史萊姆|슬라임|Slime|Schleim|Слайм|Slime
+ぷるぷる|Wobbly|软乎乎|軟呼呼|말랑말랑|Gélatineux|Wabbelig|Желе|Gelatinoso
+ゴブリン|Goblin|哥布林|哥布林|고블린|Gobelin|Goblin|Гоблин|Goblin
+小鬼|Small fiend|小鬼|小鬼|작은 도깨비|Petit diablotin|Kleiner Kobold|Бесёнок|Folletto
+オーク|Orc|兽人|獸人|오크|Orc|Ork|Орк|Orco
+牙の戦士|Tusked warrior|獠牙战士|獠牙戰士|엄니 전사|Guerrier à défenses|Hauer-Krieger|Клыкастый воин|Guerriero con zanne
+スケルトン|Skeleton|骷髅|骷髏|스켈레톤|Squelette|Skelett|Скелет|Scheletro
+骨の剣士|Bone swordsman|骸骨剑士|骸骨劍士|해골 검사|Épéiste d'os|Knochenkrieger|Костяной мечник|Spadaccino d'ossa
+ゴーレム|Golem|魔像|魔像|골렘|Golem|Golem|Голем|Golem
+岩の巨人|Rock giant|岩石巨人|岩石巨人|바위 거인|Géant de pierre|Felsriese|Каменный гигант|Gigante di roccia
+ドラゴン|Dragon|龙|龍|드래곤|Dragon|Drache|Дракон|Drago
+翼と尾|Wings & tail|翅膀与尾巴|翅膀與尾巴|날개와 꼬리|Ailes et queue|Flügel & Schwanz|Крылья и хвост|Ali e coda
+コウモリ|Bat|蝙蝠|蝙蝠|박쥐|Chauve-souris|Fledermaus|Летучая мышь|Pipistrello
+ゴースト|Ghost|幽灵|幽靈|유령|Fantôme|Geist|Призрак|Fantasma
+浮遊|Floating|漂浮|漂浮|부유|Flottant|Schwebend|Парящий|Fluttuante
+ミミック|Mimic|宝箱怪|寶箱怪|미믹|Mimic|Mimic|Мимик|Mimic
+宝箱|Chest|宝箱|寶箱|보물상자|Coffre|Truhe|Сундук|Forziere
+ヒューマノイド|Humanoid|人形|人形|휴머노이드|Humanoïde|Humanoid|Гуманоид|Umanoide
+四足|Quadruped|四足|四足|사족|Quadrupède|Vierbeiner|Четвероногий|Quadrupede
+GLBを書き出しました|GLB exported|GLB已导出|GLB已匯出|GLB를 출력했습니다|GLB exporté|GLB exportiert|GLB экспортирован|GLB esportato
+ZIPを書き出しました|ZIP exported|ZIP已导出|ZIP已匯出|ZIP을 출력했습니다|ZIP exporté|ZIP exportiert|ZIP экспортирован|ZIP esportato
+読み込みました|Loaded|已读取|已讀取|불러왔습니다|Chargé|Geladen|Загружено|Caricato
+JSONを読めませんでした|Could not read JSON|无法读取JSON|無法讀取JSON|JSON을 읽을 수 없습니다|JSON illisible|JSON nicht lesbar|Не удалось прочитать JSON|JSON non leggibile
+出力エラー: |Export error: |导出错误：|匯出錯誤：|출력 오류: |Erreur d'export : |Exportfehler: |Ошибка экспорта: |Errore esportazione: 
+生成エラー: |Generation error: |生成错误：|生成錯誤：|생성 오류: |Erreur de génération : |Erzeugungsfehler: |Ошибка генерации: |Errore generazione: 
+保存できませんでした（|Could not save (|无法保存（|無法儲存（|저장할 수 없습니다（|Échec de l'enregistrement (|Speichern fehlgeschlagen (|Не удалось сохранить (|Salvataggio non riuscito (
+`;
+function pickLang(){let Q=null;try{Q=new URLSearchParams(location.search)}catch(e){}
+  const l=((Q&&Q.get('lang'))||navigator.language||'ja').toLowerCase();
+  if(l.startsWith('zh'))return /(tw|hk|mo|hant)/.test(l)?'zh-Hant':'zh-Hans';
+  const b=l.split('-')[0];return LANGS.includes(b)?b:'en'}
+const LANG=pickLang();const TR={};
+if(LANG!=='ja'){const idx=LANGS.indexOf(LANG);for(const line of DICT_RAW.split('\n')){if(!line.trim())continue;const p=line.split('|');if(p[idx]!=null)TR[p[0]]=p[idx]}}
+const TKEYS=Object.keys(TR).sort((a,b)=>b.length-a.length);
+function T(s){if(LANG==='ja'||s==null)return s;return TR[s]!=null?TR[s]:s}
+function Tx(s){if(LANG==='ja'||s==null)return s;s=String(s);if(TR[s]!=null)return TR[s];for(const k of TKEYS){if(k.length>=2&&s.indexOf(k)>=0)s=s.split(k).join(TR[k])}return s}
+function translateDOM(root){
+  document.documentElement.lang=LANG;
+  if(LANG==='ja')return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  for(const n of nodes){const t=n.nodeValue.trim();if(t&&TR[t]!=null)n.nodeValue=n.nodeValue.replace(t,TR[t])}
+  root.querySelectorAll('[title]').forEach(e=>{const t=e.getAttribute('title');if(TR[t])e.setAttribute('title',TR[t])});
+}
+
+'use strict';
+/* =========================================================
+   UTIL
+   ========================================================= */
+const $ = id => document.getElementById(id);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hash3(x,y,z,s){let h=(x*374761393+y*668265263+z*2147483647+s*1274126177)|0;h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return (h>>>0)/4294967296}
+const hex2int = h => parseInt(h.slice(1),16);
+const int2hex = n => '#'+(n&0xffffff).toString(16).padStart(6,'0');
+function shade(c,f){const r=Math.min(255,Math.max(0,Math.round(((c>>16)&255)*f))),g=Math.min(255,Math.max(0,Math.round(((c>>8)&255)*f))),b=Math.min(255,Math.max(0,Math.round((c&255)*f)));return (r<<16)|(g<<8)|b}
+function mix(a,b,t){const r=((a>>16)&255)*(1-t)+((b>>16)&255)*t,g=((a>>8)&255)*(1-t)+((b>>8)&255)*t,bb=(a&255)*(1-t)+(b&255)*t;return (Math.round(r)<<16)|(Math.round(g)<<8)|Math.round(bb)}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const even=v=>{v=Math.round(v);return v%2?v+1:v};
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>t*t*(3-2*t);
+const seg=(p,a,b)=>clamp((p-a)/(b-a),0,1);
+// keyframe track: [[t,v],...] with smoothstep between keys
+function kf(p,keys){
+  if(p<=keys[0][0])return keys[0][1];
+  for(let i=1;i<keys.length;i++){
+    if(p<=keys[i][0]){const a=keys[i-1],b=keys[i];const t=(p-a[0])/((b[0]-a[0])||1);return lerp(a[1],b[1],smooth(t))}
+  }
+  return keys[keys.length-1][1];
+}
+let toastT=0;
+function toast(msg,err){msg=Tx(msg);const t=$('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');clearTimeout(toastT);toastT=setTimeout(()=>t.className='toast'+(err?' err':''),2200)}
+function log(msg){const d=new Date();const s=d.toTimeString().slice(0,8);const el=document.createElement('div');el.innerHTML='<span>['+s+']</span>';el.appendChild(document.createTextNode(Tx(msg)));$('log').prepend(el);while($('log').children.length>60)$('log').lastChild.remove()}
+function status(s){$('statusText').textContent=s}
+function progress(p){$('progressFill').style.width=(p*100)+'%';if(p>=1)setTimeout(()=>$('progressFill').style.width='0',400)}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* =========================================================
+   MODEL BUILDER
+   axes: +z = front (glTF), +y = up, +x = character's LEFT
+   cells are unit cubes [x,x+1)×[y,y+1)×[z,z+1)
+   ========================================================= */
+class Builder{
+  constructor(){this.bones=[];this.bi={};this.cells=new Map();this.faceRect=null;this.basePose={};}
+  bone(name,parent,x,y,z){this.bi[name]=this.bones.length;this.bones.push({name,parent:parent==null?-1:this.bi[parent],pos:[x,y,z]});return this.bi[name]}
+  k(x,y,z){return x+','+y+','+z}
+  set(x,y,z,c,b){if(c==null||c<0)return;const bi=typeof b==='string'?this.bi[b]:b;if(bi==null)throw new Error('unknown bone '+b);this.cells.set(this.k(x,y,z),{x,y,z,c,b:bi})}
+  get(x,y,z){return this.cells.get(this.k(x,y,z))}
+  has(x,y,z){return this.cells.has(this.k(x,y,z))}
+  del(x,y,z){this.cells.delete(this.k(x,y,z))}
+  // c: color int or fn(x,y,z)->color|-1
+  box(b,x0,x1,y0,y1,z0,z1,c){
+    for(let x=x0;x<x1;x++)for(let y=y0;y<y1;y++)for(let z=z0;z<z1;z++){
+      const col=typeof c==='function'?c(x,y,z):c;if(col==null||col<0)continue;this.set(x,y,z,col,b)}
+  }
+  // only fill empty cells
+  boxIfEmpty(b,x0,x1,y0,y1,z0,z1,c){
+    for(let x=x0;x<x1;x++)for(let y=y0;y<y1;y++)for(let z=z0;z<z1;z++){
+      if(this.has(x,y,z))continue;const col=typeof c==='function'?c(x,y,z):c;if(col==null||col<0)continue;this.set(x,y,z,col,b)}
+  }
+  ellipsoid(b,cx,cy,cz,rx,ry,rz,c,ymin=-1e9){
+    for(let x=Math.floor(cx-rx);x<=Math.ceil(cx+rx);x++)for(let y=Math.floor(cy-ry);y<=Math.ceil(cy+ry);y++)for(let z=Math.floor(cz-rz);z<=Math.ceil(cz+rz);z++){
+      if(y<ymin)continue;const dx=(x+.5-cx)/rx,dy=(y+.5-cy)/ry,dz=(z+.5-cz)/rz;if(dx*dx+dy*dy+dz*dz<=1){const col=typeof c==='function'?c(x,y,z):c;if(col>=0)this.set(x,y,z,col,b)}}
+  }
+  // make sure face pixels sit on a flat plane: fill cells behind the face plate
+  facePlate(){
+    const f=this.faceRect;if(!f)return;
+    for(let px=0;px<f.w;px++)for(let py=0;py<f.h;py++){
+      const x=f.x0+px,y=f.y0+py;
+      let zz=f.z-1;while(zz>f.z-20&&!this.has(x,y,zz))zz--;
+      const src=this.get(x,y,zz);if(!src)continue;
+      for(let z=zz+1;z<f.z;z++)this.set(x,y,z,f.skin!=null?f.skin:src.c,f.bone);
+    }
+  }
+  finish(meta){
+    const bones=this.bones.map(b=>({name:b.name,parent:b.parent,pos:b.pos.slice()}));
+    for(const b of bones){const p=b.parent>=0?bones[b.parent].pos:[0,0,0];b.local=[b.pos[0]-p[0],b.pos[1]-p[1],b.pos[2]-p[2]]}
+    const cells=[...this.cells.values()];
+    let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+    for(const c of cells){mn[0]=Math.min(mn[0],c.x);mn[1]=Math.min(mn[1],c.y);mn[2]=Math.min(mn[2],c.z);mx[0]=Math.max(mx[0],c.x+1);mx[1]=Math.max(mx[1],c.y+1);mx[2]=Math.max(mx[2],c.z+1)}
+    return Object.assign({bones,cells,faceRect:this.faceRect,basePose:this.basePose,bmin:mn,bmax:mx},meta);
+  }
+}
+
+/* face directions & quads (CCW from outside) */
+const FACES=[
+  {d:[1,0,0], v:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]]},
+  {d:[-1,0,0],v:[[0,0,1],[0,1,1],[0,1,0],[0,0,0]]},
+  {d:[0,1,0], v:[[0,1,0],[0,1,1],[1,1,1],[1,1,0]]},
+  {d:[0,-1,0],v:[[0,0,0],[1,0,0],[1,0,1],[0,0,1]]},
+  {d:[0,0,1], v:[[0,0,1],[1,0,1],[1,1,1],[0,1,1]]},
+  {d:[0,0,-1],v:[[1,0,0],[0,0,0],[0,1,0],[1,1,0]]}
+];
+// Build per-bone geometry. positions are in MODEL space (rest pose).
+function buildMesh(model,grain){
+  const per=model.bones.map(()=>({pos:[],nrm:[],col:[],idx:[]}));
+  const map=new Map();for(const c of model.cells)map.set(c.x+','+c.y+','+c.z,c);
+  let quads=0;
+  for(const c of model.cells){
+    const g=per[c.b];
+    const f=grain?1+(hash3(c.x,c.y,c.z,7)-.5)*.09:1;
+    const col=shade(c.c,f);
+    const r=((col>>16)&255)/255,gg=((col>>8)&255)/255,b=(col&255)/255;
+    for(const F of FACES){
+      const n=map.get((c.x+F.d[0])+','+(c.y+F.d[1])+','+(c.z+F.d[2]));
+      if(n&&n.b===c.b)continue;
+      const base=g.pos.length/3;
+      for(const v of F.v){g.pos.push(c.x+v[0],c.y+v[1],c.z+v[2]);g.nrm.push(F.d[0],F.d[1],F.d[2]);g.col.push(r,gg,b)}
+      g.idx.push(base,base+1,base+2,base,base+2,base+3);quads++;
+    }
+  }
+  return {per,quads};
+}
+
+/* =========================================================
+   FACE EXPRESSIONS (pixel faces drawn on the head front plate)
+   ========================================================= */
+const EXPRS=[
+  ['neutral','通常'],['blink','まばたき'],['smile','笑顔'],['laugh','大笑い'],['talk','会話'],
+  ['angry','怒り'],['sad','悲しみ'],['surprise','驚き'],['hurt','ダメージ'],['shy','照れ'],['dead','戦闘不能']
+];
+const EXPR_KEYS=EXPRS.map(e=>e[0]);
+
+// fp: {w,h,eyeY,eyeW,eyeH,gap,mouthY,mouthW,lash,brow,blush,wrinkle,hl,socket,glow, colors:{eye,white,mouth,mouthIn,blush,brow,skinDark,tear,pupil,teeth}}
+function drawFace(fp,expr){
+  const W=fp.w,H=fp.h;const px=new Array(W*H).fill(-1);
+  const C=fp.colors;
+  const P=(x,y,c)=>{if(x>=0&&y>=0&&x<W&&y<H&&c!=null)px[y*W+x]=c};
+  const cx=W/2;
+  const ew=fp.eyeW,eh=fp.eyeH,ey=fp.eyeY;
+  const eyeX=s=>s<0?Math.round(cx-fp.gap-ew):Math.round(cx+fp.gap);
+  const rect=(x0,y0,w,h,c)=>{for(let x=x0;x<x0+w;x++)for(let y=y0;y<y0+h;y++)P(x,y,c)};
+  const eyeOpen=(s,dy=0,dh=0)=>{
+    const x0=eyeX(s);const y0=ey+dy,h=Math.max(1,eh+dh);
+    rect(x0,y0,ew,h,C.eye);
+    if(fp.glow){P(x0+(s<0?ew-1:0),y0,C.pupil)}
+    else if(fp.socket){if(C.pupil!=null)P(x0+(s<0?ew-1:0),y0+h-1,C.pupil)}
+    else if(fp.hl&&ew>=2&&h>=2)P(x0+ew-1,y0,C.white);
+    if(fp.lash){P(s<0?x0-1:x0+ew,y0,C.eye)}
+  };
+  const eyeClosed=(s)=>{const x0=eyeX(s);const w=Math.max(ew,2);const xs=ew>=2?x0:(s<0?x0-1:x0);for(let x=xs;x<xs+w;x++)P(x,ey+eh-1,C.eye);if(fp.lash)P(s<0?xs-1:xs+w,ey+eh-2,C.eye)};
+  const eyeHappy=(s)=>{const x0=eyeX(s);const yb=ey+eh-1;P(x0-1,yb,C.eye);for(let x=x0;x<x0+ew;x++)P(x,yb-1,C.eye);P(x0+ew,yb,C.eye)};
+  const glyph=(s,pts,gw,gh)=>{const x0=eyeX(s)+Math.floor((ew-gw)/2);const y0=ey+eh-gh;for(const [a,b] of pts)P(x0+a,y0+b,C.eye)};
+  const brow=(s,mode)=>{ // mode: 0 flat, 1 angry (inner low), 2 sad (inner high)
+    if(!fp.brow&&mode===0)return;
+    const x0=eyeX(s);const y=ey-1;
+    const out=s<0?-1:1;const inner=s<0?x0+ew-1:x0,outer=s<0?x0:x0+ew-1;
+    const bc=C.brow!=null?C.brow:C.eye;
+    if(mode===0){for(let x=x0;x<x0+ew;x++)P(x,y,bc);if(ew===1)P(x0+out,y,bc)}
+    else if(mode===1){P(inner,y+(eh>=2?1:0),bc);P(outer+(ew===1?out:0),y,bc);P(outer+out*(ew===1?2:1),y-1,bc)}
+    else {P(inner,y-1,bc);P(outer+(ew===1?out:0),y,bc);if(ew>=2)P(outer+out,y,bc)}
+  };
+  const mY=fp.mouthY,mw=fp.mouthW;
+  const mL=Math.round(cx-mw/2);
+  const mouth=(kind)=>{
+    if(mY<0)return;
+    const M=C.mouth;
+    if(kind==='line'){for(let x=mL;x<mL+mw;x++)P(x,mY,M)}
+    else if(kind==='smile'){for(let x=mL;x<mL+mw;x++)P(x,mY,M);P(mL-1,mY-1,M);P(mL+mw,mY-1,M)}
+    else if(kind==='small'){const w=Math.max(2,mw-2);const l=Math.round(cx-w/2);for(let x=l;x<l+w;x++)P(x,mY,M)}
+    else if(kind==='open'){for(let x=mL-1;x<mL+mw+1;x++)P(x,mY-1,M);for(let x=mL;x<mL+mw;x++){P(x,mY,C.mouthIn)}if(fp.teeth)for(let x=mL;x<mL+mw;x++)P(x,mY-1,C.teeth)}
+    else if(kind==='talk'){const w=Math.max(2,mw-(mw>=4?2:0));const l=Math.round(cx-w/2);for(let x=l;x<l+w;x++){P(x,mY-1,M);P(x,mY,C.mouthIn)}}
+    else if(kind==='frown'){for(let x=mL;x<mL+mw;x++)P(x,mY-1,M);P(mL-1,mY,M);P(mL+mw,mY,M)}
+    else if(kind==='o'){P(Math.round(cx)-1,mY-1,M);P(Math.round(cx),mY-1,M);P(Math.round(cx)-1,mY,C.mouthIn);P(Math.round(cx),mY,C.mouthIn)}
+    else if(kind==='zig'){for(let x=mL-1;x<mL+mw+1;x++)P(x,mY-((x-mL+1)%2),M)}
+    else if(kind==='teeth'){for(let x=mL-1;x<mL+mw+1;x++){P(x,mY-1,M);P(x,mY,C.teeth!=null?C.teeth:0xffffff)}}
+  };
+  const blush=()=>{if(C.blush==null)return;const y=Math.min(ey+eh,H-2);for(const s of [-1,1]){const x0=eyeX(s);if(s<0){P(x0-1,y,C.blush);P(x0,y,C.blush)}else{P(x0+ew-1,y,C.blush);P(x0+ew,y,C.blush)}}};
+  const wrinkle=()=>{if(!fp.wrinkle)return;const y=ey+eh;for(const s of [-1,1]){const x0=eyeX(s);P(s<0?x0-1:x0+ew,y,C.skinDark)}};
+  const tear=()=>{if(C.tear==null)return;for(const s of [-1,1]){const x0=eyeX(s);const x=s<0?x0:x0+ew-1;P(x,ey+eh,C.tear);P(x,ey+eh+1,C.tear)}};
+  const both=f=>{f(-1);f(1)};
+  switch(expr){
+    case 'neutral':both(s=>{eyeOpen(s);brow(s,0)});mouth(fp.mouthStyle||'line');wrinkle();break;
+    case 'blink':both(s=>{eyeClosed(s);brow(s,0)});mouth(fp.mouthStyle||'line');wrinkle();break;
+    case 'smile':both(s=>{eyeOpen(s);brow(s,0)});mouth('smile');if(fp.blush)blush();wrinkle();break;
+    case 'laugh':both(s=>{eyeHappy(s)});mouth('open');if(fp.blush)blush();wrinkle();break;
+    case 'talk':both(s=>{eyeOpen(s);brow(s,0)});mouth('talk');wrinkle();break;
+    case 'angry':both(s=>{eyeOpen(s,eh>=2?1:0,eh>=2?-1:0);brow(s,1)});mouth(fp.fangs?'teeth':'frown');break;
+    case 'sad':both(s=>{eyeOpen(s,eh>=3?1:0,eh>=3?-1:0);brow(s,2)});mouth('frown');tear();break;
+    case 'surprise':both(s=>{eyeOpen(s,-1,1);brow(s,0)});mouth('o');break;
+    case 'hurt':{const g=[[0,0],[1,1],[0,2]],g2=[[1,0],[0,1],[1,2]];glyph(-1,g,2,3);glyph(1,g2,2,3);mouth('zig');break}
+    case 'shy':both(s=>{eyeHappy(s)});mouth('small');blush();break;
+    case 'dead':{const X=[[0,0],[2,0],[1,1],[0,2],[2,2]];glyph(-1,X,3,3);glyph(1,X,3,3);mouth('small');break}
+  }
+  return px;
+}
+
+// expression atlas: 4 columns
+function faceAtlasLayout(fw,fh,n){const cols=Math.min(4,n),rows=Math.ceil(n/cols);return {cols,rows,W:cols*fw,H:rows*fh}}
+function buildFaceAtlas(model){
+  const F=model.face;const n=EXPR_KEYS.length;const L=faceAtlasLayout(F.w,F.h,n);
+  const cv=document.createElement('canvas');cv.width=L.W;cv.height=L.H;const g=cv.getContext('2d');
+  const img=g.createImageData(L.W,L.H);
+  EXPR_KEYS.forEach((k,i)=>{
+    const col=i%L.cols,row=Math.floor(i/L.cols);const arr=F.frames[k];
+    for(let y=0;y<F.h;y++)for(let x=0;x<F.w;x++){const c=arr[y*F.w+x];if(c<0)continue;const o=((row*F.h+y)*L.W+col*F.w+x)*4;img.data[o]=(c>>16)&255;img.data[o+1]=(c>>8)&255;img.data[o+2]=c&255;img.data[o+3]=255}
+  });
+  g.putImageData(img,0,0);
+  return {canvas:cv,layout:L};
+}
+function exprUV(model,expr){const F=model.face;const L=faceAtlasLayout(F.w,F.h,EXPR_KEYS.length);const i=EXPR_KEYS.indexOf(expr);const col=i%L.cols,row=Math.floor(i/L.cols);return {u0:col*F.w/L.W,v0:row*F.h/L.H,u1:(col+1)*F.w/L.W,v1:(row+1)*F.h/L.H,du:col*F.w/L.W,dv:row*F.h/L.H}}
+
+/* =========================================================
+   HUMANOID GENERATOR (people + humanoid monsters)
+   ========================================================= */
+const AGES={
+  child:{name:'子供',H:{m:22,f:22},heads:2.6,amp:1.1},
+  teen: {name:'若者',H:{m:30,f:29},heads:3.6,amp:1.0},
+  adult:{name:'大人',H:{m:36,f:34},heads:4.2,amp:1.0},
+  elder:{name:'老人',H:{m:34,f:32},heads:4.0,amp:.72}
+};
+const JOBS={
+  casual:  {name:'私服',    desc:'現代カジュアル', sleeve:'short',bottom:{m:'pants',f:'skirt'},belt:0,hat:'none',weapon:'none',  pal:['#f4f1ea','#e05a47','#3a5a8c','#2b2b30','#9aa3ad']},
+  villager:{name:'村人',    desc:'チュニック',    sleeve:'long', bottom:{m:'pants',f:'skirt'},belt:1,hat:'none',weapon:'none',  pal:['#c9a46b','#7a4f2a','#5a4632','#4a3524','#9aa3ad']},
+  sword:   {name:'剣士',    desc:'片手剣',        sleeve:'long', bottom:{m:'pants',f:'shorts'},belt:1,hat:'none',weapon:'sword', pal:['#2f5fb3','#d8b04a','#3a3a44','#5a3a22','#d9dde6'],pads:1},
+  knight:  {name:'騎士',    desc:'鎧＋盾',        sleeve:'long', bottom:{m:'pants',f:'pants'},belt:1,hat:'helmet',weapon:'sword',shield:1,armor:1,pal:['#c8ced8','#b3262e','#8b93a0','#5b6270','#e6e9ef']},
+  mage:    {name:'魔法使い',desc:'ローブ＋杖',    sleeve:'long', bottom:{m:'robe',f:'robe'},belt:1,hat:'pointy',weapon:'staff', pal:['#4b2f8f','#f0c94a','#2c1f55','#3a2a1e','#bfc6d2']},
+  thief:   {name:'盗賊',    desc:'フード＋短剣',  sleeve:'long', bottom:{m:'pants',f:'shorts'},belt:1,hat:'hood',weapon:'dagger',pal:['#3b3f46','#8c2f39','#2a2c31','#1c1c20','#c9ced6']},
+  archer:  {name:'弓使い',  desc:'弓＋矢筒',      sleeve:'long', bottom:{m:'pants',f:'shorts'},belt:1,hat:'cap',weapon:'bow',   pal:['#3f7a3a','#b0893f','#4d3b26','#3a2a1c','#c9ced6'],quiver:1},
+  priest:  {name:'僧侶',    desc:'白ローブ',      sleeve:'long', bottom:{m:'robe',f:'robe'},belt:1,hat:'none',weapon:'staff', pal:['#f2efe6','#d4a63c','#8a7a5c','#6a5a44','#e6e9ef']},
+  merchant:{name:'商人',    desc:'エプロン',      sleeve:'short',bottom:{m:'pants',f:'skirt'},belt:0,hat:'bandana',weapon:'none',pal:['#e8d9b8','#3e7d6e','#6a4b33','#3d2b1f','#c9ced6'],apron:1},
+  monk:    {name:'武闘家',  desc:'道着＋素手',    sleeve:'short',bottom:{m:'pants',f:'pants'},belt:1,hat:'headband',weapon:'none',pal:['#f3f0e8','#c62f2f','#f3f0e8','#2b2b2b','#c9ced6'],gi:1},
+  ninja:   {name:'忍者',    desc:'覆面＋短刀',    sleeve:'long', bottom:{m:'pants',f:'pants'},belt:1,hat:'ninja',weapon:'dagger',pal:['#262a33','#8e2c2c','#262a33','#15161a','#c9ced6']}
+};
+const HAIRS={short:'ショートヘア',bob:'ボブ',long:'ロング',hime:'姫カット',ponytail:'ポニーテール',twintail:'ツインテール',bun:'お団子',spiky:'ツンツン',afro:'アフロ',mohawk:'モヒカン',buzz:'坊主',balding:'薄毛',bald:'スキンヘッド'};
+const HATS={auto:'自動（職業）',none:'なし',helmet:'兜',pointy:'とんがり帽子',hood:'フード',cap:'羽根帽子',bandana:'バンダナ',headband:'はちまき',crown:'王冠',straw:'麦わら帽子',ninja:'覆面',horns:'ツノ'};
+const WEAPONS={auto:'自動（職業）',none:'なし（素手）',sword:'剣',dagger:'短剣',spear:'槍',axe:'斧',club:'こん棒',staff:'杖',bow:'弓',cane:'ステッキ'};
+const BEARDS={none:'なし',mustache:'口ひげ',goatee:'あごひげ',full:'たっぷりひげ'};
+const SKINS=['#f6d7bf','#f1c7a4','#e3ad84','#c98d62','#9c6643','#6e4630'];
+const HAIRCOLS=['#2a211c','#4a3222','#7a4b2a','#b07a3e','#e0c07a','#c94a32','#d8d8dc','#f2f2f2','#3a3f8f','#e86aa0','#3fae8c','#8a5cd6'];
+const EYECOLS=['#1e1a1a','#2a3f7a','#3b6b3a','#6b3a1e','#7a1f2a','#4a2a6a'];
+
+const MONSTER_HUMANOIDS={
+  goblin:  {name:'ゴブリン',desc:'小鬼',      age:'teen', gender:'m',heads:2.9,scale:.8,build:.35,job:'casual',hair:'mohawk',hat:'none',weapon:'dagger',ears:'pointy',special:'goblin',
+            colors:{skin:'#7cb342',hair:'#2a211c',eye:'#f2d23a',top:'#7cb342',accent:'#8b5a2b',bottom:'#6b4a2a',shoes:'#4a3524',metal:'#9aa3ad'}},
+  orc:     {name:'オーク',  desc:'牙の戦士',  age:'adult',gender:'m',heads:4.6,scale:1.12,build:1,job:'casual',hair:'mohawk',hat:'none',weapon:'axe',ears:'pointy',special:'orc',
+            colors:{skin:'#6f8f4e',hair:'#1f1a17',eye:'#d8342b',top:'#6f8f4e',accent:'#7a4f2a',bottom:'#5a3a22',shoes:'#3a2a1c',metal:'#8b93a0'}},
+  skeleton:{name:'スケルトン',desc:'骨の剣士',age:'adult',gender:'m',heads:4.2,scale:1,build:.4,job:'casual',hair:'bald',hat:'none',weapon:'sword',shield:1,ears:'none',special:'skeleton',
+            colors:{skin:'#e9e3d2',hair:'#e9e3d2',eye:'#141416',top:'#e9e3d2',accent:'#6a5a44',bottom:'#e9e3d2',shoes:'#e9e3d2',metal:'#9aa3ad'}},
+  golem:   {name:'ゴーレム',desc:'岩の巨人',  age:'adult',gender:'m',heads:5.6,scale:1.2,build:1,job:'casual',hair:'bald',hat:'none',weapon:'none',ears:'none',special:'golem',
+            colors:{skin:'#8b8478',hair:'#8b8478',eye:'#3ff0ff',top:'#8b8478',accent:'#5f8f3e',bottom:'#8b8478',shoes:'#6e675d',metal:'#8b93a0'}}
+};
+
+function genHuman(o){
+  const rng=mulberry32(o.seed*7919+3);
+  const sp=o.special||null;
+  const age=AGES[o.age];const f=o.gender==='f';
+  const job=JOBS[o.job]||JOBS.casual;
+  const H=Math.round(age.H[o.gender]*o.scale);
+  const heads=o.heads;
+  const C={};for(const k in o.colors)C[k]=hex2int(o.colors[k]);
+  const B=new Builder();
+  let headH=clamp(Math.round(H/heads),6,18);
+  let headW=Math.max(8,even(headH*(heads<3?1.12:1.0)));
+  if(sp==='golem'){headW=Math.max(8,even(headH*1.15))}
+  const headD=Math.max(6,Math.round(headW*.9));
+  const neck=heads>=3.4?1:0;
+  const body=H-headH-neck;
+  const legLen=Math.max(3,Math.round(body*(o.age==='child'?.46:.5)*(sp==='golem'?.82:1)));
+  const torsoH=Math.max(3,body-legLen);
+  const bf=.82+o.build*.45;
+  let sw=Math.max(6,even(headW*(heads<3.2?.9:1.2)*bf*(f?.9:1)*(sp==='golem'?1.45:1)*(sp==='skeleton'?.9:1)));
+  const td=Math.max(4,Math.round(sw*.6));
+  let armT=Math.max(2,Math.round(sw*.27*(sp==='golem'?1.35:1)));
+  if(sp==='skeleton')armT=Math.max(1,Math.round(sw*.15));
+  const armLen=Math.max(3,Math.round(torsoH*(sp==='golem'?1.35:.98)));
+  const hs=sp==='golem'?armT:Math.max(1,Math.round(armT*.7));
+  const upperLen=Math.max(1,Math.round((armLen-hs)*.52));
+  let lw=sw/2-(sw>=10?1:0);
+  if(sp==='skeleton')lw=Math.max(1,Math.round(sw*.16));
+  const gapHalf=sp==='skeleton'?Math.max(1,Math.round(sw*.18)):sw/2-lw;
+  const legD=sp==='skeleton'?lw:Math.max(2,td-1);
+  const footH=Math.max(1,Math.round(legLen*.14));
+  const kneeY=Math.max(footH+1,Math.round(legLen*.52));
+  const yN=legLen+torsoH;const hy0=yN+neck,hy1=hy0+headH;
+  const spineY=legLen+Math.round(torsoH*.3),chestY=legLen+Math.round(torsoH*.62);
+  const tz0=-Math.floor(td/2),tz1=tz0+td;
+  const hz0=-Math.floor(headD/2)+(heads<3?0:0),hz1=hz0+headD;
+  const hx0=-headW/2,hx1=headW/2;
+  const az0=-Math.floor(armT/2),az1=az0+armT;
+  const lz0=-Math.floor(legD/2),lz1=lz0+legD;
+  const ax=sw/2+armT/2,ay=yN-armT/2;
+  const lx=gapHalf+lw/2;
+  const yH0=yN-armLen;
+
+  B.bone('Root',null,0,0,0);
+  B.bone('Hips','Root',0,legLen,0);
+  B.bone('Spine','Hips',0,spineY,0);
+  B.bone('Chest','Spine',0,chestY,0);
+  B.bone('Neck','Chest',0,yN,0);
+  B.bone('Head','Neck',0,hy0,0);
+  for(const s of [1,-1]){const S=s>0?'Left':'Right';
+    B.bone(S+'UpperArm','Chest',s*ax,ay,0);B.bone(S+'LowerArm',S+'UpperArm',s*ax,yN-upperLen,0);B.bone(S+'Hand',S+'LowerArm',s*ax,yH0+hs,0)}
+  for(const s of [1,-1]){const S=s>0?'Left':'Right';
+    B.bone(S+'UpperLeg','Hips',s*lx,legLen,0);B.bone(S+'LowerLeg',S+'UpperLeg',s*lx,kneeY,0);B.bone(S+'Foot',S+'LowerLeg',s*lx,footH,0)}
+
+  const skin=C.skin,skinD=shade(skin,.84);
+  const top=job.armor?C.metal:C.top;
+  const bottomType=o.bottom&&o.bottom!=='auto'?o.bottom:job.bottom[o.gender];
+  const sleeve=sp?(sp==='skeleton'||sp==='golem'?'skin':'none'):(job.armor?'long':job.sleeve);
+  const metal=C.metal,metalD=shade(C.metal,.72);
+  const accent=C.accent;
+  const isTopSkin=sp==='goblin'||sp==='orc'||sp==='golem'||sp==='skeleton';
+
+  // ---- golem stone texture
+  const stone=(x,y,z,base)=>{
+    const n=hash3(x,y,z,11);let c=shade(base,.92+n*.16);
+    if(n>.93)c=shade(base,.62);
+    if(y>legLen&&hash3(x,y>>1,z,31)>.86)c=mix(c,C.accent,.75);
+    return c;
+  };
+  const tint=(x,y,z,c)=>sp==='golem'?stone(x,y,z,c):c;
+
+  // ---- LEGS
+  for(const s of [1,-1]){const S=s>0?'Left':'Right';
+    const xa=s>0?gapHalf:-gapHalf-lw,xb=xa+lw;
+    for(let y=0;y<legLen;y++){
+      const bone=y<footH?S+'Foot':y<kneeY?S+'LowerLeg':S+'UpperLeg';
+      let c;
+      if(sp==='skeleton'){c=skin;if(y===kneeY)c=skinD}
+      else if(y<footH)c=job.armor?metalD:C.shoes;
+      else if(bottomType==='shorts'&&y<kneeY+ (o.age==='child'?1:0))c=skin;
+      else if(job.armor)c=y===kneeY?metalD:metal;
+      else c=C.bottom;
+      if(sp==='golem')c=stone(xa,y,0,y<footH?C.shoes:skin);
+      B.box(bone,xa,xb,y,y+1,lz0,lz1,(X,Y,Z)=>tint(X,Y,Z,c));
+    }
+    // shoe toe
+    if(sp!=='skeleton'&&legLen>=6)B.box(S+'Foot',xa,xb,0,1,lz1,lz1+1,job.armor?metalD:(sp==='golem'?shade(C.shoes,.9):shade(C.shoes,1.08)));
+  }
+  // ---- TORSO
+  const beltY=legLen;
+  for(let y=legLen;y<yN;y++){
+    const bone=y<spineY?'Hips':y<chestY?'Spine':'Chest';
+    if(sp==='skeleton'){
+      // spine + ribs + pelvis
+      const ribs=y>=spineY&&((y-spineY)%2===0);
+      const pelvis=y<spineY;
+      B.box(bone,-1,1,y,y+1,tz0,tz0+2,skin);
+      if(pelvis&&y===legLen)B.box(bone,-sw/2+1,sw/2-1,y,y+1,tz0,tz1-1,skin);
+      if(ribs){for(let x=-sw/2+1;x<sw/2-1;x++)for(let z=tz0;z<tz1;z++){const edge=x===-sw/2+1||x===sw/2-2||z===tz0||z===tz1-1;if(edge)B.set(x,y,z,skin,bone)}}
+      if(y===yN-1)B.box(bone,-sw/2,sw/2,y,y+1,tz0,tz1-1,skin);
+      continue;
+    }
+    B.box(bone,-sw/2,sw/2,y,y+1,tz0,tz1,(x,yy,z)=>{
+      let c=isTopSkin?skin:top;
+      if(sp==='orc'&&y<legLen+2)c=C.bottom;
+      if(sp==='goblin'&&y<legLen+1)c=C.bottom;
+      if(job.belt&&y===beltY&&!isTopSkin)c=accent;
+      if(job.belt&&y===beltY&&isTopSkin&&sp!=='golem')c=shade(C.accent,.9);
+      if(job.gi){ // wrap collar V
+        const front=z===tz1-1;const dx=Math.abs(x+.5);
+        if(front&&y>=chestY&&dx<(y-chestY)*.7+.6)c=shade(skin,1);
+        if(y===beltY)c=C.accent;
+      }
+      if(job.armor&&z===tz1-1&&Math.abs(x+.5)<sw/4&&y>beltY)c=accent; // tabard
+      if(job.armor&&y===yN-1)c=metalD;
+      if(o.job==='casual'&&!sp&&z===tz1-1&&y>=chestY&&y<chestY+2&&Math.abs(x+.5)<1)c=accent; // print
+      if(job.apron&&z===tz1-1&&y<chestY+1&&Math.abs(x+.5)<sw/2-1)c=accent;
+      if(o.job==='priest'&&z===tz1-1&&Math.abs(x+.5)<1)c=accent;
+      if(o.job==='mage'&&z===tz1-1&&Math.abs(x+.5)<1&&y>beltY)c=accent;
+      if(o.job==='ninja'&&y===yN-1)c=C.accent;
+      if(o.job==='thief'&&y>=yN-2)c=accent; // scarf
+      return tint(x,yy,z,c);
+    });
+    if(job.apron&&y<chestY+1&&y>beltY)B.box(bone,-sw/2+1,sw/2-1,y,y+1,tz1,tz1+1,accent);
+  }
+  if(f&&!sp&&torsoH>=6&&!job.armor){ // slight bust volume
+    B.box('Chest',-sw/2+1,sw/2-1,chestY,chestY+1,tz1,tz1+1,o.job==='mage'?shade(top,1):top);
+  }
+  // shoulder pads
+  if((job.pads||job.armor)&&!sp){for(const s of [1,-1])B.box('Chest',s>0?sw/2:-sw/2-armT,s>0?sw/2+armT:-sw/2,yN,yN+1,az0-1,az1+1,job.armor?metal:accent)}
+  if(sp==='orc'){B.box('Chest',sw/2-1,sw/2+armT+1,yN-1,yN+1,az0-1,az1+1,(x,y,z)=>hash3(x,y,z,3)>.5?C.metal:shade(C.metal,.8))}
+  // skirt / robe (on Hips: rigid)
+  if(!sp&&(bottomType==='skirt'||bottomType==='robe')){
+    const len=bottomType==='robe'?legLen-footH:Math.max(2,Math.round(legLen*.45));
+    for(let i=0;i<len;i++){const y=legLen-1-i;const fl=bottomType==='robe'?(i>=len*.5?1:0):(i>=1?1:0);
+      B.box('Hips',-sw/2-fl,sw/2+fl,y,y+1,tz0-fl,tz1+fl,(x,yy,z)=>{
+        let c=bottomType==='robe'?top:C.bottom;
+        if(bottomType==='robe'&&i===len-1)c=accent;
+        if(bottomType==='robe'&&o.job==='mage'&&z>=tz1&&Math.abs(x+.5)<1)c=accent;
+        if(bottomType==='robe'&&o.job==='priest'&&z>=tz1&&Math.abs(x+.5)<1)c=accent;
+        if(job.apron&&z>=tz1&&Math.abs(x+.5)<sw/2-1)c=accent;
+        if(bottomType==='skirt'&&i===len-1&&o.job==='casual')c=shade(c,.85);
+        return c;})}
+  }
+  if(sp==='goblin'||sp==='orc'){ // loincloth flap
+    B.box('Hips',-1,1,legLen-Math.max(2,Math.round(legLen*.35)),legLen,tz1,tz1+1,C.bottom);
+  }
+  // ---- NECK
+  if(neck){const nw=Math.max(2,even(headW*.34));B.box('Neck',-nw/2,nw/2,yN,yN+1,-1,1,sp==='golem'?shade(skin,.8):skinD)}
+  // ---- ARMS
+  for(const s of [1,-1]){const S=s>0?'Left':'Right';
+    const xa=s>0?sw/2:-sw/2-armT,xb=xa+armT;
+    for(let y=yH0;y<yN;y++){
+      const isHand=y<yH0+hs;const isUpper=y>=yN-upperLen;
+      const bone=isHand?S+'Hand':isUpper?S+'UpperArm':S+'LowerArm';
+      let c;
+      if(sp==='skeleton')c=skin;
+      else if(isHand)c=job.armor?metalD:skin;
+      else if(sleeve==='none'||sleeve==='skin')c=skin;
+      else if(sleeve==='short')c=isUpper?(y>=yN-Math.ceil(upperLen*.7)?top:skin):skin;
+      else c=top;
+      if(!isHand&&sleeve==='long'&&y===yH0+hs&&!sp)c=job.armor?metalD:(o.job==='mage'||o.job==='priest'?accent:shade(top,.88));
+      if(o.job==='monk'&&!isHand&&!isUpper)c=skin;
+      if(o.job==='ninja'&&!isHand&&!isUpper&&y<=yH0+hs+1)c=accent;
+      B.box(bone,xa,xb,y,y+1,az0,az1,(X,Y,Z)=>tint(X,Y,Z,c));
+    }
+    if(sp==='golem'){B.box(S+'Hand',xa-(s>0?0:1),xb+(s>0?1:0),yH0-1,yH0+hs,az0-1,az1+1,(X,Y,Z)=>stone(X,Y,Z,shade(skin,.95)))}
+  }
+  // ---- HEAD
+  B.box('Head',hx0,hx1,hy0,hy1,hz0,hz1,(x,y,z)=>sp==='golem'?stone(x,y,z,skin):skin);
+  if(sp==='skeleton'){ // jaw gap + cheek
+    B.box('Head',hx0+1,hx1-1,hy0-1,hy0,hz0+1,hz1-1,skin);
+  }
+  const head={x0:hx0,x1:hx1,y0:hy0,y1:hy1,z0:hz0,z1:hz1,w:headW,h:headH};
+
+  // ---- FACE PARAMS
+  const child=o.age==='child',elder=o.age==='elder';
+  let eyeH=child?(headH>=9?3:2):(f&&headH>=9?3:2);
+  if(elder&&!f)eyeH=Math.max(1,eyeH-1);
+  if(sp==='golem')eyeH=1;
+  let eyeW=headW>=10?2:((child||f||o.age==='teen')?2:1);
+  if(sp==='skeleton'||sp==='goblin')eyeW=2;
+  const gap=headW>=12?(eyeW===2?1.5:2):1;
+  const eyeY=Math.round(headH*(heads<3?.4:.42));
+  const mouthY=Math.min(headH-2,eyeY+eyeH+1+(headH-eyeY-eyeH>=4?1:0));
+  const fp={w:headW,h:headH,eyeY,eyeW,eyeH,gap,mouthY,mouthW:headW>=12?4:2,
+    lash:f&&!sp,brow:(!f&&!child)||elder,blush:(child||f)&&!sp,wrinkle:elder,hl:!sp,
+    colors:{eye:C.eye,white:0xffffff,mouth:shade(mix(skin,0x7a2020,.55),.85),mouthIn:0x9b2335,blush:mix(skin,0xff5d7e,.42),brow:shade(C.hair,.72),skinDark:shade(skin,.76),tear:0x7fd0ff,teeth:0xf5f3ea}};
+  if(sp==='golem'){fp.glow=true;fp.colors.pupil=0xffffff;fp.colors.mouth=shade(skin,.45);fp.brow=false;fp.mouthW=4}
+  if(sp==='skeleton'){fp.socket=true;fp.colors.pupil=0xff3030;fp.brow=false;fp.mouthStyle='teeth';fp.colors.teeth=skin;fp.colors.mouth=0x1a1a1a;fp.fangs=true;fp.colors.eye=0x141416}
+  if(sp==='goblin'){fp.glow=true;fp.colors.pupil=0x111111;fp.brow=true;fp.colors.brow=shade(skin,.55);fp.fangs=true}
+  if(sp==='orc'){fp.brow=true;fp.colors.brow=shade(C.hair,.9);fp.fangs=true}
+  const fringe=Math.max(1,eyeY-2);
+
+  // ---- HAIR
+  const hairStyle=sp==='golem'||sp==='skeleton'?'bald':o.hair;
+  addHair(B,hairStyle,C.hair,head,fringe,rng,o);
+  // ---- EARS
+  const eyeRowY=hy1-1-eyeY-Math.floor(eyeH/2);
+  const ears=o.ears||'normal';
+  for(const s of [1,-1]){
+    const ex=s>0?hx1:hx0-1;
+    if(ears==='normal'){if(!B.has(ex,eyeRowY,hz0+Math.floor(headD/2)))B.set(ex,eyeRowY,hz0+Math.floor(headD/2),skinD,'Head')}
+    else if(ears==='pointy'){const zz=hz0+Math.floor(headD/2);const n=sp==='goblin'?4:3;for(let i=0;i<n;i++){B.set(ex+s*i,eyeRowY+Math.floor(i/1.5),zz,i===n-1?shade(skin,.9):skinD,'Head');if(i<n-1)B.set(ex+s*i,eyeRowY+Math.floor(i/1.5),zz-1,skinD,'Head')}}
+  }
+  // ---- HAT
+  let hat=o.hat==='auto'?job.hat:o.hat;
+  if(sp)hat=o.hat==='auto'?'none':o.hat;
+  addHat(B,hat,head,fringe,C,o,fp);
+  // ---- BEARD
+  if(o.beard&&o.beard!=='none'&&!sp)addBeard(B,o.beard,head,fp,C.hair);
+  if(sp==='orc'){ // tusks
+    const yb=hy0;for(const x of [Math.round(-1)-1,Math.round(1)]){B.set(x,yb,hz1,0xf3efe0,'Head');B.set(x,yb+1,hz1,0xf3efe0,'Head')}
+  }
+  // ---- WEAPON / GEAR
+  let weapon=o.weapon==='auto'?(sp?(MONSTER_HUMANOIDS[sp]||{}).weapon||'none':job.weapon):o.weapon;
+  if(elder&&o.weapon==='auto'&&job.weapon==='none')weapon='cane';
+  const gear={sw,armT,az0,az1,yH0,hs,H,tz0,tz1,chestY,yN,legLen,metal:C.metal,accent:C.accent};
+  addWeapon(B,weapon,gear);
+  if((o.shield==null?job.shield:o.shield)&&weapon!=='bow')addShield(B,gear,C,yN-upperLen);
+  if(job.quiver&&!sp)addQuiver(B,gear);
+  if(o.job==='mage'&&!sp&&false){}
+
+  // ---- FACE
+  B.faceRect={bone:B.bi.Head,x0:hx0,y0:hy0,w:headW,h:headH,z:hz1};
+  // ninja mask hides mouth
+  if(hat==='ninja')fp.mouthY=-1;
+  const frames={};for(const k of EXPR_KEYS)frames[k]=drawFace(fp,k);
+
+  // ---- BASE POSE
+  const bp={};
+  if(elder){bp.Spine=[10,0,0];bp.Chest=[8,0,0];bp.Neck=[-6,0,0];bp.Head=[-8,0,0];bp.LeftUpperLeg=[-4,0,0];bp.RightUpperLeg=[-4,0,0];bp.LeftLowerLeg=[8,0,0];bp.RightLowerLeg=[8,0,0];bp.LeftFoot=[-4,0,0];bp.RightFoot=[-4,0,0]}
+  if(sp==='goblin'){bp.Spine=[12,0,0];bp.Head=[-12,0,0];bp.LeftUpperLeg=[-12,0,0];bp.RightUpperLeg=[-12,0,0];bp.LeftLowerLeg=[22,0,0];bp.RightLowerLeg=[22,0,0];bp.LeftFoot=[-10,0,0];bp.RightFoot=[-10,0,0]}
+  if(sp==='golem'){bp.Chest=[8,0,0];bp.Head=[-8,0,0];bp.LeftUpperArm=[0,0,8];bp.RightUpperArm=[0,0,-8]}
+  if(sp==='orc'){bp.Chest=[6,0,0];bp.Head=[-6,0,0];bp.LeftUpperArm=[0,0,6];bp.RightUpperArm=[0,0,-6]}
+  if(weapon==='sword'||weapon==='dagger'||weapon==='axe'||weapon==='club')bp.RightHand=[35,0,0];
+  if(weapon==='spear')bp.RightHand=[10,0,0];
+  B.basePose=bp;
+  B.facePlate();
+  return B.finish({rig:'humanoid',H,face:{w:headW,h:headH,frames,fp},
+    meta:{amp:age.amp*(sp==='golem'?.75:1),weapon,legLen,torsoH,td,sw,headH,elder,child,special:sp}});
+}
+
+function addHair(B,style,col,h,fringe,rng,o){
+  if(style==='bald')return;
+  const c=col,cD=shade(col,.82),cL=shade(col,1.12);
+  const {x0,x1,y0,y1,z0,z1}=h;const H=y1-y0;
+  const put=(x,y,z,cc)=>{if(x>=x0&&x<x1&&y>=y0&&y<y1&&z>=z0&&z<z1)return;B.set(x,y,z,cc==null?((hash3(x,y,z,5)>.8)?cD:c):cc,'Head')};
+  let sideMin=y1-Math.round(H*.45),backMin=y1-Math.round(H*.7),top=true,fr=fringe,jag=true;
+  if(style==='bob'||style==='hime'){sideMin=y0+1;backMin=y0;jag=style!=='hime'}
+  if(style==='long'){sideMin=y0;backMin=y0}
+  if(style==='buzz'){sideMin=y1-2;backMin=y1-3;fr=0}
+  if(style==='balding'){top=false;fr=0;sideMin=y0+Math.round(H*.3);backMin=y0+Math.round(H*.2)}
+  if(style==='mohawk'){top=false;fr=0;sideMin=y1;backMin=y1}
+  if(style==='afro'){sideMin=y0+2;backMin=y0+1}
+  const sideMax=style==='balding'?y1-Math.round(H*.3):y1;
+  // shell
+  for(let x=x0-1;x<=x1;x++)for(let y=y0;y<=y1;y++)for(let z=z0-1;z<=z1;z++){
+    const ox=x<x0||x>=x1,oz=z<z0||z>=z1,oy=y>=y1;
+    const outs=(ox?1:0)+(oz?1:0)+(oy?1:0);
+    if(outs===0)continue;
+    if(outs>=2&&!(style==='afro'))continue; // round corners
+    if(oy){if(top)put(x,y,z);continue}
+    if(z>=z1){ // front fringe
+      if(fr<=0||ox)continue;
+      const row=y1-1-y;let len=fr;
+      if(jag&&((x-x0)%3===1))len=fr-1;
+      if(style==='spiky'&&((x-x0)%2===0))len=fr-1;
+      if(row<len)put(x,y,z);
+      continue;
+    }
+    if(ox){if(y>=sideMin&&y<sideMax)put(x,y,z);continue}
+    if(z<z0){if(y>=backMin&&(style!=='balding'||y<sideMax))put(x,y,z)}
+  }
+  if(style==='bob'||style==='hime'){ // a bit of volume at bottom
+    for(let z=z0;z<z1-1;z++){put(x0-1,y0,z);put(x1,y0,z)}
+  }
+  if(style==='long'||style==='hime'){
+    const L=Math.round(H*.8);
+    for(let y=y0-L;y<y0;y++){for(let x=x0-1;x<=x1;x++)put(x,y,z0-1);for(let z=z0;z<z0+Math.ceil((z1-z0)*.45);z++){put(x0-1,y,z);put(x1,y,z)}}
+    for(let x=x0;x<x1;x++)put(x,y0-L,z0-1,cD);
+  }
+  if(style==='ponytail'){
+    const L=Math.round(H*.95);
+    for(let i=0;i<L;i++){const y=y1-2-i;const zz=z0-2-(i<2?0:1);for(let x=-1;x<1;x++){put(x,y,zz);if(i>1&&i<L-1)put(x,y,zz+1)}}
+    B.set(-1,y1-2,z0-1,shade(o&&o.colors?hex2int(o.colors.accent):0xd04040,1),'Head');B.set(0,y1-2,z0-1,shade(o&&o.colors?hex2int(o.colors.accent):0xd04040,1),'Head');
+  }
+  if(style==='twintail'){
+    const L=Math.round(H*.9);
+    for(const s of [-1,1]){const xb=s<0?x0-3:x1+1;for(let i=0;i<L;i++){const y=y1-2-i;for(let x=xb;x<xb+2;x++)for(let z=z0;z<z0+2;z++)put(x,y,z)}
+      B.set(s<0?x0-1:x1,y1-2,z0,o&&o.colors?hex2int(o.colors.accent):0xd04040,'Head');}
+  }
+  if(style==='bun'){
+    for(let x=-2;x<2;x++)for(let y=y1;y<y1+3;y++)for(let z=z0-1;z<z0+2;z++){if((x===-2||x===1)&&(y===y1||y===y1+2))continue;B.set(x,y+1,z,(hash3(x,y,z,5)>.8)?cD:c,'Head')}
+  }
+  if(style==='spiky'){
+    for(let x=x0;x<x1;x+=2)for(let z=z0;z<z1;z+=2){const hgt=1+Math.floor(hash3(x,0,z,o?o.seed:1)*2.2);for(let k=1;k<=hgt;k++)B.set(x,y1+k,z,k===hgt?cL:c,'Head')}
+    for(let y=y1-2;y<y1;y++){B.set(x0-2,y,z0+1,c,'Head');B.set(x1+1,y,z0+1,c,'Head')}
+  }
+  if(style==='afro'){
+    const cxh=0,cyh=y0+H*.62,czh=(z0+z1)/2-.5;const rx=(x1-x0)/2+2.2,ry=H*.62+1.2,rz=(z1-z0)/2+2;
+    B.ellipsoid('Head',cxh,cyh,czh,rx,ry,rz,(x,y,z)=>{if(x>=x0&&x<x1&&y<y1&&z>=z0&&z<z1)return -1;if(z>=z1-0&&y<y1-fringe)return -1;if(y<y0+1&&z>z0+1)return -1;return hash3(x,y,z,9)>.75?cD:c},y0);
+  }
+  if(style==='mohawk'){
+    for(let z=z0-1;z<z1;z++)for(let k=0;k<3;k++){if(k===2&&(z===z0-1||z===z1-1))continue;B.set(-1,y1+k,z,k===2?cL:c,'Head');B.set(0,y1+k,z,k===2?cL:c,'Head')}
+  }
+}
+
+function addHat(B,hat,h,fringe,C,o,fp){
+  if(!hat||hat==='none')return;
+  const {x0,x1,y0,y1,z0,z1}=h;const H=y1-y0;
+  const A=C.accent,M=C.metal,MD=shade(C.metal,.74);
+  const clearAbove=()=>{};
+  if(hat==='helmet'){
+    for(let x=x0-1;x<=x1;x++)for(let y=y0+1;y<=y1;y++)for(let z=z0-1;z<=z1;z++){
+      const ox=x<x0||x>=x1,oz=z<z0||z>=z1,oy=y>=y1;const outs=(ox?1:0)+(oz?1:0)+(oy?1:0);
+      if(outs!==1)continue;
+      if(z>=z1){const row=y1-1-y;if(row<fringe)B.set(x,y,z,row===fringe-1?MD:M,'Head');continue}
+      if(ox&&z>=z1-1&&y<y1-fringe-1&&y>y0+1)continue;
+      B.set(x,y,z,y===y1-fringe?MD:M,'Head');
+    }
+    for(let z=z0;z<z1;z++)B.set(-1,y1+1,z,A,'Head'),B.set(0,y1+1,z,A,'Head');
+    // remove hair poking out
+    for(const c of [...B.cells.values()])if(c.b===B.bi.Head&&c.y>y1&&c.c!==A)B.del(c.x,c.y,c.z);
+    return;
+  }
+  if(hat==='pointy'){
+    const r0=(x1-x0)/2+2;
+    for(let x=x0-2;x<x1+2;x++)for(let z=z0-2;z<z1+2;z++){const dx=x+.5,dz=z+.5-(z0+z1)/2;if(dx*dx+dz*dz<=r0*r0)B.set(x,y1,z,shade(C.top,.9),'Head')}
+    const ch=Math.round(H*1.2);
+    for(let i=1;i<=ch;i++){const t=i/ch;const r=lerp((x1-x0)/2-.2,.6,Math.pow(t,.8));const bz=-Math.round(Math.pow(t,2)*3);
+      for(let x=Math.floor(-r);x<Math.ceil(r);x++)for(let z=Math.floor(-r);z<Math.ceil(r);z++){const dx=x+.5,dz=z+.5;if(dx*dx+dz*dz<=r*r+.3)B.set(x,y1+i,z+Math.round((z0+z1)/2)+bz,i===1?A:C.top,'Head')}}
+    for(const c of [...B.cells.values()])if(c.b===B.bi.Head&&c.y>=y1&&c.y<=y1&&false)B.del(c.x,c.y,c.z);
+    return;
+  }
+  if(hat==='hood'){
+    const hc=C.accent===C.top?shade(C.top,.85):C.top;
+    for(let x=x0-1;x<=x1;x++)for(let y=y0;y<=y1;y++)for(let z=z0-1;z<=z1;z++){
+      const ox=x<x0||x>=x1,oz=z<z0||z>=z1,oy=y>=y1;const outs=(ox?1:0)+(oz?1:0)+(oy?1:0);
+      if(outs===0)continue;
+      if(z>=z1){const row=y1-1-y;if(!ox&&row<fringe)B.set(x,y,z,shade(hc,.85),'Head');else if(ox)B.set(x,y,z,shade(hc,.85),'Head');continue}
+      if(outs>=2&&oy)continue;
+      B.set(x,y,z,hc,'Head');
+    }
+    for(let x=x0;x<x1;x++)B.set(x,y0-1,z0-1,hc,'Head');
+    for(const c of [...B.cells.values()])if(c.b===B.bi.Head&&c.y>y1)B.del(c.x,c.y,c.z);
+    return;
+  }
+  if(hat==='ninja'){
+    addHat(B,'hood',h,fringe,Object.assign({},C,{top:C.top,accent:C.top}),o,fp);
+    const mr=y1-1-fp.mouthY; // mouth row world y
+    const top=Math.min(y1-1-(fp.eyeY+fp.eyeH),y1-1);
+    for(let x=x0;x<x1;x++)for(let y=y0;y<=top;y++)B.set(x,y,z1,y===top?shade(C.top,1.2):C.top,'Head');
+    return;
+  }
+  if(hat==='cap'){
+    for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++){B.set(x,y1,z,C.accent,'Head')}
+    for(let x=x0+1;x<x1-1;x++)for(let z=z0+1;z<z1-1;z++)B.set(x,y1+1,z,C.accent,'Head');
+    for(let x=x0;x<x1;x++)for(let z=z1;z<z1+2;z++)B.set(x,y1-0,z,shade(C.accent,.85),'Head');
+    B.set(x0+1,y1+2,z0+1,0xf2f2f2,'Head');B.set(x0+1,y1+3,z0,0xf2f2f2,'Head');B.set(x0+1,y1+2,z0,0xd03a3a,'Head');
+    for(const c of [...B.cells.values()])if(c.b===B.bi.Head&&c.y>y1+1&&!(c.x===x0+1))B.del(c.x,c.y,c.z);
+    return;
+  }
+  if(hat==='bandana'||hat==='headband'){
+    const col=hat==='bandana'?C.accent:C.accent;const y=y1-1-Math.max(0,fringe-1);
+    for(let x=x0-1;x<=x1;x++)for(let z=z0-1;z<=z1;z++){const ox=x<x0||x>=x1,oz=z<z0||z>=z1;if(ox&&oz)continue;if(!ox&&!oz)continue;B.set(x,y,z,col,'Head')}
+    if(hat==='bandana')for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++)B.set(x,y1,z,col,'Head');
+    B.set(0,y,z0-2,col,'Head');B.set(0,y-1,z0-2,col,'Head');B.set(-1,y-2,z0-2,col,'Head');
+    if(hat==='bandana'){for(const c of [...B.cells.values()])if(c.b===B.bi.Head&&c.y>y1)B.del(c.x,c.y,c.z)}
+    return;
+  }
+  if(hat==='crown'){
+    const G=0xf0c43a,GD=0xc8962a;
+    for(let x=x0+1;x<x1-1;x++)for(let z=z0+1;z<z1-1;z++){const edge=x===x0+1||x===x1-2||z===z0+1||z===z1-2;if(!edge)continue;B.set(x,y1+1,z,GD,'Head');if((x+z)%2===0)B.set(x,y1+2,z,G,'Head')}
+    B.set(-1,y1+1,z1-2,0xe0283a,'Head');B.set(0,y1+1,z1-2,0xe0283a,'Head');
+    return;
+  }
+  if(hat==='straw'){
+    const Y=0xe2c26a,YD=0xc9a548,R=0xc0392b;const r0=(x1-x0)/2+3;
+    for(let x=x0-3;x<x1+3;x++)for(let z=z0-3;z<z1+3;z++){const dx=x+.5,dz=z+.5-(z0+z1)/2;if(dx*dx+dz*dz<=r0*r0)B.set(x,y1,z,hash3(x,0,z,2)>.7?YD:Y,'Head')}
+    for(let x=x0+1;x<x1-1;x++)for(let z=z0+1;z<z1-1;z++){B.set(x,y1+1,z,R,'Head');B.set(x,y1+2,z,Y,'Head')}
+    for(const c of [...B.cells.values()])if(c.b===B.bi.Head&&c.y>y1+2)B.del(c.x,c.y,c.z);
+    return;
+  }
+  if(hat==='horns'){
+    const HC=0xe8e0c8,HD=0xb8ab8a;
+    for(const s of [-1,1]){const bx=s<0?x0:x1-1;for(let i=0;i<4;i++){B.set(bx+s*Math.floor(i/2),y1+i,z0+Math.floor((z1-z0)/2),i>=2?HC:HD,'Head')}}
+    return;
+  }
+}
+
+function addBeard(B,type,h,fp,col){
+  const {x0,x1,y0,y1,z0,z1}=h;
+  const rowY=r=>y1-1-r;const c=col,cD=shade(col,.85);
+  const mY=fp.mouthY;const cx=0;const mw=fp.mouthW;
+  if(type==='mustache'||type==='full'){for(let x=-mw/2-1;x<mw/2+1;x++)B.set(x,rowY(mY-1),z1,c,'Head')}
+  if(type==='goatee'){B.set(-1,rowY(fp.h-1),z1,c,'Head');B.set(0,rowY(fp.h-1),z1,c,'Head');B.set(-1,y0-1,z1-1,cD,'Head');B.set(0,y0-1,z1-1,cD,'Head')}
+  if(type==='full'){
+    for(let r=mY+1;r<fp.h;r++)for(let x=x0;x<x1;x++)B.set(x,rowY(r),z1,(hash3(x,r,0,4)>.75)?cD:c,'Head');
+    for(let x=x0;x<x1;x++)if(Math.abs(x+.5)<(x1-x0)/2-1){B.set(x,y0-1,z1,cD,'Head');B.set(x,y0-1,z1-1,cD,'Head')}
+    for(let x=x0+1;x<x1-1;x++)if(Math.abs(x+.5)<(x1-x0)/2-2)B.set(x,y0-2,z1,cD,'Head');
+    for(const x of [x0,x1-1])B.set(x,rowY(mY),z1,c,'Head');
+    for(let y=y0;y<rowY(fp.eyeY+fp.eyeH);y++){B.set(x0-1,y,z1-1,c,'Head');B.set(x1,y,z1-1,c,'Head')}
+  }
+}
+
+function addWeapon(B,w,g){
+  if(!w||w==='none')return;
+  const gx=-(g.sw/2)-Math.ceil(g.armT/2);const gy=g.yH0+Math.floor(g.hs/2);
+  const zf=g.az1,zb=g.az0,zc=g.az0+Math.floor(g.armT/2);
+  const M=shade(g.metal,1.08),MD=shade(g.metal,.8),ML=mix(g.metal,0xffffff,.5),G=0xd8b04a,W=0x6b4a2e,WD=0x4a3220;
+  const bone='RightHand';
+  const H=g.H;
+  if(w==='sword'||w==='dagger'){
+    const bl=Math.round(H*(w==='sword'?.36:.16));const bh=(w==='sword'&&H>=30)?2:1;
+    for(let x=gx-1;x<=gx+1;x++)B.set(x,gy,zf,G,bone);
+    if(bh===2)B.set(gx,gy+1,zf,G,bone),B.set(gx,gy-1,zf,G,bone);
+    for(let i=1;i<=bl;i++){const tip=i===bl;for(let k=0;k<bh;k++){if(tip&&k===bh-1&&bh>1)continue;B.set(gx,gy+k-(bh>1?0:0),zf+i,k===bh-1&&bh>1?ML:M,bone)}}
+    B.set(gx,gy,zb-1,G,bone);
+    return;
+  }
+  if(w==='spear'){
+    const back=Math.round(H*.2),fwd=Math.round(H*.5);
+    for(let z=zb-back;z<zf+fwd;z++)B.set(gx,gy,z,W,bone);
+    for(let i=0;i<3;i++)B.set(gx,gy,zf+fwd+i,i===2?ML:M,bone);
+    B.set(gx-1,gy,zf+fwd,MD,bone);B.set(gx+1,gy,zf+fwd,MD,bone);B.set(gx,gy+1,zf+fwd,MD,bone);B.set(gx,gy-1,zf+fwd,MD,bone);
+    return;
+  }
+  if(w==='axe'){
+    const L=Math.round(H*.32);
+    for(let z=zb-1;z<zf+L;z++)B.set(gx,gy,z,W,bone);
+    for(let z=zf+L-3;z<zf+L;z++)for(let y=gy+1;y<=gy+3;y++)B.set(gx,y,z,y===gy+3||z===zf+L-3?ML:M,bone);
+    for(let z=zf+L-3;z<zf+L;z++)B.set(gx,gy+4,z,ML,bone);
+    B.set(gx,gy-1,zf+L-2,MD,bone);
+    return;
+  }
+  if(w==='club'){
+    const L=Math.round(H*.3);
+    for(let z=zb-1;z<zf+L;z++){const t=(z-zf)/L;const r=t>.55?1:0;for(let x=gx-r;x<=gx+r;x++)for(let y=gy-r;y<=gy+r;y++)B.set(x,y,z,hash3(x,y,z,2)>.8?WD:W,bone)}
+    return;
+  }
+  if(w==='staff'){
+    const lo=Math.round(H*.22),hi=Math.round(H*.55);
+    for(let y=g.yH0-lo;y<g.yH0+hi;y++)B.set(gx,y,zc,W,bone);
+    const ty=g.yH0+hi;const gem=g.accent;
+    for(let x=gx-1;x<=gx+1;x++)for(let y=ty;y<ty+3;y++)for(let z=zc-1;z<=zc+1;z++){if((x!==gx&&z!==zc)&&(y!==ty+1))continue;B.set(x,y,z,(y===ty+2||x===gx+1)?mix(gem,0xffffff,.35):gem,bone)}
+    B.set(gx-1,ty-1,zc,G,bone);B.set(gx+1,ty-1,zc,G,bone);B.set(gx,ty-1,zc-1,G,bone);B.set(gx,ty-1,zc+1,G,bone);
+    return;
+  }
+  if(w==='cane'){
+    for(let y=0;y<gy;y++)B.set(gx,y,zf,W,bone);
+    B.set(gx,gy,zf,W,bone);B.set(gx,gy+1,zf,W,bone);B.set(gx,gy+1,zf-1,W,bone);B.set(gx,gy+1,zb,WD,bone);
+    return;
+  }
+  if(w==='bow'){
+    const bx=g.sw/2+Math.floor(g.armT/2);const half=Math.round(H*.24);const by=gy;const bn='LeftHand';
+    for(let dy=-half;dy<=half;dy++){const t=dy/half;const z=zf-Math.round(2.4*t*t);B.set(bx,by+dy,z,Math.abs(dy)<=1?WD:W,bn);if(Math.abs(dy)<half&&z>zf-2&&Math.abs(t)>.4)B.set(bx,by+dy,z+1,W,bn)}
+    for(let dy=-half+1;dy<half;dy++){const z=zf-3;if(z>=zb&&z<zf)continue;B.set(bx,by+dy,z,0xe8e2d0,bn)}
+    return;
+  }
+}
+function addShield(B,g,C,lowerTop){
+  const x=g.sw/2+g.armT;const bn='LeftLowerArm';
+  const y0=g.yH0+g.hs,y1=Math.min(lowerTop,y0+Math.max(4,Math.round(g.H*.2)));
+  const h=y1-y0;const z0=g.az0-Math.max(1,Math.round(h*.35)),z1=g.az1+Math.max(1,Math.round(h*.35));
+  for(let y=y0-1;y<y1+1;y++)for(let z=z0;z<z1;z++){
+    const ey=y===y0-1||y===y1,ez=z===z0||z===z1-1;if(ey&&ez)continue;
+    let c=C.accent;if(ey||ez)c=shade(C.metal,.85);
+    const my=(y0+y1)/2,mz=(z0+z1)/2;if(Math.abs(y+.5-my)<1&&Math.abs(z+.5-mz)<1)c=0xf0c43a;
+    B.set(x,y,z,c,bn);
+  }
+}
+function addQuiver(B,g){
+  const z=g.tz0-1;const yb=g.chestY-Math.round(g.H*.08);
+  for(let i=0;i<Math.round(g.H*.32);i++){const y=yb+i;const x=Math.round(-g.sw/2+1+i*.4);B.set(x,y,z,0x7a4f2a,'Chest');B.set(x+1,y,z,0x6a4224,'Chest')}
+  const ty=yb+Math.round(g.H*.32);const tx=Math.round(-g.sw/2+1+Math.round(g.H*.32)*.4);
+  B.set(tx,ty,z,0xf2f2f2,'Chest');B.set(tx+1,ty+1,z,0xd03a3a,'Chest');B.set(tx+1,ty,z,0xf2f2f2,'Chest');
+}
+
+/* =========================================================
+   ANIMALS & NON-HUMANOID MONSTERS
+   ========================================================= */
+const ANIMALS={
+  dog:   {name:'イヌ',  desc:'柴犬',      rig:'quadruped',L:16,W:8, Hb:7, leg:6, legT:2,head:8, snout:[3,4,3],neck:2,ears:'point',tail:'curl', tailLen:4,pattern:'shiba',
+          colors:{main:'#d68a3c',sub:'#f6ead4',pat:'#6b4423',eye:'#1a1414'}},
+  cat:   {name:'ネコ',  desc:'しましま',  rig:'quadruped',L:14,W:6, Hb:6, leg:5, legT:2,head:8, snout:[1,4,2],neck:1,ears:'point',tail:'long', tailLen:9,pattern:'stripes',
+          colors:{main:'#e8a050',sub:'#fbf1e2',pat:'#b8642a',eye:'#3b6b3a'}},
+  wolf:  {name:'オオカミ',desc:'灰色',    rig:'quadruped',L:20,W:8, Hb:8, leg:8, legT:2,head:8, snout:[4,4,3],neck:2,ears:'point',tail:'bushy',tailLen:7,pattern:'shiba',
+          colors:{main:'#7c8189',sub:'#dfe1e6',pat:'#4a4e55',eye:'#e0b020'}},
+  bear:  {name:'クマ',  desc:'がっしり',  rig:'quadruped',L:20,W:12,Hb:11,leg:6, legT:4,head:10,snout:[3,4,3],neck:1,ears:'round',tail:'short',tailLen:1,pattern:'muzzle',
+          colors:{main:'#6b4428',sub:'#b88a5e',pat:'#4a2e1a',eye:'#141010'}},
+  horse: {name:'ウマ',  desc:'長い脚',    rig:'quadruped',L:22,W:8, Hb:9, leg:13,legT:2,head:6, snout:[5,4,4],neck:7,ears:'small',tail:'hair', tailLen:10,pattern:'socks',mane:1,
+          colors:{main:'#8a5a35',sub:'#f2ece0',pat:'#2a1e16',eye:'#141010'}},
+  pig:   {name:'ブタ',  desc:'まんまる',  rig:'quadruped',L:16,W:10,Hb:9, leg:4, legT:3,head:8, snout:[2,4,3],neck:0,ears:'flop',tail:'curl', tailLen:2,pattern:'none',pigNose:1,
+          colors:{main:'#f2a6ae',sub:'#f7c6cb',pat:'#d98089',eye:'#1a1414'}},
+  rabbit:{name:'ウサギ',desc:'長い耳',    rig:'quadruped',L:10,W:7, Hb:7, leg:3, legT:2,head:8, snout:[1,4,2],neck:0,ears:'long', tail:'puff', tailLen:1,pattern:'none',hop:1,
+          colors:{main:'#f4f2ee',sub:'#ffffff',pat:'#f2a6b8',eye:'#c0283a'}},
+  bird:  {name:'コトリ',desc:'飛行',      rig:'flyer',kind:'bird',
+          colors:{main:'#3f8fd8',sub:'#f4efe6',pat:'#f0a020',eye:'#141414'}}
+};
+const MONSTERS={
+  slime:   {name:'スライム',desc:'ぷるぷる',rig:'slime',colors:{main:'#62c95a',sub:'#d2f7c4',pat:'#2f8a45',eye:'#141a2a'}},
+  goblin:  Object.assign({rig:'humanoid'},MONSTER_HUMANOIDS.goblin),
+  orc:     Object.assign({rig:'humanoid'},MONSTER_HUMANOIDS.orc),
+  skeleton:Object.assign({rig:'humanoid'},MONSTER_HUMANOIDS.skeleton),
+  golem:   Object.assign({rig:'humanoid'},MONSTER_HUMANOIDS.golem),
+  dragon:  {name:'ドラゴン',desc:'翼と尾',rig:'quadruped',L:24,W:10,Hb:9,leg:7,legT:3,head:9,snout:[5,6,4],neck:4,ears:'none',tail:'dragon',tailLen:14,pattern:'belly',horns:1,spikes:1,wings:1,
+            colors:{main:'#c0392b',sub:'#f2c46b',pat:'#6e1a14',eye:'#ffd23a'}},
+  bat:     {name:'コウモリ',desc:'飛行',  rig:'flyer',kind:'bat',colors:{main:'#4a3a66',sub:'#7a5a9a',pat:'#2a2040',eye:'#ff3040'}},
+  ghost:   {name:'ゴースト',desc:'浮遊',  rig:'flyer',kind:'ghost',colors:{main:'#eef0ff',sub:'#c8ccf0',pat:'#9aa0d8',eye:'#1a1a2a'}},
+  mimic:   {name:'ミミック',desc:'宝箱',  rig:'box',colors:{main:'#9a6234',sub:'#e8c04a',pat:'#5a3a20',eye:'#ffd23a'}}
+};
+
+function beastFaceColors(C){return {eye:C.eye,white:0xffffff,mouth:shade(C.pat,.7),mouthIn:0x9b2335,blush:mix(C.main,0xff5d7e,.5),brow:shade(C.pat,.8),skinDark:shade(C.main,.8),tear:0x7fd0ff,teeth:0xf5f3ea,pupil:0x111111}}
+
+/* ---------- QUADRUPED ---------- */
+function genQuad(o){
+  const sp=o.def;const s=o.size;const lm=o.legMul||1;
+  const C={};for(const k in o.colors)C[k]=hex2int(o.colors[k]);
+  const R=v=>Math.max(1,Math.round(v*s));
+  const L=even(sp.L*s),W=even(sp.W*s),Hb=R(sp.Hb),leg=Math.max(2,Math.round(sp.leg*s*lm)),legT=R(sp.legT);
+  const headW=Math.max(6,even(sp.head*s)),headH=Math.max(5,Math.round(sp.head*s*.9)),headD=Math.max(5,Math.round(sp.head*s*.85));
+  const snL=R(sp.snout[0]),snW=Math.max(2,even(sp.snout[1]*s)),snH=Math.max(2,Math.round(sp.snout[2]*s));
+  const neck=Math.round(sp.neck*s);
+  const B=new Builder();
+  const yB0=leg,yB1=leg+Hb;const z0=-L/2,z1=L/2;
+  const main=C.main,sub=C.sub,pat=C.pat;
+  const patAt=(x,y,z,base)=>{
+    let c=base;
+    if(sp.pattern==='stripes'&&base===main){if(((z+100)>>1)%2===0&&y>yB0+Hb*.4)c=pat}
+    if(sp.pattern==='spots'&&base===main){if(hash3(x>>1,y>>1,z>>1,o.seed)>.72)c=pat}
+    if(o.pattern==='spots'&&base===main){if(hash3(x>>1,y>>1,z>>1,o.seed)>.72)c=pat}
+    if(o.pattern==='stripes'&&base===main){if(((z+100)>>1)%2===0&&y>yB0+Hb*.4)c=pat}
+    return hash3(x,y,z,3)>.86?shade(c,.94):c;
+  };
+  B.bone('Root',null,0,0,0);
+  B.bone('Body','Root',0,yB0+Hb/2,-Math.round(L*.2));
+  B.bone('Chest','Body',0,yB0+Hb/2,Math.round(L*.2));
+  // body
+  B.box('Body',-W/2,W/2,yB0,yB1,z0,z1,(x,y,z)=>{
+    const ex=x===-W/2||x===W/2-1,ey=y===yB1-1,ez=z===z0||z===z1-1;
+    if(ex&&ey)return -1;if(ez&&ey&&Hb>=4)return -1;if(ex&&ez)return -1;
+    let c=main;
+    const belly=y<yB0+Math.max(1,Math.round(Hb*.3));
+    if((sp.pattern==='shiba'||sp.pattern==='muzzle'||sp.pattern==='belly')&&belly&&!ex)c=sub;
+    if(sp.pattern==='belly'&&!ex&&y<yB0+Math.round(Hb*.45)&&((z+100)%2===0))c=sub;
+    if(sp.pattern==='belly'&&!ex&&y<yB0+Math.round(Hb*.45)&&((z+100)%2===1))c=shade(sub,.88);
+    if(sp.pattern==='shiba'&&z>=z1-2&&y<yB0+Hb*.7&&!ex)c=sub;
+    return patAt(x,y,z,c);
+  });
+  // reassign front half to chest
+  for(const c of B.cells.values())if(c.z>=0)c.b=B.bi.Chest;
+  // legs
+  const legs=[['FrontLeft',1,1],['FrontRight',-1,1],['BackLeft',1,-1],['BackRight',-1,-1]];
+  const kneeY=Math.max(1,Math.round(leg*.45));
+  for(const [nm,sx,sz] of legs){
+    const xa=sx>0?W/2-legT:-W/2,xb=xa+legT;
+    const za=sz>0?z1-legT-1:z0+1,zb=za+legT;
+    const xc=(xa+xb)/2,zc=(za+zb)/2;
+    B.bone(nm+'Upper',sz>0?'Chest':'Body',xc,leg,zc);
+    B.bone(nm+'Lower',nm+'Upper',xc,kneeY,zc);
+    for(let y=0;y<leg;y++){
+      let c=main;if(y===0)c=sp.pattern==='socks'?sub:shade(main,.75);
+      if(sp.pattern==='socks'&&y<kneeY)c=sub;
+      if(sp.pattern==='shiba'&&y<kneeY)c=sub;
+      if(sp.rig==='quadruped'&&o.def===MONSTERS.dragon&&y===0)c=shade(pat,1);
+      B.box(y<kneeY?nm+'Lower':nm+'Upper',xa,xb,y,y+1,za,zb,(x,yy,z)=>patAt(x,yy,z,c));
+    }
+    if(o.def===MONSTERS.dragon){for(let x=xa;x<xb;x++)B.set(x,0,zb,0xf2f2e6,nm+'Lower')}
+  }
+  // neck + head
+  const nw=Math.max(2,even(headW*.55)),nd=Math.max(2,Math.round(headD*.6));
+  const neckBaseY=yB1-Math.max(1,Math.round(Hb*.35));
+  const nz0=z1-nd;
+  B.bone('Neck','Chest',0,neckBaseY,nz0+nd/2);
+  const fwd=sp.mane?Math.round(neck*.55):Math.round(neck*.3);
+  for(let i=0;i<neck+Math.round(Hb*.35);i++){const y=neckBaseY+i;const dz=Math.round(i/(neck+Hb*.35)*fwd);
+    B.box('Neck',-nw/2,nw/2,y,y+1,nz0+dz,nz0+nd+dz,(x,yy,z)=>{let c=main;if(sp.pattern==='shiba'&&z>=nz0+nd+dz-1)c=sub;if(sp.mane&&z===nz0+dz&&yy>neckBaseY)c=pat;return patAt(x,yy,z,c)})}
+  if(sp.mane){for(let i=1;i<neck+Hb*.35;i++){const y=neckBaseY+i;const dz=Math.round(i/(neck+Hb*.35)*fwd);for(let x=-1;x<1;x++)B.set(x,y,nz0+dz-1,pat,'Neck');B.set(-1,y+1,nz0+dz-1,shade(pat,1.2),'Neck')}}
+  const hb0=neckBaseY+neck+Math.round(Hb*.35)-Math.round(headH*.45);
+  const hz0=z1-1+fwd-Math.round(headD*.35);const hz1=hz0+headD;
+  const hx0=-headW/2,hx1=headW/2,hy0=hb0,hy1=hb0+headH;
+  B.bone('Head','Neck',0,hy0+Math.round(headH*.4),hz0+Math.round(headD*.4));
+  B.box('Head',hx0,hx1,hy0,hy1,hz0,hz1,(x,y,z)=>{
+    const ex=x===hx0||x===hx1-1,ey=y===hy1-1,ez=z===hz0;if(ex&&ey&&headH>=6)return -1;if(ex&&ez&&ey)return -1;
+    let c=main;if((sp.pattern==='shiba'||sp.pattern==='muzzle')&&y<hy0+snH+1&&z>=hz1-2&&!ex)c=sub;
+    if(sp.pattern==='shiba'&&y<hy0+snH+2&&ex&&z>=hz1-2)c=sub;
+    if(sp.pattern==='belly'&&y===hy0)c=sub;
+    return patAt(x,y,z,c)});
+  // snout
+  const snCol=sp.pigNose?shade(main,.9):((sp.pattern==='shiba'||sp.pattern==='muzzle')?sub:main);
+  B.box('Head',-snW/2,snW/2,hy0,hy0+snH,hz1,hz1+snL,(x,y,z)=>{if(snW>=4&&(x===-snW/2||x===snW/2-1)&&y===hy0+snH-1&&z===hz1+snL-1)return -1;return y===hy0?shade(snCol,.92):snCol});
+  // nose
+  const nzF=hz1+snL-1,nyT=hy0+snH-1;
+  if(sp.pigNose){for(let x=-snW/2;x<snW/2;x++)for(let y=hy0;y<hy0+snH;y++)B.set(x,y,hz1+snL,(Math.abs(x+.5)<1.2&&y===hy0+Math.floor(snH/2))?shade(main,.55):shade(main,.98),'Head')}
+  else if(o.def===MONSTERS.dragon){B.set(-2,nyT,nzF,shade(main,.5),'Head');B.set(1,nyT,nzF,shade(main,.5),'Head');
+    for(let z=hz1;z<hz1+snL;z+=2){B.set(-snW/2,hy0,z,0xf5f2e6,'Head');B.set(snW/2-1,hy0,z,0xf5f2e6,'Head')}}
+  else {B.set(-1,nyT,nzF+ (snL>1?0:1),0x1a1414,'Head');B.set(0,nyT,nzF+(snL>1?0:1),0x1a1414,'Head');if(snL>1){B.set(-1,nyT,nzF+1,0x1a1414,'Head');B.set(0,nyT,nzF+1,0x1a1414,'Head')}
+    if(snH>=3)B.set(-1,hy0,nzF,shade(snCol,.7),'Head'),B.set(0,hy0,nzF,shade(snCol,.7),'Head');}
+  // ears
+  const eyeColor=C.eye;
+  const ez=hz0+Math.floor(headD*.45);
+  for(const sx of [1,-1]){
+    const xo=sx>0?hx1-1:hx0;
+    if(sp.ears==='point'){const n=Math.max(2,Math.round(3*s));for(let i=0;i<n;i++){const w=Math.max(1,2-Math.floor(i*2/n));for(let k=0;k<w;k++){B.set(xo-sx*k,hy1+i,ez,main,'Head');B.set(xo-sx*k,hy1+i,ez+1,i<n-1&&k===0?mix(main,0xffb0b0,.4):main,'Head')}}}
+    if(sp.ears==='round'){for(let i=0;i<2;i++)for(let k=0;k<2;k++)B.set(xo-sx*k,hy1+i,ez,i===0&&k===1?sub:main,'Head');B.set(xo,hy1,ez+1,main,'Head')}
+    if(sp.ears==='small'){B.set(xo-sx,hy1,ez,main,'Head');B.set(xo-sx,hy1+1,ez,main,'Head')}
+    if(sp.ears==='flop'){const xx=sx>0?hx1:hx0-1;for(let i=0;i<3;i++){B.set(xx,hy1-1-i,hz1-2,main,'Head');B.set(xx,hy1-1-i,hz1-3,shade(main,.9),'Head')}}
+    if(sp.ears==='long'){const n=Math.round(6*s);for(let i=0;i<n;i++){B.set(xo-sx*0,hy1+i,ez,main,'Head');B.set(xo-sx*1,hy1+i,ez,main,'Head');B.set(xo-sx*0,hy1+i,ez+1,i>0&&i<n-1?pat:main,'Head');B.set(xo-sx*1,hy1+i,ez+1,main,'Head')}}
+  }
+  if(sp.horns){for(const sx of [1,-1]){const xo=sx>0?hx1-2:hx0+1;for(let i=0;i<Math.round(4*s);i++)B.set(xo+sx*Math.floor(i/2),hy1+i,hz0+1-Math.floor(i/2),i>1?0xf2ead2:0xcfc4a6,'Head')}}
+  if(sp.mane){for(let x=-1;x<1;x++){B.set(x,hy1,hz0+1,pat,'Head');B.set(x,hy1-1,hz1,pat,'Head')}}
+  // tail
+  const tY=yB1-Math.max(1,Math.round(Hb*.25));
+  B.bone('Tail1','Body',0,tY,z0);
+  const tl=Math.max(1,Math.round(sp.tailLen*s));
+  const tailCells=[];
+  if(sp.tail==='curl'){for(let i=0;i<tl;i++)tailCells.push([0,tY+i,z0-1-(i>tl-2?0:0)]);tailCells.push([0,tY+tl,z0]);tailCells.push([0,tY+tl,z0+1])}
+  if(sp.tail==='long'){for(let i=0;i<tl;i++)tailCells.push([0,tY+Math.round(Math.sin(i/tl*2.2)*tl*.45),z0-1-i])}
+  if(sp.tail==='bushy'){for(let i=0;i<tl;i++){const y=tY-Math.round(i*.5);tailCells.push([0,y,z0-1-i],[-1,y,z0-1-i]);if(i>1&&i<tl-1)tailCells.push([0,y+1,z0-1-i],[-1,y+1,z0-1-i])}}
+  if(sp.tail==='short'){for(let i=0;i<tl;i++)tailCells.push([0,tY,z0-1-i],[-1,tY,z0-1-i])}
+  if(sp.tail==='hair'){tailCells.push([0,tY,z0-1],[-1,tY,z0-1]);for(let i=1;i<tl;i++)tailCells.push([0,tY-i+1,z0-2],[-1,tY-i+1,z0-2])}
+  if(sp.tail==='puff'){for(let x=-1;x<1;x++)for(let y=0;y<2;y++)for(let z=0;z<2;z++)tailCells.push([x,tY-1+y,z0-1-z])}
+  if(sp.tail==='dragon'){const w0=2;for(let i=0;i<tl;i++){const t=i/tl;const y=tY-Math.round(Math.sin(t*1.6)*Hb*.5);const r=t<.5?1:0;for(let x=-1-r+1;x<1+r;x++)for(let yy=y;yy<y+1+r;yy++)tailCells.push([x,yy,z0-1-i]);if(i%3===1)tailCells.push([0,y+1+r,z0-1-i])}
+    const tz=z0-tl;for(let x=-2;x<2;x++)tailCells.push([x,tY-Math.round(Math.sin(1.6)*Hb*.5),tz-1]);tailCells.push([-1,tY-Math.round(Math.sin(1.6)*Hb*.5),tz-2],[0,tY-Math.round(Math.sin(1.6)*Hb*.5),tz-2])}
+  if(tailCells.length){
+    const n=tailCells.length;
+    const zs=tailCells.map(c=>c[2]);const zmin=Math.min(...zs),zmax=Math.max(...zs);const span=Math.max(1,zmax-zmin);
+    const segs=sp.tail==='dragon'||sp.tail==='long'?3:(sp.tail==='bushy'||sp.tail==='hair'?2:1);
+    let prev='Tail1';
+    for(let k=1;k<segs;k++){const zz=Math.round(zmax-span*k/segs);const near=tailCells.reduce((a,c)=>Math.abs(c[2]-zz)<Math.abs(a[2]-zz)?c:a);B.bone('Tail'+(k+1),prev,0,near[1],zz+.5);prev='Tail'+(k+1)}
+    for(const [x,y,z] of tailCells){const k=clamp(Math.floor((zmax-z)/span*segs),0,segs-1);const nm='Tail'+(k+1);
+      let c=sp.tail==='hair'?pat:main;if(sp.tail==='bushy'&&z<=zmin+1)c=sub;if(sp.tail==='curl'&&sp.pattern==='shiba')c=y>tY+tl-1?sub:main;if(sp.tail==='dragon'&&z<=zmin+1)c=pat;if(sp.tail==='dragon'&&y>tY-Hb*.5+1&&x===0&&B.has(x,y-1,z))c=pat;
+      B.set(x,y,z,patAt(x,y,z,c),nm)}
+  }
+  // dragon spikes & wings
+  if(sp.spikes){for(let z=z0+1;z<z1;z+=2){B.set(-1,yB1,z,pat,z<0?'Body':'Chest');B.set(0,yB1,z,pat,z<0?'Body':'Chest');if((z>>1)%2===0)B.set(-1,yB1+1,z,shade(pat,1.3),z<0?'Body':'Chest')}
+    for(let i=0;i<neck;i+=2){const y=neckBaseY+i+Math.round(Hb*.35);const dz=Math.round(i/(neck+Hb*.35)*fwd);B.set(-1,y,nz0+dz-1,pat,'Neck');B.set(0,y,nz0+dz-1,pat,'Neck')}}
+  if(sp.wings){
+    const span=Math.round(14*s),dep=Math.round(9*s);const wy=yB1;const wz=Math.round(L*.18);
+    for(const sx of [1,-1]){const S=sx>0?'Left':'Right';
+      const x0=sx>0?W/2:-W/2-1;
+      B.bone('Wing'+S+'1','Chest',x0+.5,wy,wz);B.bone('Wing'+S+'2','Wing'+S+'1',x0+sx*(span*.5)+.5,wy,wz);
+      for(let i=0;i<span;i++){const x=x0+sx*i;const t=i/span;const d=Math.max(1,Math.round(dep*(1-Math.pow(t,1.4))+(i%4===3?-1:0)));
+        const bn='Wing'+S+(i<span*.5?'1':'2');
+        for(let k=0;k<d;k++){const z=wz-k;const frame=k===0||((i%4===0)&&k<d);B.set(x,wy,z,frame?pat:(k===d-1?shade(sub,.85):sub),bn)}
+        if(i===span-1){B.set(x,wy,wz+1,0xf2ead2,bn)}
+      }
+    }
+  }
+  // face
+  const fh=headH-snH;
+  const fp={w:headW,h:fh,eyeW:headW>=10?2:(sp.L<=14?2:1),eyeH:fh>=5?3:2,gap:headW>=10?1.5:1,eyeY:0,mouthY:-1,mouthW:2,lash:false,brow:false,blush:o.def===ANIMALS.rabbit||o.def===ANIMALS.cat||o.def===ANIMALS.pig,hl:!sp.horns,colors:beastFaceColors(C)};
+  fp.eyeY=Math.max(1,fh-fp.eyeH-1);
+  if(sp.horns){fp.glow=true;fp.colors.pupil=0x111111;fp.eyeY=Math.max(1,fh-fp.eyeH-1)}
+  B.faceRect={bone:B.bi.Head,x0:hx0,y0:hy0+snH,w:headW,h:fh,z:hz1};
+  const frames={};for(const k of EXPR_KEYS)frames[k]=drawFace(fp,k);
+  B.facePlate();
+  return B.finish({rig:'quadruped',H:hy1+2,face:{w:headW,h:fh,frames,fp},meta:{amp:1,leg,Hb,L,W,hop:!!sp.hop,wings:!!sp.wings,size:s}});
+}
+
+/* ---------- FLYER (bird / bat / ghost) ---------- */
+function genFlyer(o){
+  const sp=o.def;const s=o.size;const kind=sp.kind;
+  const C={};for(const k in o.colors)C[k]=hex2int(o.colors[k]);
+  const B=new Builder();const R=v=>Math.max(1,Math.round(v*s));
+  const main=C.main,sub=C.sub,pat=C.pat;
+  B.bone('Root',null,0,0,0);
+  let face,meta={amp:1,kind,size:s};
+  if(kind==='ghost'){
+    const W=even(12*s),Hh=Math.round(14*s),D=Math.round(10*s);const y0=0;
+    B.bone('Body','Root',0,Math.round(Hh*.4),0);
+    B.bone('Head','Body',0,Math.round(Hh*.6),0);
+    for(let y=0;y<Hh;y++){const t=y/Hh;const r=t>.55?Math.sqrt(Math.max(0,1-Math.pow((t-.55)/.45,2)))*W/2:W/2-(.55-t)*2.2;const rz=r*D/W;
+      for(let x=Math.floor(-r);x<Math.ceil(r);x++)for(let z=Math.floor(-rz);z<Math.ceil(rz);z++){
+        const dx=(x+.5)/r,dz=(z+.5)/rz;if(dx*dx+dz*dz>1)continue;
+        if(y===0&&((x+50)%3===0))continue; if(y===1&&((x+50)%3===0)&&hash3(x,0,z,1)>.5)continue;
+        B.set(x,y0+y,z,y<2?sub:(hash3(x,y,z,4)>.9?shade(main,.95):main),y>=Hh*.6?'Head':'Body')}}
+    const arm=R(4);
+    for(const sx of [1,-1]){const S=sx>0?'Left':'Right';const x0=sx>0?Math.round(W/2-1):-Math.round(W/2-1)-1;const y=Math.round(Hh*.45);
+      B.bone('Wing'+S+'1','Body',x0+.5,y+.5,0);B.bone('Wing'+S+'2','Wing'+S+'1',x0+sx*arm*.5+.5,y+.5,0);
+      for(let i=0;i<arm;i++){B.set(x0+sx*i,y-(i>arm/2?1:0),0,main,'Wing'+S+(i<arm/2?'1':'2'));B.set(x0+sx*i,y-(i>arm/2?1:0),-1,sub,'Wing'+S+(i<arm/2?'1':'2'))}}
+    // face plate on front
+    const fw=even(W*.7),fh=Math.round(Hh*.42);const fy0=Math.round(Hh*.55);
+    let zf=-99;for(const c of B.cells.values())if(c.x>=-1&&c.x<=0&&c.y>=fy0&&c.y<fy0+fh)zf=Math.max(zf,c.z+1);
+    B.faceRect={bone:B.bi.Head,x0:-fw/2,y0:fy0,w:fw,h:fh,z:zf,skin:main};
+    const fp={w:fw,h:fh,eyeW:2,eyeH:fh>=6?3:2,gap:1,eyeY:1,mouthY:Math.min(fh-1,1+(fh>=6?3:2)+2),mouthW:2,lash:false,brow:false,blush:true,hl:false,colors:Object.assign(beastFaceColors(C),{mouth:0x1a1a2a,mouthIn:0x3a2a4a})};
+    face={w:fw,h:fh,fp};
+    meta.fly=Math.round(3*s);meta.noLegs=true;
+  } else {
+    const bat=kind==='bat';
+    const bw=even((bat?6:6)*s),bh=R(bat?6:6),bl=R(bat?5:8);const legH=bat?R(1):R(2);
+    const by0=legH,by1=by0+bh;const bz0=-Math.floor(bl/2),bz1=bz0+bl;
+    B.bone('Body','Root',0,by0+bh/2,0);
+    B.box('Body',-bw/2,bw/2,by0,by1,bz0,bz1,(x,y,z)=>{const ex=x===-bw/2||x===bw/2-1,ey=y===by0||y===by1-1,ez=z===bz0||z===bz1-1;if((ex&&ey)||(ex&&ez)||(ey&&ez))return -1;
+      let c=main;if(!bat&&z>=bz1-2&&y<by0+bh*.7)c=sub;if(bat&&z>=bz1-1)c=sub;return hash3(x,y,z,6)>.88?shade(c,.93):c});
+    // head
+    const hw=even((bat?6:6)*s),hh=R(bat?5:6),hd=R(bat?5:5);
+    const hy0=by1-Math.round(hh*(bat?.6:.45)),hz0=bz1-Math.round(hd*(bat?.6:.55)),hz1=hz0+hd,hy1=hy0+hh;
+    B.bone('Head','Body',0,hy0+1,hz0+hd/2);
+    B.box('Head',-hw/2,hw/2,hy0,hy1,hz0,hz1,(x,y,z)=>{const ex=x===-hw/2||x===hw/2-1,ey=y===hy1-1;if(ex&&ey)return -1;let c=main;if(!bat&&y<hy0+2&&z>=hz1-1)c=sub;return c});
+    if(!bat){B.set(-1,hy0+1,hz1,pat,'Head');B.set(0,hy0+1,hz1,pat,'Head');B.set(-1,hy0+1,hz1+1,shade(pat,.9),'Head');B.set(0,hy0+1,hz1+1,shade(pat,.9),'Head');B.set(-1,hy1,hz0+1,main,'Head');B.set(0,hy1,hz0+2,main,'Head')}
+    else {for(const sx of [1,-1]){const xo=sx>0?hw/2-1:-hw/2;for(let i=0;i<R(3);i++){B.set(xo,hy1+i,hz0+1,main,'Head');B.set(xo-sx,hy1+i,hz0+1,i<R(3)-1?sub:main,'Head')}}
+      B.set(-2,hy0,hz1,0xf5f2e6,'Head');B.set(1,hy0,hz1,0xf5f2e6,'Head');}
+    // wings
+    const span=R(bat?9:8),dep=R(bat?7:6);const wy=by0+Math.round(bh*.6);
+    for(const sx of [1,-1]){const S=sx>0?'Left':'Right';const x0=sx>0?bw/2:-bw/2-1;const wz=bz1-2;
+      B.bone('Wing'+S+'1','Body',x0+.5,wy+.5,wz);B.bone('Wing'+S+'2','Wing'+S+'1',x0+sx*span*.5+.5,wy+.5,wz);
+      for(let i=0;i<span;i++){const x=x0+sx*i;const t=i/span;let d=Math.max(1,Math.round(dep*(1-Math.pow(t,bat?1.2:2))));
+        if(!bat&&i>span*.4)d=Math.max(d,Math.round(dep*.7)-(i%2));
+        if(bat&&i%3===2)d=Math.max(1,d-1);
+        const bn='Wing'+S+(i<span*.5?'1':'2');
+        for(let k=0;k<d;k++){const z=wz-k;let c=bat?(k===0||i%3===0?pat:sub):(k>=d-2&&i>span*.3?pat:(k===0?shade(main,1.1):main));B.set(x,wy,z,c,bn)}
+      }}
+    // tail
+    B.bone('Tail','Body',0,by0+bh*.6,bz0);
+    if(!bat){for(let i=0;i<R(4);i++)for(let x=-1-(i>1?1:0);x<1+(i>1?1:0);x++)B.set(x,by0+Math.round(bh*.5)+(i>2?1:0),bz0-1-i,i>=R(4)-1?pat:main,'Tail')}
+    else{B.set(0,by0+1,bz0-1,pat,'Tail')}
+    // legs
+    for(const sx of [1,-1]){const S=sx>0?'Left':'Right';const x=sx>0?1:-2;B.bone(S+'Leg','Body',x+.5,legH,0);
+      for(let y=0;y<legH;y++)B.set(x,y,0,bat?pat:C.pat,S+'Leg');if(!bat)B.set(x,0,1,C.pat,S+'Leg')}
+    const fw=hw,fh=bat?hh:hh-2;const fy0=bat?hy0:hy0+2;
+    B.faceRect={bone:B.bi.Head,x0:-hw/2,y0:fy0,w:fw,h:fh,z:hz1};
+    const fp={w:fw,h:fh,eyeW:bat?1:1,eyeH:2,gap:bat?1:1,eyeY:Math.max(1,fh-3-(bat?1:0)),mouthY:bat?fh-1:-1,mouthW:2,lash:false,brow:false,blush:!bat,hl:!bat,glow:bat,fangs:bat,colors:beastFaceColors(C)};
+    if(bat){fp.colors.pupil=0xffd0d0;fp.colors.mouth=0x1a1020}
+    face={w:fw,h:fh,fp};
+    meta.fly=Math.round(5*s);
+  }
+  const frames={};for(const k of EXPR_KEYS)frames[k]=drawFace(face.fp,k);face.frames=frames;
+  B.facePlate();
+  const m=B.finish({rig:'flyer',H:0,face,meta});m.H=m.bmax[1];
+  return m;
+}
+
+/* ---------- SLIME ---------- */
+function genSlime(o){
+  const s=o.size;const C={};for(const k in o.colors)C[k]=hex2int(o.colors[k]);
+  const B=new Builder();
+  const R=Math.max(4,Math.round(8*s)),Hh=Math.max(5,Math.round(8*s));
+  B.bone('Root',null,0,0,0);B.bone('Body','Root',0,0,0);
+  B.ellipsoid('Body',0,0,0,R,Hh,R*.85,(x,y,z)=>{
+    let c=C.main;if(y<=0)c=C.pat;
+    const hl=(x+.5)/R*-.5+(y+.5)/Hh*.8+(z+.5)/R*.4;if(hl>.72)c=C.sub;
+    if(y===1&&hash3(x,0,z,2)>.6)c=shade(C.main,.9);
+    return c},0);
+  if(o.variant==='king'){const G=0xf0c43a,GD=0xc8962a;for(let x=-3;x<3;x++)for(let z=-3;z<3;z++){const e=x===-3||x===2||z===-3||z===2;if(!e)continue;B.set(x,Hh+1,z,GD,'Body');if((x+z)%2===0)B.set(x,Hh+2,z,G,'Body')}}
+  const fw=even(R*1.1),fh=Math.max(5,Math.round(Hh*.55));const fy0=Math.round(Hh*.12);
+  let zf=-99;for(const c of B.cells.values())if(c.x>=-1&&c.x<=0&&c.y>=fy0&&c.y<fy0+fh)zf=Math.max(zf,c.z+1);
+  B.faceRect={bone:B.bi.Body,x0:-fw/2,y0:fy0,w:fw,h:fh,z:zf,skin:C.main};
+  const fp={w:fw,h:fh,eyeW:2,eyeH:fh>=7?3:2,gap:fw>=10?1.5:1,eyeY:Math.max(1,Math.round(fh*.2)),mouthW:2,lash:false,brow:false,blush:true,hl:true,colors:beastFaceColors(C)};
+  fp.mouthY=Math.min(fh-1,fp.eyeY+fp.eyeH+2);fp.colors.mouth=shade(C.pat,.6);fp.colors.blush=mix(C.main,0xff7aa0,.55);
+  const frames={};for(const k of EXPR_KEYS)frames[k]=drawFace(fp,k);
+  B.facePlate();
+  return B.finish({rig:'slime',H:Hh+2,face:{w:fw,h:fh,frames,fp},meta:{amp:1,R,Hh}});
+}
+
+/* ---------- MIMIC (box) ---------- */
+function genBox(o){
+  const s=o.size;const C={};for(const k in o.colors)C[k]=hex2int(o.colors[k]);
+  const B=new Builder();
+  const W=even(12*s),bH=Math.round(7*s),lH=Math.max(3,Math.round(4*s)),D=Math.round(9*s);
+  const z0=-Math.floor(D/2),z1=z0+D;
+  B.bone('Root',null,0,0,0);B.bone('Base','Root',0,0,0);B.bone('Lid','Base',0,bH,z0);
+  const wood=(x,y,z)=>{let c=C.main;if(((y+(x>>2))%3)===0)c=shade(C.main,.88);if(hash3(x,y,z,8)>.9)c=shade(C.main,.8);return c};
+  const band=x=>Math.abs(x+.5)>=W/2-1.5&&Math.abs(x+.5)<W/2-.5;
+  B.box('Base',-W/2,W/2,0,bH,z0,z1,(x,y,z)=>{
+    const inner=x>-W/2&&x<W/2-1&&z>z0&&z<z1-1&&y>=bH-2;if(inner)return y===bH-2?0x5a1020:-1;
+    if(band(x)||y===0)return C.pat;
+    return wood(x,y,z)});
+  // tongue
+  for(let z=z0+1;z<z1-1;z++)for(let x=-1;x<1;x++)B.set(x,bH-1,z,0xd0506a,'Base');
+  B.set(-1,bH-1,z1-1,0xd0506a,'Base');B.set(0,bH-1,z1-1,0xd0506a,'Base');
+  // teeth on base rim
+  for(let x=-W/2+1;x<W/2-1;x+=2){B.set(x,bH,z1-1,0xf5f2e6,'Base')}
+  // lid
+  B.box('Lid',-W/2,W/2,bH+1,bH+1+lH,z0,z1,(x,y,z)=>{
+    const top=y===bH+lH;const ex=x===-W/2||x===W/2-1;
+    if(top&&(z===z0||z===z1-1))return -1;
+    if(band(x))return C.pat;
+    return wood(x,y,z)});
+  for(let x=-W/2+2;x<W/2-1;x+=2)B.set(x,bH,z1-1-0,0xf5f2e6,'Lid');
+  for(let x=-W/2+2;x<W/2-1;x+=2)B.set(x,bH,z1-1,0xf5f2e6,'Lid');
+  // lock
+  B.box('Base',-1,1,bH-3,bH-1,z1,z1+1,C.sub);B.set(-1,bH-2,z1,shade(C.sub,.6),'Base');
+  // eyes on lid front
+  const fw=W,fh=lH;
+  B.faceRect={bone:B.bi.Lid,x0:-W/2,y0:bH+1,w:fw,h:fh,z:z1};
+  const fp={w:fw,h:fh,eyeW:2,eyeH:Math.min(2,fh-1),gap:2,eyeY:Math.max(0,fh-3),mouthY:-1,mouthW:2,lash:false,brow:false,blush:false,glow:true,colors:beastFaceColors(C)};
+  fp.colors.pupil=0x111111;
+  const frames={};for(const k of EXPR_KEYS)frames[k]=drawFace(fp,k);
+  // shift lid cells so that the hinge sits under them (lid bottom row = bH+1)
+  return B.finish({rig:'box',H:bH+lH+2,face:{w:fw,h:fh,frames,fp},meta:{amp:1,bH,lH,D}});
+}
+
+/* =========================================================
+   ANIMATIONS  (procedural, sampled for preview / bake / export)
+   rotation: degrees, XYZ euler, local to bone. translation: voxel units.
+   swing forward = negative X (limbs hang along -Y). Left = +X side.
+   ========================================================= */
+const TAU=Math.PI*2,D2R=Math.PI/180;
+class Pose{
+  constructor(){this.b={}}
+  g(n){return this.b[n]||(this.b[n]={r:[0,0,0],t:[0,0,0],s:[1,1,1]})}
+  r(n,x,y,z){const o=this.g(n);o.r[0]+=x||0;o.r[1]+=y||0;o.r[2]+=z||0;return this}
+  t(n,x,y,z){const o=this.g(n);o.t[0]+=x||0;o.t[1]+=y||0;o.t[2]+=z||0;return this}
+  s(n,x,y,z){const o=this.g(n);o.s[0]*=x;o.s[1]*=y;o.s[2]*=z;return this}
+  arm(side,ux,uy,uz,lx,hx){const S=side;this.r(S+'UpperArm',ux,uy,uz);if(lx)this.r(S+'LowerArm',lx);if(hx)this.r(S+'Hand',hx);return this}
+  leg(side,ux,lx,fx){this.r(side+'UpperLeg',ux);this.r(side+'LowerLeg',lx);this.r(side+'Foot',fx);return this}
+}
+const blinkAt=(t,period=3.1,len=.12)=>((t%period)+period)%period>period-len;
+const dropFor=(len,deg)=>-len*(1-Math.cos(deg*D2R));
+
+/* ---------------- HUMANOID ---------------- */
+const A_HUMAN=[
+ {id:'idle',label:'待機',dur:2.0,loop:1,fn(p,P,m){const b=Math.sin(TAU*p);const a=m.meta.amp;
+   P.r('Chest',2*b*a).r('Head',-1.5*b).arm('Left',0,0,4+1.5*b,-6).arm('Right',0,0,-4-1.5*b,-6);
+   P.r('Spine',.8*b)},
+  ex:(p,t)=>blinkAt(t,2.0,.13)||(p>.62&&p<.68)?'blink':'neutral'},
+ {id:'walk',label:'歩き',dur:.9,loop:1,fn(p,P,m){const s=Math.sin(TAU*p),c=Math.cos(TAU*p);const a=m.meta.amp;const A=28*a;
+   P.leg('Left',-A*s,40*a*Math.max(0,c),-8*Math.max(0,c));P.leg('Right',A*s,40*a*Math.max(0,-c),-8*Math.max(0,-c));
+   P.arm('Left',24*a*s,0,4,-14).arm('Right',-24*a*s,0,-4,-14);
+   P.r('Hips',0,6*a*s,0).r('Chest',0,-8*a*s,0).r('Spine',2);
+   P.t('Root',0,dropFor(m.meta.legLen,A*Math.abs(s))*.9,0)},
+  ex:(p,t)=>blinkAt(t,2.7)?'blink':'neutral'},
+ {id:'run',label:'走り',dur:.56,loop:1,fn(p,P,m){const s=Math.sin(TAU*p),c=Math.cos(TAU*p);const a=m.meta.amp;const A=52*a;
+   P.leg('Left',-A*s-6,(80*Math.max(0,c)+12)*a,-15*Math.max(0,c));P.leg('Right',A*s-6,(80*Math.max(0,-c)+12)*a,-15*Math.max(0,-c));
+   P.arm('Left',50*a*s,0,6,-78).arm('Right',-50*a*s,0,-6,-78);
+   P.r('Spine',12*a).r('Head',-8*a).r('Hips',0,9*a*s,0).r('Chest',0,-12*a*s,0);
+   P.t('Root',0,dropFor(m.meta.legLen,A*Math.abs(s))*.55+Math.abs(c)*m.H*.022,0)},
+  ex:(p,t)=>blinkAt(t,2.3)?'blink':'neutral'},
+ {id:'jump',label:'ジャンプ',dur:1.0,loop:0,fn(p,P,m){
+   const c=kf(p,[[0,0],[.18,1],[.28,0],[.72,0],[.84,.85],[1,0]]);const q=seg(p,.26,.76);const air=4*q*(1-q)*m.H*.42;
+   const tuck=kf(p,[[.26,0],[.5,1],[.72,0]]);
+   const a=40*c+28*tuck;
+   P.leg('Left',-a-6*tuck,2*a,-a+6*tuck).leg('Right',-a+6*tuck,2*a,-a-6*tuck);
+   const up=kf(p,[[0,0],[.18,-.3],[.3,1],[.6,.6],[.8,-.2],[1,0]]);
+   P.arm('Left',-150*Math.max(0,up)+30*Math.max(0,-up),0,10,-20).arm('Right',-150*Math.max(0,up)+30*Math.max(0,-up),0,-10,-20);
+   P.r('Spine',14*c-4*tuck).r('Head',-8*c);
+   P.t('Root',0,dropFor(m.meta.legLen,40*c)+air,0)},
+  ex:p=>p<.26?'neutral':p<.74?'surprise':'neutral'},
+ {id:'attack',label:'斬り',dur:.75,loop:0,fn(p,P,m){const u=m.H/36;
+   P.arm('Right',kf(p,[[0,-10],[.3,-168],[.4,-168],[.55,-28],[.75,-38],[1,-8]]),0,kf(p,[[0,0],[.3,-18],[.55,12],[1,0]]),kf(p,[[0,-20],[.3,-40],[.55,-5],[1,-18]]));
+   P.arm('Left',kf(p,[[0,0],[.3,-35],[.55,28],[1,0]]),0,kf(p,[[0,4],[.3,18],[1,4]]),-20);
+   P.r('Chest',0,kf(p,[[0,0],[.3,28],[.55,-28],[1,0]]),0).r('Spine',kf(p,[[0,0],[.3,-8],[.55,16],[1,0]]));
+   P.leg('Left',kf(p,[[0,0],[.45,-28],[.8,-10],[1,0]]),kf(p,[[0,0],[.45,22],[1,0]]),0).leg('Right',kf(p,[[0,0],[.45,16],[1,0]]),kf(p,[[0,0],[.45,10],[1,0]]),0);
+   P.t('Root',0,kf(p,[[0,0],[.45,-.6*u],[1,0]]),kf(p,[[0,0],[.5,1.6*u],[1,0]]))},
+  ex:p=>p>.12&&p<.88?'angry':'neutral'},
+ {id:'thrust',label:'突き',dur:.62,loop:0,fn(p,P,m){const u=m.H/36;
+   P.arm('Right',kf(p,[[0,-10],[.3,-45],[.45,-90],[.7,-90],[1,-10]]),kf(p,[[0,0],[.3,10],[.45,0]]),0,kf(p,[[0,-20],[.3,-115],[.45,0],[.7,0],[1,-20]]),kf(p,[[0,0],[.45,-35],[.7,-35],[1,0]]));
+   P.arm('Left',kf(p,[[0,0],[.3,-20],[.45,30],[1,0]]),0,8,-25);
+   P.r('Chest',0,kf(p,[[0,0],[.3,25],[.45,-18],[1,0]]),0).r('Spine',kf(p,[[0,0],[.45,14],[1,0]]));
+   P.leg('Left',kf(p,[[0,0],[.45,-32],[.8,-20],[1,0]]),kf(p,[[0,0],[.45,26],[1,0]]),0).leg('Right',kf(p,[[0,0],[.45,20],[1,0]]),kf(p,[[0,0],[.45,8],[1,0]]),0);
+   P.t('Root',0,kf(p,[[0,0],[.45,-.8*u],[1,0]]),kf(p,[[0,0],[.45,2.2*u],[.8,1.4*u],[1,0]]))},
+  ex:p=>p>.1&&p<.85?'angry':'neutral'},
+ {id:'cast',label:'魔法',dur:1.1,loop:0,fn(p,P,m){const staff=m.meta.weapon==='staff';
+   const ua=kf(p,[[0,0],[.35,-105],[.55,-110],[.68,-82],[.85,-82],[1,0]]),la=kf(p,[[0,0],[.35,-30],[.55,-45],[.68,0],[.85,0],[1,0]]);
+   P.arm('Left',ua,0,-8,la).arm('Right',ua,0,8,la,staff?-(ua+la)*.92:0);
+   P.r('Spine',kf(p,[[0,0],[.45,-8],[.68,10],[1,0]])).r('Head',kf(p,[[0,0],[.45,-6],[.68,4],[1,0]]));
+   P.leg('Left',kf(p,[[0,0],[.68,-14],[1,0]]),kf(p,[[0,0],[.68,10],[1,0]]),0).leg('Right',kf(p,[[0,0],[.68,8],[1,0]]),0,0)},
+  ex:p=>p<.12?'neutral':p<.58?'blink':p<.92?'angry':'neutral'},
+ {id:'shoot',label:'射撃',dur:1.0,loop:0,fn(p,P,m){const bow=m.meta.weapon==='bow';
+   P.arm('Left',kf(p,[[0,0],[.28,-90],[.82,-90],[1,0]]),kf(p,[[0,0],[.28,-8]]),0,0,bow?kf(p,[[0,0],[.28,90],[.82,90],[1,0]]):0);
+   P.arm('Right',kf(p,[[0,-10],[.28,-92],[.6,-92],[.64,-80],[.82,-60],[1,-10]]),kf(p,[[0,0],[.28,12],[.6,22],[.64,0]]),0,kf(p,[[0,-20],[.28,-30],[.58,-145],[.62,-30],[1,-20]]));
+   P.r('Chest',0,kf(p,[[0,0],[.28,-28],[.82,-28],[1,0]]),0).r('Head',0,kf(p,[[0,0],[.28,22],[.82,22],[1,0]]),0);
+   P.leg('Left',kf(p,[[0,0],[.28,-14],[.82,-14],[1,0]]),0,0).leg('Right',kf(p,[[0,0],[.28,10],[.82,10],[1,0]]),0,0);
+   P.t('Root',0,0,kf(p,[[.6,0],[.66,-.5*m.H/36],[1,0]]))},
+  ex:p=>p<.2?'neutral':p<.6?'angry':p<.8?'smile':'neutral'},
+ {id:'guard',label:'防御',dur:1.0,loop:1,fn(p,P,m){const b=Math.sin(TAU*p);const L=m.meta.legLen;
+   P.leg('Left',-26,48,-22).leg('Right',-18,38,-20);P.t('Root',0,dropFor(L,26)-L*.03*b,0);
+   P.r('Spine',10+1.5*b).r('Head',-8);
+   P.arm('Left',-72,-38,6,-62).arm('Right',-30,0,-12,-70)},
+  ex:(p,t)=>blinkAt(t,2.4)?'blink':'angry'},
+ {id:'hit',label:'被弾',dur:.45,loop:0,fn(p,P,m){const k=kf(p,[[0,0],[.15,1],[.55,.4],[1,0]]);const u=m.H/36;
+   P.r('Spine',-18*k).r('Chest',-10*k).r('Head',-16*k,6*k);P.arm('Left',14*k,0,26*k,-20*k).arm('Right',14*k,0,-26*k,-20*k);
+   P.leg('Left',-10*k,14*k,0).leg('Right',8*k,6*k,0);P.t('Root',0,0,-1.3*u*k)},
+  ex:p=>p<.85?'hurt':'neutral'},
+ {id:'die',label:'戦闘不能',dur:1.5,loop:0,hold:1,fn(p,P,m){const u=m.H/36;
+   const st=kf(p,[[0,0],[.12,1],[.3,.6]]);const f=kf(p,[[.28,0],[.72,1]]);const kn=kf(p,[[.2,0],[.45,1],[.72,.2]]);
+   P.r('Spine',-16*st).r('Head',-14*st+16*f);P.arm('Left',10*st-20*f,0,22*st+50*f,-20*st).arm('Right',10*st-20*f,0,-22*st-50*f,-20*st);
+   P.leg('Left',-30*kn,60*kn,-20*kn).leg('Right',-24*kn,52*kn,-18*kn);
+   P.r('Root',-90*f);
+   const half=Math.max(m.meta.td,m.meta.headH*.9)/2;
+   P.t('Root',0,dropFor(m.meta.legLen,30*kn)*(1-f)+half*f+kf(p,[[.72,0],[.8,.6],[.88,0]])*u,-1*u*st)},
+  ex:p=>p<.5?'hurt':'dead'},
+ {id:'victory',label:'勝利',dur:1.3,loop:1,fn(p,P,m){const s=Math.sin(TAU*p);const hop=Math.max(0,Math.sin(TAU*p));const u=m.H/36;
+   P.arm('Right',-170,0,-8+10*s,-6).arm('Left',8,0,38,-92);P.r('LeftHand',0,0,-20);
+   P.r('Spine',-4).r('Head',-8,0,4*s);P.leg('Left',-8*hop,16*hop,-8*hop).leg('Right',-8*hop,16*hop,-8*hop);
+   P.t('Root',0,hop*1.6*u,0)},
+  ex:p=>'laugh'},
+ {id:'talk',label:'会話',dur:1.8,loop:1,fn(p,P,m){const s=Math.sin(TAU*p);
+   P.arm('Right',-25-10*Math.sin(TAU*p*2),0,-6,-55).arm('Left',0,0,5,-8);P.r('Head',4*Math.sin(TAU*p*2),6*s).r('Chest',0,-4*s,0)},
+  ex:(p,t)=>{if(p>.78)return blinkAt(t,1.9)?'blink':'smile';return Math.floor(p*16)%2===0?'talk':'neutral'}},
+];
+
+/* ---------------- QUADRUPED ---------------- */
+const QL=['FrontLeft','FrontRight','BackLeft','BackRight'];
+function qLeg(P,n,u,l){P.r(n+'Upper',u);P.r(n+'Lower',l)}
+function qWings(P,m,zl,z2){if(!m.meta.wings)return;P.r('WingLeft1',0,0,zl).r('WingLeft2',0,0,z2).r('WingRight1',0,0,-zl).r('WingRight2',0,0,-z2)}
+const A_QUAD=[
+ {id:'idle',label:'待機',dur:2.0,loop:1,fn(p,P,m){const s=Math.sin(TAU*p);
+   P.r('Chest',1.5*s).r('Head',3*Math.sin(TAU*p*2),12*Math.sin(TAU*p),0).r('Tail1',0,22*Math.sin(TAU*p*3),0).r('Tail2',0,16*Math.sin(TAU*p*3-.8),0).r('Tail3',0,12*Math.sin(TAU*p*3-1.6),0);
+   qWings(P,m,-35+4*s,50)},
+  ex:(p,t)=>blinkAt(t,2.0)||(p>.55&&p<.6)?'blink':'neutral'},
+ {id:'walk',label:'歩き',dur:1.0,loop:1,fn(p,P,m){const s=Math.sin(TAU*p),c=Math.cos(TAU*p);const A=22;
+   qLeg(P,'FrontLeft',-A*s,30*Math.max(0,c));qLeg(P,'BackRight',-A*s,30*Math.max(0,c));
+   qLeg(P,'FrontRight',A*s,30*Math.max(0,-c));qLeg(P,'BackLeft',A*s,30*Math.max(0,-c));
+   P.r('Head',3*Math.sin(TAU*p*2)).r('Tail1',0,10*s,0).r('Tail2',0,8*Math.sin(TAU*p-.8),0);
+   P.t('Root',0,dropFor(m.meta.leg,A*Math.abs(s))*.9,0);qWings(P,m,-35,50)},
+  ex:(p,t)=>blinkAt(t,2.6)?'blink':'neutral'},
+ {id:'run',label:'走り',dur:.5,loop:1,fn(p,P,m){const th=TAU*p;const s=Math.sin(th);const hop=m.meta.hop;
+   if(hop){const a=Math.max(0,Math.sin(th));qLeg(P,'FrontLeft',-40*s,20);qLeg(P,'FrontRight',-40*s,20);qLeg(P,'BackLeft',45*s,-10);qLeg(P,'BackRight',45*s,-10);
+     P.r('Body',-10*s).t('Root',0,a*m.meta.leg*1.1,0);return}
+   qLeg(P,'FrontLeft',-42*s,28*Math.max(0,Math.cos(th)));qLeg(P,'FrontRight',-42*Math.sin(th-.5),28*Math.max(0,Math.cos(th-.5)));
+   qLeg(P,'BackLeft',42*Math.sin(th+.3),20*Math.max(0,-Math.cos(th+.3)));qLeg(P,'BackRight',42*Math.sin(th-.2),20*Math.max(0,-Math.cos(th-.2)));
+   P.r('Body',6*Math.sin(th+1)).r('Chest',-4*Math.sin(th+1)).r('Neck',-6*Math.sin(th)).r('Tail1',10+8*s);
+   P.t('Root',0,Math.max(0,Math.sin(th*2))*m.meta.leg*.12,0);qWings(P,m,-30+10*s,50)},
+  ex:(p,t)=>blinkAt(t,2.2)?'blink':'neutral'},
+ {id:'jump',label:'ジャンプ',dur:1.0,loop:0,fn(p,P,m){
+   const c=kf(p,[[0,0],[.2,1],[.3,0],[.72,0],[.84,.8],[1,0]]);const q=seg(p,.28,.76);const air=4*q*(1-q)*m.H*.55;const st=kf(p,[[.28,0],[.45,1],[.7,.3],[.76,0]]);
+   for(const n of ['FrontLeft','FrontRight'])qLeg(P,n,-25*c-45*st,50*c+20*st);
+   for(const n of ['BackLeft','BackRight'])qLeg(P,n,-25*c+50*st,50*c-10*st);
+   P.r('Body',kf(p,[[0,0],[.2,6],[.35,-12],[.65,10],[.8,0]])).r('Tail1',30*st);
+   P.t('Root',0,dropFor(m.meta.leg,30*c)+air,0);qWings(P,m,-30+60*st,30)},
+  ex:p=>p<.28?'neutral':p<.76?'smile':'neutral'},
+ {id:'attack',label:'かみつき',dur:.7,loop:0,fn(p,P,m){const u=Math.max(1,m.meta.L/16);
+   P.r('Neck',kf(p,[[0,0],[.3,-22],[.45,26],[.7,16],[1,0]])).r('Head',kf(p,[[0,0],[.3,-12],[.45,14],[1,0]]));
+   P.r('Body',kf(p,[[0,0],[.3,-6],[.45,5],[1,0]]));
+   for(const n of ['FrontLeft','FrontRight'])qLeg(P,n,kf(p,[[0,0],[.3,-25],[.45,-12],[1,0]]),kf(p,[[0,0],[.3,40],[.45,10],[1,0]]));
+   P.t('Root',0,kf(p,[[.3,0],[.42,1*u],[.55,0]]),kf(p,[[0,0],[.3,-.8*u],[.45,2.4*u],[.75,1.6*u],[1,0]]));qWings(P,m,kf(p,[[0,-35],[.3,40],[.5,-10],[1,-35]]),kf(p,[[0,50],[.3,10],[1,50]]))},
+  ex:p=>p>.1&&p<.88?'angry':'neutral'},
+ {id:'hit',label:'被弾',dur:.45,loop:0,fn(p,P,m){const k=kf(p,[[0,0],[.15,1],[.55,.4],[1,0]]);const u=Math.max(1,m.meta.L/16);
+   P.r('Neck',-18*k).r('Head',-10*k,8*k).r('Body',-5*k).r('Tail1',-20*k);P.t('Root',0,0,-1.1*u*k);qWings(P,m,-35+40*k,50-30*k)},
+  ex:p=>p<.85?'hurt':'neutral'},
+ {id:'die',label:'戦闘不能',dur:1.4,loop:0,hold:1,fn(p,P,m){const f=kf(p,[[.25,0],[.7,1]]);const st=kf(p,[[0,0],[.12,1],[.3,.5]]);
+   P.r('Root',0,0,90*f).t('Root',0,m.meta.W/2*f+kf(p,[[.7,0],[.78,.6],[.86,0]]),0);
+   P.r('Neck',-18*st+10*f).r('Head',-8*st);for(const n of QL)qLeg(P,n,(n.startsWith('Front')?-12:12)*f,-8*f);P.r('Tail1',-10*f);qWings(P,m,-35+50*f,20)},
+  ex:p=>p<.45?'hurt':'dead'},
+ {id:'sit',label:'おすわり',dur:2.2,loop:1,fn(p,P,m){const s=Math.sin(TAU*p);
+   P.r('Body',-30);qLeg(P,'BackLeft',-58,105);qLeg(P,'BackRight',-58,105);qLeg(P,'FrontLeft',30,0);qLeg(P,'FrontRight',30,0);
+   P.r('Neck',16).r('Head',6+2*s,8*Math.sin(TAU*p*.5),0).r('Tail1',38).r('Tail2',0,12*Math.sin(TAU*p*2),0);
+   P.t('Root',0,-m.meta.leg*.5,-.2*m.meta.L*.15);qWings(P,m,-40,55)},
+  ex:(p,t)=>blinkAt(t,2.2)?'blink':(p>.3&&p<.7?'smile':'neutral')},
+ {id:'fly',label:'飛行',dur:.8,loop:1,only:'wings',fn(p,P,m){const th=TAU*p,s=Math.sin(th);
+   qWings(P,m,30*s,25*Math.sin(th-.7));P.t('Root',0,m.meta.leg*1.6+.8*Math.sin(th+1.4),0);
+   qLeg(P,'FrontLeft',-30,60);qLeg(P,'FrontRight',-30,60);qLeg(P,'BackLeft',50,0);qLeg(P,'BackRight',50,0);
+   P.r('Body',-4*s).r('Neck',-10).r('Tail1',8*s).r('Tail2',8*Math.sin(th-.7))},
+  ex:(p,t)=>blinkAt(t,2.4)?'blink':'neutral'},
+];
+
+/* ---------------- FLYER ---------------- */
+function fWings(P,a,b){P.r('WingLeft1',0,0,a).r('WingLeft2',0,0,b).r('WingRight1',0,0,-a).r('WingRight2',0,0,-b)}
+const A_FLY=[
+ {id:'idle',label:'待機（ホバー）',dur:.5,loop:1,ghostDur:2.4,fn(p,P,m){const th=TAU*p,s=Math.sin(th);const g=m.meta.kind==='ghost';
+   if(g){P.t('Root',0,m.meta.fly+.8*s,0).r('Body',0,0,4*s).r('Head',3*Math.sin(th*2));fWings(P,12*s+10,10*Math.sin(th-.6));return}
+   fWings(P,38*s,28*Math.sin(th-.7));P.t('Root',0,m.meta.fly+.5*Math.sin(th+Math.PI/2),0).r('Body',-4*s).r('Tail',6*s).r('LeftLeg',25).r('RightLeg',25)},
+  ex:(p,t)=>blinkAt(t,2.3)?'blink':'neutral'},
+ {id:'fly',label:'飛行',dur:.36,loop:1,ghostDur:1.2,fn(p,P,m){const th=TAU*p,s=Math.sin(th);const g=m.meta.kind==='ghost';
+   if(g){P.t('Root',0,m.meta.fly+.5*s,0).r('Body',14).r('Head',-8);fWings(P,-10+8*s,-20);return}
+   fWings(P,48*s,34*Math.sin(th-.7));P.t('Root',0,m.meta.fly+.4*Math.sin(th+Math.PI/2),0).r('Body',15).r('Head',-12).r('Tail',-8).r('LeftLeg',60).r('RightLeg',60)},
+  ex:(p,t)=>blinkAt(t,2.0)?'blink':'neutral'},
+ {id:'attack',label:'急降下',dur:.75,loop:0,fn(p,P,m){const u=Math.max(1,m.meta.size);
+   P.t('Root',0,m.meta.fly+kf(p,[[0,0],[.3,1.6*u],[.5,-1.6*u],[1,0]]),kf(p,[[0,0],[.3,-1.6*u],[.5,3.6*u],[.75,1.6*u],[1,0]]));
+   P.r('Body',kf(p,[[0,0],[.3,-22],[.5,32],[1,0]]));
+   const w=kf(p,[[0,10],[.3,62],[.5,-30],[.75,22],[1,10]]);fWings(P,w,w*.6);P.r('LeftLeg',kf(p,[[0,20],[.45,-40],[.7,20]])).r('RightLeg',kf(p,[[0,20],[.45,-40],[.7,20]]))},
+  ex:p=>p>.1&&p<.85?'angry':'neutral'},
+ {id:'hit',label:'被弾',dur:.45,loop:0,fn(p,P,m){const k=kf(p,[[0,0],[.15,1],[.55,.4],[1,0]]);
+   P.t('Root',0,m.meta.fly+.6*k,-1.2*k).r('Body',-22*k).r('Head',-12*k);fWings(P,55*k,30*k)},
+  ex:p=>p<.85?'hurt':'neutral'},
+ {id:'die',label:'戦闘不能',dur:1.3,loop:0,hold:1,fn(p,P,m){const f=kf(p,[[.15,0],[.7,1]]);const g=m.meta.kind==='ghost';
+   const y=kf(p,[[0,m.meta.fly],[.15,m.meta.fly+1],[.7,0],[.78,.5],[.86,0]]);
+   if(g){P.t('Root',0,y*.6,0).s('Body',1+.2*f,1-.5*f,1+.2*f).r('Head',10*f);fWings(P,-40*f,-20*f);return}
+   P.t('Root',0,y+f*2.5*m.meta.size,0).r('Root',0,0,90*f).r('Body',-12*f);fWings(P,70*f,60*f)},
+  ex:p=>p<.4?'hurt':'dead'},
+];
+
+/* ---------------- SLIME ---------------- */
+function sq(P,sy){const x=1/Math.sqrt(Math.max(.05,sy));P.s('Body',x,sy,x)}
+const A_SLIME=[
+ {id:'idle',label:'待機',dur:1.6,loop:1,fn(p,P,m){const s=Math.sin(TAU*p);sq(P,1+.06*s);P.r('Body',0,0,2.5*Math.sin(TAU*p*.5))},
+  ex:(p,t)=>blinkAt(t,2.2)?'blink':'neutral'},
+ {id:'move',label:'移動',dur:.8,loop:1,fn(p,P,m){const q=seg(p,.22,.66);
+   sq(P,kf(p,[[0,1],[.16,.74],[.28,1.22],[.55,1.06],[.7,.7],[.86,1.06],[1,1]]));P.t('Root',0,4*q*(1-q)*m.meta.Hh*.55,0).r('Body',kf(p,[[0,0],[.25,8],[.6,-4],[.8,0]]))},
+  ex:(p,t)=>blinkAt(t,2.0)?'blink':'smile'},
+ {id:'jump',label:'ジャンプ',dur:1.1,loop:0,fn(p,P,m){const q=seg(p,.25,.75);
+   sq(P,kf(p,[[0,1],[.2,.62],[.32,1.35],[.6,1.1],[.78,.6],[.9,1.08],[1,1]]));P.t('Root',0,4*q*(1-q)*m.meta.Hh*1.3,0)},
+  ex:p=>p<.25?'neutral':p<.75?'laugh':'neutral'},
+ {id:'attack',label:'体当たり',dur:.65,loop:0,fn(p,P,m){
+   const sy=kf(p,[[0,1],[.3,.72],[.45,.9],[.7,1],[1,1]]);const sz=kf(p,[[0,1],[.3,1.1],[.45,1.35],[.7,1],[1,1]]);P.s('Body',1/Math.sqrt(sy*sz)*1.05,sy,sz);
+   P.t('Root',0,kf(p,[[.3,0],[.42,m.meta.Hh*.25],[.55,0]]),kf(p,[[0,0],[.3,-1],[.45,m.meta.R*.7],[.7,m.meta.R*.45],[1,0]])).r('Body',kf(p,[[0,0],[.3,-8],[.45,12],[1,0]]))},
+  ex:p=>p>.1&&p<.85?'angry':'neutral'},
+ {id:'hit',label:'被弾',dur:.5,loop:0,fn(p,P,m){sq(P,kf(p,[[0,1],[.12,.62],[.3,1.18],[.45,.92],[.62,1.04],[1,1]]));P.r('Body',0,0,kf(p,[[0,0],[.12,-8],[.3,6],[.5,-3],[1,0]])).t('Root',0,0,kf(p,[[0,0],[.15,-1.2],[1,0]]))},
+  ex:p=>p<.8?'hurt':'neutral'},
+ {id:'die',label:'戦闘不能',dur:1.3,loop:0,hold:1,fn(p,P,m){const f=kf(p,[[.15,0],[.8,1]]);const sy=lerp(1,.14,f)*kf(p,[[0,1],[.1,.7],[.2,1.1],[.3,1]]);P.s('Body',1+.55*f,sy,1+.55*f)},
+  ex:p=>p<.35?'hurt':'dead'},
+];
+
+/* ---------------- MIMIC ---------------- */
+const A_BOX=[
+ {id:'idle',label:'待機',dur:2.0,loop:1,fn(p,P,m){const s=.5+.5*Math.sin(TAU*p);P.r('Lid',-4-7*s);P.s('Base',1,1+.02*s,1)},
+  ex:(p,t)=>blinkAt(t,2.6)?'blink':'neutral'},
+ {id:'move',label:'移動',dur:.7,loop:1,fn(p,P,m){const q=seg(p,.15,.7);P.t('Root',0,4*q*(1-q)*m.H*.32,0);P.r('Lid',kf(p,[[0,0],[.25,-26],[.5,-6],[.72,-22],[1,0]])).r('Base',kf(p,[[0,0],[.3,-5],[.7,4],[1,0]]))},
+  ex:(p,t)=>blinkAt(t,2.0)?'blink':'smile'},
+ {id:'attack',label:'かみつき',dur:.78,loop:0,fn(p,P,m){
+   P.r('Lid',kf(p,[[0,0],[.3,-82],[.47,-88],[.56,0],[.65,-12],[.75,0]]));
+   P.t('Root',0,kf(p,[[.3,0],[.44,m.H*.22],[.56,0]]),kf(p,[[0,0],[.3,-.8],[.52,m.meta.D*.4],[.8,m.meta.D*.12],[1,0]])).r('Base',kf(p,[[0,0],[.3,-8],[.52,8],[1,0]]))},
+  ex:p=>p>.1&&p<.85?'angry':'neutral'},
+ {id:'hit',label:'被弾',dur:.45,loop:0,fn(p,P,m){const k=kf(p,[[0,0],[.15,1],[.55,.4],[1,0]]);P.r('Lid',-30*k).r('Base',-8*k).t('Root',0,0,-1*k)},
+  ex:p=>p<.85?'hurt':'neutral'},
+ {id:'die',label:'戦闘不能',dur:1.3,loop:0,hold:1,fn(p,P,m){const f=kf(p,[[.2,0],[.75,1]]);P.r('Lid',kf(p,[[0,0],[.15,-40],[.75,-118]])).r('Root',0,0,22*f).t('Root',0,kf(p,[[0,0],[.15,1.5],[.4,0]]),0)},
+  ex:p=>p<.4?'hurt':'dead'},
+];
+
+const ANIMS={humanoid:A_HUMAN,quadruped:A_QUAD,flyer:A_FLY,slime:A_SLIME,box:A_BOX};
+function animList(model){
+  return ANIMS[model.rig].filter(a=>!a.only||(a.only==='wings'&&model.meta.wings)).map(a=>{
+    const d=(model.meta.kind==='ghost'&&a.ghostDur)?a.ghostDur:a.dur;
+    const dm=(model.meta.elder&&(a.id==='walk'||a.id==='run'||a.id==='idle'))?1.25:1;
+    return Object.assign({},a,{dur:d*dm});
+  });
+}
+// pose for normalized phase p in [0,1] (p may be clamped) -> Pose
+function samplePose(model,anim,p){
+  const P=new Pose();
+  anim.fn(clamp(p,0,1),P,model);
+  for(const n in model.basePose){const b=model.basePose[n];P.r(n,b[0],b[1],b[2])}
+  return P;
+}
+
+/* =========================================================
+   EXPORT: GLB (skinned + animations), VOX, ZIP, PNG
+   ========================================================= */
+const srgb2lin=c=>{c/=255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4)};
+function canvasToPNG(cv){return new Promise(res=>cv.toBlob(b=>b.arrayBuffer().then(a=>res(new Uint8Array(a))),'image/png'))}
+let DL=null;
+(async()=>{try{if(window.claude&&typeof window.claude.use==='function')DL=await window.claude.use('downloads')}catch(e){DL=null}})();
+const DL_OK=['gif','png','jpg','jpeg','webp','txt','json','md','csv','html','svg','pdf','zip'];
+async function dlBlob(blob,name){
+  if(DL){
+    const ext=name.split('.').pop().toLowerCase();
+    if(!DL_OK.includes(ext)){const data=new Uint8Array(await blob.arrayBuffer());blob=buildZip([{name,data}]);name=name+'.zip'}
+    try{await DL.save({filename:name,data:blob});log('保存: '+name)}
+    catch(e){if(e&&e.code==='declined')return;toast('保存できませんでした（'+((e&&e.code)||'error')+'）',true)}
+    return;
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+}
+
+function eulerQuat(r){const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(r[0]*D2R,r[1]*D2R,r[2]*D2R,'XYZ'));return [q.x,q.y,q.z,q.w]}
+
+async function buildGLB(model,opts){
+  const S=opts.scale;const fps=opts.fps||24;
+  const bones=model.bones;const nB=bones.length;
+  const chunks=[];let byteLen=0;
+  const views=[],accessors=[];
+  const addView=(arr,target)=>{const pad=(4-(byteLen%4))%4;if(pad){chunks.push(new Uint8Array(pad));byteLen+=pad}
+    const u8=new Uint8Array(arr.buffer,arr.byteOffset,arr.byteLength);chunks.push(u8);const v={buffer:0,byteOffset:byteLen,byteLength:u8.byteLength};if(target)v.target=target;views.push(v);byteLen+=u8.byteLength;return views.length-1};
+  const addAcc=(arr,type,compType,count,extra)=>{const bv=addView(arr,extra&&extra.target);const a={bufferView:bv,componentType:compType,count,type};if(extra){if(extra.min)a.min=extra.min;if(extra.max)a.max=extra.max;if(extra.normalized)a.normalized=true}accessors.push(a);return accessors.length-1};
+  const mm=(arr,n)=>{const mn=new Array(n).fill(Infinity),mx=new Array(n).fill(-Infinity);for(let i=0;i<arr.length;i+=n)for(let k=0;k<n;k++){mn[k]=Math.min(mn[k],arr[i+k]);mx[k]=Math.max(mx[k],arr[i+k])}return {min:mn,max:mx}};
+  // ---- main mesh
+  const {per}=buildMesh(model,opts.grain);
+  let nv=0,ni=0;for(const g of per){nv+=g.pos.length/3;ni+=g.idx.length}
+  const P=new Float32Array(nv*3),N=new Float32Array(nv*3),Cc=new Float32Array(nv*3),J=new Uint8Array(nv*4),Wt=new Float32Array(nv*4);
+  const I=nv>65535?new Uint32Array(ni):new Uint16Array(ni);
+  let vo=0,io=0;
+  per.forEach((g,bi)=>{const n=g.pos.length/3;
+    for(let i=0;i<n;i++){P[(vo+i)*3]=g.pos[i*3]*S;P[(vo+i)*3+1]=g.pos[i*3+1]*S;P[(vo+i)*3+2]=g.pos[i*3+2]*S;
+      N[(vo+i)*3]=g.nrm[i*3];N[(vo+i)*3+1]=g.nrm[i*3+1];N[(vo+i)*3+2]=g.nrm[i*3+2];
+      Cc[(vo+i)*3]=srgb2lin(g.col[i*3]*255);Cc[(vo+i)*3+1]=srgb2lin(g.col[i*3+1]*255);Cc[(vo+i)*3+2]=srgb2lin(g.col[i*3+2]*255);
+      J[(vo+i)*4]=bi;Wt[(vo+i)*4]=1}
+    for(const k of g.idx)I[io++]=k+vo;vo+=n});
+  const aP=addAcc(P,'VEC3',5126,nv,Object.assign({target:34962},mm(P,3)));
+  const aN=addAcc(N,'VEC3',5126,nv,{target:34962});
+  const aC=addAcc(Cc,'VEC3',5126,nv,{target:34962});
+  const aJ=addAcc(J,'VEC4',5121,nv,{target:34962});
+  const aW=addAcc(Wt,'VEC4',5126,nv,{target:34962});
+  const aI=addAcc(I,'SCALAR',I instanceof Uint32Array?5125:5123,ni,{target:34963});
+  // ---- face quad
+  const fr=model.faceRect;const uv=exprUV(model,opts.defaultExpr||'neutral');
+  const fz=(fr.z+.02)*S;
+  const FP=new Float32Array([fr.x0*S,fr.y0*S,fz,(fr.x0+fr.w)*S,fr.y0*S,fz,(fr.x0+fr.w)*S,(fr.y0+fr.h)*S,fz,fr.x0*S,(fr.y0+fr.h)*S,fz]);
+  const FN=new Float32Array([0,0,1,0,0,1,0,0,1,0,0,1]);
+  const FT=new Float32Array([uv.u0,uv.v1,uv.u1,uv.v1,uv.u1,uv.v0,uv.u0,uv.v0]);
+  const FJ=new Uint8Array([fr.bone,0,0,0,fr.bone,0,0,0,fr.bone,0,0,0,fr.bone,0,0,0]);
+  const FW=new Float32Array([1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0]);
+  const FI=new Uint16Array([0,1,2,0,2,3]);
+  const fP=addAcc(FP,'VEC3',5126,4,Object.assign({target:34962},mm(FP,3)));
+  const fN=addAcc(FN,'VEC3',5126,4,{target:34962});
+  const fT=addAcc(FT,'VEC2',5126,4,{target:34962});
+  const fJ=addAcc(FJ,'VEC4',5121,4,{target:34962});
+  const fW=addAcc(FW,'VEC4',5126,4,{target:34962});
+  const fI=addAcc(FI,'SCALAR',5123,6,{target:34963});
+  // atlas image
+  const atlas=buildFaceAtlas(model);const png=await canvasToPNG(atlas.canvas);
+  const imgView=addView(png);
+  // ---- skin
+  const IBM=new Float32Array(nB*16);
+  bones.forEach((b,i)=>{IBM.set([1,0,0,0,0,1,0,0,0,0,1,0,-b.pos[0]*S,-b.pos[1]*S,-b.pos[2]*S,1],i*16)});
+  const aIBM=addAcc(IBM,'MAT4',5126,nB);
+  // ---- nodes
+  const nodes=[{name:opts.name||'Character',children:[1]}];
+  bones.forEach((b,i)=>{const n={name:b.name,translation:[b.local[0]*S,b.local[1]*S,b.local[2]*S]};const ch=[];bones.forEach((c,j)=>{if(c.parent===i)ch.push(j+1)});if(ch.length)n.children=ch;
+    const bp=model.basePose[b.name];if(bp)n.rotation=eulerQuat(bp);nodes.push(n)});
+  nodes.push({name:(opts.name||'Character')+'_Mesh',mesh:0,skin:0});
+  // ---- animations
+  const anims=[];const exprTracks={};
+  for(const an of opts.anims){
+    const frames=Math.max(2,Math.round(an.dur*fps))+1;
+    const times=new Float32Array(frames);for(let k=0;k<frames;k++)times[k]=k/(frames-1)*an.dur;
+    const aT=addAcc(times,'SCALAR',5126,frames,{min:[0],max:[an.dur]});
+    const poses=[];const ex=[];
+    for(let k=0;k<frames;k++){const p=k/(frames-1);poses.push(samplePose(model,an,p));ex.push(an.ex(p,p*an.dur))}
+    exprTracks[an.id]={fps:(frames-1)/an.dur,frames:ex};
+    const samplers=[],channels=[];
+    bones.forEach((b,i)=>{
+      const R=new Float32Array(frames*4);let any=false;
+      const T=new Float32Array(frames*3);let anyT=false;const Sc=new Float32Array(frames*3);let anyS=false;
+      for(let k=0;k<frames;k++){const o=poses[k].b[b.name];const r=o?o.r:[0,0,0];const q=eulerQuat(r);
+        // keep quaternion continuity
+        if(k>0){const d=R[(k-1)*4]*q[0]+R[(k-1)*4+1]*q[1]+R[(k-1)*4+2]*q[2]+R[(k-1)*4+3]*q[3];if(d<0){q[0]=-q[0];q[1]=-q[1];q[2]=-q[2];q[3]=-q[3]}}
+        R.set(q,k*4);if(o&&(r[0]||r[1]||r[2]))any=true;
+        const t=o?o.t:[0,0,0];T.set([(b.local[0]+t[0])*S,(b.local[1]+t[1])*S,(b.local[2]+t[2])*S],k*3);if(o&&(t[0]||t[1]||t[2]))anyT=true;
+        const s=o?o.s:[1,1,1];Sc.set(s,k*3);if(o&&(s[0]!==1||s[1]!==1||s[2]!==1))anyS=true;}
+      const node=i+1;
+      samplers.push({input:aT,output:addAcc(R,'VEC4',5126,frames),interpolation:'LINEAR'});channels.push({sampler:samplers.length-1,target:{node,path:'rotation'}});
+      if(anyT||b.name==='Root'){samplers.push({input:aT,output:addAcc(T,'VEC3',5126,frames),interpolation:'LINEAR'});channels.push({sampler:samplers.length-1,target:{node,path:'translation'}})}
+      if(anyS){samplers.push({input:aT,output:addAcc(Sc,'VEC3',5126,frames),interpolation:'LINEAR'});channels.push({sampler:samplers.length-1,target:{node,path:'scale'}})}
+    });
+    anims.push({name:an.id,samplers,channels});
+  }
+  const faceUV={};for(const k of EXPR_KEYS){const u=exprUV(model,k);faceUV[k]=[u.u0,u.v0,u.u1,u.v1]}
+  const gltf={
+    asset:{version:'2.0',generator:'CHARA VOXEL FORGE'},
+    scene:0,scenes:[{name:'Scene',nodes:[0,nB+1],extras:{faceExpressions:faceUV,expressionTracks:exprTracks,defaultExpression:opts.defaultExpr||'neutral'}}],
+    nodes,
+    meshes:[{name:'Body',primitives:[
+      {attributes:{POSITION:aP,NORMAL:aN,COLOR_0:aC,JOINTS_0:aJ,WEIGHTS_0:aW},indices:aI,material:0},
+      {attributes:{POSITION:fP,NORMAL:fN,TEXCOORD_0:fT,JOINTS_0:fJ,WEIGHTS_0:fW},indices:fI,material:1}]}],
+    skins:[{name:'Armature',inverseBindMatrices:aIBM,joints:bones.map((_,i)=>i+1),skeleton:1}],
+    materials:[
+      {name:'Voxel',pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:0,roughnessFactor:1}},
+      {name:'Face',pbrMetallicRoughness:{baseColorTexture:{index:0},metallicFactor:0,roughnessFactor:1},alphaMode:'MASK',alphaCutoff:.5}],
+    textures:[{sampler:0,source:0,name:'FaceAtlas'}],
+    images:[{bufferView:imgView,mimeType:'image/png',name:'face_atlas'}],
+    samplers:[{magFilter:9728,minFilter:9728,wrapS:33071,wrapT:33071}],
+    accessors,bufferViews:views,buffers:[{byteLength:0}],
+    animations:anims
+  };
+  const pad=(4-(byteLen%4))%4;if(pad){chunks.push(new Uint8Array(pad));byteLen+=pad}
+  gltf.buffers[0].byteLength=byteLen;
+  let json=new TextEncoder().encode(JSON.stringify(gltf));
+  const jpad=(4-(json.length%4))%4;const jb=new Uint8Array(json.length+jpad);jb.set(json);for(let i=0;i<jpad;i++)jb[json.length+i]=0x20;
+  const total=12+8+jb.length+8+byteLen;
+  const out=new Uint8Array(total);const dv=new DataView(out.buffer);
+  dv.setUint32(0,0x46546C67,true);dv.setUint32(4,2,true);dv.setUint32(8,total,true);
+  dv.setUint32(12,jb.length,true);dv.setUint32(16,0x4E4F534A,true);out.set(jb,20);
+  let o=20+jb.length;dv.setUint32(o,byteLen,true);dv.setUint32(o+4,0x004E4942,true);o+=8;
+  for(const c of chunks){out.set(c,o);o+=c.length}
+  return {bytes:out,exprTracks,faceUV};
+}
+
+function buildVOX(model){
+  const cells=model.cells;const mn=model.bmin,mx=model.bmax;
+  const sx=mx[0]-mn[0],sy=mx[2]-mn[2],sz=mx[1]-mn[1];
+  const pal=[];const pi=new Map();
+  const q=c=>{if(pi.has(c))return pi.get(c);if(pal.length<255){pal.push(c);pi.set(c,pal.length);return pal.length}
+    let best=1,bd=1e9;for(let i=0;i<pal.length;i++){const a=pal[i];const d=Math.abs(((a>>16)&255)-((c>>16)&255))+Math.abs(((a>>8)&255)-((c>>8)&255))+Math.abs((a&255)-(c&255));if(d<bd){bd=d;best=i+1}}pi.set(c,best);return best};
+  const xyzi=[];for(const c of cells){xyzi.push([c.x-mn[0],mx[2]-1-c.z,c.y-mn[1],q(c.c)])}
+  const n=xyzi.length;
+  const size=12,xyz=4+n*4,rgba=256*4;
+  const chunkLen=(12+size)+(12+xyz)+(12+rgba);
+  const buf=new ArrayBuffer(8+12+chunkLen);const dv=new DataView(buf);let o=0;
+  const str=s=>{for(let i=0;i<4;i++)dv.setUint8(o++,s.charCodeAt(i))};const u32=v=>{dv.setUint32(o,v,true);o+=4};
+  str('VOX ');u32(150);str('MAIN');u32(0);u32(chunkLen);
+  str('SIZE');u32(size);u32(0);u32(sx);u32(sy);u32(sz);
+  str('XYZI');u32(xyz);u32(0);u32(n);for(const v of xyzi){dv.setUint8(o++,v[0]);dv.setUint8(o++,v[1]);dv.setUint8(o++,v[2]);dv.setUint8(o++,v[3])}
+  str('RGBA');u32(rgba);u32(0);for(let i=0;i<256;i++){const c=pal[i]||0;dv.setUint8(o++,(c>>16)&255);dv.setUint8(o++,(c>>8)&255);dv.setUint8(o++,c&255);dv.setUint8(o++,255)}
+  return new Uint8Array(buf);
+}
+
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC_T[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function buildZip(files){ // [{name,data:Uint8Array}]
+  const enc=new TextEncoder();const parts=[];const central=[];let off=0;const D=new Date();const dt=((D.getHours()<<11)|(D.getMinutes()<<5)|(D.getSeconds()>>1)),dd=(((D.getFullYear()-1980)<<9)|((D.getMonth()+1)<<5)|D.getDate());
+  for(const f of files){const nm=enc.encode(f.name);const crc=crc32(f.data);
+    const h=new Uint8Array(30+nm.length);const dv=new DataView(h.buffer);
+    dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,0x0800,true);dv.setUint16(8,0,true);dv.setUint16(10,dt,true);dv.setUint16(12,dd,true);dv.setUint32(14,crc,true);dv.setUint32(18,f.data.length,true);dv.setUint32(22,f.data.length,true);dv.setUint16(26,nm.length,true);h.set(nm,30);
+    parts.push(h,f.data);
+    const c=new Uint8Array(46+nm.length);const cv=new DataView(c.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0x0800,true);cv.setUint16(12,dt,true);cv.setUint16(14,dd,true);cv.setUint32(16,crc,true);cv.setUint32(20,f.data.length,true);cv.setUint32(24,f.data.length,true);cv.setUint16(28,nm.length,true);cv.setUint32(42,off,true);c.set(nm,46);
+    central.push(c);off+=h.length+f.data.length;}
+  const cdSize=central.reduce((a,c)=>a+c.length,0);
+  const end=new Uint8Array(22);const ev=new DataView(end.buffer);ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,cdSize,true);ev.setUint32(16,off,true);
+  return new Blob([...parts,...central,end],{type:'application/zip'});
+}
+
+/* =========================================================
+   VIEWER (three.js r128)
+   ========================================================= */
+const V={};
+function makeLights(scene){
+  const hemi=new THREE.HemisphereLight(0xffffff,0x7a7a90,.62);scene.add(hemi);
+  const dir=new THREE.DirectionalLight(0xffffff,.78);dir.position.set(.55,1,.8);scene.add(dir);
+  const back=new THREE.DirectionalLight(0xb8c4ff,.18);back.position.set(-.6,.3,-1);scene.add(back);
+}
+function initViewer(){
+  const cv=$('glCanvas');
+  V.renderer=new THREE.WebGLRenderer({canvas:cv,antialias:false,alpha:false,preserveDrawingBuffer:true});
+  V.scene=new THREE.Scene();
+  makeLights(V.scene);
+  V.camera=new THREE.PerspectiveCamera(32,1,.1,4000);
+  V.world=new THREE.Group();V.scene.add(V.world);
+  V.dirGroup=new THREE.Group();V.world.add(V.dirGroup);
+  V.grid=new THREE.GridHelper(200,100,0x3a3a4a,0x23232e);V.grid.material.transparent=true;V.grid.material.opacity=.55;V.scene.add(V.grid);
+  const sc=document.createElement('canvas');sc.width=sc.height=64;const g=sc.getContext('2d');const gr=g.createRadialGradient(32,32,2,32,32,31);gr.addColorStop(0,'rgba(0,0,0,.42)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
+  V.shadow=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sc),transparent:true,depthWrite:false}));
+  V.shadow.rotation.x=-Math.PI/2;V.shadow.position.y=.03;V.world.add(V.shadow);
+  V.orbit={yaw:.55,pitch:.22,dist:80,tx:0,ty:14};
+  V.spin=false;V.pix=.5;
+  // bones overlay
+  V.boneGeo=new THREE.BufferGeometry();V.boneGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(600*3),3));
+  V.boneLines=new THREE.LineSegments(V.boneGeo,new THREE.LineBasicMaterial({color:0x00e878,depthTest:false,transparent:true}));V.boneLines.renderOrder=10;V.boneLines.frustumCulled=false;V.scene.add(V.boneLines);
+  V.jointGeo=new THREE.BufferGeometry();V.jointGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(300*3),3));
+  V.joints=new THREE.Points(V.jointGeo,new THREE.PointsMaterial({color:0xff2e5c,size:5,sizeAttenuation:false,depthTest:false}));V.joints.renderOrder=11;V.joints.frustumCulled=false;V.scene.add(V.joints);
+  V.boneLines.visible=V.joints.visible=false;
+  bindOrbit();
+  resizeViewer();
+  window.addEventListener('resize',resizeViewer);
+}
+function resizeViewer(){
+  const a=$('previewArea');const w=Math.max(10,a.clientWidth),h=Math.max(10,a.clientHeight);
+  V.renderer.setPixelRatio((window.devicePixelRatio||1)*V.pix);
+  V.renderer.setSize(w,h,false);V.camera.aspect=w/h;V.camera.updateProjectionMatrix();
+}
+function bindOrbit(){
+  const el=$('previewArea');const pts=new Map();let last=null,pinch=0;
+  el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);last=[e.clientX,e.clientY];if(pts.size===2){const p=[...pts.values()];pinch=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1])}});
+  el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const p=[...pts.values()];const d=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]);if(pinch>0)V.orbit.dist=clamp(V.orbit.dist*pinch/d,8,600);pinch=d;return}
+    const dx=e.clientX-last[0],dy=e.clientY-last[1];last=[e.clientX,e.clientY];V.orbit.yaw-=dx*.008;V.orbit.pitch=clamp(V.orbit.pitch+dy*.006,-.3,1.45)});
+  const up=e=>{pts.delete(e.pointerId);pinch=0;if(pts.size===1)last=[...pts.values()][0]};
+  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+  el.addEventListener('wheel',e=>{e.preventDefault();V.orbit.dist=clamp(V.orbit.dist*(1+Math.sign(e.deltaY)*.1),8,600)},{passive:false});
+}
+const MAT_VOX=()=>new THREE.MeshLambertMaterial({vertexColors:true});
+function buildRig(model,grain){
+  const {per,quads}=buildMesh(model,grain);
+  const root=new THREE.Group();
+  const objs=model.bones.map(b=>{const o=new THREE.Object3D();o.name=b.name;o.position.set(b.local[0],b.local[1],b.local[2]);return o});
+  model.bones.forEach((b,i)=>{(b.parent>=0?objs[b.parent]:root).add(objs[i])});
+  const mat=MAT_VOX();
+  per.forEach((g,i)=>{if(!g.idx.length)return;const b=model.bones[i];
+    const pos=new Float32Array(g.pos.length);for(let k=0;k<g.pos.length;k+=3){pos[k]=g.pos[k]-b.pos[0];pos[k+1]=g.pos[k+1]-b.pos[1];pos[k+2]=g.pos[k+2]-b.pos[2]}
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(g.nrm,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(g.col,3));
+    geo.setIndex(g.idx.length/3*3>65535?g.idx:g.idx);geo.computeBoundingBox();geo.computeBoundingSphere();
+    const m=new THREE.Mesh(geo,mat);objs[i].add(m)});
+  // face
+  const atlas=buildFaceAtlas(model);
+  const tex=new THREE.CanvasTexture(atlas.canvas);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;tex.flipY=false;
+  const fr=model.faceRect;const fb=model.bones[fr.bone];const L=atlas.layout;
+  const u1=model.face.w/L.W,v1=model.face.h/L.H;
+  const fg=new THREE.BufferGeometry();
+  const z=fr.z+.02-fb.pos[2];
+  fg.setAttribute('position',new THREE.Float32BufferAttribute([fr.x0-fb.pos[0],fr.y0-fb.pos[1],z, fr.x0+fr.w-fb.pos[0],fr.y0-fb.pos[1],z, fr.x0+fr.w-fb.pos[0],fr.y0+fr.h-fb.pos[1],z, fr.x0-fb.pos[0],fr.y0+fr.h-fb.pos[1],z],3));
+  fg.setAttribute('normal',new THREE.Float32BufferAttribute([0,0,1,0,0,1,0,0,1,0,0,1],3));
+  fg.setAttribute('uv',new THREE.Float32BufferAttribute([0,v1,u1,v1,u1,0,0,0],2));
+  fg.setIndex([0,1,2,0,2,3]);
+  const fm=new THREE.MeshLambertMaterial({map:tex,alphaTest:.5,transparent:false});
+  const face=new THREE.Mesh(fg,fm);objs[fr.bone].add(face);
+  return {root,objs,face,tex,atlas,quads};
+}
+function applyPose(rig,model,pose){
+  model.bones.forEach((b,i)=>{const o=rig.objs[i];const p=pose.b[b.name];
+    if(p){o.position.set(b.local[0]+p.t[0],b.local[1]+p.t[1],b.local[2]+p.t[2]);o.rotation.set(p.r[0]*D2R,p.r[1]*D2R,p.r[2]*D2R,'XYZ');o.scale.set(p.s[0],p.s[1],p.s[2])}
+    else{o.position.set(b.local[0],b.local[1],b.local[2]);o.rotation.set(0,0,0);o.scale.set(1,1,1)}});
+}
+function setExpr(rig,model,expr){const u=exprUV(model,expr);rig.tex.offset.set(u.du,u.dv)}
+function updateBoneOverlay(rig,model){
+  if(!V.boneLines.visible)return;
+  rig.root.updateMatrixWorld(true);
+  const lp=V.boneGeo.attributes.position.array,jp=V.jointGeo.attributes.position.array;let li=0,ji=0;const w=new THREE.Vector3(),pw=new THREE.Vector3();
+  model.bones.forEach((b,i)=>{rig.objs[i].getWorldPosition(w);jp[ji++]=w.x;jp[ji++]=w.y;jp[ji++]=w.z;
+    if(b.parent>=0){rig.objs[b.parent].getWorldPosition(pw);lp[li++]=pw.x;lp[li++]=pw.y;lp[li++]=pw.z;lp[li++]=w.x;lp[li++]=w.y;lp[li++]=w.z}});
+  V.boneGeo.setDrawRange(0,li/3);V.jointGeo.setDrawRange(0,ji/3);V.boneGeo.attributes.position.needsUpdate=true;V.jointGeo.attributes.position.needsUpdate=true;
+}
+function updateCamera(){
+  const o=V.orbit;const cp=Math.cos(o.pitch);const dist=o.dist*Math.max(1,.95/V.camera.aspect);
+  V.camera.position.set(o.tx+Math.sin(o.yaw)*cp*dist,o.ty+Math.sin(o.pitch)*dist,Math.cos(o.yaw)*cp*dist);
+  V.camera.lookAt(o.tx,o.ty,0);
+}
+function setBackground(mode){
+  const map={dark:0x101016,light:0xe9ebf3,green:0x00b140,blue:0x2a3550};
+  V.scene.background=new THREE.Color(map[mode]||map.dark);
+  V.grid.visible=mode!=='green';
+  $('overlayInfo').classList.toggle('dark',mode!=='light');
+}
+
+/* ---------- sprite baking ---------- */
+let SPR=null;
+function spriteRenderer(w,h){
+  if(!SPR){const c=document.createElement('canvas');SPR={canvas:c,r:new THREE.WebGLRenderer({canvas:c,antialias:false,alpha:true,preserveDrawingBuffer:true}),cam:new THREE.OrthographicCamera(-1,1,1,-1,.1,4000)};SPR.r.setClearColor(0x000000,0)}
+  SPR.r.setPixelRatio(1);SPR.r.setSize(w,h||w,false);return SPR;
+}
+// framing that fits every animation from every direction
+function animBounds(model,rig,anims,elev,dirs){
+  const e=elev*D2R;const up=new THREE.Vector3(0,Math.cos(e),-Math.sin(e));
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;const v=new THREE.Vector3();const prev=V.dirGroup.rotation.y;
+  for(const an of anims){for(let k=0;k<=8;k++){applyPose(rig,model,samplePose(model,an,k/8));
+    for(let d=0;d<dirs;d++){V.dirGroup.rotation.y=-d*(TAU/dirs);V.dirGroup.updateMatrixWorld(true);
+      rig.root.traverse(o=>{if(!o.isMesh)return;const bb=o.geometry.boundingBox||(o.geometry.computeBoundingBox(),o.geometry.boundingBox);
+        for(let c=0;c<8;c++){v.set(c&1?bb.max.x:bb.min.x,c&2?bb.max.y:bb.min.y,c&4?bb.max.z:bb.min.z).applyMatrix4(o.matrixWorld);
+          x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);const sy=v.dot(up);y0=Math.min(y0,sy);y1=Math.max(y1,sy)}})}}}
+  V.dirGroup.rotation.y=prev;V.dirGroup.updateMatrixWorld(true);
+  return {x0,x1,y0,y1};
+}
+const BIG_ANIMS=['die','jump','fly'];
+// scale is fixed by the "standard" motions; big motions get larger cells with the same scale & pivot
+function computeFraming(model,rig,anims,opt){
+  const std=anims.filter(a=>!BIG_ANIMS.includes(a.id));const base=animBounds(model,rig,std.length?std:anims,opt.elev,opt.dirs);
+  // symmetric horizontally around origin so the pivot stays centred
+  const hx=Math.max(Math.abs(base.x0),Math.abs(base.x1));base.x0=-hx;base.x1=hx;
+  const span=Math.max(base.x1-base.x0,base.y1-base.y0)*1.06+.4;const ppu=opt.size/span;
+  const cy=(base.y0+base.y1)/2;
+  const per={};
+  for(const a of anims){
+    let b={x0:-span/2,x1:span/2,y0:cy-span/2,y1:cy+span/2};
+    if(BIG_ANIMS.includes(a.id)||opt.common){const ab=animBounds(model,rig,[a],opt.elev,opt.dirs);const hx2=Math.max(Math.abs(ab.x0),Math.abs(ab.x1))+.2;
+      b={x0:Math.min(b.x0,-hx2),x1:Math.max(b.x1,hx2),y0:Math.min(b.y0,ab.y0-.2),y1:Math.max(b.y1,ab.y1+.2)}}
+    const r8=v=>Math.ceil(v/8)*8;
+    const cw=Math.max(opt.size,r8((b.x1-b.x0)*ppu)),ch=Math.max(opt.size,r8((b.y1-b.y0)*ppu));
+    const W=cw/ppu,H=ch/ppu;const ccx=(b.x0+b.x1)/2,ccy=(b.y0+b.y1)/2;
+    const left=ccx-W/2,top=ccy+H/2;
+    per[a.id]={ppu,cellW:cw,cellH:ch,left,top,W,H,elev:opt.elev,pivot:[Math.round((0-left)*ppu),Math.round((top-0)*ppu)]};
+  }
+  return per;
+}
+function bakeSheet(model,rig,an,opt,framing){
+  const F=framing[an.id];
+  const n=Math.max(2,Math.round(an.dur*opt.fps));const frames=an.loop?n:n+1;
+  const S=spriteRenderer(F.cellW,F.cellH);
+  const dirs=opt.dirs;const sheet=document.createElement('canvas');sheet.width=F.cellW*frames;sheet.height=F.cellH*dirs;const g=sheet.getContext('2d');g.imageSmoothingEnabled=false;
+  const cam=S.cam;const e=F.elev*D2R;
+  const up=new THREE.Vector3(0,Math.cos(e),-Math.sin(e));const fwd=new THREE.Vector3(0,Math.sin(e),Math.cos(e));
+  cam.left=F.left;cam.right=F.left+F.W;cam.top=F.top;cam.bottom=F.top-F.H;cam.updateProjectionMatrix();
+  const eye=fwd.clone().multiplyScalar(500);cam.position.copy(eye);cam.up.copy(up);cam.lookAt(0,0,0);
+  const prevBg=V.scene.background;V.scene.background=null;const gv=V.grid.visible;V.grid.visible=false;const sv=V.shadow.visible;V.shadow.visible=!!opt.shadow;
+  const bl=V.boneLines.visible;V.boneLines.visible=V.joints.visible=false;
+  const prevRot=V.dirGroup.rotation.y;
+  const exprs=[];
+  for(let d=0;d<dirs;d++){
+    V.dirGroup.rotation.y=-d*(TAU/dirs);
+    for(let f=0;f<frames;f++){const p=f/n;const pose=samplePose(model,an,p);applyPose(rig,model,pose);const ex=an.ex(p,p*an.dur);setExpr(rig,model,ex);if(d===0)exprs.push(ex);
+      placeShadow(rig,model);
+      S.r.render(V.scene,cam);g.drawImage(S.canvas,f*F.cellW,d*F.cellH)}
+  }
+  V.dirGroup.rotation.y=prevRot;V.scene.background=prevBg;V.grid.visible=gv;V.shadow.visible=sv;V.boneLines.visible=V.joints.visible=bl;
+  return {canvas:sheet,frames,dirs,exprs,cellW:F.cellW,cellH:F.cellH,pivot:F.pivot};
+}
+function placeShadow(rig,model){
+  const r=rig.objs[0];const w=Math.max(model.bmax[0]-model.bmin[0],model.bmax[2]-model.bmin[2]);
+  const h=Math.max(0,r.position.y);const s=w*1.05*clamp(1-h/(model.H*1.2),.35,1);
+  const v=new THREE.Vector3(r.position.x,0,r.position.z).applyAxisAngle(new THREE.Vector3(0,1,0),V.dirGroup.rotation.y);
+  V.shadow.position.set(v.x,.03,v.z);V.shadow.scale.set(s,s,1);
+}
+
+/* =========================================================
+   APP STATE & UI
+   ========================================================= */
+const COLOR_LABELS_H=[['skin','肌'],['hair','髪'],['eye','目'],['top','服'],['accent','アクセント'],['bottom','ボトム'],['shoes','靴'],['metal','金属']];
+const COLOR_LABELS_B=[['main','メイン'],['sub','サブ'],['pat','模様'],['eye','目']];
+const state={
+  cat:'human',
+  human:{age:'adult',gender:'m',job:'sword',heads:4.2,scale:1,build:.4,hair:'short',hat:'auto',beard:'none',ears:'normal',bottom:'auto',weapon:'auto',shield:'auto',seed:1,
+    colors:{skin:'#f1c7a4',hair:'#4a3222',eye:'#1e1a1a',top:'#2f5fb3',accent:'#d8b04a',bottom:'#3a3a44',shoes:'#5a3a22',metal:'#d9dde6'}},
+  animal:{species:'dog',size:1,leg:1,pattern:'none',colors:null,seed:1},
+  monster:{type:'slime',size:1,variant:'normal',weapon:'auto',colors:null,seed:1},
+  grain:true,anim:'idle',expr:'auto',speed:1,playing:true,bones:false,spin:false,bg:'dark',
+  out:{dirs:8,size:96,fps:12,elev:30,shadow:false,scale:.0625},
+  faceEdits:{}
+};
+let MODEL=null,RIG=null,ANIMLIST=[],CUR=null,TIME=0,LAST=performance.now();
+const pick=(r,a)=>a[Math.floor(r()*a.length)];
+
+function deepColors(o){return JSON.parse(JSON.stringify(o))}
+function animalDefault(id){return deepColors(ANIMALS[id].colors)}
+function monsterDefault(id){const d=MONSTERS[id];if(d.rig==='humanoid')return {main:d.colors.skin,sub:d.colors.accent,pat:d.colors.bottom,eye:d.colors.eye};return deepColors(d.colors)}
+state.animal.colors=animalDefault('dog');state.monster.colors=monsterDefault('slime');
+
+/* ---------- model generation ---------- */
+function makeModel(){
+  const g=state.grain;
+  if(state.cat==='human'){const h=state.human;
+    return genHuman({age:h.age,gender:h.gender,job:h.job,heads:h.heads,scale:h.scale,build:h.build,hair:h.hair,hat:h.hat,beard:h.beard,ears:h.ears,bottom:h.bottom,weapon:h.weapon,shield:h.shield==='auto'?null:h.shield==='1',colors:h.colors,seed:h.seed})}
+  if(state.cat==='animal'){const a=state.animal;const def=ANIMALS[a.species];
+    if(def.rig==='flyer')return genFlyer({def,size:a.size,colors:a.colors,seed:a.seed});
+    return genQuad({def,size:a.size,legMul:a.leg,pattern:a.pattern,colors:a.colors,seed:a.seed})}
+  const m=state.monster;const def=MONSTERS[m.type];
+  if(def.rig==='humanoid'){const c=m.colors;const dc=def.colors;
+    const colors=Object.assign({},dc,{skin:c.main,top:c.main,accent:c.sub,bottom:c.pat,eye:c.eye,shoes:int2hex(shade(hex2int(c.pat),.75))});
+    if(m.type==='skeleton')Object.assign(colors,{hair:c.main,bottom:c.main,shoes:c.main});
+    return genHuman({age:def.age,gender:def.gender,job:def.job,heads:def.heads,scale:def.scale*m.size,build:def.build,hair:def.hair,hat:'auto',beard:'none',ears:def.ears,bottom:'auto',weapon:m.weapon,shield:m.weapon==='auto'?(def.shield?true:null):false,colors,seed:m.seed,special:def.special})}
+  if(def.rig==='slime')return genSlime({size:m.size,colors:m.colors,variant:m.variant,seed:m.seed});
+  if(def.rig==='flyer')return genFlyer({def,size:m.size,colors:m.colors,seed:m.seed});
+  if(def.rig==='box')return genBox({size:m.size,colors:m.colors,seed:m.seed});
+  return genQuad({def,size:m.size,legMul:1,pattern:'none',colors:m.colors,seed:m.seed});
+}
+function charName(){
+  if(state.cat==='human'){const h=state.human;return `human_${h.age}_${h.gender}_${h.job}`}
+  if(state.cat==='animal')return 'animal_'+state.animal.species;
+  return 'monster_'+state.monster.type;
+}
+function faceKey(m){return state.cat+':'+m.face.w+'x'+m.face.h}
+function applyFaceEdits(m){const ed=state.faceEdits[faceKey(m)];if(!ed)return;for(const k in ed)if(m.face.frames[k]&&ed[k].length===m.face.w*m.face.h)m.face.frames[k]=ed[k].slice()}
+
+function regenerate(keepAnim=true){
+  const t0=performance.now();
+  try{MODEL=makeModel()}catch(e){console.error(e);toast('生成エラー: '+e.message,true);return}
+  applyFaceEdits(MODEL);
+  if(RIG){V.dirGroup.remove(RIG.root);RIG.root.traverse(o=>{if(o.geometry)o.geometry.dispose()});RIG.tex.dispose()}
+  RIG=buildRig(MODEL,state.grain);V.dirGroup.add(RIG.root);
+  ANIMLIST=animList(MODEL);
+  const sel=$('p_anim');const prev=state.anim;sel.innerHTML='';
+  ANIMLIST.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=T(a.label)+(a.loop?'':' ▸');sel.appendChild(o)});
+  CUR=ANIMLIST.find(a=>a.id===prev)||ANIMLIST[0];state.anim=CUR.id;sel.value=CUR.id;TIME=0;
+  // camera framing
+  const h=MODEL.bmax[1]-MODEL.bmin[1],w=Math.max(MODEL.bmax[0]-MODEL.bmin[0],MODEL.bmax[2]-MODEL.bmin[2]);
+  V.orbit.ty=h*.48;V.orbit.dist=Math.max(h,w*.9)*2.35+10;
+  V.grid.scale.setScalar(1);
+  buildFaceStrip();
+  updateInfo();
+  status('READY');
+  log(`生成: ${charName()} / ${MODEL.cells.length} voxels / ${(performance.now()-t0).toFixed(0)}ms`);
+}
+function updateInfo(){
+  const m=MODEL;$('i_rig').textContent=T({humanoid:'ヒューマノイド',quadruped:'四足',flyer:'飛行',slime:'スライム',box:'宝箱'}[m.rig]);
+  $('i_bones').textContent=m.bones.length;$('i_vox').textContent=m.cells.length;$('i_tris').textContent=(RIG.quads*2+2).toLocaleString();
+  $('i_anims').textContent=ANIMLIST.length;$('i_expr').textContent=EXPR_KEYS.length;
+  $('i_grid').textContent=`${m.bmax[0]-m.bmin[0]}×${m.bmax[1]-m.bmin[1]}×${m.bmax[2]-m.bmin[2]}`;
+}
+
+/* ---------- face strip & editor ---------- */
+function faceSkin(m){const f=m.faceRect;const c=m.cells.find(c=>c.x===Math.floor(f.x0+f.w/2)&&c.y===Math.floor(f.y0+f.h/2)&&c.z===f.z-1);return c?c.c:(f.skin!=null?f.skin:0xf1c7a4)}
+function drawFaceTo(cv,m,expr,scale){
+  const F=m.face;cv.width=F.w*scale;cv.height=F.h*scale;const g=cv.getContext('2d');g.imageSmoothingEnabled=false;
+  g.fillStyle=int2hex(faceSkin(m));g.fillRect(0,0,cv.width,cv.height);
+  const a=F.frames[expr];for(let y=0;y<F.h;y++)for(let x=0;x<F.w;x++){const c=a[y*F.w+x];if(c<0)continue;g.fillStyle=int2hex(c);g.fillRect(x*scale,y*scale,scale,scale)}
+}
+function buildFaceStrip(){
+  const s=$('faceStrip');s.innerHTML='';
+  const au=document.createElement('button');au.className='face-chip auto'+(state.expr==='auto'?' active':'');au.textContent=T('自動');au.onclick=()=>{state.expr='auto';buildFaceStrip()};s.appendChild(au);
+  EXPRS.forEach(([k,l])=>{const b=document.createElement('button');b.className='face-chip'+(state.expr===k?' active':'');const cv=document.createElement('canvas');drawFaceTo(cv,MODEL,k,4);b.appendChild(cv);const sp=document.createElement('span');sp.textContent=T(l);b.appendChild(sp);
+    b.onclick=()=>{state.expr=k;buildFaceStrip()};b.ondblclick=()=>openEditor(k);s.appendChild(b)});
+  const ed=document.createElement('button');ed.className='btn btn-sm';ed.textContent=T('表情を編集');ed.style.flex='0 0 auto';ed.onclick=()=>openEditor(state.expr==='auto'?'neutral':state.expr);s.appendChild(ed);
+}
+let EDIT={expr:'neutral',color:0,erase:false,down:false};
+function openEditor(expr){
+  EDIT.expr=expr;$('faceModal').classList.remove('hidden');$('editTitle').textContent=T('表情を編集：')+T(EXPRS.find(e=>e[0]===expr)[1]);
+  const fp=MODEL.face.fp;const C=fp.colors;
+  const cols=[C.eye,C.white,C.mouth,C.mouthIn,C.blush,C.brow,C.tear,C.skinDark].filter(c=>c!=null);
+  const pal=$('editPal');pal.innerHTML='';
+  const er=document.createElement('button');er.className='erase'+(EDIT.erase?' on':'');er.title=T('透明');er.onclick=()=>{EDIT.erase=true;openEditor(EDIT.expr)};pal.appendChild(er);
+  [...new Set(cols)].forEach(c=>{const b=document.createElement('button');b.style.background=int2hex(c);if(!EDIT.erase&&EDIT.color===c)b.className='on';b.onclick=()=>{EDIT.erase=false;EDIT.color=c;openEditor(EDIT.expr)};pal.appendChild(b)});
+  const ci=document.createElement('input');ci.type='color';ci.value=int2hex(EDIT.color||C.eye);ci.oninput=()=>{EDIT.erase=false;EDIT.color=hex2int(ci.value)};pal.appendChild(ci);
+  if(!EDIT.color)EDIT.color=C.eye;
+  // expression tabs
+  const tabs=document.createElement('div');tabs.style.cssText='display:flex;gap:4px;flex-wrap:wrap;width:100%;margin-top:6px';
+  EXPRS.forEach(([k,l])=>{const b=document.createElement('button');b.className='btn btn-sm'+(k===expr?' on':'');b.textContent=T(l);b.style.flex='0 0 auto';b.onclick=()=>openEditor(k);tabs.appendChild(b)});pal.appendChild(tabs);
+  redrawEditor();
+}
+function editScale(){const F=MODEL.face;return Math.max(12,Math.floor(Math.min(420/F.w,320/F.h)))}
+function redrawEditor(){
+  const cv=$('editCanvas');const sc=editScale();drawFaceTo(cv,MODEL,EDIT.expr,sc);
+  const g=cv.getContext('2d');g.strokeStyle='rgba(0,0,0,.18)';g.lineWidth=1;
+  for(let x=0;x<=MODEL.face.w;x++){g.beginPath();g.moveTo(x*sc+.5,0);g.lineTo(x*sc+.5,cv.height);g.stroke()}
+  for(let y=0;y<=MODEL.face.h;y++){g.beginPath();g.moveTo(0,y*sc+.5);g.lineTo(cv.width,y*sc+.5);g.stroke()}
+}
+function paintAt(e){
+  const cv=$('editCanvas');const r=cv.getBoundingClientRect();const sc=r.width/MODEL.face.w;
+  const x=Math.floor((e.clientX-r.left)/sc),y=Math.floor((e.clientY-r.top)/(r.height/MODEL.face.h));
+  const F=MODEL.face;if(x<0||y<0||x>=F.w||y>=F.h)return;
+  const arr=F.frames[EDIT.expr];const v=EDIT.erase?-1:EDIT.color;if(arr[y*F.w+x]===v)return;arr[y*F.w+x]=v;
+  const key=faceKey(MODEL);(state.faceEdits[key]||(state.faceEdits[key]={}))[EDIT.expr]=arr.slice();
+  redrawEditor();refreshFaceTexture();
+}
+function refreshFaceTexture(){const a=buildFaceAtlas(MODEL);const g=RIG.atlas.canvas.getContext('2d');g.clearRect(0,0,a.canvas.width,a.canvas.height);g.drawImage(a.canvas,0,0);RIG.tex.needsUpdate=true}
+function bindEditor(){
+  const cv=$('editCanvas');
+  cv.addEventListener('pointerdown',e=>{EDIT.down=true;cv.setPointerCapture(e.pointerId);paintAt(e)});
+  cv.addEventListener('pointermove',e=>{if(EDIT.down)paintAt(e)});
+  cv.addEventListener('pointerup',()=>EDIT.down=false);cv.addEventListener('pointercancel',()=>EDIT.down=false);
+  $('editClose').onclick=()=>{$('faceModal').classList.add('hidden');buildFaceStrip()};
+  $('faceModal').addEventListener('click',e=>{if(e.target.id==='faceModal'){$('faceModal').classList.add('hidden');buildFaceStrip()}});
+  $('editReset').onclick=()=>{const key=faceKey(MODEL);if(state.faceEdits[key])delete state.faceEdits[key][EDIT.expr];MODEL.face.frames[EDIT.expr]=drawFace(MODEL.face.fp,EDIT.expr);redrawEditor();refreshFaceTexture()};
+  $('editResetAll').onclick=()=>{delete state.faceEdits[faceKey(MODEL)];for(const k of EXPR_KEYS)MODEL.face.frames[k]=drawFace(MODEL.face.fp,k);redrawEditor();refreshFaceTexture()};
+}
+
+/* ---------- left panel builders ---------- */
+function segBtns(el,items,get,set){el.innerHTML='';items.forEach(([v,l])=>{const b=document.createElement('button');b.className='btn'+(get()===v?' on':'');b.textContent=T(l);b.onclick=()=>{set(v);segBtns(el,items,get,set)};el.appendChild(b)})}
+function cards(el,obj,get,set){el.innerHTML='';for(const k in obj){const d=obj[k];const b=document.createElement('button');b.className='template-card'+(get()===k?' active':'');b.innerHTML=`<div class="template-name">${T(d.name)}</div><div class="template-desc">${T(d.desc||'')}</div>`;b.onclick=()=>{set(k);cards(el,obj,get,set)};el.appendChild(b)}}
+function fillSelect(el,obj){el.innerHTML='';for(const k in obj){const o=document.createElement('option');o.value=k;o.textContent=T(obj[k]);el.appendChild(o)}}
+function colorGrid(el,labels,colors,onch){el.innerHTML='';labels.forEach(([k,l])=>{const lb=document.createElement('label');lb.textContent=T(l);const i=document.createElement('input');i.type='color';i.value=colors[k];i.oninput=()=>{colors[k]=i.value;onch()};lb.appendChild(i);el.appendChild(lb)})}
+let regenT=0;function soon(){clearTimeout(regenT);regenT=setTimeout(()=>regenerate(),60)}
+
+function applyJob(job,rng){const p=JOBS[job].pal;const c=state.human.colors;const j=rng?(h=>int2hex(shade(hex2int(h),.85+rng()*.3))):(h=>h);c.top=j(p[0]);c.accent=j(p[1]);c.bottom=j(p[2]);c.shoes=j(p[3]);c.metal=p[4]}
+function syncHuman(){
+  const h=state.human;
+  segBtns($('segAge'),Object.entries(AGES).map(([k,v])=>[k,v.name]),()=>h.age,v=>{h.age=v;h.heads=AGES[v].heads;if(v==='elder'){h.colors.hair=pick(Math.random,['#d8d8dc','#f2f2f2','#a8a8b0']);if(h.gender==='m'&&h.beard==='none')h.beard='mustache'}if(v==='child')h.beard='none';syncHuman();soon()});
+  segBtns($('segGender'),[['m','男性'],['f','女性']],()=>h.gender,v=>{h.gender=v;if(v==='f'){h.beard='none';if(['short','buzz','spiky','mohawk','balding','bald'].includes(h.hair))h.hair='long'}else if(['long','hime','twintail','ponytail','bun'].includes(h.hair))h.hair='short';syncHuman();soon()});
+  cards($('jobGrid'),JOBS,()=>h.job,v=>{h.job=v;applyJob(v);syncHuman();soon()});
+  $('h_heads').value=Math.round(h.heads*10);$('v_heads').textContent=h.heads.toFixed(1);
+  $('h_scale').value=Math.round(h.scale*100);$('v_scale').textContent=Math.round(h.scale*100);
+  $('h_build').value=Math.round(h.build*100);$('v_build').textContent=Math.round(h.build*100);
+  $('h_hair').value=h.hair;$('h_hat').value=h.hat;$('h_beard').value=h.beard;$('h_ears').value=h.ears;$('h_bottom').value=h.bottom;$('h_weapon').value=h.weapon;$('h_shield').value=h.shield;$('h_seed').value=h.seed;
+  colorGrid($('h_colors'),COLOR_LABELS_H,h.colors,soon);
+}
+function syncAnimal(){const a=state.animal;
+  cards($('animalGrid'),ANIMALS,()=>a.species,v=>{a.species=v;a.colors=animalDefault(v);syncAnimal();soon()});
+  $('a_size').value=Math.round(a.size*100);$('v_asize').textContent=Math.round(a.size*100);$('a_leg').value=Math.round(a.leg*100);$('v_aleg').textContent=Math.round(a.leg*100);$('a_pattern').value=a.pattern;
+  const fly=ANIMALS[a.species].rig==='flyer';$('a_leg').closest('.param-row').classList.toggle('hidden',fly);$('a_pattern').closest('.param-row').classList.toggle('hidden',fly);
+  colorGrid($('a_colors'),COLOR_LABELS_B,a.colors,soon)}
+function syncMonster(){const m=state.monster;
+  cards($('monsterGrid'),MONSTERS,()=>m.type,v=>{m.type=v;m.colors=monsterDefault(v);m.weapon='auto';syncMonster();soon()});
+  $('m_size').value=Math.round(m.size*100);$('v_msize').textContent=Math.round(m.size*100);$('m_var').value=m.variant;$('m_weapon').value=m.weapon;
+  $('m_varRow').classList.toggle('hidden',m.type!=='slime');$('m_wRow').classList.toggle('hidden',MONSTERS[m.type].rig!=='humanoid');
+  colorGrid($('m_colors'),COLOR_LABELS_B,m.colors,soon)}
+function setCat(c){state.cat=c;document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active',t.dataset.cat===c));
+  ['human','animal','monster'].forEach(k=>$('tab_'+k).classList.toggle('hidden',k!==c));regenerate()}
+
+function randomHuman(){
+  const h=state.human;h.seed=(h.seed+1)|0;const r=mulberry32(h.seed*131+7);
+  h.age=pick(r,['child','teen','teen','adult','adult','adult','elder']);h.gender=r()<.5?'m':'f';
+  h.job=pick(r,Object.keys(JOBS));if(h.age==='child'&&r()<.6)h.job=pick(r,['casual','villager','casual']);if(h.age==='elder'&&r()<.5)h.job=pick(r,['villager','mage','priest','merchant']);
+  h.heads=+(AGES[h.age].heads+(r()-.5)*.8).toFixed(1);h.scale=1;h.build=+(r()*.8+.1).toFixed(2);
+  const fh=['long','bob','ponytail','twintail','bun','hime','short'],mh=['short','short','spiky','buzz','mohawk','bob','afro'];
+  h.hair=h.gender==='f'?pick(r,fh):pick(r,mh);if(h.age==='elder')h.hair=h.gender==='f'?pick(r,['bun','bob','short']):pick(r,['balding','bald','short']);
+  h.hat='auto';h.beard=h.gender==='m'&&(h.age==='adult'||h.age==='elder')&&r()<.45?pick(r,['mustache','goatee','full']):'none';
+  h.ears=r()<.12?'pointy':'normal';h.bottom='auto';h.weapon='auto';h.shield='auto';
+  applyJob(h.job,r);
+  h.colors.skin=pick(r,SKINS);h.colors.hair=h.age==='elder'?pick(r,['#d8d8dc','#f2f2f2','#a8a8b0']):pick(r,HAIRCOLS);h.colors.eye=pick(r,EYECOLS);
+  syncHuman();regenerate();
+}
+function randomPalette(colors,labels,r){
+  const base=Math.floor(r()*360);const hsl=(h,s,l)=>{s/=100;l/=100;const k=n=>(n+h/30)%12;const a=s*Math.min(l,1-l);const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return int2hex((Math.round(f(0)*255)<<16)|(Math.round(f(8)*255)<<8)|Math.round(f(4)*255))};
+  if(labels===COLOR_LABELS_H){colors.top=hsl(base,55+r()*25,38+r()*20);colors.accent=hsl((base+150+r()*60)%360,65,55);colors.bottom=hsl((base+200)%360,25+r()*20,24+r()*16);colors.shoes=hsl(25,35,18+r()*12);colors.hair=pick(r,HAIRCOLS)}
+  else{colors.main=hsl(base,50+r()*35,45+r()*18);colors.sub=hsl((base+30)%360,40,78);colors.pat=hsl((base+330)%360,45,28);colors.eye=pick(r,['#141414','#c0283a','#e0b020','#2a3f7a'])}
+}
+
+/* ---------- export actions ---------- */
+function outOpts(){return {dirs:+$('o_dirs').value,size:+$('o_size').value,fps:+$('o_fps').value,elev:+$('o_elev').value,shadow:$('o_shadow').checked,scale:+$('o_scale').value}}
+async function doGLB(){status('GLB…');const o=outOpts();const r=await buildGLB(MODEL,{scale:o.scale,anims:ANIMLIST,name:charName(),grain:state.grain,fps:24});status('READY');return r}
+function dirNames(n){return n===1?['S']:n===4?['S','W','N','E']:['S','SW','W','NW','N','NE','E','SE']}
+async function bakeAll(onp){
+  const o=outOpts();const framing=computeFraming(MODEL,RIG,ANIMLIST,o);const res=[];
+  for(let i=0;i<ANIMLIST.length;i++){res.push(Object.assign({anim:ANIMLIST[i]},bakeSheet(MODEL,RIG,ANIMLIST[i],o,framing)));onp&&onp((i+1)/ANIMLIST.length);await sleep(0)}
+  return {sheets:res,framing,o};
+}
+function settingsJSON(extra){return Object.assign({tool:'CHARA VOXEL FORGE',version:'1.0',name:charName(),state:JSON.parse(JSON.stringify(state)),
+  rig:MODEL.rig,bones:MODEL.bones.map(b=>({name:b.name,parent:b.parent>=0?MODEL.bones[b.parent].name:null,restPosition:b.pos})),
+  animations:ANIMLIST.map(a=>({id:a.id,label:a.label,duration:+a.dur.toFixed(3),loop:!!a.loop})),
+  expressions:EXPRS.map(([k,l])=>({id:k,label:l}))},extra||{})}
+const README=n=>`CHARA VOXEL FORGE  —  ${n}
+
+[files]
+${n}.glb            スキンメッシュ＋ボーン＋全モーション（glTF 2.0）
+${n}.vox            MagicaVoxel 用（レストポーズ）
+face_atlas.png      表情アトラス（4列、${EXPR_KEYS.length}表情）
+sprites/<motion>.png 行=方向 / 列=コマ。方向順は character.json の sprites.directions
+character.json      設定・ボーン・モーション・表情UV・表情タイムライン
+
+[GLB]
+- メッシュは "Body"。プリミティブ0=ボクセル（頂点カラー）、1=顔（Face マテリアル、アトラス）
+- 表情切替：顔の UV は「通常」の枠（アトラス左上）を指しています。Face マテリアルの
+  テクスチャ offset を faceUV の [u0,v0] だけずらすと表情が切り替わります（tiling は等倍）。
+  Godot（uv1_offset）/ three.js（texture.offset, flipY=false）: (u0, v0)
+  Unity（glTFast / UniGLTF で V が反転）: material.mainTextureOffset = new Vector2(u0, -v0)
+- モーション中の表情は character.json の expressionTracks（fps ごとの表情ID配列）。
+- 前方 +Z / 上 +Y。ヒューマノイドはボーン名が Unity Humanoid の命名（Hips/Spine/Chest/Neck/Head/LeftUpperArm…）。
+- Unity での読み込みは glTFast か UniGLTF を推奨。
+
+[Sprites]
+- 全シート同じ縮尺。待機・歩き等は同じセル寸法、ジャンプ/戦闘不能/飛行は大きめのセル。
+  足元（原点）のセル内座標は character.json の sprites.sheets[].pivot。
+- 方向 S=正面（カメラ側）から時計回り。
+
+----------------------------------------------------------------
+[EN]
+${n}.glb       Skinned mesh + skeleton + all motions (glTF 2.0). Front +Z, up +Y.
+               Humanoid bones follow Unity Humanoid naming (Hips/Spine/Chest/Neck/Head/LeftUpperArm...).
+${n}.vox       MagicaVoxel (rest pose)
+face_atlas.png Expression atlas (4 columns)
+sprites/       One sheet per motion: rows = directions, columns = frames. Same pixel scale for all sheets;
+               jump / knocked-out / fly use larger cells. Foot pivot per sheet: character.json sprites.sheets[].pivot
+Faces: shift the Face material texture offset by faceUV [u0,v0].
+  Godot / three.js (flipY=false): (u0, v0)   Unity (glTFast / UniGLTF): new Vector2(u0, -v0)
+Per-frame expressions during motions: character.json expressionTracks.
+`;
+async function doZip(){
+  status('ZIP…');progress(.05);
+  const n=charName();const files=[];
+  const g=await doGLB();files.push({name:n+'.glb',data:g.bytes});progress(.25);
+  files.push({name:n+'.vox',data:buildVOX(MODEL)});
+  files.push({name:'face_atlas.png',data:await canvasToPNG(buildFaceAtlas(MODEL).canvas)});
+  const B=await bakeAll(p=>progress(.3+p*.6));
+  for(const s of B.sheets)files.push({name:`sprites/${s.anim.id}.png`,data:await canvasToPNG(s.canvas)});
+  const json=settingsJSON({faceUV:g.faceUV,expressionTracks:g.exprTracks,
+    sprites:{baseSize:B.o.size,fps:B.o.fps,elevation:B.o.elev,directions:dirNames(B.o.dirs),pixelsPerVoxel:+B.sheets[0].ppu||undefined,note:'全シート同一縮尺。pivot=足元（原点）のセル内ピクセル座標',
+      sheets:B.sheets.map(s=>({anim:s.anim.id,file:`sprites/${s.anim.id}.png`,cellW:s.cellW,cellH:s.cellH,pivot:s.pivot,frames:s.frames,rows:s.dirs,loop:!!s.anim.loop,expressions:s.exprs}))}});
+  files.push({name:'character.json',data:new TextEncoder().encode(JSON.stringify(json,null,1))});
+  files.push({name:'README.txt',data:new TextEncoder().encode(README(n))});
+  dlBlob(buildZip(files),n+'.zip');progress(1);status('READY');log('ZIP出力: '+files.length+'ファイル');toast('ZIPを書き出しました');
+}
+let SPRANIM=null;
+function previewSprite(){
+  const o=Object.assign(outOpts(),{dirs:1});const fr=computeFraming(MODEL,RIG,ANIMLIST,o);const sh=bakeSheet(MODEL,RIG,CUR,o,fr);
+  const cv=$('sprPrev');cv.width=sh.cellW;cv.height=sh.cellH;cv.style.width=Math.round(128*sh.cellW/Math.max(sh.cellW,sh.cellH))+'px';cv.style.height=Math.round(128*sh.cellH/Math.max(sh.cellW,sh.cellH))+'px';const g=cv.getContext('2d');let f=0;
+  clearInterval(SPRANIM);SPRANIM=setInterval(()=>{g.clearRect(0,0,cv.width,cv.height);g.drawImage(sh.canvas,f*sh.cellW,0,sh.cellW,sh.cellH,0,0,sh.cellW,sh.cellH);f=(f+1)%sh.frames},1000/o.fps);
+}
+
+/* ---------- wiring ---------- */
+function bindUI(){
+  document.querySelectorAll('.mode-tab').forEach(t=>t.onclick=()=>setCat(t.dataset.cat));
+  document.querySelectorAll('.collapse-toggle').forEach(t=>t.onclick=()=>$(t.dataset.target).classList.toggle('collapsed'));
+  fillSelect($('h_hair'),HAIRS);fillSelect($('h_hat'),HATS);fillSelect($('h_beard'),BEARDS);fillSelect($('h_weapon'),WEAPONS);fillSelect($('m_weapon'),WEAPONS);
+  const h=state.human;
+  const sl=(id,vid,fn,fmt)=>{$(id).oninput=()=>{const v=+$(id).value;fn(v);$(vid).textContent=fmt?fmt(v):v;soon()}};
+  sl('h_heads','v_heads',v=>h.heads=v/10,v=>(v/10).toFixed(1));sl('h_scale','v_scale',v=>h.scale=v/100);sl('h_build','v_build',v=>h.build=v/100);
+  for(const [id,k] of [['h_hair','hair'],['h_hat','hat'],['h_beard','beard'],['h_ears','ears'],['h_bottom','bottom'],['h_weapon','weapon'],['h_shield','shield']])$(id).onchange=()=>{h[k]=$(id).value;soon()};
+  $('h_seed').onchange=()=>{h.seed=+$('h_seed').value|0;soon()};
+  $('h_rand').onclick=randomHuman;
+  $('h_pal').onclick=()=>{randomPalette(h.colors,COLOR_LABELS_H,mulberry32(Date.now()));syncHuman();soon()};
+  const sw=$('skinSw');SKINS.forEach(c=>{const b=document.createElement('button');b.style.background=c;b.title=T('肌色');b.onclick=()=>{h.colors.skin=c;syncHuman();soon()};sw.appendChild(b)});
+  const a=state.animal;sl('a_size','v_asize',v=>a.size=v/100);sl('a_leg','v_aleg',v=>a.leg=v/100);$('a_pattern').onchange=()=>{a.pattern=$('a_pattern').value;soon()};
+  $('a_pal').onclick=()=>{randomPalette(a.colors,COLOR_LABELS_B,mulberry32(Date.now()));syncAnimal();soon()};$('a_reset').onclick=()=>{a.colors=animalDefault(a.species);syncAnimal();soon()};
+  const m=state.monster;sl('m_size','v_msize',v=>m.size=v/100);$('m_var').onchange=()=>{m.variant=$('m_var').value;soon()};$('m_weapon').onchange=()=>{m.weapon=$('m_weapon').value;soon()};
+  $('m_pal').onclick=()=>{randomPalette(m.colors,COLOR_LABELS_B,mulberry32(Date.now()));syncMonster();soon()};$('m_reset').onclick=()=>{m.colors=monsterDefault(m.type);syncMonster();soon()};
+  $('p_grain').onchange=()=>{state.grain=$('p_grain').checked;soon()};
+  $('p_anim').onchange=()=>{CUR=ANIMLIST.find(x=>x.id===$('p_anim').value);state.anim=CUR.id;TIME=0};
+  $('btnPlay').onclick=()=>{state.playing=!state.playing;$('btnPlay').classList.toggle('on',state.playing);$('btnPlay').textContent=T(state.playing?'再生中':'停止中')};
+  $('p_speed').oninput=()=>state.speed=+$('p_speed').value/100;
+  $('btnBones').onclick=()=>{state.bones=!state.bones;$('btnBones').classList.toggle('on',state.bones);V.boneLines.visible=V.joints.visible=state.bones};
+  $('btnSpin').onclick=()=>{state.spin=!state.spin;$('btnSpin').classList.toggle('on',state.spin)};
+  $('p_bg').onchange=()=>{state.bg=$('p_bg').value;setBackground(state.bg)};
+  $('p_pix').oninput=()=>{V.pix=+$('p_pix').value/100;resizeViewer()};
+  $('o_elev').oninput=()=>$('v_elev').textContent=$('o_elev').value;
+  $('btnZip').onclick=()=>doZip().catch(e=>{console.error(e);toast('出力エラー: '+e.message,true);status('ERROR')});
+  $('btnGlb').onclick=async()=>{try{const g=await doGLB();dlBlob(new Blob([g.bytes],{type:'model/gltf-binary'}),charName()+'.glb');log('GLB出力 '+(g.bytes.length/1024).toFixed(0)+'KB');toast('GLBを書き出しました')}catch(e){console.error(e);toast('出力エラー: '+e.message,true)}};
+  $('btnSprite').onclick=async()=>{const o=outOpts();const fr=computeFraming(MODEL,RIG,ANIMLIST,o);const s=bakeSheet(MODEL,RIG,CUR,o,fr);s.canvas.toBlob(b=>dlBlob(b,`${charName()}_${CUR.id}.png`));log(`スプライト: ${CUR.id} ${s.frames}コマ×${s.dirs}方向`)};
+  $('btnAtlas').onclick=()=>buildFaceAtlas(MODEL).canvas.toBlob(b=>dlBlob(b,charName()+'_face_atlas.png'));
+  $('btnVox').onclick=()=>{dlBlob(new Blob([buildVOX(MODEL)]),charName()+'.vox');log('VOX出力')};
+  $('btnJson').onclick=()=>dlBlob(new Blob([JSON.stringify(settingsJSON(),null,1)],{type:'application/json'}),charName()+'.json');
+  $('btnJsonLoad').onclick=()=>$('jsonInput').click();
+  $('jsonInput').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const j=JSON.parse(t);const s=j.state||j;['cat','human','animal','monster','faceEdits','out','grain'].forEach(k=>{if(s[k]!=null)state[k]=s[k]});syncHuman();syncAnimal();syncMonster();setCat(state.cat);toast('読み込みました')}catch(err){toast('JSONを読めませんでした',true)}});e.target.value=''};
+  $('btnSprPrev').onclick=previewSprite;
+  bindEditor();
+}
+
+function loop(now){
+  const dt=Math.min(.1,(now-LAST)/1000);LAST=now;
+  if(MODEL&&RIG&&CUR){
+    if(state.playing)TIME+=dt*state.speed;
+    const tail=CUR.loop?0:(CUR.hold?1.1:.55);const cyc=CUR.dur+tail;
+    let p;if(CUR.loop)p=(TIME/CUR.dur)%1;else{const tt=TIME%cyc;p=Math.min(1,tt/CUR.dur)}
+    const pose=samplePose(MODEL,CUR,p);applyPose(RIG,MODEL,pose);
+    setExpr(RIG,MODEL,state.expr==='auto'?CUR.ex(p,TIME):state.expr);
+    placeShadow(RIG,MODEL);updateBoneOverlay(RIG,MODEL);
+    $('overlayAnim').textContent=`${T(CUR.label)}  ${(p*CUR.dur).toFixed(2)}s / ${CUR.dur.toFixed(2)}s`;
+  }
+  if(state.spin)V.orbit.yaw+=dt*.5;
+  updateCamera();V.renderer.render(V.scene,V.camera);
+  requestAnimationFrame(loop);
+}
+function buildLangSelect(){const sel=$('langSel');if(!sel)return;LANGS.forEach(l=>{const o=document.createElement('option');o.value=l;o.textContent=LANG_NAMES[l];sel.appendChild(o)});sel.value=LANG;
+  sel.onchange=()=>{try{const u=new URL(location.href);u.searchParams.set('lang',sel.value);location.href=u.toString()}catch(e){}}}
+function boot(){
+  if(typeof THREE==='undefined'){document.body.innerHTML='<p style="padding:20px;color:#fff">'+(LANG==='ja'?'three.js を読み込めませんでした。ネット接続を確認してください。':'Could not load three.js. Please check your connection.')+'</p>';return}
+  translateDOM(document.body);buildLangSelect();initViewer();setBackground('dark');bindUI();syncHuman();syncAnimal();syncMonster();
+  regenerate();requestAnimationFrame(loop);
+  new ResizeObserver(resizeViewer).observe($('previewArea'));
+}
+boot();
+
+</script>
+</body>
+</html>

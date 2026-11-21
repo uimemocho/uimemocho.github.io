@@ -764,5 +764,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-21T06:01:47Z",
     "updatedAt": "2026-11-21T06:01:47Z"
+  },
+  {
+    "slug": "chara-voxel-forge",
+    "title": "CHARA VOXEL FORGE",
+    "kind": "tool",
+    "description": "老若男女・動物・モンスターのボーン入りボクセルキャラを生成。表情11種・アクション/RPGモーション付きでGLBとスプライトに書き出せるツール。",
+    "url": "/apps/chara-voxel-forge/",
+    "thumbnail": "/project-thumbnails/catalog/chara-voxel-forge.webp",
+    "sourceFolder": "261117_CHARA VOXEL FORGE",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-21T06:03:50Z",
+    "updatedAt": "2026-11-21T06:03:50Z"
   }
 ]
