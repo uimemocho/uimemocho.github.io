@@ -69,7 +69,7 @@ html:not([lang=ja]):not([lang^=zh]) .title-screen h1{gap:.3em}
 
 /* プレイHUD */
 #hud{position:fixed;inset:0;z-index:4;pointer-events:none;text-shadow:0 1px 10px #0e1a2bcc}
-.dist-box{position:fixed;left:0;right:0;top:max(64px,calc(env(safe-area-inset-top) + 48px));display:flex;flex-direction:column;align-items:center;gap:2px}
+.dist-box{position:fixed;left:0;right:0;top:calc(var(--top) + 92px);display:flex;flex-direction:column;align-items:center;gap:2px}
 .dist-box>small{font-size:11px;letter-spacing:.16em;color:var(--ash);font-weight:700}
 .dist-num{display:flex;align-items:baseline;gap:6px;transform:skewX(-7deg)}
 .dist-num b{font:600 clamp(58px,17vw,92px)/1 var(--num);letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#fff}
@@ -87,15 +87,15 @@ html:not([lang=ja]):not([lang^=zh]) .title-screen h1{gap:.3em}
 .blow-guide strong{font:900 clamp(15px,4.6vw,19px)/1.55 var(--bold);letter-spacing:.02em;max-width:340px}
 .blow-guide small{font-size:11px;color:var(--ash);letter-spacing:.06em;line-height:1.6}
 .blow-guide.warn strong{color:var(--peach)}
-.breath-row{display:flex;align-items:center;gap:10px;margin-top:8px;width:min(300px,80vw)}
-.breath-row span{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ash);flex:0 0 auto}
-.breath-meter{flex:1;height:10px;background:#0e1a2b99;box-shadow:inset 0 0 0 1px #ffffff40;position:relative;overflow:hidden}
+.breath-row{display:flex;align-items:center;gap:10px;margin-top:6px;width:100%}
+.breath-row span{min-width:2.4em;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ash);flex:0 0 auto}
+.breath-meter{flex:1;height:14px;background:#0e1a2b99;box-shadow:inset 0 0 0 1px #ffffff40;position:relative;overflow:hidden}
 .breath-meter i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#3fd0bf,#bff5ee 70%,#fff)}
 .breath-meter .peak{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--sun);left:0}
 .time-top{position:fixed;left:22px;right:22px;top:calc(var(--top) + 2px);display:flex;flex-direction:column;gap:6px;opacity:.55;transition:opacity .25s}
 body.blowing .time-top{opacity:1}
 .time-label{display:flex;align-items:baseline;gap:6px;justify-content:flex-end}
-.time-label span{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--ash);margin-right:auto}
+.time-label span{min-width:2.4em;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--ash);margin-right:auto}
 .time-label b{font:600 26px/1 var(--num);color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.02em}.time-label small{font-size:11px;color:var(--ash);font-weight:700}
 .time-top .time-bar{height:8px;background:#0e1a2b99;box-shadow:inset 0 0 0 1px #ffffff55}
 .time-top .time-bar i{display:block;height:100%;width:100%;background:var(--sun);transition:background .2s}
