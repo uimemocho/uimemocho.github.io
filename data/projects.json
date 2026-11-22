@@ -788,5 +788,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-21T16:00:00Z",
     "updatedAt": "2026-11-21T16:00:00Z"
+  },
+  {
+    "slug": "stack-gt",
+    "title": "STACK GT",
+    "kind": "game",
+    "description": "ドット絵を何層も積み重ねて立体に見せる「スプライトスタッキング」のポップなアーケードレース。性能の違う4車種と3コース、ドリフトでミニターボ、アイテムで逆転。Gemini 4 Neonで試作したブラウザゲーム。",
+    "url": "/apps/stack-gt/",
+    "thumbnail": "/project-thumbnails/catalog/stack-gt.webp",
+    "sourceFolder": "261122_STACK GT",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-22T04:46:13Z",
+    "updatedAt": "2026-11-22T04:46:13Z"
   }
 ]

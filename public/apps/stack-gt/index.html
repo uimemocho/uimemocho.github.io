@@ -1,0 +1,2925 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>STACK GT</title>
+    <meta name="theme-color" content="#120929">
+    <meta name="description" content="STACK GT。スプライトスタッキングで描くポップなアーケードレース。4車種・3コース、ドリフトでミニターボ、アイテムで逆転。Gemini 4 Neonで試作したブラウザゲーム。">
+    <link rel="canonical" href="https://uimemocho.github.io/apps/stack-gt/">
+    <meta property="og:type" content="website"><meta property="og:site_name" content="uimemocho"><meta property="og:title" content="STACK GT">
+    <meta property="og:description" content="ドット絵を積み重ねて立体に見せるスプライトスタッキングのポップなアーケードレース。">
+    <meta property="og:url" content="https://uimemocho.github.io/apps/stack-gt/"><meta property="og:image" content="https://uimemocho.github.io/apps/stack-gt/ogp.png">
+    <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="STACK GT">
+    <meta name="twitter:description" content="ドット絵を積み重ねて立体に見せるスプライトスタッキングのポップなアーケードレース。"><meta name="twitter:image" content="https://uimemocho.github.io/apps/stack-gt/ogp.png">
+    <style>*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0}.z-10{z-index:10}.z-20{z-index:20}.z-30{z-index:30}.my-auto{margin-top:auto;margin-bottom:auto}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mt-2{margin-top:.5rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-1\.5{height:.375rem}.h-12{height:3rem}.h-14{height:3.5rem}.h-16{height:4rem}.h-20{height:5rem}.h-7{height:1.75rem}.h-full{height:100%}.w-12{width:3rem}.w-14{width:3.5rem}.w-16{width:4rem}.w-20{width:5rem}.w-24{width:6rem}.w-7{width:1.75rem}.w-fit{width:-moz-fit-content;width:fit-content}.w-full{width:100%}.min-w-0{min-width:0}.max-w-md{max-width:28rem}.max-w-xs{max-width:20rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.translate-y-4{--tw-translate-y:1rem}.transform,.translate-y-4{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.resize{resize:both}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}.gap-3\.5{gap:.875rem}.overflow-hidden,.truncate{overflow:hidden}.truncate{text-overflow:ellipsis;white-space:nowrap}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-xl{border-radius:.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-l{border-left-width:1px}.border-cyan-200{--tw-border-opacity:1;border-color:rgb(165 243 252/var(--tw-border-opacity,1))}.border-cyan-300\/60{border-color:rgba(103,232,249,.6)}.border-pink-300\/60{border-color:rgba(249,168,212,.6)}.border-pink-400\/50{border-color:rgba(244,114,182,.5)}.border-pink-400\/90{border-color:rgba(244,114,182,.9)}.border-white{--tw-border-opacity:1;border-color:rgb(255 255 255/var(--tw-border-opacity,1))}.border-white\/25{border-color:hsla(0,0%,100%,.25)}.border-white\/30{border-color:hsla(0,0%,100%,.3)}.border-white\/40{border-color:hsla(0,0%,100%,.4)}.border-yellow-300{--tw-border-opacity:1;border-color:rgb(253 224 71/var(--tw-border-opacity,1))}.bg-indigo-950\/55{background-color:rgba(30,27,75,.55)}.bg-indigo-950\/65{background-color:rgba(30,27,75,.65)}.bg-white\/10{background-color:hsla(0,0%,100%,.1)}.bg-white\/15{background-color:hsla(0,0%,100%,.15)}.bg-gradient-to-b{background-image:linear-gradient(to bottom,var(--tw-gradient-stops))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right,var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}.from-cyan-300{--tw-gradient-from:#67e8f9 var(--tw-gradient-from-position);--tw-gradient-to:rgba(103,232,249,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-cyan-400{--tw-gradient-from:#22d3ee var(--tw-gradient-from-position);--tw-gradient-to:rgba(34,211,238,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-cyan-500{--tw-gradient-from:#06b6d4 var(--tw-gradient-from-position);--tw-gradient-to:rgba(6,182,212,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-indigo-900\/90{--tw-gradient-from:rgba(49,46,129,.9) var(--tw-gradient-from-position);--tw-gradient-to:rgba(49,46,129,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-lime-300{--tw-gradient-from:#bef264 var(--tw-gradient-from-position);--tw-gradient-to:hsla(82,85%,67%,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-pink-500{--tw-gradient-from:#ec4899 var(--tw-gradient-from-position);--tw-gradient-to:rgba(236,72,153,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-pink-500\/35{--tw-gradient-from:rgba(236,72,153,.35) var(--tw-gradient-from-position);--tw-gradient-to:rgba(236,72,153,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-pink-500\/85{--tw-gradient-from:rgba(236,72,153,.85) var(--tw-gradient-from-position);--tw-gradient-to:rgba(236,72,153,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-rose-400{--tw-gradient-from:#fb7185 var(--tw-gradient-from-position);--tw-gradient-to:rgba(251,113,133,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-violet-400{--tw-gradient-from:#a78bfa var(--tw-gradient-from-position);--tw-gradient-to:rgba(167,139,250,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-yellow-200{--tw-gradient-from:#fef08a var(--tw-gradient-from-position);--tw-gradient-to:hsla(53,98%,77%,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.to-amber-500{--tw-gradient-to:#f59e0b var(--tw-gradient-to-position)}.to-blue-600{--tw-gradient-to:#2563eb var(--tw-gradient-to-position)}.to-cyan-500\/35{--tw-gradient-to:rgba(6,182,212,.35) var(--tw-gradient-to-position)}.to-cyan-500\/85{--tw-gradient-to:rgba(6,182,212,.85) var(--tw-gradient-to-position)}.to-emerald-300{--tw-gradient-to:#6ee7b7 var(--tw-gradient-to-position)}.to-emerald-600{--tw-gradient-to:#059669 var(--tw-gradient-to-position)}.to-indigo-600{--tw-gradient-to:#4f46e5 var(--tw-gradient-to-position)}.to-pink-400{--tw-gradient-to:#f472b6 var(--tw-gradient-to-position)}.to-pink-600{--tw-gradient-to:#db2777 var(--tw-gradient-to-position)}.to-slate-950\/90{--tw-gradient-to:rgba(2,6,23,.9) var(--tw-gradient-to-position)}.to-yellow-300{--tw-gradient-to:#fde047 var(--tw-gradient-to-position)}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-5{padding:1.25rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-3\.5{padding-top:.875rem;padding-bottom:.875rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.pb-1{padding-bottom:.25rem}.pb-6{padding-bottom:1.5rem}.pl-2\.5{padding-left:.625rem}.pt-12{padding-top:3rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-\[\'DotGothic16\'\]{font-family:DotGothic16}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[10px\]{font-size:10px}.text-\[8px\]{font-size:8px}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-bold{font-weight:700}.italic{font-style:italic}.leading-none{line-height:1}.leading-tight{line-height:1.25}.tracking-wider{letter-spacing:.05em}.tracking-widest{letter-spacing:.1em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77/var(--tw-text-opacity,1))}.text-cyan-100{--tw-text-opacity:1;color:rgb(207 250 254/var(--tw-text-opacity,1))}.text-cyan-200{--tw-text-opacity:1;color:rgb(165 243 252/var(--tw-text-opacity,1))}.text-cyan-300{--tw-text-opacity:1;color:rgb(103 232 249/var(--tw-text-opacity,1))}.text-orange-300{--tw-text-opacity:1;color:rgb(253 186 116/var(--tw-text-opacity,1))}.text-pink-200{--tw-text-opacity:1;color:rgb(251 207 232/var(--tw-text-opacity,1))}.text-pink-300{--tw-text-opacity:1;color:rgb(249 168 212/var(--tw-text-opacity,1))}.text-slate-100{--tw-text-opacity:1;color:rgb(241 245 249/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.text-white\/80{color:hsla(0,0%,100%,.8)}.text-white\/85{color:hsla(0,0%,100%,.85)}.text-yellow-100{--tw-text-opacity:1;color:rgb(254 249 195/var(--tw-text-opacity,1))}.text-yellow-200{--tw-text-opacity:1;color:rgb(254 240 138/var(--tw-text-opacity,1))}.text-yellow-300{--tw-text-opacity:1;color:rgb(253 224 71/var(--tw-text-opacity,1))}.opacity-0{opacity:0}.opacity-35{opacity:.35}.shadow-\[0_0_16px_rgba\(34\2c 211\2c 238\2c 0\.3\)\]{--tw-shadow:0 0 16px rgba(34,211,238,.3);--tw-shadow-colored:0 0 16px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-\[0_0_18px_rgba\(244\2c 114\2c 182\2c 0\.45\)\]{--tw-shadow:0 0 18px rgba(244,114,182,.45);--tw-shadow-colored:0 0 18px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-\[0_0_32px_rgba\(236\2c 72\2c 153\2c 0\.45\)\]{--tw-shadow:0 0 32px rgba(236,72,153,.45);--tw-shadow-colored:0 0 32px var(--tw-shadow-color)}.shadow-\[0_0_32px_rgba\(236\2c 72\2c 153\2c 0\.45\)\],.shadow-\[0_4px_0_\#1e1b4b\]{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-\[0_4px_0_\#1e1b4b\]{--tw-shadow:0 4px 0 #1e1b4b;--tw-shadow-colored:0 4px 0 var(--tw-shadow-color)}.shadow-\[0_8px_24px_rgba\(0\2c 0\2c 0\2c 0\.45\)\]{--tw-shadow:0 8px 24px rgba(0,0,0,.45);--tw-shadow-colored:0 8px 24px var(--tw-shadow-color)}.shadow-\[0_8px_24px_rgba\(0\2c 0\2c 0\2c 0\.45\)\],.shadow-lg{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.ring-2{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.ring-yellow-300{--tw-ring-opacity:1;--tw-ring-color:rgb(253 224 71/var(--tw-ring-opacity,1))}.blur{--tw-blur:blur(8px)}.blur,.drop-shadow{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow{--tw-drop-shadow:drop-shadow(0 1px 2px rgba(0,0,0,.1)) drop-shadow(0 1px 1px rgba(0,0,0,.06))}.drop-shadow-\[0_2px_0_rgba\(190\2c 24\2c 93\2c 0\.9\)\]{--tw-drop-shadow:drop-shadow(0 2px 0 rgba(190,24,93,.9))}.drop-shadow-\[0_2px_0_rgba\(190\2c 24\2c 93\2c 0\.9\)\],.drop-shadow-\[0_3px_0_rgba\(190\2c 24\2c 93\2c 0\.9\)\]{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow-\[0_3px_0_rgba\(190\2c 24\2c 93\2c 0\.9\)\]{--tw-drop-shadow:drop-shadow(0 3px 0 rgba(190,24,93,.9))}.drop-shadow-\[0_4px_0_rgba\(190\2c 24\2c 93\2c 0\.95\)\]{--tw-drop-shadow:drop-shadow(0 4px 0 rgba(190,24,93,.95))}.drop-shadow-\[0_4px_0_rgba\(190\2c 24\2c 93\2c 0\.95\)\],.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px)}.backdrop-blur-md,.backdrop-blur-sm{-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.duration-200{transition-duration:.2s}.hover\:bg-white\/10:hover{background-color:hsla(0,0%,100%,.1)}.active\:translate-y-1:active{--tw-translate-y:0.25rem}.active\:scale-90:active,.active\:translate-y-1:active{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:scale-90:active{--tw-scale-x:.9;--tw-scale-y:.9}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width:640px){.sm\:mt-4{margin-top:1rem}.sm\:h-14{height:3.5rem}.sm\:h-16{height:4rem}.sm\:h-20{height:5rem}.sm\:h-24{height:6rem}.sm\:w-14{width:3.5rem}.sm\:w-16{width:4rem}.sm\:w-20{width:5rem}.sm\:w-24{width:6rem}.sm\:w-28{width:7rem}.sm\:max-w-sm{max-width:24rem}.sm\:gap-3{gap:.75rem}.sm\:p-5{padding:1.25rem}.sm\:p-6{padding:1.5rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:py-4{padding-top:1rem;padding-bottom:1rem}.sm\:py-8{padding-top:2rem;padding-bottom:2rem}.sm\:pb-2{padding-bottom:.5rem}.sm\:pb-8{padding-bottom:2rem}.sm\:pt-16{padding-top:4rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-6xl{font-size:3.75rem;line-height:1}.sm\:text-\[10px\]{font-size:10px}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:.875rem;line-height:1.25rem}.sm\:text-xs{font-size:.75rem;line-height:1rem}}</style>
+    <!-- ポップ＆アーケードフォント -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #120929;
+            font-family: 'Press Start 2P', 'DotGothic16', monospace;
+            touch-action: none;
+        }
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        /* ポップ＆ネオンなアーケードボタン */
+        .arcade-btn {
+            background: linear-gradient(135deg, #ff2e93 0%, #ff6b35 50%, #ffbe0b 100%);
+            border: 3px solid #ffffff;
+            box-shadow: 0 5px 0 #9d174d, 0 0 22px rgba(255, 46, 147, 0.65);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+        }
+        .arcade-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #9d174d, 0 0 12px rgba(255, 46, 147, 0.55);
+        }
+        .drift-btn {
+            background: linear-gradient(145deg, #ffbe0b 0%, #ff5400 60%, #ff0054 100%);
+            border: 3px solid #fff7ed;
+            box-shadow: 0 5px 0 #9a1b43, 0 0 18px rgba(255, 84, 0, 0.55);
+        }
+        .drift-btn.active-touch {
+            transform: translateY(4px) scale(0.95);
+            box-shadow: 0 1px 0 #9a1b43;
+            background: linear-gradient(145deg, #fef08a 0%, #fb7185 100%);
+        }
+        .item-btn {
+            background: linear-gradient(145deg, #22d3ee 0%, #06b6d4 55%, #6366f1 100%);
+            border: 3px solid #ecfeff;
+            box-shadow: 0 5px 0 #312e81, 0 0 16px rgba(34, 211, 238, 0.55);
+        }
+        .item-btn.active-touch {
+            transform: translateY(4px) scale(0.95);
+            box-shadow: 0 1px 0 #312e81;
+        }
+        .pop-glass {
+            background: linear-gradient(135deg, rgba(24, 16, 56, 0.72), rgba(15, 23, 62, 0.58));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .title-logo {
+            transform: skewX(-10deg);
+            color: #fefe33;
+            -webkit-text-stroke: 1.5px #4a044e;
+            text-shadow: 0 4px 0 #831843, 0 0 6px rgba(254, 254, 51, 0.35);
+        }
+        @keyframes pulsePop {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 46, 147, 0.75)); }
+            50% { filter: drop-shadow(0 0 18px rgba(255, 190, 11, 0.95)); }
+        }
+        .glow-pulse {
+            animation: pulsePop 1.3s infinite ease-in-out;
+        }
+        .course-card {
+            transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+        }
+        .course-card.active {
+            border-color: #fefe33;
+            box-shadow: 0 0 22px rgba(254, 254, 51, 0.55), 0 8px 20px rgba(0, 0, 0, 0.45);
+            transform: scale(1.02);
+        }
+        #result-screen {
+            transition: opacity 0.75s ease;
+        }
+        #result-card {
+            transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.75s ease;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- ゲーム全体コンテナ -->
+    <div id="game-wrapper" class="relative w-full h-full overflow-hidden">
+        <!-- メイン描画キャンバス -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- レース中HUDオーバーレイ -->
+        <div id="hud" class="hidden absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-5 z-10">
+            <!-- 上段HUD：ポップ＆スタイリッシュ -->
+            <div class="flex items-start justify-between gap-2 w-full">
+                <!-- 左上：順位・ラップ・スピード -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="pop-glass flex items-center gap-2.5 border-2 border-cyan-300/60 rounded-2xl px-3 py-1.5 shadow-[0_0_16px_rgba(34,211,238,0.3)]">
+                        <span id="hud-rank" class="text-lg sm:text-2xl text-amber-300 drop-shadow-[0_2px_0_rgba(190,24,93,0.9)] leading-none">1st</span>
+                        <div class="flex flex-col text-[9px] sm:text-[10px] leading-tight border-l border-white/25 pl-2.5">
+                            <span id="hud-lap" class="text-pink-300">LAP 1/3</span>
+                            <span id="hud-time" class="text-cyan-100">00:00.0</span>
+                        </div>
+                    </div>
+                    <div id="hud-speed-box" class="pop-glass border border-pink-400/50 rounded-xl px-2.5 py-1 text-[9px] sm:text-[10px] text-cyan-300 w-fit tracking-wider transition-all">
+                        <span id="hud-speed">0</span> <span class="text-pink-200 text-[8px]">KM/H</span>
+                    </div>
+                </div>
+
+                <!-- 中央上：アイテムスロット -->
+                <div id="item-slot" class="pop-glass w-12 h-12 sm:w-14 sm:h-14 border-2 border-pink-400/90 rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-[0_0_18px_rgba(244,114,182,0.45)]">
+                    <span id="hud-item-icon" class="opacity-35 text-xs">---</span>
+                </div>
+
+                <!-- 右上：カメラ・サウンド・ミニマップ -->
+                <div class="flex flex-col items-end gap-2">
+                    <div class="flex gap-1.5 pointer-events-auto">
+                        <button id="btn-cam" class="pop-glass border border-cyan-300/60 rounded-xl px-2.5 py-1 text-[9px] text-cyan-100 hover:bg-white/10 active:scale-95 cursor-pointer" title="カメラ切替">
+                            3D
+                        </button>
+                        <button id="btn-sound" class="pop-glass border border-pink-300/60 rounded-xl px-2 py-1 text-[10px] hover:bg-white/10 active:scale-95 cursor-pointer" title="音声切替">
+                            <svg viewBox="0 0 24 24" width="12" height="12" style="display:block"><path fill="#fff" d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15 8.5a5 5 0 0 1 0 7M17.5 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                        </button>
+                    </div>
+                    <canvas id="minimap-canvas" width="96" height="96" class="pop-glass w-16 h-16 sm:w-20 sm:h-20 border-2 border-white/30 rounded-2xl shadow-lg"></canvas>
+                </div>
+            </div>
+
+            <!-- 中央アナウンス（カウントダウン・LAP表示など） -->
+            <div class="flex flex-col items-center justify-center my-auto">
+                <div id="center-banner" class="hidden text-3xl sm:text-5xl text-yellow-300 drop-shadow-[0_4px_0_rgba(190,24,93,0.95)] tracking-wider text-center italic"></div>
+                <div id="sub-banner" class="hidden mt-2 text-xs text-white bg-gradient-to-r from-pink-500/85 to-cyan-500/85 px-4 py-1 rounded-full font-['DotGothic16'] shadow-lg"></div>
+            </div>
+
+            <!-- 下段HUD：右下にアクションボタンのみ -->
+            <div class="flex items-end justify-end w-full pb-1 sm:pb-2">
+                <div class="flex items-center gap-2.5 sm:gap-3 pointer-events-auto">
+                    <button id="btn-item" class="item-btn w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-white cursor-pointer">
+                        <span id="btn-item-emoji" class="text-xl sm:text-2xl leading-none"><svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><path fill="#fde047" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>
+                    </button>
+                    <button id="btn-drift" class="drift-btn w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-white cursor-pointer">
+                        <span class="text-xs sm:text-sm font-bold tracking-wider">DRIFT</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- タイトルオーバーレイ（ポップ＆スタイリッシュ・車体とUIが被らないレイアウト） -->
+        <div id="title-screen" class="absolute inset-0 flex flex-col items-center justify-between px-4 sm:px-6 pt-12 sm:pt-16 pb-6 sm:pb-8 z-20 pointer-events-none">
+            <!-- 上部：ネオンイエローのロゴ（少し下に配置） -->
+            <div class="flex flex-col items-center w-full max-w-md pointer-events-auto mt-2 sm:mt-4">
+                <h1 class="title-logo text-4xl sm:text-6xl tracking-wider">
+                    STACK GT
+                </h1>
+            </div>
+
+            <!-- 中央：車体ショーケース用の完全なクリアスペース -->
+            <div class="flex-1"></div>
+
+            <!-- 下部：マシン選択（形状＆性能表示）＋スタートボタン -->
+            <div class="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-3 pointer-events-auto">
+                <!-- マシン選択＆コンパクト性能パネル -->
+                <div class="pop-glass w-full border-2 border-white/25 rounded-2xl px-3.5 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.45)] flex flex-col gap-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <button data-color="red" class="kart-color-btn w-7 h-7 rounded-full bg-gradient-to-br from-rose-400 to-pink-600 border-2 border-white ring-2 ring-yellow-300 cursor-pointer transition-transform active:scale-90" title="APEX GT"></button>
+                            <button data-color="blue" class="kart-color-btn w-7 h-7 rounded-full bg-gradient-to-br from-cyan-300 to-blue-600 border-2 border-white/40 cursor-pointer transition-transform active:scale-90" title="AERO F1"></button>
+                            <button data-color="green" class="kart-color-btn w-7 h-7 rounded-full bg-gradient-to-br from-lime-300 to-emerald-600 border-2 border-white/40 cursor-pointer transition-transform active:scale-90" title="RALLY-Z"></button>
+                            <button data-color="yellow" class="kart-color-btn w-7 h-7 rounded-full bg-gradient-to-br from-yellow-200 to-amber-500 border-2 border-white/40 cursor-pointer transition-transform active:scale-90" title="HYPER-V"></button>
+                        </div>
+                        <div class="text-right">
+                            <div id="machine-name" class="text-[10px] sm:text-xs text-yellow-300 tracking-wider">APEX GT</div>
+                            <div id="machine-tag" class="text-[8px] text-cyan-300">BALANCED</div>
+                        </div>
+                    </div>
+
+                    <!-- 3項目スペックバー -->
+                    <div class="grid grid-cols-3 gap-2 text-[8px] text-white/80">
+                        <div class="flex flex-col gap-1">
+                            <span>SPD</span>
+                            <div class="h-1.5 bg-white/15 rounded-full overflow-hidden">
+                                <div id="stat-spd" class="h-full bg-gradient-to-r from-pink-500 to-yellow-300 rounded-full transition-all duration-200" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span>ACC</span>
+                            <div class="h-1.5 bg-white/15 rounded-full overflow-hidden">
+                                <div id="stat-acc" class="h-full bg-gradient-to-r from-cyan-400 to-emerald-300 rounded-full transition-all duration-200" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span>HDL</span>
+                            <div class="h-1.5 bg-white/15 rounded-full overflow-hidden">
+                                <div id="stat-hdl" class="h-full bg-gradient-to-r from-violet-400 to-pink-400 rounded-full transition-all duration-200" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-start" class="arcade-btn glow-pulse w-full py-3.5 sm:py-4 rounded-2xl text-base sm:text-lg text-white tracking-widest cursor-pointer">
+                    START
+                </button>
+            </div>
+        </div>
+
+        <!-- コース選択オーバーレイ（サムネイル付き） -->
+        <div id="course-screen" class="hidden absolute inset-0 flex flex-col items-center justify-between px-4 sm:px-6 py-5 sm:py-8 bg-indigo-950/65 backdrop-blur-md z-25">
+            <!-- ヘッダー -->
+            <div class="w-full max-w-md flex items-center justify-between">
+                <button id="btn-course-back" class="pop-glass border border-white/30 rounded-xl px-3 py-2 text-[10px] text-cyan-200 active:scale-95 cursor-pointer">
+                    ← BACK
+                </button>
+                <h2 class="text-sm sm:text-base text-yellow-300 drop-shadow-[0_3px_0_rgba(190,24,93,0.9)] tracking-wider">
+                    SELECT COURSE
+                </h2>
+                <div class="w-14"></div>
+            </div>
+
+            <!-- サムネイル付きコースカード一覧 -->
+            <div class="w-full max-w-md flex flex-col gap-3 my-auto py-3">
+                <button data-course="coast" class="course-card active pop-glass w-full border-2 border-white/25 rounded-2xl p-2.5 flex items-center gap-3.5 text-left cursor-pointer">
+                    <canvas id="thumb-coast" width="144" height="96" class="w-24 h-16 sm:w-28 sm:h-18 rounded-xl border border-white/30 shrink-0"></canvas>
+                    <div class="flex flex-col gap-1 min-w-0">
+                        <span class="text-xs sm:text-sm text-yellow-300 tracking-wider truncate">SUNSET COAST</span>
+                        <span class="text-[9px] text-pink-200 font-['DotGothic16']">高速リゾート海岸サーキット</span>
+                        <span class="text-[8px] text-cyan-300">DIFFICULTY ★☆☆</span>
+                    </div>
+                </button>
+
+                <button data-course="metro" class="course-card pop-glass w-full border-2 border-white/25 rounded-2xl p-2.5 flex items-center gap-3.5 text-left cursor-pointer">
+                    <canvas id="thumb-metro" width="144" height="96" class="w-24 h-16 sm:w-28 sm:h-18 rounded-xl border border-white/30 shrink-0"></canvas>
+                    <div class="flex flex-col gap-1 min-w-0">
+                        <span class="text-xs sm:text-sm text-cyan-300 tracking-wider truncate">NEON METRO</span>
+                        <span class="text-[9px] text-pink-200 font-['DotGothic16']">テクニカル夜景ハイウェイ</span>
+                        <span class="text-[8px] text-pink-300">DIFFICULTY ★★★</span>
+                    </div>
+                </button>
+
+                <button data-course="canyon" class="course-card pop-glass w-full border-2 border-white/25 rounded-2xl p-2.5 flex items-center gap-3.5 text-left cursor-pointer">
+                    <canvas id="thumb-canyon" width="144" height="96" class="w-24 h-16 sm:w-28 sm:h-18 rounded-xl border border-white/30 shrink-0"></canvas>
+                    <div class="flex flex-col gap-1 min-w-0">
+                        <span class="text-xs sm:text-sm text-orange-300 tracking-wider truncate">CANDY CANYON</span>
+                        <span class="text-[9px] text-yellow-100 font-['DotGothic16']">連続S字のサンシャイン渓谷</span>
+                        <span class="text-[8px] text-yellow-300">DIFFICULTY ★★☆</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- レース開始ボタン -->
+            <div class="w-full max-w-xs sm:max-w-sm">
+                <button id="btn-go-race" class="arcade-btn glow-pulse w-full py-3.5 sm:py-4 rounded-2xl text-base sm:text-lg text-white tracking-widest cursor-pointer">
+                    RACE START!
+                </button>
+            </div>
+        </div>
+
+        <!-- リザルトオーバーレイ（ゴール後にさりげなくフェードイン） -->
+        <div id="result-screen" class="hidden opacity-0 absolute inset-0 flex flex-col items-center justify-center p-5 bg-indigo-950/55 backdrop-blur-sm z-30">
+            <div id="result-card" class="translate-y-4 opacity-0 w-full max-w-md bg-gradient-to-b from-indigo-900/90 to-slate-950/90 border-2 border-pink-400/90 rounded-3xl p-5 sm:p-6 shadow-[0_0_32px_rgba(236,72,153,0.45)] text-center">
+                <div id="result-course" class="text-[10px] text-cyan-300 tracking-widest mb-1">SUNSET COAST</div>
+                <h2 id="result-rank" class="text-3xl sm:text-4xl text-yellow-300 drop-shadow-[0_4px_0_rgba(190,24,93,0.95)] mb-2">1st PLACE</h2>
+                <div id="result-time" class="text-xs sm:text-sm text-pink-200 mb-4">TIME: 00:00.0</div>
+
+                <!-- 順位表 -->
+                <div id="result-standings" class="flex flex-col gap-1.5 mb-5 text-left text-xs font-['DotGothic16']"></div>
+
+                <div class="flex flex-col gap-2.5">
+                    <div class="flex gap-2.5">
+                        <button id="btn-retry" class="arcade-btn flex-1 py-3 rounded-xl text-xs sm:text-sm text-white cursor-pointer">
+                            RETRY
+                        </button>
+                        <button id="btn-result-course" class="bg-gradient-to-r from-cyan-500 to-indigo-600 border-2 border-cyan-200 flex-1 py-3 rounded-xl text-xs sm:text-sm text-white shadow-[0_4px_0_#1e1b4b] active:translate-y-1 cursor-pointer">
+                            COURSES
+                        </button>
+                    </div>
+                    <button id="btn-title" class="pop-glass border border-white/30 w-full py-2.5 rounded-xl text-[10px] sm:text-xs text-white/85 active:scale-95 cursor-pointer">
+                        TITLE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (() => {
+        'use strict';
+
+        // ============================================================================
+        // 1. サウンドエンジン（Web Audio APIによるシンセ効果音＆爽快レースBGM）
+        // ============================================================================
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+                this.engineOsc = null;
+                this.engineGain = null;
+                this.bgmTimer = null;
+                this.bgmStep = 0;
+                this.bgmPlaying = false;
+            }
+
+            init() {
+                try {
+                    if (!this.ctx) {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (!AudioCtx) return;
+                        this.ctx = new AudioCtx();
+                    }
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
+                    if (!this.engineOsc && this.ctx) {
+                        this.engineOsc = this.ctx.createOscillator();
+                        this.engineGain = this.ctx.createGain();
+                        this.engineOsc.type = 'sawtooth';
+                        this.engineOsc.frequency.value = 68;
+                        this.engineGain.gain.value = 0;
+
+                        const filter = this.ctx.createBiquadFilter();
+                        filter.type = 'lowpass';
+                        filter.frequency.value = 360;
+
+                        this.engineOsc.connect(filter);
+                        filter.connect(this.engineGain);
+                        this.engineGain.connect(this.ctx.destination);
+                        this.engineOsc.start();
+                    }
+                } catch (e) {}
+            }
+
+            // 爽快感あるアップテンポ・アーケードレースBGM（コースごとに少しピッチを変化）
+            startBgm(pitchMult = 1.0) {
+                this.init();
+                this.stopBgm();
+                this.bgmPlaying = true;
+                this.bgmStep = 0;
+
+                const stepMs = (60 / 148 / 4) * 1000;
+                const melody = [
+                    523.25, 0, 659.25, 0, 783.99, 0, 659.25, 783.99,
+                    880.00, 0, 783.99, 659.25, 587.33, 0, 659.25, 0,
+                    698.46, 0, 880.00, 0, 1046.50, 0, 880.00, 783.99,
+                    659.25, 783.99, 880.00, 987.77, 1046.50, 0, 783.99, 0
+                ];
+                const bass = [
+                    130.81, 130.81, 261.63, 130.81, 130.81, 130.81, 261.63, 130.81,
+                    110.00, 110.00, 220.00, 110.00, 110.00, 110.00, 220.00, 110.00,
+                    174.61, 174.61, 349.23, 174.61, 174.61, 174.61, 349.23, 174.61,
+                    196.00, 196.00, 392.00, 196.00, 196.00, 246.94, 293.66, 392.00
+                ];
+                const arp = [
+                    523.25, 659.25, 783.99, 1046.50,
+                    440.00, 523.25, 659.25, 880.00,
+                    349.23, 440.00, 523.25, 698.46,
+                    392.00, 493.88, 587.33, 783.99
+                ];
+
+                const playStep = () => {
+                    if (!this.bgmPlaying) return;
+                    if (!this.muted && this.ctx && this.ctx.state === 'running') {
+                        const now = this.ctx.currentTime;
+                        const s = this.bgmStep % 32;
+
+                        if (s % 4 === 0) {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(145, now);
+                            osc.frequency.exponentialRampToValueAtTime(38, now + 0.09);
+                            gain.gain.setValueAtTime(0.11, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now);
+                            osc.stop(now + 0.11);
+                        }
+
+                        if (s % 2 === 1) {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'square';
+                            osc.frequency.setValueAtTime(s % 4 === 2 ? 2600 : 5400, now);
+                            gain.gain.setValueAtTime(0.015, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.024);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now);
+                            osc.stop(now + 0.03);
+                        }
+
+                        const bFreq = bass[s] * pitchMult;
+                        if (bFreq > 0) {
+                            const osc = this.ctx.createOscillator();
+                            const filter = this.ctx.createBiquadFilter();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'sawtooth';
+                            osc.frequency.setValueAtTime(bFreq, now);
+                            filter.type = 'lowpass';
+                            filter.frequency.setValueAtTime(680, now);
+                            gain.gain.setValueAtTime(0.044, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                            osc.connect(filter);
+                            filter.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now);
+                            osc.stop(now + 0.095);
+                        }
+
+                        const chordIdx = Math.floor(s / 8);
+                        const aFreq = arp[chordIdx * 4 + (s % 4)] * pitchMult;
+                        if (aFreq) {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(aFreq, now);
+                            gain.gain.setValueAtTime(0.025, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now);
+                            osc.stop(now + 0.09);
+                        }
+
+                        const mFreq = melody[s] * pitchMult;
+                        if (mFreq > 0) {
+                            const osc = this.ctx.createOscillator();
+                            const filter = this.ctx.createBiquadFilter();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'square';
+                            osc.frequency.setValueAtTime(mFreq, now);
+                            filter.type = 'lowpass';
+                            filter.frequency.setValueAtTime(2400, now);
+                            gain.gain.setValueAtTime(0.038, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                            osc.connect(filter);
+                            filter.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now);
+                            osc.stop(now + 0.17);
+                        }
+                    }
+                    this.bgmStep++;
+                };
+
+                playStep();
+                this.bgmTimer = setInterval(playStep, stepMs);
+            }
+
+            stopBgm() {
+                this.bgmPlaying = false;
+                if (this.bgmTimer) {
+                    clearInterval(this.bgmTimer);
+                    this.bgmTimer = null;
+                }
+            }
+
+            updateEngine(speedRatio, isBoosting, isActive) {
+                if (!this.ctx || !this.engineOsc || !this.engineGain) return;
+                const now = this.ctx.currentTime;
+                if (this.muted || !isActive) {
+                    this.engineGain.gain.setTargetAtTime(0, now, 0.05);
+                    return;
+                }
+                const targetFreq = 60 + speedRatio * 150 + (isBoosting ? 65 : 0);
+                this.engineOsc.frequency.setTargetAtTime(targetFreq, now, 0.06);
+                this.engineGain.gain.setTargetAtTime(0.03, now, 0.08);
+            }
+
+            playBeep(freq = 440, duration = 0.12, type = 'square', vol = 0.08) {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(vol, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + duration);
+                } catch (e) {}
+            }
+
+            playBoost() {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(240, now);
+                    osc.frequency.exponentialRampToValueAtTime(840, now + 0.36);
+                    gain.gain.setValueAtTime(0.095, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } catch (e) {}
+            }
+
+            playItemGet() {
+                this.playBeep(523, 0.08, 'square', 0.07);
+                setTimeout(() => this.playBeep(659, 0.08, 'square', 0.07), 70);
+                setTimeout(() => this.playBeep(784, 0.14, 'square', 0.08), 140);
+            }
+
+            playSpin() {
+                if (this.muted || !this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(380, now);
+                    osc.frequency.exponentialRampToValueAtTime(90, now + 0.45);
+                    gain.gain.setValueAtTime(0.11, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } catch (e) {}
+            }
+
+            playLap() {
+                this.playBeep(587, 0.1, 'square', 0.08);
+                setTimeout(() => this.playBeep(880, 0.22, 'square', 0.09), 110);
+            }
+        }
+
+        const sound = new SoundEngine();
+
+        // ============================================================================
+        // 2. マシン性能定義＆4車種専用 SPRITE STACKING モデル
+        // ============================================================================
+
+        function buildSpriteStack(layerStrings, palette) {
+            return layerStrings.map(rows => {
+                const h = rows.length;
+                const w = rows[0].length;
+                const c = document.createElement('canvas');
+                c.width = w;
+                c.height = h;
+                const cctx = c.getContext('2d');
+                for (let y = 0; y < h; y++) {
+                    const row = rows[y];
+                    for (let x = 0; x < w; x++) {
+                        const ch = row[x];
+                        if (ch !== '.' && palette[ch]) {
+                            cctx.fillStyle = palette[ch];
+                            cctx.fillRect(x, y, 1, 1);
+                        }
+                    }
+                }
+                return c;
+            });
+        }
+
+        // マシンごとの性能パラメータとメタデータ
+        const MACHINE_SPECS = {
+            red: {
+                name: 'APEX GT',
+                tag: 'BALANCED GT',
+                maxSpeed: 368,
+                accel: 265,
+                handling: 2.22,
+                offRoadFactor: 0.66,
+                driftBonus: 1.0,
+                stats: { spd: 76, acc: 72, hdl: 74 }
+            },
+            blue: {
+                name: 'AERO F1',
+                tag: 'CORNER MASTER',
+                maxSpeed: 360,
+                accel: 295,
+                handling: 2.62,
+                offRoadFactor: 0.56,
+                driftBonus: 1.18,
+                stats: { spd: 70, acc: 86, hdl: 98 }
+            },
+            green: {
+                name: 'RALLY-Z',
+                tag: 'OFFROAD TURBO',
+                maxSpeed: 352,
+                accel: 325,
+                handling: 2.34,
+                offRoadFactor: 0.90,
+                driftBonus: 1.08,
+                stats: { spd: 64, acc: 98, hdl: 82 }
+            },
+            yellow: {
+                name: 'HYPER-V',
+                tag: 'TOP SPEED PRO',
+                maxSpeed: 396,
+                accel: 230,
+                handling: 1.98,
+                offRoadFactor: 0.60,
+                driftBonus: 1.05,
+                stats: { spd: 98, acc: 58, hdl: 60 }
+            }
+        };
+
+        // --- 車種1 (RED): APEX GT（大型GTウイング付き王道スーパーカー：12層） ---
+        const GT_LAYERS = [
+            ['................','....KKKKKKKK....','..KK........KK..','..KK........KK..','..KK........KK..','..KK........KK..','................','................','................','................','................','................','................','................','................','................','..KK........KK..','..KK........KK..','..KK........KK..','..KK........KK..','...KKKKKKKKKK...','................','................','................'],
+            ['....KKKKKKKK....','...KDDDDDDDDK...','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','...KDDDDDDDDK...','...KDDDDDDDDK...','...KDDDDDDDDK...','...KDDDDDDDDK...','...KDDDDDDDDK...','...KDDDDDDDDK...','...KDDDDDDDDK...','...KDDDDDDDDK...','...KDDDDDDDDK...','...KDDDDDDDDK...','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','...KDDM..MDDK...','....KKM..MKK....','................','................'],
+            ['....PPWWWWPP....','...PPPPPPPPPP...','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..PPPPPPPPPPPP..','..PPDDDDDDDDPP..','..PPDDDDDDDDPP..','..PPDDDDDDDDPP..','..PPDDDDDDDDPP..','..PPDDDDDDDDPP..','..PPDDDDDDDDPP..','..PPDDDDDDDDPP..','..PPDDDDDDDDPP..','..PPPPPPPPPPPP..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','...PRRDDDDDRP...','....KKM..MKK....','................','................'],
+            ['.....PPPPPP.....','...PWWPPPPWWP...','..PPWWPPPPWWPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPKPPPPPPKPP..','..PPKPPPPPPKPP..','..PPKPPPPPPKPP..','..PPKPPPPPPKPP..','..PPKPPPPPPKPP..','..PPKPPPPPPKPP..','..PPKPPPPPPKPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PRRRPPPPRRRP..','...PRRRKKRRRP...','................','................','................'],
+            ['................','....PPPPPPPP....','...PPLLLLLLPP...','..PPPLLLLLLPPP..','..PPPLDDDDLPPP..','..PPPLLLLLLPPP..','..PPPPPPPPPPPP..','..PPGGGGGGGGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGGGGGGGGPP..','..PPPPDDDDPPPP..','..PPPPDDDDPPPP..','..PPPPDDDDPPPP..','..PPPPPPPPPPPP..','...PPRRRRRRPP...','....K......K....','................','................','................'],
+            ['................','................','.....PPPPPP.....','....PPLLLLPP....','...PPLDDDDLPP...','...PPPPPPPPPP...','...PPGGGGGGPP...','...PGGGGGGGGP...','...PGDDDDDDGP...','...PGDDDDDDGP...','...PGDDDDDDGP...','...PGDDDDDDGP...','...PGDDDDDDGP...','...PGGGGGGGGP...','...PPGGGGGGPP...','...PPPDDDDPPP...','...PPPPPPPPPP...','....PPPPPPPP....','....K......K....','....K......K....','................','................','................','................'],
+            ['................','................','................','................','................','.....GGGGGG.....','....GGGGGGGG....','....GGWWWWGG....','....GGDDDDGG....','....GGDDDDGG....','....GGDDDDGG....','....GGDDDDGG....','....GGDDDDGG....','....GGGGGGGG....','.....GGGGGG.....','.....PPDDPP.....','................','................','....K......K....','....K......K....','................','................','................','................'],
+            ['................','................','................','................','................','................','.....GGGGGG.....','....GGPPPPGG....','....GPPPPPPG....','....GPPPPPPG....','....GPPPPPPG....','....GPPPPPPG....','....GGPPPPGG....','.....GGGGGG.....','................','................','................','..K..........K..','..KPPPPPPPPPPK..','..KLLLLLLLLLLK..','..K..........K..','................','................','................'],
+            ['................','................','................','................','................','................','................','.....PPPPPP.....','....PPLLLLPP....','....PPLLLLPP....','....PPLLLLPP....','....PPLLLLPP....','.....PPPPPP.....','................','................','................','................','..K..........K..','..KPPPPPPPPPPK..','..K..........K..','................','................','................','................'],
+            ['................','................','................','................','................','................','................','......PWWP......','.....PPWWPP.....','.....PPWWPP.....','.....PPWWPP.....','.....PPWWPP.....','......PWWP......','................','................','................','................','................','................','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','................','......PWWP......','......PWWP......','......PWWP......','......PWWP......','................','................','................','................','................','................','................','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','................','................','.......WW.......','.......WW.......','................','................','................','................','................','................','................','................','................','................','................','................','................']
+        ];
+
+        // --- 車種2 (BLUE): AERO F1（オープンホイール・フロントウイング＆シャープノーズ・フォーミュラ：11層） ---
+        const F1_LAYERS = [
+            ['..KKKKKKKKKKKK..','.KLLLLLLLLLLLLK.','......KKKK......','.KKK..KKKK..KKK.','.KKK..KKKK..KKK.','.KKK..KKKK..KKK.','......KKKK......','.....KKKKKK.....','....KKKKKKKK....','....KKKKKKKK....','....KKKKKKKK....','....KKKKKKKK....','....KKKKKKKK....','....KKKKKKKK....','.....KKKKKK.....','.....KKKKKK.....','KKK..KKKKKK..KKK','KKK..KKKKKK..KKK','KKK..KKKKKK..KKK','KKK..KKKKKK..KKK','.....KKKKKK.....','................','................','................'],
+            ['.KPPPPPPPPPPPPK.','.KWWWWPPPPWWWWK.','......PPPP......','.KKK..PPPP..KKK.','.KKKDDPPPPDDKKK.','.KKK..PPPP..KKK.','.....PPPPPP.....','....PPDDDDPP....','...PPDDDDDDPP...','...PPDDDDDDPP...','...PPDDDDDDPP...','...PPDDDDDDPP...','...PPDDDDDDPP...','...PPDDDDDDPP...','....PPDDDDPP....','....PPDDDDPP....','KKK.PPDDDDPP.KKK','KKKDDPDDDDPDDKKK','KKK.PPDDDDPP.KKK','KKK..PDDDDP..KKK','.....KDDDDK.....','......KMMK......','................','................'],
+            ['..PPPPPPPPPPPP..','......PPPP......','......PPPP......','.TKK..PPPP..KKT.','.TKK..PPPP..KKT.','.TKK..PPPP..KKT.','.....PPPPPP.....','....PPPPPPPP....','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','....PPPPPPPP....','....PPPPPPPP....','TKK..PPPPPP..KKT','TKK..PPPPPP..KKT','TKK..PPPPPP..KKT','TKK..PRRRRP..KKT','......KRRK......','................','................','................'],
+            ['................','......PWWP......','......PWWP......','.KKK..PWWP..KKK.','.KKK..PWWP..KKK.','......PPPP......','.....PPPPPP.....','....PPDDDDPP....','...PPPKKKKPPP...','...PPKDDDDKPP...','...PPKDDDDKPP...','...PPKDDDDKPP...','...PPKDDDDKPP...','...PPPKKKKPPP...','....PPPPPPPP....','....PPPPPPPP....','KKK..PPPPPP..KKK','KKK..PPPPPP..KKK','KKK..PPPPPP..KKK','.....PPRRPP.....','......K..K......','................','................','................'],
+            ['................','................','......PPPP......','......PPPP......','......PPPP......','......PPPP......','.....PPWWPP.....','.....PKKKKP.....','....PPKDDKPP....','....PPKWWKPP....','....PPKWWKPP....','....PPKDDKPP....','....PPKKKKPP....','.....PPPPPP.....','.....PPPPPP.....','.....PPWWPP.....','......PPPP......','......PPPP......','......K..K......','......K..K......','................','................','................','................'],
+            ['................','................','................','................','.......PP.......','......PPPP......','......PWWP......','......KDDK......','.....PKGGKP.....','.....PKWWKP.....','.....PKWWKP.....','.....PKGGKP.....','.....PPKKPP.....','.....PPKKPP.....','......PPPP......','......PPPP......','......PPPP......','......K..K......','......K..K......','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','.......KK.......','......KGGK......','.....KGWWGK.....','.....KGWWGK.....','......KGGK......','......PPPP......','......PKKP......','......PPPP......','.......PP.......','.......PP.......','..K..........K..','..KPPPPPPPPPPK..','..KLLLLLLLLLLK..','..K..........K..','................','................','................'],
+            ['................','................','................','................','................','................','................','................','.......WW.......','......WWWW......','......WWWW......','.......WW.......','......PWWP......','......PWWP......','.......PP.......','................','................','..K..........K..','..KWWWWWWWWWWK..','..KPPPPPPPPPPK..','..K..........K..','................','................','................'],
+            ['................','................','................','................','................','................','................','................','................','.......WW.......','.......WW.......','................','......PPPP......','......PPPP......','................','................','................','..K..........K..','..KPPPPPPPPPPK..','..K..........K..','................','................','................','................'],
+            ['................','................','................','................','................','................','................','................','................','................','................','................','.......PP.......','.......PP.......','................','................','................','................','................','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','................','................','................','................','................','.......WW.......','................','................','................','................','................','................','................','................','................','................','................']
+        ];
+
+        // --- 車種3 (GREEN): RALLY-Z（ワイドフェンダー・4連フォグランプ・背高ハッチバック＆ルーフダクト：13層） ---
+        const RALLY_LAYERS = [
+            ['................','...KKKKKKKKKK...','.KKK........KKK.','.KKK........KKK.','.KKK........KKK.','.KKK........KKK.','................','................','................','................','................','................','................','................','................','................','.KKK........KKK.','.KKK........KKK.','.KKK........KKK.','.KKK........KKK.','...KKKKKKKKKK...','................','................','................'],
+            ['...KKKKKKKKKK...','..KDDDDDDDDDDK..','.KKKDDDDDDDDKKK.','.KKKDDDDDDDDKKK.','.KKKDDDDDDDDKKK.','.KKKDDDDDDDDKKK.','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','..KDDDDDDDDDDK..','.KKKDDDDDDDDKKK.','.KKKDDDDDDDDKKK.','.KKKDDDDDDDDKKK.','.KKKDDDDDDDDKKK.','..KDDM....MDDK..','...KKM....MKK...','................','................'],
+            ['..KWWKWWWWKWWK..','..PPPPPPPPPPPP..','.TKKPPPPPPPPKKT.','.TKKPPPPPPPPKKT.','.TKKPPPPPPPPKKT.','.TKKPPPPPPPPKKT.','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','.TKKPPPPPPPPKKT.','.TKKPPPPPPPPKKT.','.TKKPPPPPPPPKKT.','.TKKPPPPPPPPKKT.','..PRRRDDDDDRRP..','...KK......KK...','................','................'],
+            ['..WWPPWWWWPPWW..','..PPPPPPPPPPPP..','.PPPPPPPPPPPPPP.','.PPPPPPPPPPPPPP.','.PPPPPPPPPPPPPP.','.PPPPPPPPPPPPPP.','..PPPPPPPPPPPP..','..PPWWWWWWWWPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPWWWWWWWWPP..','..PPPPPPPPPPPP..','.PPPPPPPPPPPPPP.','.PPPPPPPPPPPPPP.','.PPPPPPPPPPPPPP.','.PRRRPPPPPPRRRP.','..PRRRKKKKRRRP..','................','................','................'],
+            ['................','..PPPPPPPPPPPP..','..PPLLLLLLLLPP..','..PPLDDDDDDLPP..','..PPLLLLLLLLPP..','..PPPPPPPPPPPP..','..PPGGGGGGGGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGDDDDDDGPP..','..PPGGGGGGGGPP..','..PPPPPPPPPPPP..','..PPRRRRRRRRPP..','..PPPPPPPPPPPP..','................','................','................','................'],
+            ['................','...PPPPPPPPPP...','...PPLLLLLLPP...','...PPLDDDDLPP...','...PPPPPPPPPP...','...PGGGGGGGGP...','...GGGGGGGGGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGGGGGGGGG...','...PPPPPPPPPP...','...PPPPPPPPPP...','................','................','................','................','................'],
+            ['................','................','................','................','................','....GGGGGGGG....','...GGWWWWWWGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGDDDDDDGG...','...GGGGGGGGGG...','...PPPPPPPPPP...','...LLLLLLLLLL...','................','................','................','................','................'],
+            ['................','................','................','................','................','................','....GGGGGGGG....','...GGPPPPPPGG...','...GPPPPPPPPG...','...GPPPPPPPPG...','...GPPPPPPPPG...','...GPPPPPPPPG...','...GPPPPPPPPG...','...GPPPPPPPPG...','...GPPPPPPPPG...','...GGPPPPPPGG...','...GGGGGGGGGG...','..KPPPPPPPPPPK..','..KLLLLLLLLLLK..','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','....PPPPPPPP....','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPLLLLLLPP...','...PPPPPPPPPP...','..KPPPPPPPPPPK..','..K..........K..','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','....PPPPPPPP....','....PPLLLLPP....','....PPWWWWPP....','....PPWWWWPP....','....PPLLLLPP....','....PPLLLLPP....','....PPLLLLPP....','....PPLLLLPP....','....PPPPPPPP....','....PPPPPPPP....','................','................','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','.....PPPPPP.....','.....PKKKKP.....','.....PKDDKP.....','.....PKDDKP.....','.....PPPPPP.....','.....PPPPPP.....','.....PPPPPP.....','.....PPPPPP.....','.....PPPPPP.....','................','................','................','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','................','......KKKK......','......KWWK......','......KWWK......','......KKKK......','................','................','................','................','................','................','................','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','................','................','.......WW.......','.......WW.......','................','................','................','................','................','................','................','................','................','................','................','................','................']
+        ];
+
+        // --- 車種4 (YELLOW): HYPER-V（鋭角ウェッジ・ロングテール・シャークフィン付きハイパーカー：11層） ---
+        const HYPER_LAYERS = [
+            ['......KKKK......','.....KKKKKK.....','..KK.KKKKKK.KK..','..KK........KK..','..KK........KK..','..KK........KK..','................','................','................','................','................','................','................','................','................','................','..KK........KK..','..KK........KK..','..KK........KK..','..KK........KK..','..KKKKKKKKKKKK..','....KKKKKKKK....','................','................'],
+            ['......KKKK......','....KKDDDDKK....','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','...KDDDDDDDDK...','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDDDDDDDKK..','..KKDDM..MDDKK..','...KKKM..MKKK...','....KK....KK....','................'],
+            ['......WWWW......','....PPWWWWPP....','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..PPPPPPPPPPPP..','.PPPDDDDDDDDPPP.','.PPPDDDDDDDDPPP.','.PPPDDDDDDDDPPP.','.PPPDDDDDDDDPPP.','.PPPDDDDDDDDPPP.','.PPPDDDDDDDDPPP.','.PPPDDDDDDDDPPP.','.PPPDDDDDDDDPPP.','..PPPPPPPPPPPP..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..TKPPPPPPPPKT..','..PRRRDDDDDRRP..','...PPRRKKRRPP...','....KKM..MKK....','................'],
+            ['.......PP.......','.....PWWWWP.....','...PPWWPPWWPP...','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','.PPPKKPPPPKKPPP.','.PPPKKPPPPKKPPP.','.PPPKKPPPPKKPPP.','.PPPKKPPPPKKPPP.','.PPPKKPPPPKKPPP.','.PPPKKPPPPKKPPP.','.PPPKKPPPPKKPPP.','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PPPPPPPPPPPP..','..PRRRRKKRRRRP..','...PRRRKKRRRP...','....PPKKKKPP....','................','................'],
+            ['................','......PPPP......','....PPLLLLPP....','...PPLLLLLLPP...','..PPPLLLLLLPPP..','..PPPPGGGGPPPP..','..PPPGGGGGGPPP..','..PPGGDDDDGGPP..','..PPGGDDDDGGPP..','..PPGGDDDDGGPP..','..PPGGDDDDGGPP..','..PPGGDDDDGGPP..','..PPPGGGGGGPPP..','..PPPPDDDDPPPP..','..PPPPDDDDPPPP..','..PPPPDDDDPPPP..','..PPPPDDDDPPPP..','..PPPPDDDDPPPP..','..PPPPPPPPPPPP..','...PPRRRRRRPP...','....PPPPPPPP....','................','................','................'],
+            ['................','................','.....PPPPPP.....','....PPLLLLPP....','....PPGGGGPP....','...PPGGGGGGPP...','...PGGWWWWGGP...','...PGGDDDDGGP...','...PGGDDDDGGP...','...PGGDDDDGGP...','...PGGDDDDGGP...','...PPGGGGGGPP...','....PPDDDDPP....','....PPDDDDPP....','....PPDDDDPP....','....PPDDDDPP....','....PPDDDDPP....','....PPPPPPPP....','....PPPPPPPP....','.....PPPPPP.....','................','................','................','................'],
+            ['................','................','................','................','.....GGGGGG.....','....GGGGGGGG....','....GGWWWWGG....','....GGDDDDGG....','....GGDDDDGG....','....GGDDDDGG....','....GGGGGGGG....','.....PPWWPP.....','......PWWP......','......PWWP......','......PWWP......','......PWWP......','......PWWP......','......PWWP......','...K..PWWP..K...','...KPPPPPPPPK...','...KLLLLLLLLK...','................','................','................'],
+            ['................','................','................','................','................','.....GGGGGG.....','....GGPPPPGG....','....GPPPPPPG....','....GPPPPPPG....','....GGPPPPGG....','.....PPPPPP.....','......PPPP......','.......PP.......','.......PP.......','.......PP.......','.......PP.......','.......PP.......','.......PP.......','...K...PP...K...','...KPPPPPPPPK...','...K........K...','................','................','................'],
+            ['................','................','................','................','................','................','.....PWWWWP.....','.....PPWWPP.....','.....PPWWPP.....','.....PWWWWP.....','......PPPP......','.......PP.......','.......WW.......','.......WW.......','.......WW.......','.......WW.......','.......PP.......','................','................','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','......WWWW......','......WWWW......','................','.......PP.......','.......PP.......','.......PP.......','.......PP.......','.......PP.......','................','................','................','................','................','................','................','................','................'],
+            ['................','................','................','................','................','................','................','.......WW.......','.......WW.......','................','................','................','................','................','................','................','................','................','................','................','................','................','................','................']
+        ];
+
+        // ビビッド＆ポップなカラーパレット
+        const KART_PALETTES = {
+            red: {
+                P: '#ff1e6b', L: '#ff7eb3', D: '#1b1438', K: '#0b0718',
+                T: '#cbd5e1', W: '#ffffff', M: '#38bdf8', R: '#ffbe0b',
+                G: '#22d3ee'
+            },
+            blue: {
+                P: '#00a8ff', L: '#70e4ff', D: '#101b3d', K: '#090d1f',
+                T: '#e2e8f0', W: '#ffffff', M: '#f472b6', R: '#ff2e93',
+                G: '#fef08a'
+            },
+            green: {
+                P: '#10b981', L: '#a3e635', D: '#132a24', K: '#0a1614',
+                T: '#fde047', W: '#ffffff', M: '#fb923c', R: '#ff2e63',
+                G: '#67e8f9'
+            },
+            yellow: {
+                P: '#ff9f0a', L: '#fde047', D: '#24172b', K: '#110a17',
+                T: '#f8fafc', W: '#ffffff', M: '#22d3ee', R: '#ff0055',
+                G: '#38bdf8'
+            },
+            overdrive: {
+                P: '#38bdf8', L: '#ffffff', D: '#ec4899', K: '#fde047',
+                T: '#ffffff', W: '#ffffff', M: '#a3e635', R: '#ff2e93',
+                G: '#fef08a'
+            }
+        };
+
+        // 積層プロップ1：トロピカルヤシの木（SUNSET COAST用）
+        function createPalmStack() {
+            const p = { B: '#c2410c', L: '#fb923c', G: '#10b981', Y: '#a3e635', C: '#78350f' };
+            const trunk = [
+                '..........','..........','..........','....BB....','...BLLB...','...BLLB...','....BB....','..........','..........','..........'
+            ];
+            const trunkShift = [
+                '..........','..........','..........','.....BB...','....BLLB..','....BLLB..','.....BB...','..........','..........','..........'
+            ];
+            const crown1 = [
+                '....GG....','....GY....','..GGGGGG..','GGYCCCCYGG','GGYCCCCYGG','..GGGGGG..','....YG....','....GG....','..........','..........'
+            ];
+            const crown2 = [
+                '...G..G...','.GG.YY.GG.','GYYGGGGYYG','.GGGGGGGG.','.GGGGGGGG.','GYYGGGGYYG','.GG.YY.GG.','...G..G...','..........','..........'
+            ];
+            const top = [
+                '..........','..........','....YY....','...YYYY...','..YYGGYY..','...YYYY...','....YY....','..........','..........','..........'
+            ];
+            return buildSpriteStack([trunk, trunk, trunk, trunkShift, trunkShift, trunkShift, trunkShift, crown1, crown2, crown2, top], p);
+        }
+
+        // 積層プロップ2：ネオンタワー（NEON METRO用）
+        function createNeonTowerStack() {
+            const p = { D: '#1e1b4b', B: '#312e81', C: '#22d3ee', M: '#f43f5e', Y: '#fde047', W: '#ffffff' };
+            const base = [
+                'CCCCCCCC','CDDDDDDC','CDMBBMDC','CDBWWBDC','CDBWWBDC','CDMBBMDC','CDDDDDDC','CCCCCCCC'
+            ];
+            const body1 = [
+                '........','.CDDDDC.','.DBBBBD.','.DBCCBD.','.DBCCBD.','.DBBBBD.','.CDDDDC.','........'
+            ];
+            const body2 = [
+                '........','.MDDDDM.','.DBBBBD.','.DBMMBD.','.DBMMBD.','.DBBBBD.','.MDDDDM.','........'
+            ];
+            const cap = [
+                '........','..YYYY..','.YWWWWY.','.YWCCWY.','.YWCCWY.','.YWWWWY.','..YYYY..','........'
+            ];
+            return buildSpriteStack([base, body1, body1, body2, body1, body1, body2, body1, body1, body2, cap, cap], p);
+        }
+
+        // 積層プロップ3：ポップサボテン（CANDY CANYON用）
+        function createCactusStack() {
+            const p = { D: '#047857', G: '#10b981', L: '#a3e635', F: '#ff2e93', Y: '#fde047' };
+            const stem = [
+                '..........','..........','..........','...DDDD...','...DGGL...','...DGGL...','...DDDD...','..........','..........','..........'
+            ];
+            const arms = [
+                '..........','..DD......','.DGGL.....','.DGDDDD...','..DDGGLDD.','...DGGLGGL','...DDDDGGL','......DD..','..........','..........'
+            ];
+            const armTips = [
+                '..........','..DD......','.DGGL.....','.DGGD.....','...DGGLDD.','...DGGLGGL','...DDDDGGL','......DD..','..........','..........'
+            ];
+            const flower = [
+                '..........','..........','..........','....FF....','...FYYF...','...FYYF...','....FF....','..........','..........','..........'
+            ];
+            return buildSpriteStack([stem, stem, stem, arms, arms, armTips, armTips, stem, stem, flower, flower], p);
+        }
+
+        // 積層プロップ4：スタートゲート柱（全コース共通・ポップカラー）
+        function createGatePillarStack() {
+            const p = { W: '#ffffff', R: '#ff2e93', C: '#22d3ee', D: '#1e1b4b', Y: '#fde047' };
+            const base = [
+                'DDDDDDDD','DWWWWWWD','DWDDDDWD','DWDDDDWD','DWDDDDWD','DWDDDDWD','DWWWWWWD','DDDDDDDD'
+            ];
+            const stripeC = ['........','.CCCCCC.','.CCCCCC.','.CCCCCC.','.CCCCCC.','.CCCCCC.','.CCCCCC.','........'];
+            const stripeR = ['........','.RRRRRR.','.RRRRRR.','.RRRRRR.','.RRRRRR.','.RRRRRR.','.RRRRRR.','........'];
+            const cap = [
+                'YYYYYYYY','YWWWWWWY','YWYYYYWY','YWYYYYWY','YWYYYYWY','YWYYYYWY','YWWWWWWY','YYYYYYYY'
+            ];
+            return buildSpriteStack([base, stripeC, stripeR, stripeC, stripeR, stripeC, stripeR, stripeC, stripeR, stripeC, cap, cap], p);
+        }
+
+        // 積層オブジェクト：サプライポッド（サイバー8層キューブ）
+        function createSupplyPodStack() {
+            const p = { B: '#1e1b4b', C: '#22d3ee', W: '#ffffff', M: '#ff2e93', Y: '#fde047' };
+            const edge = [
+                'CCCCCCCC','CBBBBBBC','CBMYYMBC','CBYWWYBC','CBYWWYBC','CBMYYMBC','CBBBBBBC','CCCCCCCC'
+            ];
+            const mid = [
+                'CBBBBBBC','BMMMMMMB','BMWWWWMB','BMWCWWMB','BMWCWWMB','BMWWWWMB','BMMMMMMB','CBBBBBBC'
+            ];
+            return buildSpriteStack([edge, mid, mid, mid, mid, mid, mid, edge], p);
+        }
+
+        // 積層オブジェクト：オイルスリック
+        function createOilStack() {
+            const p = { K: '#090d16', D: '#312e81', P: '#a855f7', Y: '#fde047', R: '#ff2e63' };
+            const puddle0 = ['..KKKK..','.KKKKKK.','KKKPPKKK','KKDDDDKK','KKDDDDKK','KKKPPKKK','.KKKKKK.','..KKKK..'];
+            const puddle1 = ['........','..KKKK..','.KKDDKK.','.KDDDDK.','.KDDDDK.','.KKDDKK.','..KKKK..','........'];
+            const can = ['........','........','..RRRR..','..RYYR..','..RYYR..','..RRRR..','........','........'];
+            return buildSpriteStack([puddle0, puddle1, can, can, can], p);
+        }
+
+        // 積層オブジェクト：EMPミサイル
+        function createMissileStack() {
+            const p = { W: '#ffffff', C: '#22d3ee', R: '#ff2e93', D: '#312e81', Y: '#fde047' };
+            const m0 = ['...RR...','..RWW...','..WWWW..','.CWWWWC.','.CWWWWC.','..DDDD..','.CDDDDC.','..Y..Y..'];
+            const m1 = ['...RR...','..RRRR..','..WWWW..','..WCCW..','..WCCW..','..WWWW..','..DDDD..','...YY...'];
+            const m2 = ['........','...RR...','...WW...','...CC...','...CC...','...WW...','........','........'];
+            return buildSpriteStack([m0, m1, m1, m1, m2, m2], p);
+        }
+
+        // 4車種それぞれの専用モデル＆オーバードライブ版を事前生成
+        const CAR_LAYER_MAP = {
+            red: GT_LAYERS,
+            blue: F1_LAYERS,
+            green: RALLY_LAYERS,
+            yellow: HYPER_LAYERS
+        };
+
+        const SPRITE_STACKS = {
+            karts: {
+                red: buildSpriteStack(GT_LAYERS, KART_PALETTES.red),
+                blue: buildSpriteStack(F1_LAYERS, KART_PALETTES.blue),
+                green: buildSpriteStack(RALLY_LAYERS, KART_PALETTES.green),
+                yellow: buildSpriteStack(HYPER_LAYERS, KART_PALETTES.yellow)
+            },
+            kartsOverdrive: {
+                red: buildSpriteStack(GT_LAYERS, KART_PALETTES.overdrive),
+                blue: buildSpriteStack(F1_LAYERS, KART_PALETTES.overdrive),
+                green: buildSpriteStack(RALLY_LAYERS, KART_PALETTES.overdrive),
+                yellow: buildSpriteStack(HYPER_LAYERS, KART_PALETTES.overdrive)
+            },
+            props: {
+                palm: createPalmStack(),
+                tower: createNeonTowerStack(),
+                cactus: createCactusStack(),
+                pillar: createGatePillarStack()
+            },
+            itemBox: createSupplyPodStack(),
+            oil: createOilStack(),
+            missile: createMissileStack()
+        };
+
+        function drawSpriteStack(ctx, stack, screenX, screenY, angle, scale = 2.6, layerSpacing = 1.6, liftZ = 0, squashY = 1.0) {
+            const first = stack[0];
+            const drawW = first.width * scale;
+            const drawH = first.height * scale;
+
+            ctx.save();
+            ctx.translate(screenX, screenY);
+            ctx.fillStyle = 'rgba(10, 6, 30, 0.38)';
+            ctx.beginPath();
+            ctx.ellipse(0, 2, drawW * 0.44, drawH * 0.36 * squashY, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            for (let i = 0; i < stack.length; i++) {
+                const yOffset = screenY - liftZ - i * layerSpacing;
+                ctx.save();
+                ctx.translate(screenX, yOffset);
+                if (squashY !== 1.0) {
+                    ctx.scale(1, squashY);
+                }
+                ctx.rotate(angle);
+                ctx.drawImage(stack[i], -drawW / 2, -drawH / 2, drawW, drawH);
+                ctx.restore();
+            }
+        }
+
+        // ============================================================================
+        // 3. 3つの個性的なコースデータ＆サーキットビルダー
+        // ============================================================================
+        const WORLD_SIZE = 2048;
+        const TOTAL_LAPS = 3;
+
+        const COURSES = {
+            coast: {
+                id: 'coast',
+                name: 'SUNSET COAST',
+                roadHalfWidth: 70,
+                bgmPitch: 1.0,
+                propType: 'palm',
+                propSeed: 42195,
+                // ポップなサンセットビーチ配色
+                skyStops: ['#3b0764', '#db2777', '#fb7185', '#fde047'],
+                sunColor: '#fef08a',
+                mountainColor: '#7e22ce',
+                cityColor: '#4c1d95',
+                fogColor: 'rgba(253, 224, 71, 0.48)',
+                groundBase: '#10b981',
+                groundAlt: '#059669',
+                runoffColor: '#fcd34d',
+                curbA: '#ffffff',
+                curbB: '#ff2e93',
+                roadOuter: '#334155',
+                roadInner: '#1e293b',
+                centerLine: 'rgba(255, 255, 255, 0.65)',
+                outerColor32A: 0xffd4b606, // ABGR (シアンターコイズの海)
+                outerColor32B: 0xffc0a004,
+                controlPoints: [
+                    { x: 400,  y: 1380 },
+                    { x: 400,  y: 760  },
+                    { x: 540,  y: 380  },
+                    { x: 980,  y: 320  },
+                    { x: 1480, y: 400  },
+                    { x: 1680, y: 740  },
+                    { x: 1520, y: 1050 },
+                    { x: 1120, y: 1010 },
+                    { x: 980,  y: 1290 },
+                    { x: 1390, y: 1520 },
+                    { x: 1120, y: 1740 },
+                    { x: 640,  y: 1720 }
+                ]
+            },
+            metro: {
+                id: 'metro',
+                name: 'NEON METRO',
+                roadHalfWidth: 64,
+                bgmPitch: 1.06,
+                propType: 'tower',
+                propSeed: 88211,
+                // スタイリッシュ・サイバーポップナイト
+                skyStops: ['#09041c', '#2e1065', '#be185d', '#22d3ee'],
+                sunColor: '#ff2e93',
+                mountainColor: '#3b0764',
+                cityColor: '#130b2e',
+                fogColor: 'rgba(34, 211, 238, 0.42)',
+                groundBase: '#1e1b4b',
+                groundAlt: '#26215c',
+                runoffColor: '#4c1d95',
+                curbA: '#22d3ee',
+                curbB: '#ff2e93',
+                roadOuter: '#17153b',
+                roadInner: '#0f0e29',
+                centerLine: 'rgba(34, 211, 238, 0.78)',
+                outerColor32A: 0xff3b1218,
+                outerColor32B: 0xff4c1824,
+                // テクニカルな8の字風＆高速ストレート
+                controlPoints: [
+                    { x: 340,  y: 1520 },
+                    { x: 340,  y: 520  },
+                    { x: 680,  y: 300  },
+                    { x: 1040, y: 520  },
+                    { x: 1380, y: 310  },
+                    { x: 1720, y: 520  },
+                    { x: 1700, y: 1120 },
+                    { x: 1340, y: 1260 },
+                    { x: 1380, y: 1620 },
+                    { x: 960,  y: 1740 },
+                    { x: 680,  y: 1460 },
+                    { x: 520,  y: 1700 }
+                ]
+            },
+            canyon: {
+                id: 'canyon',
+                name: 'CANDY CANYON',
+                roadHalfWidth: 72,
+                bgmPitch: 0.94,
+                propType: 'cactus',
+                propSeed: 55391,
+                // ビビッド＆ポップなサンシャイン渓谷
+                skyStops: ['#0284c7', '#38bdf8', '#fde047', '#fb923c'],
+                sunColor: '#ffffff',
+                mountainColor: '#ea580c',
+                cityColor: '#9a3412',
+                fogColor: 'rgba(251, 146, 60, 0.45)',
+                groundBase: '#f97316',
+                groundAlt: '#ea580c',
+                runoffColor: '#fde047',
+                curbA: '#ffffff',
+                curbB: '#06b6d4',
+                roadOuter: '#475569',
+                roadInner: '#334155',
+                centerLine: 'rgba(253, 224, 71, 0.8)',
+                outerColor32A: 0xff1658c2,
+                outerColor32B: 0xff1c68d8,
+                // ダイナミックな連続S字＆ビッグバンク
+                controlPoints: [
+                    { x: 460,  y: 1620 },
+                    { x: 340,  y: 1120 },
+                    { x: 680,  y: 880  },
+                    { x: 380,  y: 480  },
+                    { x: 860,  y: 300  },
+                    { x: 1540, y: 360  },
+                    { x: 1720, y: 840  },
+                    { x: 1320, y: 1140 },
+                    { x: 1680, y: 1480 },
+                    { x: 1320, y: 1760 },
+                    { x: 860,  y: 1540 }
+                ]
+            }
+        };
+
+        let selectedCourseId = 'coast';
+        let currentCourse = COURSES.coast;
+        let ROAD_HALF_WIDTH = currentCourse.roadHalfWidth;
+        let WAYPOINTS = [];
+        let START_POS = { x: 0, y: 0 };
+        let START_ANGLE = 0;
+        let BOOST_PADS = [];
+        let STATIC_PROPS = [];
+
+        function buildTrackWaypoints(points, samplesPerSegment = 24) {
+            const result = [];
+            const n = points.length;
+            for (let i = 0; i < n; i++) {
+                const p0 = points[(i - 1 + n) % n];
+                const p1 = points[i];
+                const p2 = points[(i + 1) % n];
+                const p3 = points[(i + 2) % n];
+                for (let j = 0; j < samplesPerSegment; j++) {
+                    const t = j / samplesPerSegment;
+                    const t2 = t * t;
+                    const t3 = t2 * t;
+                    const x = 0.5 * (
+                        (2 * p1.x) +
+                        (-p0.x + p2.x) * t +
+                        (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+                        (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3
+                    );
+                    const y = 0.5 * (
+                        (2 * p1.y) +
+                        (-p0.y + p2.y) * t +
+                        (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+                        (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3
+                    );
+                    result.push({ x, y });
+                }
+            }
+            return result;
+        }
+
+        function findNearestWaypoint(x, y) {
+            let bestIdx = 0;
+            let bestDistSq = Infinity;
+            for (let i = 0; i < WAYPOINTS.length; i++) {
+                const dx = x - WAYPOINTS[i].x;
+                const dy = y - WAYPOINTS[i].y;
+                const d2 = dx * dx + dy * dy;
+                if (d2 < bestDistSq) {
+                    bestDistSq = d2;
+                    bestIdx = i;
+                }
+            }
+            return { index: bestIdx, dist: Math.sqrt(bestDistSq) };
+        }
+
+        const trackCanvas = document.createElement('canvas');
+        trackCanvas.width = WORLD_SIZE;
+        trackCanvas.height = WORLD_SIZE;
+        let trackPixels32 = null;
+
+        const groundCanvas = document.createElement('canvas');
+        groundCanvas.width = 240;
+        groundCanvas.height = 160;
+        const groundCtx = groundCanvas.getContext('2d');
+        let groundImgData = groundCtx.createImageData(groundCanvas.width, groundCanvas.height);
+        let groundPixels32 = new Uint32Array(groundImgData.data.buffer);
+
+        /**
+         * 選択コースのウェイポイント・プロップ・テクスチャをすべて構築
+         */
+        function loadCourse(courseId) {
+            selectedCourseId = courseId;
+            currentCourse = COURSES[courseId] || COURSES.coast;
+            ROAD_HALF_WIDTH = currentCourse.roadHalfWidth;
+
+            WAYPOINTS = buildTrackWaypoints(currentCourse.controlPoints, 22);
+            START_POS = WAYPOINTS[0];
+            const startNext = WAYPOINTS[1];
+            START_ANGLE = Math.atan2(startNext.y - START_POS.y, startNext.x - START_POS.x) + Math.PI / 2;
+
+            // ダッシュパネル配置（コースごとに4箇所配置して爽快感アップ！）
+            BOOST_PADS = [0.18, 0.42, 0.66, 0.86].map(r => {
+                const idx = Math.floor(WAYPOINTS.length * r);
+                const p = WAYPOINTS[idx];
+                const next = WAYPOINTS[(idx + 1) % WAYPOINTS.length];
+                const angle = Math.atan2(next.y - p.y, next.x - p.x) + Math.PI / 2;
+                return { x: p.x, y: p.y, angle };
+            });
+
+            // 静的オブジェクト生成
+            STATIC_PROPS = [];
+            const nx = Math.cos(START_ANGLE);
+            const ny = Math.sin(START_ANGLE);
+            STATIC_PROPS.push({ type: 'pillar', x: START_POS.x - nx * (ROAD_HALF_WIDTH + 22), y: START_POS.y - ny * (ROAD_HALF_WIDTH + 22), angle: START_ANGLE });
+            STATIC_PROPS.push({ type: 'pillar', x: START_POS.x + nx * (ROAD_HALF_WIDTH + 22), y: START_POS.y + ny * (ROAD_HALF_WIDTH + 22), angle: START_ANGLE });
+
+            let seed = currentCourse.propSeed;
+            const rand = () => {
+                seed = (seed * 1664525 + 1013904223) % 4294967296;
+                return seed / 4294967296;
+            };
+            for (let i = 0; i < 90; i++) {
+                const tx = 130 + rand() * (WORLD_SIZE - 260);
+                const ty = 130 + rand() * (WORLD_SIZE - 260);
+                const near = findNearestWaypoint(tx, ty);
+                if (near.dist > ROAD_HALF_WIDTH + 66) {
+                    STATIC_PROPS.push({ type: currentCourse.propType, x: tx, y: ty, angle: rand() * Math.PI * 2 });
+                }
+            }
+
+            bakeTrackTexture();
+        }
+
+        function bakeTrackTexture() {
+            const tctx = trackCanvas.getContext('2d');
+            const c = currentCourse;
+
+            // 1. ベース地面
+            tctx.fillStyle = c.groundBase;
+            tctx.fillRect(0, 0, WORLD_SIZE, WORLD_SIZE);
+
+            // 2. 市松模様またはネオングリッド（スピード感を視覚化）
+            const tile = 64;
+            tctx.fillStyle = c.groundAlt;
+            for (let y = 0; y < WORLD_SIZE; y += tile) {
+                for (let x = 0; x < WORLD_SIZE; x += tile) {
+                    if (((x / tile + y / tile) & 1) === 0) {
+                        tctx.fillRect(x, y, tile, tile);
+                    }
+                }
+            }
+            if (c.id === 'metro') {
+                // NEON METROにはサイバーグリッド線を焼き込む
+                tctx.strokeStyle = 'rgba(236, 72, 153, 0.28)';
+                tctx.lineWidth = 3;
+                for (let g = 0; g < WORLD_SIZE; g += 64) {
+                    tctx.beginPath(); tctx.moveTo(g, 0); tctx.lineTo(g, WORLD_SIZE); tctx.stroke();
+                    tctx.beginPath(); tctx.moveTo(0, g); tctx.lineTo(WORLD_SIZE, g); tctx.stroke();
+                }
+            }
+
+            const tracePath = () => {
+                tctx.beginPath();
+                tctx.moveTo(WAYPOINTS[0].x, WAYPOINTS[0].y);
+                for (let i = 1; i < WAYPOINTS.length; i++) {
+                    tctx.lineTo(WAYPOINTS[i].x, WAYPOINTS[i].y);
+                }
+                tctx.closePath();
+            };
+
+            // ランオフエリア
+            tracePath();
+            tctx.strokeStyle = c.runoffColor;
+            tctx.lineWidth = ROAD_HALF_WIDTH * 2 + 44;
+            tctx.lineJoin = 'round';
+            tctx.stroke();
+
+            // 縁石（ポップな2色ストライプ）
+            tracePath();
+            tctx.strokeStyle = c.curbA;
+            tctx.lineWidth = ROAD_HALF_WIDTH * 2 + 18;
+            tctx.stroke();
+
+            tracePath();
+            tctx.strokeStyle = c.curbB;
+            tctx.lineWidth = ROAD_HALF_WIDTH * 2 + 18;
+            tctx.setLineDash([28, 28]);
+            tctx.stroke();
+            tctx.setLineDash([]);
+
+            // アスファルト路面
+            tracePath();
+            tctx.strokeStyle = c.roadOuter;
+            tctx.lineWidth = ROAD_HALF_WIDTH * 2;
+            tctx.stroke();
+
+            tracePath();
+            tctx.strokeStyle = c.roadInner;
+            tctx.lineWidth = ROAD_HALF_WIDTH * 1.45;
+            tctx.stroke();
+
+            // センターライン
+            tracePath();
+            tctx.strokeStyle = c.centerLine;
+            tctx.lineWidth = 6;
+            tctx.setLineDash([36, 36]);
+            tctx.stroke();
+            tctx.setLineDash([]);
+
+            // スタート／フィニッシュライン
+            tctx.save();
+            tctx.translate(START_POS.x, START_POS.y);
+            tctx.rotate(START_ANGLE);
+            const sq = 16;
+            const cols = Math.floor((ROAD_HALF_WIDTH * 2) / sq);
+            for (let r = 0; r < 2; r++) {
+                for (let col = 0; col < cols; col++) {
+                    tctx.fillStyle = (r + col) % 2 === 0 ? '#ffffff' : '#0f172a';
+                    tctx.fillRect(-ROAD_HALF_WIDTH + col * sq, -sq + r * sq, sq, sq);
+                }
+            }
+            tctx.restore();
+
+            // ビビッドなダッシュパネル
+            for (const pad of BOOST_PADS) {
+                tctx.save();
+                tctx.translate(pad.x, pad.y);
+                tctx.rotate(pad.angle);
+                tctx.fillStyle = '#ff2e93';
+                tctx.fillRect(-32, -26, 64, 52);
+                tctx.fillStyle = '#fde047';
+                for (let y = -16; y <= 14; y += 14) {
+                    tctx.beginPath();
+                    tctx.moveTo(0, y - 10);
+                    tctx.lineTo(24, y + 6);
+                    tctx.lineTo(13, y + 6);
+                    tctx.lineTo(0, y - 2);
+                    tctx.lineTo(-13, y + 6);
+                    tctx.lineTo(-24, y + 6);
+                    tctx.closePath();
+                    tctx.fill();
+                }
+                tctx.restore();
+            }
+
+            const imgData = tctx.getImageData(0, 0, WORLD_SIZE, WORLD_SIZE);
+            trackPixels32 = new Uint32Array(imgData.data.buffer);
+        }
+
+        /**
+         * コース選択画面用のポップなサムネイル（空＋山＋トラック全体図）を事前描画
+         */
+        function renderCourseThumbnails() {
+            Object.values(COURSES).forEach(c => {
+                const tc = document.getElementById(`thumb-${c.id}`);
+                if (!tc) return;
+                const tctx = tc.getContext('2d');
+                const tw = tc.width;
+                const th = tc.height;
+
+                // 空グラデーション
+                const skyH = Math.floor(th * 0.42);
+                const skyGrad = tctx.createLinearGradient(0, 0, 0, skyH);
+                skyGrad.addColorStop(0, c.skyStops[0]);
+                skyGrad.addColorStop(0.55, c.skyStops[1]);
+                skyGrad.addColorStop(1, c.skyStops[3]);
+                tctx.fillStyle = skyGrad;
+                tctx.fillRect(0, 0, tw, skyH);
+
+                // 太陽
+                tctx.fillStyle = c.sunColor;
+                tctx.beginPath();
+                tctx.arc(tw * 0.78, skyH * 0.55, 10, 0, Math.PI * 2);
+                tctx.fill();
+
+                // 山シルエット
+                tctx.fillStyle = c.mountainColor;
+                tctx.beginPath();
+                tctx.moveTo(0, skyH);
+                for (let x = 0; x <= tw; x += 12) {
+                    const mh = Math.sin(x * 0.09 + c.propSeed) * 6 + 9;
+                    tctx.lineTo(x, skyH - mh);
+                }
+                tctx.lineTo(tw, skyH);
+                tctx.closePath();
+                tctx.fill();
+
+                // 地面エリア
+                tctx.fillStyle = c.groundBase;
+                tctx.fillRect(0, skyH, tw, th - skyH);
+                tctx.fillStyle = c.groundAlt;
+                for (let y = skyH; y < th; y += 12) {
+                    for (let x = 0; x < tw; x += 12) {
+                        if (((x / 12 + y / 12) & 1) === 0) tctx.fillRect(x, y, 12, 12);
+                    }
+                }
+
+                // コース形状（ミニコースレイアウトを俯瞰配置）
+                const wps = buildTrackWaypoints(c.controlPoints, 10);
+                const padX = 18;
+                const padTop = skyH + 6;
+                const padBottom = 6;
+                const mapW = tw - padX * 2;
+                const mapH = th - padTop - padBottom;
+
+                const traceThumbTrack = () => {
+                    tctx.beginPath();
+                    for (let i = 0; i < wps.length; i++) {
+                        const px = padX + (wps[i].x / WORLD_SIZE) * mapW;
+                        const py = padTop + (wps[i].y / WORLD_SIZE) * mapH;
+                        if (i === 0) tctx.moveTo(px, py);
+                        else tctx.lineTo(px, py);
+                    }
+                    tctx.closePath();
+                };
+
+                traceThumbTrack();
+                tctx.strokeStyle = c.curbB;
+                tctx.lineWidth = 8;
+                tctx.lineJoin = 'round';
+                tctx.stroke();
+
+                traceThumbTrack();
+                tctx.strokeStyle = c.roadOuter;
+                tctx.lineWidth = 5;
+                tctx.stroke();
+
+                traceThumbTrack();
+                tctx.strokeStyle = c.centerLine;
+                tctx.lineWidth = 1.5;
+                tctx.setLineDash([4, 4]);
+                tctx.stroke();
+                tctx.setLineDash([]);
+
+                // スタート地点ドット
+                const sx = padX + (wps[0].x / WORLD_SIZE) * mapW;
+                const sy = padTop + (wps[0].y / WORLD_SIZE) * mapH;
+                tctx.fillStyle = '#fefe33';
+                tctx.beginPath();
+                tctx.arc(sx, sy, 3.2, 0, Math.PI * 2);
+                tctx.fill();
+            });
+        }
+
+        // ============================================================================
+        // 4. ゲーム状態・エンティティ・ダッシュエフェクト管理
+        // ============================================================================
+        const ITEMS = {
+            NITRO:     { id: 'NITRO',     icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><path fill="#fde047" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>', name: 'ニトロブースト' },
+            OIL:       { id: 'OIL',       icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><path fill="#a855f7" d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13z"/></svg>', name: 'オイルスリック' },
+            MISSILE:   { id: 'MISSILE',   icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><path fill="#ff2e93" d="M12 2c3 2 4 6 4 10l2 3v4l-3-1-1 2h-4l-1-2-3 1v-4l2-3c0-4 1-8 4-10z"/></svg>', name: 'EMPミサイル' },
+            OVERDRIVE: { id: 'OVERDRIVE', icon: '<svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block"><path fill="#22d3ee" d="M12 2 4 5v6c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V5z"/></svg>', name: 'オーバードライブ' }
+        };
+        const ITEM_LIST = [ITEMS.NITRO, ITEMS.OIL, ITEMS.MISSILE, ITEMS.OVERDRIVE];
+
+        let gameState = 'TITLE';
+        let selectedColor = 'red';
+        let cameraMode = '3D';
+        let cameraX = 0;
+        let cameraY = 0;
+        let cameraAngle = 0;
+
+        let globalTime = 0;
+        let titleAngle = 0;
+        let countdownTimer = 0;
+        let lastCountdownInt = 4;
+        let raceTime = 0;
+        let goalCameraTimer = 0; // ゴール後の追従カメラ演出用タイマー
+
+        // ダッシュ時エフェクト用の状態変数
+        let boostVisual = 0;     // 0.0〜1.0 スピードライン・FOV強度
+        let boostFlash = 0;      // 瞬間フラッシュ＆衝撃波用
+        let cameraShake = 0;     // マイクロシェイク強度
+        const shockwaves = [];   // ダッシュ発動時のリング衝撃波
+
+        const karts = [];
+        const itemBoxes = [];
+        const hazards = [];
+        const particles = [];
+
+        function initItemBoxes() {
+            itemBoxes.length = 0;
+            const ratios = [0.13, 0.45, 0.75];
+            for (const r of ratios) {
+                const idx = Math.floor(WAYPOINTS.length * r);
+                const wp = WAYPOINTS[idx];
+                const next = WAYPOINTS[(idx + 1) % WAYPOINTS.length];
+                const ang = Math.atan2(next.y - wp.y, next.x - wp.x) + Math.PI / 2;
+                const nx = Math.cos(ang);
+                const ny = Math.sin(ang);
+                for (const offset of [-38, 0, 38]) {
+                    itemBoxes.push({
+                        x: wp.x + nx * offset,
+                        y: wp.y + ny * offset,
+                        respawnTimer: 0
+                    });
+                }
+            }
+        }
+
+        const input = {
+            steer: 0,
+            keyLeft: false,
+            keyRight: false,
+            drift: false,
+            useItemQueued: false,
+            swipeActive: false,
+            swipeTouchId: null,
+            swipeAnchorX: 0,
+            swipeCurrentX: 0,
+            swipeCurrentY: 0,
+            swipeSteer: 0
+        };
+
+        class Kart {
+            constructor(name, color, isPlayer, gridIndex) {
+                this.name = name;
+                this.color = color;
+                this.isPlayer = isPlayer;
+                this.spec = MACHINE_SPECS[color];
+
+                const row = Math.floor(gridIndex / 2);
+                const col = (gridIndex % 2 === 0 ? -1 : 1);
+                const backDist = 42 + row * 56;
+                const sideDist = col * 28;
+                const nx = Math.cos(START_ANGLE);
+                const ny = Math.sin(START_ANGLE);
+                const fx = Math.sin(START_ANGLE);
+                const fy = -Math.cos(START_ANGLE);
+
+                this.x = START_POS.x - fx * backDist + nx * sideDist;
+                this.y = START_POS.y - fy * backDist + ny * sideDist;
+                this.angle = START_ANGLE;
+                this.visualAngleOffset = 0;
+
+                // マシンごとの性能差を物理挙動へ反映
+                this.speed = 0;
+                const aiVariance = isPlayer ? 1.0 : (0.93 + Math.random() * 0.06);
+                this.maxSpeed = this.spec.maxSpeed * aiVariance;
+                this.accel = this.spec.accel;
+                this.handling = this.spec.handling;
+                this.offRoadFactor = this.spec.offRoadFactor;
+                this.driftBonus = this.spec.driftBonus;
+
+                this.isDrifting = false;
+                this.driftDir = 0;
+                this.driftCharge = 0;
+
+                this.boostTimer = 0;
+                this.starTimer = 0;
+                this.spinTimer = 0;
+                this.padCooldown = 0;
+                this.item = null;
+
+                this.lap = 1;
+                this.waypointIdx = 0;
+                this.maxProgressInLap = 0;
+                this.totalProgress = 0;
+                this.finished = false;
+                this.finishTime = 0;
+                this.rank = gridIndex + 1;
+
+                this.aiLaneOffset = (Math.random() - 0.5) * 62;
+                this.aiItemDelay = 1.5;
+            }
+
+            triggerBoost(duration, color = '#22d3ee') {
+                this.boostTimer = Math.max(this.boostTimer, duration);
+                this.spawnBurstParticles(color, 18);
+                if (this.isPlayer) {
+                    sound.playBoost();
+                    boostFlash = 1.0;
+                    cameraShake = Math.max(cameraShake, 0.35);
+                    shockwaves.push({ life: 0.42, maxLife: 0.42, color });
+                }
+            }
+
+            triggerSpin() {
+                if (this.starTimer > 0 || this.spinTimer > 0) return;
+                this.spinTimer = 1.05;
+                this.speed *= 0.35;
+                this.isDrifting = false;
+                this.driftCharge = 0;
+                if (this.isPlayer) {
+                    sound.playSpin();
+                    cameraShake = Math.max(cameraShake, 0.45);
+                }
+                this.spawnBurstParticles('#fde047', 14);
+            }
+
+            spawnBurstParticles(color, count) {
+                for (let i = 0; i < count; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const spd = 45 + Math.random() * 125;
+                    particles.push({
+                        x: this.x,
+                        y: this.y,
+                        z: 6,
+                        vx: Math.cos(a) * spd,
+                        vy: Math.sin(a) * spd,
+                        vz: 32 + Math.random() * 55,
+                        color,
+                        size: 5.5,
+                        life: 0.35 + Math.random() * 0.22,
+                        maxLife: 0.57
+                    });
+                }
+            }
+
+            useItem() {
+                const it = this.item;
+                this.item = null;
+                if (!it) return;
+
+                if (it.id === 'NITRO') {
+                    this.triggerBoost(1.55, '#22d3ee');
+                } else if (it.id === 'OVERDRIVE') {
+                    this.starTimer = 5.5;
+                    if (this.isPlayer) {
+                        sound.playLap();
+                        boostFlash = 1.0;
+                        shockwaves.push({ life: 0.5, maxLife: 0.5, color: '#ff2e93' });
+                    }
+                    this.spawnBurstParticles('#ff2e93', 22);
+                } else if (it.id === 'OIL') {
+                    const bx = this.x - Math.sin(this.angle) * 38;
+                    const by = this.y + Math.cos(this.angle) * 38;
+                    hazards.push({
+                        type: 'oil', x: bx, y: by, vx: 0, vy: 0,
+                        owner: this, life: 25, angle: Math.random() * Math.PI * 2
+                    });
+                    if (this.isPlayer) sound.playBeep(260, 0.12, 'triangle', 0.1);
+                } else if (it.id === 'MISSILE') {
+                    const sx = this.x + Math.sin(this.angle) * 36;
+                    const sy = this.y - Math.cos(this.angle) * 36;
+                    const missileSpeed = 600;
+                    hazards.push({
+                        type: 'missile', x: sx, y: sy,
+                        vx: Math.sin(this.angle) * missileSpeed,
+                        vy: -Math.cos(this.angle) * missileSpeed,
+                        owner: this, life: 5, angle: this.angle
+                    });
+                    if (this.isPlayer) sound.playBeep(740, 0.12, 'sawtooth', 0.09);
+                }
+            }
+
+            update(dt) {
+                if (this.padCooldown > 0) this.padCooldown -= dt;
+                if (this.boostTimer > 0) this.boostTimer -= dt;
+                if (this.starTimer > 0) this.starTimer -= dt;
+
+                if (this.spinTimer > 0) {
+                    this.spinTimer -= dt;
+                    this.visualAngleOffset += dt * 16;
+                    this.speed *= Math.pow(0.25, dt);
+                    this.moveAndClamp(dt);
+                    return;
+                }
+
+                let steer = 0;
+                let wantDrift = false;
+
+                if (this.isPlayer && !this.finished) {
+                    steer = input.steer;
+                    wantDrift = input.drift;
+                    if (input.useItemQueued) {
+                        input.useItemQueued = false;
+                        if (this.item) this.useItem();
+                    }
+                } else {
+                    const targetIdx = (this.waypointIdx + 7) % WAYPOINTS.length;
+                    const wp = WAYPOINTS[targetIdx];
+                    const next = WAYPOINTS[(targetIdx + 1) % WAYPOINTS.length];
+                    const wpAngle = Math.atan2(next.y - wp.y, next.x - wp.x) + Math.PI / 2;
+                    const tx = wp.x + Math.cos(wpAngle) * this.aiLaneOffset;
+                    const ty = wp.y + Math.sin(wpAngle) * this.aiLaneOffset;
+
+                    const desiredAngle = Math.atan2(ty - this.y, tx - this.x) + Math.PI / 2;
+                    let diff = desiredAngle - this.angle;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+
+                    steer = Math.max(-1, Math.min(1, diff * 2.4));
+                    wantDrift = Math.abs(diff) > 0.45 && this.speed > 240;
+
+                    if (this.item) {
+                        this.aiItemDelay -= dt;
+                        if (this.aiItemDelay <= 0) {
+                            this.useItem();
+                            this.aiItemDelay = 1.2 + Math.random() * 2.0;
+                        }
+                    }
+                }
+
+                const near = findNearestWaypoint(this.x, this.y);
+                const offRoad = near.dist > ROAD_HALF_WIDTH + 8;
+
+                // 最高速計算（マシン固有のオフロード耐性を使用）
+                let topSpeed = this.maxSpeed;
+                if (offRoad && this.boostTimer <= 0 && this.starTimer <= 0) {
+                    topSpeed *= this.offRoadFactor;
+                }
+                if (this.boostTimer > 0) topSpeed *= 1.42;
+                if (this.starTimer > 0) topSpeed *= 1.30;
+
+                if (this.speed < topSpeed) {
+                    this.speed = Math.min(topSpeed, this.speed + this.accel * (this.boostTimer > 0 ? 2.6 : 1) * dt);
+                } else {
+                    this.speed += (topSpeed - this.speed) * Math.min(1, dt * 3.5);
+                }
+
+                // ドリフト＆ミニターボ（マシン固有のハンドリング＆ドリフトボーナスを反映）
+                const speedFactor = Math.min(1, this.speed / 155);
+                if (wantDrift && this.speed > 165) {
+                    if (!this.isDrifting && Math.abs(steer) > 0.14) {
+                        this.isDrifting = true;
+                        this.driftDir = steer > 0 ? 1 : -1;
+                        this.driftCharge = 0;
+                    }
+                    if (this.isDrifting) {
+                        const turnRate = (this.handling * 0.92 * this.driftDir + steer * 0.98) * speedFactor;
+                        this.angle += turnRate * dt;
+                        this.visualAngleOffset += (this.driftDir * 0.36 - this.visualAngleOffset) * Math.min(1, dt * 10);
+                        this.driftCharge += dt * this.driftBonus;
+
+                        if (this.driftCharge > 0.32 && Math.random() < 0.72) {
+                            const sparkColor = this.driftCharge > 1.3 ? '#ff2e93' : '#22d3ee';
+                            const rearX = this.x - Math.sin(this.angle) * 20;
+                            const rearY = this.y + Math.cos(this.angle) * 20;
+                            particles.push({
+                                x: rearX + (Math.random() - 0.5) * 14,
+                                y: rearY + (Math.random() - 0.5) * 14,
+                                z: 2,
+                                vx: (Math.random() - 0.5) * 50,
+                                vy: (Math.random() - 0.5) * 50,
+                                vz: 28 + Math.random() * 28,
+                                color: sparkColor,
+                                size: 4.5,
+                                life: 0.22,
+                                maxLife: 0.22
+                            });
+                        }
+                    } else {
+                        this.angle += steer * this.handling * speedFactor * dt;
+                        this.visualAngleOffset *= Math.pow(0.05, dt);
+                    }
+                } else {
+                    if (this.isDrifting) {
+                        if (this.driftCharge > 1.3) {
+                            this.triggerBoost(1.22, '#ff2e93');
+                        } else if (this.driftCharge > 0.5) {
+                            this.triggerBoost(0.72, '#22d3ee');
+                        }
+                        this.isDrifting = false;
+                        this.driftDir = 0;
+                        this.driftCharge = 0;
+                    }
+                    this.angle += steer * this.handling * speedFactor * dt;
+                    this.visualAngleOffset *= Math.pow(0.02, dt);
+                }
+
+                // ダッシュ中のツイン・アフターバーナー排気炎パーティクル
+                if ((this.boostTimer > 0 || this.starTimer > 0)) {
+                    const fx = Math.sin(this.angle);
+                    const fy = -Math.cos(this.angle);
+                    const rx = Math.cos(this.angle);
+                    const ry = Math.sin(this.angle);
+                    for (const side of [-7, 7]) {
+                        if (Math.random() < 0.85) {
+                            const px = this.x - fx * 22 + rx * side;
+                            const py = this.y - fy * 22 + ry * side;
+                            const flameColor = this.starTimer > 0
+                                ? (Math.random() < 0.5 ? '#ff2e93' : '#fde047')
+                                : (Math.random() < 0.55 ? '#22d3ee' : '#fde047');
+                            particles.push({
+                                x: px,
+                                y: py,
+                                z: 5,
+                                vx: -fx * 110 + (Math.random() - 0.5) * 28,
+                                vy: -fy * 110 + (Math.random() - 0.5) * 28,
+                                vz: 10 + Math.random() * 14,
+                                color: flameColor,
+                                size: 6.5,
+                                life: 0.19,
+                                maxLife: 0.19
+                            });
+                        }
+                    }
+                }
+
+                this.moveAndClamp(dt);
+
+                // ダッシュパネル判定
+                if (this.padCooldown <= 0) {
+                    for (const pad of BOOST_PADS) {
+                        if (Math.hypot(this.x - pad.x, this.y - pad.y) < 40) {
+                            this.triggerBoost(1.05, '#fde047');
+                            this.padCooldown = 0.9;
+                            break;
+                        }
+                    }
+                }
+
+                // サプライポッド取得
+                for (const box of itemBoxes) {
+                    if (box.respawnTimer <= 0 && Math.hypot(this.x - box.x, this.y - box.y) < 30) {
+                        box.respawnTimer = 6.0;
+                        if (!this.item) {
+                            this.item = ITEM_LIST[Math.floor(Math.random() * ITEM_LIST.length)];
+                            if (this.isPlayer) sound.playItemGet();
+                        }
+                    }
+                }
+
+                // ラップ＆進行度
+                const prevIdx = this.waypointIdx;
+                const newIdx = near.index;
+                const n = WAYPOINTS.length;
+                if (newIdx > this.maxProgressInLap && newIdx - this.maxProgressInLap < n * 0.4) {
+                    this.maxProgressInLap = newIdx;
+                }
+                if (prevIdx > n * 0.8 && newIdx < n * 0.2 && this.maxProgressInLap > n * 0.7) {
+                    this.lap++;
+                    this.maxProgressInLap = newIdx;
+                    if (this.lap > TOTAL_LAPS && !this.finished) {
+                        this.finished = true;
+                        this.finishTime = raceTime;
+                        if (this.isPlayer) finishRace();
+                    } else if (this.isPlayer) {
+                        sound.playLap();
+                        showBanner(this.lap === TOTAL_LAPS ? 'FINAL LAP!' : `LAP ${this.lap}/${TOTAL_LAPS}`, '', 1.6);
+                    }
+                }
+                this.waypointIdx = newIdx;
+                this.totalProgress = (this.lap - 1) * n + this.waypointIdx;
+            }
+
+            moveAndClamp(dt) {
+                this.x += Math.sin(this.angle) * this.speed * dt;
+                this.y -= Math.cos(this.angle) * this.speed * dt;
+                this.x = Math.max(50, Math.min(WORLD_SIZE - 50, this.x));
+                this.y = Math.max(50, Math.min(WORLD_SIZE - 50, this.y));
+            }
+        }
+
+        // ============================================================================
+        // 5. UI制御＆レース進行
+        // ============================================================================
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimap-canvas');
+        const mmCtx = minimapCanvas.getContext('2d');
+
+        const elTitleScreen = document.getElementById('title-screen');
+        const elCourseScreen = document.getElementById('course-screen');
+        const elHud = document.getElementById('hud');
+        const elResultScreen = document.getElementById('result-screen');
+        const elResultCard = document.getElementById('result-card');
+        const elHudRank = document.getElementById('hud-rank');
+        const elHudLap = document.getElementById('hud-lap');
+        const elHudTime = document.getElementById('hud-time');
+        const elHudSpeed = document.getElementById('hud-speed');
+        const elHudSpeedBox = document.getElementById('hud-speed-box');
+        const elHudItemIcon = document.getElementById('hud-item-icon');
+        const elBtnItemEmoji = document.getElementById('btn-item-emoji');
+        const elCenterBanner = document.getElementById('center-banner');
+        const elSubBanner = document.getElementById('sub-banner');
+
+        let bannerTimer = 0;
+        let lastHudItem = undefined;
+        function showBanner(mainText, subText = '', duration = 1.2) {
+            elCenterBanner.textContent = mainText;
+            elCenterBanner.classList.remove('hidden');
+            if (subText) {
+                elSubBanner.textContent = subText;
+                elSubBanner.classList.remove('hidden');
+            } else {
+                elSubBanner.classList.add('hidden');
+            }
+            bannerTimer = duration;
+        }
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            const t = Math.floor((sec * 10) % 10);
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${t}`;
+        }
+
+        function getRankSuffix(rank) {
+            return ['1st', '2nd', '3rd', '4th'][rank - 1] || `${rank}th`;
+        }
+
+        function updateMachineUI() {
+            const spec = MACHINE_SPECS[selectedColor];
+            if (!spec) return;
+            document.getElementById('machine-name').textContent = spec.name;
+            document.getElementById('machine-tag').textContent = spec.tag;
+            document.getElementById('stat-spd').style.width = `${spec.stats.spd}%`;
+            document.getElementById('stat-acc').style.width = `${spec.stats.acc}%`;
+            document.getElementById('stat-hdl').style.width = `${spec.stats.hdl}%`;
+        }
+
+        function openCourseSelect() {
+            gameState = 'COURSE_SELECT';
+            sound.stopBgm();
+            elTitleScreen.classList.add('hidden');
+            elHud.classList.add('hidden');
+            elResultScreen.classList.add('hidden');
+            elResultScreen.classList.add('opacity-0');
+            elResultCard.classList.add('opacity-0', 'translate-y-4');
+            elCourseScreen.classList.remove('hidden');
+
+            document.querySelectorAll('.course-card').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.course === selectedCourseId);
+            });
+        }
+
+        function startRace() {
+            sound.init();
+            sound.startBgm(currentCourse.bgmPitch);
+            karts.length = 0;
+            hazards.length = 0;
+            particles.length = 0;
+            shockwaves.length = 0;
+            boostVisual = 0;
+            boostFlash = 0;
+            cameraShake = 0;
+            goalCameraTimer = 0;
+            initItemBoxes();
+
+            const allColors = ['red', 'blue', 'green', 'yellow'];
+            const aiColors = allColors.filter(c => c !== selectedColor);
+
+            karts.push(new Kart(`YOU (${MACHINE_SPECS[selectedColor].name})`, selectedColor, true, 0));
+            for (let i = 0; i < 3; i++) {
+                const c = aiColors[i];
+                karts.push(new Kart(MACHINE_SPECS[c].name, c, false, i + 1));
+            }
+
+            const player = karts[0];
+            cameraX = player.x - Math.sin(player.angle) * 96;
+            cameraY = player.y + Math.cos(player.angle) * 96;
+            cameraAngle = player.angle;
+
+            raceTime = 0;
+            countdownTimer = 3.2;
+            lastCountdownInt = 4;
+            gameState = 'COUNTDOWN';
+
+            elTitleScreen.classList.add('hidden');
+            elCourseScreen.classList.add('hidden');
+            elResultScreen.classList.add('hidden');
+            elResultScreen.classList.add('opacity-0');
+            elResultCard.classList.add('opacity-0', 'translate-y-4');
+            elHud.classList.remove('hidden');
+        }
+
+        /**
+         * ゴール直後：まずはカメラで自車をしばらく追い、余韻を残してからリザルトへ
+         */
+        function finishRace() {
+            gameState = 'GOAL_CAMERA';
+            goalCameraTimer = 0;
+            sound.playLap();
+            showBanner('FINISH!!', getRankSuffix(karts[0].rank) + ' PLACE', 2.2);
+        }
+
+        /**
+         * 追従カメラ演出後にさりげなくリザルトカードをフェードイン表示
+         */
+        function showResultOverlay() {
+            gameState = 'FINISHED';
+            sound.stopBgm();
+            elHud.classList.add('hidden');
+
+            const player = karts[0];
+            const sorted = [...karts].sort((a, b) => {
+                if (a.finished && b.finished) return a.finishTime - b.finishTime;
+                if (a.finished) return -1;
+                if (b.finished) return 1;
+                return b.totalProgress - a.totalProgress;
+            });
+
+            document.getElementById('result-course').textContent = currentCourse.name;
+            document.getElementById('result-rank').textContent = `${getRankSuffix(player.rank)} PLACE`;
+            document.getElementById('result-time').textContent = `TIME: ${formatTime(player.finishTime)}`;
+
+            const standingsEl = document.getElementById('result-standings');
+            standingsEl.innerHTML = '';
+            sorted.forEach((k, idx) => {
+                const row = document.createElement('div');
+                row.className = `flex justify-between items-center px-3 py-2 rounded-xl ${k.isPlayer ? 'bg-gradient-to-r from-pink-500/35 to-cyan-500/35 border border-yellow-300 text-yellow-200' : 'bg-white/10 text-slate-100'}`;
+                row.innerHTML = `<span>${getRankSuffix(idx + 1)}  ${k.name}</span><span>${k.finished ? formatTime(k.finishTime) : 'RUNNING'}</span>`;
+                standingsEl.appendChild(row);
+            });
+
+            elResultScreen.classList.remove('hidden');
+            // 1フレーム待ってからトランジションを発火させてさりげなくフェードイン
+            requestAnimationFrame(() => {
+                elResultScreen.classList.remove('opacity-0');
+                elResultCard.classList.remove('opacity-0', 'translate-y-4');
+            });
+        }
+
+        // ============================================================================
+        // 6. ゲームループ更新
+        // ============================================================================
+        function update(dt) {
+            globalTime += dt;
+
+            if (gameState === 'TITLE' || gameState === 'COURSE_SELECT') {
+                titleAngle += dt * 0.95;
+                sound.updateEngine(0, false, false);
+                return;
+            }
+
+            if (input.keyLeft && !input.keyRight) {
+                input.steer = -1;
+            } else if (input.keyRight && !input.keyLeft) {
+                input.steer = 1;
+            } else if (input.swipeActive) {
+                input.steer = input.swipeSteer;
+            } else {
+                input.steer = 0;
+            }
+
+            if (bannerTimer > 0) {
+                bannerTimer -= dt;
+                if (bannerTimer <= 0) {
+                    elCenterBanner.classList.add('hidden');
+                    elSubBanner.classList.add('hidden');
+                }
+            }
+
+            if (gameState === 'COUNTDOWN') {
+                countdownTimer -= dt;
+                const sec = Math.ceil(countdownTimer);
+                if (sec !== lastCountdownInt && sec > 0) {
+                    lastCountdownInt = sec;
+                    showBanner(String(sec), currentCourse.name, 0.95);
+                    sound.playBeep(440, 0.14, 'square', 0.08);
+                }
+                if (countdownTimer <= 0) {
+                    gameState = 'RACING';
+                    showBanner('GO!!', '', 0.9);
+                    sound.playBeep(880, 0.25, 'square', 0.1);
+                }
+                updateCamera(dt);
+                return;
+            }
+
+            if (gameState === 'RACING' || gameState === 'GOAL_CAMERA' || gameState === 'FINISHED') {
+                if (gameState === 'RACING') raceTime += dt;
+
+                // ゴール後は約2.6秒間、自車をカメラで追従した後にさりげなくリザルトを表示
+                if (gameState === 'GOAL_CAMERA') {
+                    goalCameraTimer += dt;
+                    if (goalCameraTimer >= 2.6) {
+                        showResultOverlay();
+                    }
+                }
+
+                for (const k of karts) k.update(dt);
+
+                // カート同士の衝突
+                for (let i = 0; i < karts.length; i++) {
+                    for (let j = i + 1; j < karts.length; j++) {
+                        const a = karts[i];
+                        const b = karts[j];
+                        const dx = b.x - a.x;
+                        const dy = b.y - a.y;
+                        const dist = Math.hypot(dx, dy);
+                        const minDist = 30;
+                        if (dist > 0 && dist < minDist) {
+                            const overlap = (minDist - dist) * 0.5;
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            a.x -= nx * overlap;
+                            a.y -= ny * overlap;
+                            b.x += nx * overlap;
+                            b.y += ny * overlap;
+
+                            if (a.starTimer > 0 && b.starTimer <= 0) b.triggerSpin();
+                            if (b.starTimer > 0 && a.starTimer <= 0) a.triggerSpin();
+                        }
+                    }
+                }
+
+                for (const box of itemBoxes) {
+                    if (box.respawnTimer > 0) box.respawnTimer -= dt;
+                }
+
+                for (let i = hazards.length - 1; i >= 0; i--) {
+                    const h = hazards[i];
+                    h.life -= dt;
+                    h.x += h.vx * dt;
+                    h.y += h.vy * dt;
+                    if (h.type === 'missile') {
+                        h.angle = Math.atan2(h.vy, h.vx) + Math.PI / 2;
+                        if (Math.random() < 0.7) {
+                            particles.push({
+                                x: h.x, y: h.y, z: 6,
+                                vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20, vz: 10,
+                                color: '#22d3ee', size: 4.5, life: 0.2, maxLife: 0.2
+                            });
+                        }
+                        if (h.x < 40 || h.x > WORLD_SIZE - 40) h.vx *= -1;
+                        if (h.y < 40 || h.y > WORLD_SIZE - 40) h.vy *= -1;
+                    }
+
+                    let hit = false;
+                    for (const k of karts) {
+                        if (k === h.owner && h.life > (h.type === 'missile' ? 4.6 : 24.5)) continue;
+                        if (Math.hypot(k.x - h.x, k.y - h.y) < 26) {
+                            k.triggerSpin();
+                            hit = true;
+                            break;
+                        }
+                    }
+                    if (hit || h.life <= 0) hazards.splice(i, 1);
+                }
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const pt = particles[i];
+                    pt.life -= dt;
+                    pt.x += pt.vx * dt;
+                    pt.y += pt.vy * dt;
+                    pt.z = Math.max(0, pt.z + pt.vz * dt);
+                    pt.vz -= 90 * dt;
+                    if (pt.life <= 0) particles.splice(i, 1);
+                }
+
+                for (let i = shockwaves.length - 1; i >= 0; i--) {
+                    shockwaves[i].life -= dt;
+                    if (shockwaves[i].life <= 0) shockwaves.splice(i, 1);
+                }
+
+                // 順位計算
+                const sorted = [...karts].sort((a, b) => {
+                    if (a.finished && b.finished) return a.finishTime - b.finishTime;
+                    if (a.finished) return -1;
+                    if (b.finished) return 1;
+                    return b.totalProgress - a.totalProgress;
+                });
+                sorted.forEach((k, idx) => { k.rank = idx + 1; });
+
+                // ダッシュエフェクト補間
+                const player = karts[0];
+                const isBoosting = player.boostTimer > 0 || player.starTimer > 0;
+                const targetBoostVis = isBoosting ? 1.0 : 0.0;
+                boostVisual += (targetBoostVis - boostVisual) * Math.min(1, dt * 8.5);
+                boostFlash = Math.max(0, boostFlash - dt * 3.2);
+                cameraShake = Math.max(0, cameraShake - dt * 1.8);
+
+                updateCamera(dt);
+
+                // HUD更新
+                elHudRank.textContent = getRankSuffix(player.rank);
+                elHudLap.textContent = `LAP ${Math.min(player.lap, TOTAL_LAPS)}/${TOTAL_LAPS}`;
+                elHudTime.textContent = formatTime(raceTime);
+                elHudSpeed.textContent = String(Math.round(player.speed * 0.74));
+
+                if (isBoosting) {
+                    elHudSpeedBox.classList.add('border-yellow-300', 'text-yellow-300');
+                    elHudSpeedBox.classList.remove('border-pink-400/50', 'text-cyan-300');
+                } else {
+                    elHudSpeedBox.classList.remove('border-yellow-300', 'text-yellow-300');
+                    elHudSpeedBox.classList.add('border-pink-400/50', 'text-cyan-300');
+                }
+
+                if (player.item !== lastHudItem) { lastHudItem = player.item;
+                if (player.item) {
+                    elHudItemIcon.innerHTML = player.item.icon;
+                    elHudItemIcon.classList.remove('opacity-35', 'text-xs');
+                    elBtnItemEmoji.innerHTML = player.item.icon;
+                } else {
+                    elHudItemIcon.textContent = '---';
+                    elHudItemIcon.classList.add('opacity-35', 'text-xs');
+                    elBtnItemEmoji.innerHTML = ITEMS.NITRO.icon;
+                }
+                }
+
+                sound.updateEngine(player.speed / player.maxSpeed, isBoosting, gameState === 'RACING' || gameState === 'GOAL_CAMERA');
+            }
+        }
+
+        function updateCamera(dt) {
+            const player = karts[0];
+            if (!player) return;
+
+            // ゴール後のウィニングラン追従カメラ（自車の斜め後ろ〜横へゆったり回り込みながら追う）
+            if (gameState === 'GOAL_CAMERA' || gameState === 'FINISHED') {
+                const orbitAngle = player.angle + Math.sin(globalTime * 0.85) * 0.75;
+                let diff = orbitAngle - cameraAngle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                cameraAngle += diff * Math.min(1, dt * 3.5);
+
+                const followDist = 118;
+                const targetX = player.x - Math.sin(cameraAngle) * followDist;
+                const targetY = player.y + Math.cos(cameraAngle) * followDist;
+                cameraX += (targetX - cameraX) * Math.min(1, dt * 7);
+                cameraY += (targetY - cameraY) * Math.min(1, dt * 7);
+                return;
+            }
+
+            if (cameraMode === '3D') {
+                const targetAngle = player.angle;
+                let diff = targetAngle - cameraAngle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                cameraAngle += diff * Math.min(1, dt * 8.5);
+
+                // ダッシュ時はカメラがわずかに後ろへ引いてスピード感を強調
+                const followDist = 96 + boostVisual * 14;
+                const targetX = player.x - Math.sin(cameraAngle) * followDist;
+                const targetY = player.y + Math.cos(cameraAngle) * followDist;
+                cameraX += (targetX - cameraX) * Math.min(1, dt * 14);
+                cameraY += (targetY - cameraY) * Math.min(1, dt * 14);
+            } else {
+                const lookAhead = 68 + boostVisual * 20;
+                const targetX = player.x + Math.sin(player.angle) * lookAhead;
+                const targetY = player.y - Math.cos(player.angle) * lookAhead;
+                cameraX += (targetX - cameraX) * Math.min(1, dt * 8);
+                cameraY += (targetY - cameraY) * Math.min(1, dt * 8);
+
+                const targetAngle = player.angle;
+                let diff = targetAngle - cameraAngle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                cameraAngle += diff * Math.min(1, dt * 7);
+            }
+        }
+
+        // ============================================================================
+        // 7. レンダリング（擬似3D + Sprite Stacking + ダッシュ時エフェクト）
+        // ============================================================================
+        function render() {
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.imageSmoothingEnabled = false;
+
+            if (gameState === 'TITLE' || gameState === 'COURSE_SELECT') {
+                renderTitleShowcase(w, h);
+                return;
+            }
+
+            // カメラマイクロシェイク適用
+            const shakeAmt = cameraShake * 7 + boostVisual * 1.4;
+            const shakeX = shakeAmt > 0.1 ? (Math.random() - 0.5) * shakeAmt : 0;
+            const shakeY = shakeAmt > 0.1 ? (Math.random() - 0.5) * shakeAmt : 0;
+
+            ctx.save();
+            ctx.translate(shakeX, shakeY);
+            if (cameraMode === '3D') {
+                renderPseudo3D(w, h);
+            } else {
+                renderTopDown(w, h);
+            }
+            ctx.restore();
+
+            // ダッシュ時エフェクト（スピードライン・ネオングロー・衝撃波）
+            renderDashEffects(w, h);
+
+            // スワイプ中インジケーター（操作中の指元のみ軽く表示）
+            if (input.swipeActive) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(34, 211, 238, 0.55)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(input.swipeAnchorX, input.swipeCurrentY);
+                ctx.lineTo(input.swipeCurrentX, input.swipeCurrentY);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(255, 46, 147, 0.25)';
+                ctx.beginPath();
+                ctx.arc(input.swipeCurrentX, input.swipeCurrentY, 20, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#22d3ee';
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            renderMinimap();
+        }
+
+        /**
+         * ダッシュ時フルスクリーンエフェクト（集中線スピードライン・画面端ネオン発光・衝撃波リング）
+         */
+        function renderDashEffects(w, h) {
+            const player = karts[0];
+            if (!player) return;
+            const isOverdrive = player.starTimer > 0;
+
+            // 1. 衝撃波リング（ダッシュ開始直後）
+            for (const sw of shockwaves) {
+                const progress = 1 - (sw.life / sw.maxLife);
+                const radius = (0.12 + progress * 0.72) * Math.max(w, h);
+                ctx.save();
+                ctx.globalAlpha = (1 - progress) * 0.65;
+                ctx.strokeStyle = sw.color;
+                ctx.lineWidth = 6 * (1 - progress) + 2;
+                ctx.beginPath();
+                ctx.arc(w * 0.5, h * 0.66, radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            if (boostVisual <= 0.02 && boostFlash <= 0.02) return;
+
+            // 2. 放射状スピードライン（集中線）
+            if (boostVisual > 0.05) {
+                ctx.save();
+                const cx = w * 0.5;
+                const cy = h * 0.44;
+                const maxR = Math.hypot(w, h) * 0.65;
+                const lineCount = 26;
+
+                for (let i = 0; i < lineCount; i++) {
+                    const seed = i * 7.31 + Math.floor(globalTime * 28) * 1.13;
+                    const angle = (i / lineCount) * Math.PI * 2 + Math.sin(seed) * 0.09;
+                    const phase = ((globalTime * 4.5 + i * 0.37) % 1);
+                    const rStart = maxR * (0.28 + phase * 0.32);
+                    const rEnd = maxR * (0.68 + phase * 0.45);
+
+                    const x1 = cx + Math.cos(angle) * rStart;
+                    const y1 = cy + Math.sin(angle) * rStart;
+                    const x2 = cx + Math.cos(angle) * rEnd;
+                    const y2 = cy + Math.sin(angle) * rEnd;
+
+                    ctx.strokeStyle = isOverdrive
+                        ? (i % 2 === 0 ? '#ff2e93' : '#fde047')
+                        : (i % 3 === 0 ? '#ffffff' : (i % 3 === 1 ? '#22d3ee' : '#fde047'));
+                    ctx.globalAlpha = boostVisual * (0.38 + (1 - phase) * 0.42);
+                    ctx.lineWidth = 2 + boostVisual * 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                }
+
+                // 3. 画面端のポップネオン・ブーストビネット
+                const grad = ctx.createRadialGradient(cx, h * 0.52, Math.min(w, h) * 0.28, cx, h * 0.52, maxR);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(0.75, 'rgba(0,0,0,0)');
+                grad.addColorStop(1, isOverdrive
+                    ? `rgba(255, 46, 147, ${0.42 * boostVisual})`
+                    : `rgba(34, 211, 238, ${0.38 * boostVisual})`);
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+                ctx.restore();
+            }
+
+            // 4. 発動直後のホワイト／シアンフラッシュ
+            if (boostFlash > 0.02) {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${boostFlash * 0.24})`;
+                ctx.fillRect(0, 0, w, h);
+                ctx.restore();
+            }
+        }
+
+        /**
+         * 擬似3Dビュー（コース別の空・太陽・遠景＋Mode 7路面＋Sprite Stacking）
+         */
+        function renderPseudo3D(w, h) {
+            const c = currentCourse;
+            const horizonY = Math.floor(h * 0.32);
+            // ダッシュ時はわずかに広角(FOV拡大)にして奥行きとスピード感を強調
+            const baseFocal = Math.min(Math.max(w * 0.92, 320), h * 0.62);
+            const focal = baseFocal * (1 - boostVisual * 0.09);
+            const followDist = 96 + boostVisual * 14;
+            const targetPlayerY = h * 0.78;
+            const camHeight = Math.max(42, Math.min(105, ((targetPlayerY - horizonY) * followDist) / focal));
+
+            // 1. コース別ポップ空グラデーション
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+            skyGrad.addColorStop(0, c.skyStops[0]);
+            skyGrad.addColorStop(0.45, c.skyStops[1]);
+            skyGrad.addColorStop(0.82, c.skyStops[2]);
+            skyGrad.addColorStop(1, c.skyStops[3]);
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, w, horizonY + 4);
+
+            // パララックス太陽（ポップなレトロシンセサン）
+            const normAngle = ((cameraAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+            const skyScroll = (normAngle / (Math.PI * 2)) * w * 2.2;
+            const sunX = ((w * 0.65 - skyScroll * 0.28) % (w * 1.4) + w * 1.4) % (w * 1.4) - w * 0.2;
+            const sunR = Math.min(w, h) * 0.085;
+            ctx.save();
+            ctx.fillStyle = c.sunColor;
+            ctx.beginPath();
+            ctx.arc(sunX, horizonY - sunR * 0.75, sunR, 0, Math.PI * 2);
+            ctx.fill();
+            // レトロポップな太陽の横スリット
+            ctx.fillStyle = c.skyStops[2];
+            for (let sy = 0; sy < 3; sy++) {
+                ctx.fillRect(sunX - sunR, horizonY - sunR * (0.2 + sy * 0.22), sunR * 2, 2 + sy);
+            }
+            ctx.restore();
+
+            // パララックス山並み
+            ctx.fillStyle = c.mountainColor;
+            ctx.beginPath();
+            ctx.moveTo(0, horizonY);
+            for (let sx = 0; sx <= w + 40; sx += 30) {
+                const wx = sx + skyScroll * 0.5;
+                const mh = Math.sin(wx * 0.0085) * 26 + Math.cos(wx * 0.022) * 14 + 34;
+                ctx.lineTo(sx, horizonY - mh);
+            }
+            ctx.lineTo(w, horizonY);
+            ctx.closePath();
+            ctx.fill();
+
+            // パララックス都市／渓谷シルエット
+            ctx.fillStyle = c.cityColor;
+            const bldgW = Math.max(18, Math.floor(w / 26));
+            const offsetBldg = Math.floor(skyScroll) % bldgW;
+            for (let i = -1; i <= Math.ceil(w / bldgW) + 1; i++) {
+                const idx = Math.floor(Math.floor(skyScroll) / bldgW) + i;
+                const bh = ((Math.abs(Math.sin(idx * 12.9898) * 43758.5453) % 1) * 34 + 10) * (h / 700);
+                const bx = i * bldgW - offsetBldg;
+                ctx.fillRect(bx, horizonY - bh, bldgW - 2, bh + 2);
+                // METROコースはネオン窓を点滅表示
+                if (c.id === 'metro' && (idx & 1) === 0) {
+                    ctx.fillStyle = (idx % 3 === 0) ? '#22d3ee' : '#ff2e93';
+                    ctx.fillRect(bx + 3, horizonY - bh + 4, bldgW - 8, 3);
+                    ctx.fillStyle = c.cityColor;
+                }
+            }
+
+            // 2. Mode 7 スキャンライン路面
+            const gw = 240;
+            const gh = Math.max(100, Math.min(220, Math.round(gw * (h - horizonY) / Math.max(1, w))));
+            if (groundCanvas.width !== gw || groundCanvas.height !== gh) {
+                groundCanvas.width = gw;
+                groundCanvas.height = gh;
+                groundImgData = groundCtx.createImageData(gw, gh);
+                groundPixels32 = new Uint32Array(groundImgData.data.buffer);
+            }
+
+            if (trackPixels32) {
+                const sinC = Math.sin(cameraAngle);
+                const cosC = Math.cos(cameraAngle);
+                const scaleToBuf = gw / Math.max(1, w);
+                const gFocal = focal * scaleToBuf;
+                const halfGW = gw * 0.5;
+                const outA = c.outerColor32A;
+                const outB = c.outerColor32B;
+
+                for (let py = 0; py < gh; py++) {
+                    const syFromHorizon = py + 0.8;
+                    const z = (camHeight * gFocal) / syFromHorizon;
+                    const xLeft = (-halfGW / gFocal) * z;
+                    const xStep = (1 / gFocal) * z;
+
+                    let wx = cameraX + z * sinC + xLeft * cosC;
+                    let wy = cameraY - z * cosC + xLeft * sinC;
+                    const stepWX = xStep * cosC;
+                    const stepWY = xStep * sinC;
+
+                    const rowOffset = py * gw;
+                    for (let px = 0; px < gw; px++) {
+                        const ix = wx | 0;
+                        const iy = wy | 0;
+                        if (ix >= 0 && ix < WORLD_SIZE && iy >= 0 && iy < WORLD_SIZE) {
+                            groundPixels32[rowOffset + px] = trackPixels32[iy * WORLD_SIZE + ix];
+                        } else {
+                            groundPixels32[rowOffset + px] = ((ix ^ iy) & 32) ? outB : outA;
+                        }
+                        wx += stepWX;
+                        wy += stepWY;
+                    }
+                }
+                groundCtx.putImageData(groundImgData, 0, 0);
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(groundCanvas, 0, horizonY, w, h - horizonY);
+            }
+
+            // 地平線グロー
+            const fogGrad = ctx.createLinearGradient(0, horizonY - 2, 0, horizonY + h * 0.08);
+            fogGrad.addColorStop(0, c.fogColor);
+            fogGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = fogGrad;
+            ctx.fillRect(0, horizonY - 2, w, h * 0.08 + 2);
+
+            // 3. 3D透視投影
+            const sinC = Math.sin(cameraAngle);
+            const cosC = Math.cos(cameraAngle);
+            const project3D = (wx, wy) => {
+                const dx = wx - cameraX;
+                const dy = wy - cameraY;
+                const z = dx * sinC - dy * cosC;
+                if (z <= 14 || z > 1050) return null;
+                const x = dx * cosC + dy * sinC;
+                const sx = w * 0.5 + (x / z) * focal;
+                const sy = horizonY + (camHeight / z) * focal;
+                const pScale = focal / z;
+                return { sx, sy, z, pScale };
+            };
+
+            const renderList = [];
+            const squashY = 0.54;
+
+            for (const p of STATIC_PROPS) {
+                const proj = project3D(p.x, p.y);
+                if (!proj || proj.sx < -220 || proj.sx > w + 220) continue;
+                renderList.push({
+                    z: proj.z,
+                    draw: () => {
+                        const stack = SPRITE_STACKS.props[p.type];
+                        if (p.type === 'pillar') {
+                            const s = proj.pScale * 2.5;
+                            drawSpriteStack(ctx, stack, proj.sx, proj.sy, p.angle - cameraAngle, s, s * 1.25, 0, squashY);
+                        } else if (p.type === 'tower') {
+                            const s = proj.pScale * 2.9;
+                            drawSpriteStack(ctx, stack, proj.sx, proj.sy, p.angle - cameraAngle, s, s * 1.35, 0, squashY);
+                        } else {
+                            const s = proj.pScale * 3.1;
+                            drawSpriteStack(ctx, stack, proj.sx, proj.sy, p.angle - cameraAngle, s, s * 1.15, 0, squashY);
+                        }
+                    }
+                });
+            }
+
+            for (const box of itemBoxes) {
+                if (box.respawnTimer > 0) continue;
+                const proj = project3D(box.x, box.y);
+                if (!proj || proj.sx < -160 || proj.sx > w + 160) continue;
+                renderList.push({
+                    z: proj.z,
+                    draw: () => {
+                        const s = proj.pScale * 1.9;
+                        const bob = (Math.sin(globalTime * 4.5 + box.x) * 3 + 6) * (proj.pScale * 0.35);
+                        drawSpriteStack(ctx, SPRITE_STACKS.itemBox, proj.sx, proj.sy, globalTime * 2.5 - cameraAngle, s, s * 0.92, bob, squashY);
+                    }
+                });
+            }
+
+            for (const hz of hazards) {
+                const proj = project3D(hz.x, hz.y);
+                if (!proj || proj.sx < -160 || proj.sx > w + 160) continue;
+                renderList.push({
+                    z: proj.z,
+                    draw: () => {
+                        const s = proj.pScale * 1.75;
+                        const stack = hz.type === 'oil' ? SPRITE_STACKS.oil : SPRITE_STACKS.missile;
+                        drawSpriteStack(ctx, stack, proj.sx, proj.sy, hz.angle - cameraAngle, s, s * 0.85, 0, squashY);
+                    }
+                });
+            }
+
+            for (const k of karts) {
+                const proj = project3D(k.x, k.y);
+                if (!proj || proj.sx < -220 || proj.sx > w + 220) continue;
+                renderList.push({
+                    z: proj.z,
+                    draw: () => {
+                        let stack = SPRITE_STACKS.karts[k.color];
+                        if (k.starTimer > 0 && Math.floor(globalTime * 16) % 2 === 0) {
+                            stack = SPRITE_STACKS.kartsOverdrive[k.color];
+                        }
+                        const renderAngle = k.angle + k.visualAngleOffset - cameraAngle;
+                        const s = proj.pScale * 1.88;
+                        const bounce = k.speed > 40 ? Math.sin(globalTime * 28 + k.x) * 0.22 * s : 0;
+
+                        // ダッシュ中の車体オーラ（地面のネオンリング）
+                        if (k.boostTimer > 0 || k.starTimer > 0) {
+                            ctx.save();
+                            ctx.translate(proj.sx, proj.sy);
+                            ctx.strokeStyle = k.starTimer > 0 ? '#ff2e93' : '#22d3ee';
+                            ctx.lineWidth = Math.max(2, s * 0.45);
+                            ctx.globalAlpha = 0.72;
+                            ctx.beginPath();
+                            ctx.ellipse(0, 0, s * 10.5, s * 5.8, 0, 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+
+                        drawSpriteStack(ctx, stack, proj.sx, proj.sy, renderAngle, s, s * 0.82, Math.max(0, bounce), squashY);
+
+                        if (!k.isPlayer && proj.z < 560) {
+                            const tagW = Math.max(26, 5.6 * s);
+                            const tagH = Math.max(11, 2.4 * s);
+                            const tagY = proj.sy - 13 * s;
+                            ctx.fillStyle = 'rgba(24, 16, 56, 0.84)';
+                            ctx.fillRect(proj.sx - tagW / 2, tagY - tagH, tagW, tagH);
+                            ctx.fillStyle = '#fde047';
+                            ctx.font = `bold ${Math.max(8, Math.round(1.6 * s))}px "Press Start 2P", monospace`;
+                            ctx.textAlign = 'center';
+                            ctx.fillText(getRankSuffix(k.rank), proj.sx, tagY - tagH * 0.22);
+                        }
+                    }
+                });
+            }
+
+            for (const pt of particles) {
+                const proj = project3D(pt.x, pt.y);
+                if (!proj) continue;
+                renderList.push({
+                    z: proj.z - 0.5,
+                    draw: () => {
+                        const alpha = Math.max(0, pt.life / pt.maxLife);
+                        ctx.globalAlpha = alpha;
+                        ctx.fillStyle = pt.color;
+                        const s = Math.max(2, pt.size * proj.pScale * 0.38);
+                        const lift = pt.z * proj.pScale * 0.45;
+                        ctx.fillRect(proj.sx - s / 2, proj.sy - lift - s / 2, s, s);
+                        ctx.globalAlpha = 1;
+                    }
+                });
+            }
+
+            renderList.sort((a, b) => b.z - a.z);
+            for (const item of renderList) item.draw();
+        }
+
+        /**
+         * 上空俯瞰ビュー
+         */
+        function renderTopDown(w, h) {
+            ctx.fillStyle = currentCourse.groundBase;
+            ctx.fillRect(0, 0, w, h);
+
+            const minDim = Math.min(w, h);
+            const zoom = Math.max(0.85, Math.min(1.65, minDim / 480)) * (1 - boostVisual * 0.08);
+            const screenCenterX = w * 0.5;
+            const screenCenterY = h * 0.60;
+
+            ctx.save();
+            ctx.translate(screenCenterX, screenCenterY);
+            ctx.scale(zoom, zoom);
+            ctx.rotate(-cameraAngle);
+            ctx.translate(-cameraX, -cameraY);
+            ctx.drawImage(trackCanvas, 0, 0);
+            ctx.restore();
+
+            const cosA = Math.cos(-cameraAngle);
+            const sinA = Math.sin(-cameraAngle);
+            const worldToScreen = (wx, wy) => {
+                const dx = wx - cameraX;
+                const dy = wy - cameraY;
+                return {
+                    sx: screenCenterX + (dx * cosA - dy * sinA) * zoom,
+                    sy: screenCenterY + (dx * sinA + dy * cosA) * zoom
+                };
+            };
+
+            const renderList = [];
+            const cullMargin = 140 * zoom;
+
+            for (const p of STATIC_PROPS) {
+                const pos = worldToScreen(p.x, p.y);
+                if (pos.sx < -cullMargin || pos.sx > w + cullMargin || pos.sy < -cullMargin || pos.sy > h + cullMargin) continue;
+                renderList.push({
+                    sy: pos.sy,
+                    draw: () => {
+                        const stack = SPRITE_STACKS.props[p.type];
+                        drawSpriteStack(ctx, stack, pos.sx, pos.sy, p.angle - cameraAngle, 3.3 * zoom, 3.0 * zoom, 0, 1.0);
+                    }
+                });
+            }
+
+            for (const box of itemBoxes) {
+                if (box.respawnTimer > 0) continue;
+                const pos = worldToScreen(box.x, box.y);
+                if (pos.sx < -cullMargin || pos.sx > w + cullMargin || pos.sy < -cullMargin || pos.sy > h + cullMargin) continue;
+                const bob = (Math.sin(globalTime * 4.5 + box.x) * 4 + 8) * zoom;
+                renderList.push({
+                    sy: pos.sy,
+                    draw: () => {
+                        drawSpriteStack(ctx, SPRITE_STACKS.itemBox, pos.sx, pos.sy, globalTime * 2.5 - cameraAngle, 2.5 * zoom, 2.2 * zoom, bob, 1.0);
+                    }
+                });
+            }
+
+            for (const hz of hazards) {
+                const pos = worldToScreen(hz.x, hz.y);
+                if (pos.sx < -cullMargin || pos.sx > w + cullMargin || pos.sy < -cullMargin || pos.sy > h + cullMargin) continue;
+                renderList.push({
+                    sy: pos.sy,
+                    draw: () => {
+                        const stack = hz.type === 'oil' ? SPRITE_STACKS.oil : SPRITE_STACKS.missile;
+                        drawSpriteStack(ctx, stack, pos.sx, pos.sy, hz.angle - cameraAngle, 2.3 * zoom, 1.8 * zoom, 0, 1.0);
+                    }
+                });
+            }
+
+            for (const k of karts) {
+                const pos = worldToScreen(k.x, k.y);
+                if (pos.sx < -cullMargin || pos.sx > w + cullMargin || pos.sy < -cullMargin || pos.sy > h + cullMargin) continue;
+                renderList.push({
+                    sy: pos.sy,
+                    draw: () => {
+                        let stack = SPRITE_STACKS.karts[k.color];
+                        if (k.starTimer > 0 && Math.floor(globalTime * 16) % 2 === 0) {
+                            stack = SPRITE_STACKS.kartsOverdrive[k.color];
+                        }
+                        const renderAngle = k.angle + k.visualAngleOffset - cameraAngle;
+                        const bounce = k.speed > 40 ? Math.sin(globalTime * 28 + k.x) * 0.8 * zoom : 0;
+                        drawSpriteStack(ctx, stack, pos.sx, pos.sy, renderAngle, 2.7 * zoom, 2.0 * zoom, Math.max(0, bounce), 1.0);
+                    }
+                });
+            }
+
+            for (const pt of particles) {
+                const pos = worldToScreen(pt.x, pt.y);
+                renderList.push({
+                    sy: pos.sy + 1,
+                    draw: () => {
+                        ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+                        ctx.fillStyle = pt.color;
+                        const s = pt.size * zoom;
+                        ctx.fillRect(pos.sx - s / 2, pos.sy - pt.z * zoom - s / 2, s, s);
+                        ctx.globalAlpha = 1;
+                    }
+                });
+            }
+
+            renderList.sort((a, b) => a.sy - b.sy);
+            for (const item of renderList) item.draw();
+        }
+
+        /**
+         * ポップ＆ビビッドなタイトル画面ショーケース（選択中コース＆専用形状マシンが連動）
+         */
+        function renderTitleShowcase(w, h) {
+            const c = currentCourse;
+
+            // 1. コースカラー連動のビビッド・グラデーション背景
+            const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+            bgGrad.addColorStop(0, c.skyStops[0]);
+            bgGrad.addColorStop(0.5, c.skyStops[1]);
+            bgGrad.addColorStop(1, '#1e1042');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, w, h);
+
+            // 2. ポップな斜めストライプ装飾
+            ctx.save();
+            ctx.globalAlpha = 0.14;
+            ctx.fillStyle = '#ffffff';
+            const stripeGap = 54;
+            const scroll = (globalTime * 26) % stripeGap;
+            for (let x = -h; x < w + h; x += stripeGap) {
+                ctx.beginPath();
+                ctx.moveTo(x + scroll, 0);
+                ctx.lineTo(x + scroll + 16, 0);
+                ctx.lineTo(x + scroll - h * 0.35 + 16, h);
+                ctx.lineTo(x + scroll - h * 0.35, h);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // 3. 選択中コースのシルエットをうっすら背後に回転表示
+            ctx.save();
+            ctx.globalAlpha = 0.18;
+            ctx.translate(w / 2, h * 0.45);
+            ctx.rotate(titleAngle * 0.14);
+            ctx.drawImage(trackCanvas, -WORLD_SIZE / 2, -WORLD_SIZE / 2);
+            ctx.restore();
+
+            // 4. ホログラム・ターンテーブル台座（上部UIと下部UIの完全な中間）
+            const cx = w / 2;
+            const cy = h * 0.46;
+            const scale = Math.min(w, h) < 520 ? 4.4 : 5.8;
+
+            // 放射グロースポットライト
+            const glowGrad = ctx.createRadialGradient(cx, cy + 12, scale * 3, cx, cy + 12, scale * 22);
+            glowGrad.addColorStop(0, 'rgba(34, 211, 238, 0.42)');
+            glowGrad.addColorStop(0.55, 'rgba(255, 46, 147, 0.18)');
+            glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = glowGrad;
+            ctx.beginPath();
+            ctx.arc(cx, cy + 12, scale * 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(cx, cy + 16);
+            ctx.fillStyle = 'rgba(19, 11, 46, 0.85)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, scale * 14.5, scale * 8.0, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#22d3ee';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.strokeStyle = '#ff2e93';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, scale * 12.2, scale * 6.5, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+
+            // 5. 選択中マシン（4車種専用形状）を360度ターンテーブル回転描画
+            const stack = SPRITE_STACKS.karts[selectedColor];
+            drawSpriteStack(ctx, stack, cx, cy + 12, titleAngle, scale, scale * 0.85, 0, 0.62);
+        }
+
+        function renderMinimap() {
+            const mw = minimapCanvas.width;
+            const mh = minimapCanvas.height;
+            mmCtx.clearRect(0, 0, mw, mh);
+
+            const s = mw / WORLD_SIZE;
+            mmCtx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+            mmCtx.lineWidth = 6;
+            mmCtx.beginPath();
+            mmCtx.moveTo(WAYPOINTS[0].x * s, WAYPOINTS[0].y * s);
+            for (let i = 1; i < WAYPOINTS.length; i += 3) {
+                mmCtx.lineTo(WAYPOINTS[i].x * s, WAYPOINTS[i].y * s);
+            }
+            mmCtx.closePath();
+            mmCtx.stroke();
+
+            for (const k of karts) {
+                mmCtx.fillStyle = k.isPlayer ? '#fde047' : KART_PALETTES[k.color].L;
+                mmCtx.beginPath();
+                mmCtx.arc(k.x * s, k.y * s, k.isPlayer ? 4.5 : 3, 0, Math.PI * 2);
+                mmCtx.fill();
+            }
+        }
+
+        // ============================================================================
+        // 8. 入力イベント設定（スワイプ・マルチタッチ・キーボード・コース＆マシン選択）
+        // ============================================================================
+        function setupControls() {
+            const SWIPE_MAX_PX = 82;
+
+            canvas.addEventListener('touchstart', (e) => {
+                if (gameState !== 'RACING' && gameState !== 'COUNTDOWN') return;
+                e.preventDefault();
+                if (input.swipeTouchId === null && e.changedTouches.length > 0) {
+                    const t = e.changedTouches[0];
+                    input.swipeTouchId = t.identifier;
+                    input.swipeActive = true;
+                    input.swipeAnchorX = t.clientX;
+                    input.swipeCurrentX = t.clientX;
+                    input.swipeCurrentY = t.clientY;
+                    input.swipeSteer = 0;
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (!input.swipeActive) return;
+                e.preventDefault();
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const t = e.changedTouches[i];
+                    if (t.identifier === input.swipeTouchId) {
+                        input.swipeCurrentX = t.clientX;
+                        input.swipeCurrentY = t.clientY;
+                        let dx = t.clientX - input.swipeAnchorX;
+                        if (Math.abs(dx) > SWIPE_MAX_PX) {
+                            input.swipeAnchorX = t.clientX - Math.sign(dx) * SWIPE_MAX_PX;
+                            dx = Math.sign(dx) * SWIPE_MAX_PX;
+                        }
+                        input.swipeSteer = Math.max(-1, Math.min(1, dx / SWIPE_MAX_PX));
+                        break;
+                    }
+                }
+            }, { passive: false });
+
+            const endTouchSwipe = (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === input.swipeTouchId) {
+                        input.swipeTouchId = null;
+                        input.swipeActive = false;
+                        input.swipeSteer = 0;
+                        break;
+                    }
+                }
+            };
+            canvas.addEventListener('touchend', endTouchSwipe);
+            canvas.addEventListener('touchcancel', endTouchSwipe);
+
+            let mouseDown = false;
+            canvas.addEventListener('mousedown', (e) => {
+                if (gameState !== 'RACING' && gameState !== 'COUNTDOWN') return;
+                mouseDown = true;
+                input.swipeActive = true;
+                input.swipeAnchorX = e.clientX;
+                input.swipeCurrentX = e.clientX;
+                input.swipeCurrentY = e.clientY;
+                input.swipeSteer = 0;
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!mouseDown) return;
+                input.swipeCurrentX = e.clientX;
+                input.swipeCurrentY = e.clientY;
+                let dx = e.clientX - input.swipeAnchorX;
+                if (Math.abs(dx) > SWIPE_MAX_PX) {
+                    input.swipeAnchorX = e.clientX - Math.sign(dx) * SWIPE_MAX_PX;
+                    dx = Math.sign(dx) * SWIPE_MAX_PX;
+                }
+                input.swipeSteer = Math.max(-1, Math.min(1, dx / SWIPE_MAX_PX));
+            });
+            window.addEventListener('mouseup', () => {
+                if (!mouseDown) return;
+                mouseDown = false;
+                input.swipeActive = false;
+                input.swipeSteer = 0;
+            });
+
+            const btnDrift = document.getElementById('btn-drift');
+            const setDrift = (active) => {
+                input.drift = active;
+                btnDrift.classList.toggle('active-touch', active);
+            };
+            btnDrift.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); setDrift(true); }, { passive: false });
+            btnDrift.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); setDrift(false); }, { passive: false });
+            btnDrift.addEventListener('touchcancel', () => setDrift(false));
+            btnDrift.addEventListener('mousedown', (e) => { e.stopPropagation(); setDrift(true); });
+            window.addEventListener('mouseup', () => setDrift(false));
+
+            const btnItem = document.getElementById('btn-item');
+            const triggerItem = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                input.useItemQueued = true;
+                btnItem.classList.add('active-touch');
+                setTimeout(() => btnItem.classList.remove('active-touch'), 120);
+            };
+            btnItem.addEventListener('touchstart', triggerItem, { passive: false });
+            btnItem.addEventListener('mousedown', triggerItem);
+
+            // キーボード操作（PCプレイ用）
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') input.keyLeft = true;
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') input.keyRight = true;
+                if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') setDrift(true);
+                if (e.code === 'KeyE' || e.code === 'KeyZ' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                    input.useItemQueued = true;
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') input.keyLeft = false;
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') input.keyRight = false;
+                if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') setDrift(false);
+            });
+
+            // コース選択カード（サムネイル付き画面）
+            document.querySelectorAll('.course-card').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    loadCourse(btn.dataset.course);
+                    document.querySelectorAll('.course-card').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    sound.init();
+                    sound.playBeep(660, 0.06, 'triangle', 0.06);
+                });
+            });
+
+            // マシン選択（形状＋性能切替）
+            document.querySelectorAll('.kart-color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedColor = btn.dataset.color;
+                    document.querySelectorAll('.kart-color-btn').forEach(b => {
+                        b.classList.remove('ring-2', 'ring-yellow-300', 'border-white');
+                        b.classList.add('border-white/40');
+                    });
+                    btn.classList.remove('border-white/40');
+                    btn.classList.add('ring-2', 'ring-yellow-300', 'border-white');
+                    updateMachineUI();
+                    sound.init();
+                    sound.playBeep(523, 0.06, 'triangle', 0.06);
+                });
+            });
+
+            // STARTボタン → コース選択画面へ遷移
+            document.getElementById('btn-start').addEventListener('click', () => {
+                sound.init();
+                sound.playBeep(660, 0.08, 'square', 0.07);
+                openCourseSelect();
+            });
+            document.getElementById('btn-course-back').addEventListener('click', () => {
+                gameState = 'TITLE';
+                elCourseScreen.classList.add('hidden');
+                elTitleScreen.classList.remove('hidden');
+                sound.playBeep(440, 0.06, 'triangle', 0.06);
+            });
+            document.getElementById('btn-go-race').addEventListener('click', startRace);
+
+            document.getElementById('btn-retry').addEventListener('click', startRace);
+            document.getElementById('btn-result-course').addEventListener('click', openCourseSelect);
+            document.getElementById('btn-title').addEventListener('click', () => {
+                gameState = 'TITLE';
+                sound.stopBgm();
+                elResultScreen.classList.add('hidden');
+                elResultScreen.classList.add('opacity-0');
+                elResultCard.classList.add('opacity-0', 'translate-y-4');
+                elHud.classList.add('hidden');
+                elTitleScreen.classList.remove('hidden');
+            });
+
+            const btnCam = document.getElementById('btn-cam');
+            btnCam.addEventListener('click', () => {
+                cameraMode = cameraMode === '3D' ? 'TOP' : '3D';
+                btnCam.textContent = cameraMode === '3D' ? '3D' : 'TOP';
+            });
+
+            const btnSound = document.getElementById('btn-sound');
+            btnSound.addEventListener('click', () => {
+                sound.init();
+                sound.muted = !sound.muted;
+                btnSound.innerHTML = sound.muted ? '<svg viewBox="0 0 24 24" width="12" height="12" style="display:block"><path fill="#fff" d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15 9l6 6M21 9l-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>' : '<svg viewBox="0 0 24 24" width="12" height="12" style="display:block"><path fill="#fff" d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15 8.5a5 5 0 0 1 0 7M17.5 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+            });
+        }
+
+        function resizeCanvas() {
+            const wrapper = document.getElementById('game-wrapper');
+            canvas.width = wrapper.clientWidth || window.innerWidth;
+            canvas.height = wrapper.clientHeight || window.innerHeight;
+            render();
+        }
+
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+            lastTime = timestamp;
+
+            try {
+                update(dt);
+                render();
+            } catch (err) {
+                console.error(err);
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = function () {
+            loadCourse('coast');
+            renderCourseThumbnails();
+            updateMachineUI();
+            setupControls();
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            requestAnimationFrame(gameLoop);
+        };
+    })();
+    </script>
+</body>
+</html>
