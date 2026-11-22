@@ -77,7 +77,7 @@ async function startRound() {
   screen('play'); document.body.classList.remove('blowing');
   Object.assign(S, { L: 0, W: 9, close: 0, front: 0, p: 0, started: false, quiet: 0, sustain: 0, mult: 1, maxMult: 1, peak: 0, dur: 0, taps: [], warned: false, fingerUsed: set.mode === 'finger' });
   updateHud();
-  $('blowGuide').hidden = true; $('holdBtn').hidden = true; $('count').hidden = true;
+  $('blowGuide').hidden = true; $('holdBtn').hidden = true; $('count').hidden = true; $('timeTop').hidden = true;
   sound.setMusic(false); sound.setAmb(0.12);
   if (set.mode === 'mic') {
     phase('calib');
@@ -112,11 +112,12 @@ function countdown() {
 function beginBlow() {
   phase('blow');
   const c = $('cut'); c.classList.remove('show'); void c.offsetWidth; c.classList.add('show');
-  sound.cut(); flash(); vib(40);
+  sound.cut(); vib(40);
   $('blowGuide').hidden = false; $('blowGuide').classList.remove('warn');
   $('blowHint').textContent = set.mode === 'mic' ? t('blowHint') : t('holdHint');
   $('blowSub').textContent = set.mode === 'mic' ? t('blowSub') : t('finger');
   $('holdBtn').hidden = set.mode !== 'finger';
+  $('timeTop').hidden = false;
   $('breathPeak').style.left = '0';
 }
 function phase(p) { S.phase = p; S.phaseT = 0; }
@@ -124,7 +125,7 @@ function phase(p) { S.phase = p; S.phaseT = 0; }
 function endBlow() {
   phase('reveal');
   document.body.classList.remove('blowing');
-  $('holdBtn').hidden = true;
+  $('holdBtn').hidden = true; $('timeTop').hidden = true;
   if (breath) breath.stop();
   sound.setRumble(0);
   if (S.L > 5) { sound.roar(); vib([60, 40, 120]); }
@@ -207,7 +208,10 @@ function updateHud() {
   $('multBox').classList.toggle('on', S.mult > 1.05); $('multBox').classList.toggle('hot', S.mult > 50);
   $('breathFill').style.width = (S.p * 100).toFixed(1) + '%';
   $('breathPeak').style.left = (S.peak * 100).toFixed(1) + '%';
-  $('timeFill').style.width = (S.started ? Math.max(0, 1 - S.dur / BLOW_LIMIT) * 100 : 100) + '%';
+  const rem = S.started ? Math.max(0, BLOW_LIMIT - S.dur) : BLOW_LIMIT;
+  $('timeFill').style.width = (rem / BLOW_LIMIT * 100).toFixed(1) + '%';
+  $('timeSec').textContent = rem.toFixed(1);
+  $('timeTop').classList.toggle('low', S.started && rem < 3);
 }
 
 // カメラ：割れた先端が常に画面に入るように
@@ -243,8 +247,10 @@ function snapshotCard() {
   try {
     const cv = ocean.canvas, ow = cv.width, oh = cv.height;
     cv.width = 1200; cv.height = 675;
-    const L = S.L, h = Math.min(26 + L * 0.25, 320);
-    const st = drawState(S.time); st.cam = [-(30 + h * 0.45), h, -(50 + h * 0.35)]; const tz = 40 + Math.min(L * 0.5, h * 6); st.tgt = [st.cam[0] - 0.42 * (tz - st.cam[2]), -6, tz]; st.roll = 0; st.fov = 1.6;
+    // 割れた道が文字パネルの右側に入るよう、斜め上空から見る
+    const L = S.L, h = Math.min(24 + L * 0.18, 220);
+    const st = drawState(S.time); st.cam = [10 + h * 0.45, h, -(80 + h * 0.3)];
+    const tz = 40 + Math.min(L * 0.45, h * 5); st.tgt = [st.cam[0] + 0.24 * (tz - st.cam[2]), -8, tz]; st.roll = 0; st.fov = 1.6; st.front = Math.max(st.front, 0.3);
     ocean.render(st);
     const shot = document.createElement('canvas'); shot.width = 1200; shot.height = 675; shot.getContext('2d').drawImage(cv, 0, 0);
     cv.width = ow; cv.height = oh; ocean.render(drawState(S.time));

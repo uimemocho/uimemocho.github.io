@@ -53,6 +53,7 @@
 </main>
 
 <div id="hud" hidden>
+ <div id="timeTop" class="time-top" hidden><div class="time-label"><span data-i18n="limit">残り</span><b id="timeSec">12.0</b><small data-i18n="sec">秒</small></div><div class="time-bar"><i id="timeFill"></i></div></div>
  <div class="dist-box">
   <small data-i18n="split">割れた距離</small>
   <div class="dist-num"><b id="hudDist">0</b><span id="hudUnit">m</span></div>
@@ -64,13 +65,12 @@
   <strong id="blowHint" data-i18n="blowHint"></strong>
   <small id="blowSub" data-i18n="blowSub"></small>
   <div class="breath-row"><span data-i18n="breath">息</span><div class="breath-meter"><i id="breathFill"></i><b class="peak" id="breathPeak"></b></div></div>
-  <div class="time-row"><div class="time-bar"><i id="timeFill"></i></div></div>
   <div class="mic-arrow" aria-hidden="true"></div>
  </div>
  <div id="holdBtn" class="hold-btn" hidden aria-hidden="true"><b>TAP</b></div>
 </div>
 
-<div id="cut" aria-hidden="true"><div class="cut-lines"></div><strong><span id="cutText">吹け</span><em>!!</em></strong><small>BREATH OF MOSES</small></div>
+<div id="cut" aria-hidden="true"><strong><span id="cutText">吹け</span><em>!!</em></strong><small>BREATH OF MOSES</small></div>
 
 <div id="sheet" class="sheet" hidden>
  <div class="sheet-card" role="dialog" aria-modal="true">

@@ -18,7 +18,7 @@ body[data-screen=result] #shade{background:linear-gradient(#0e1a2bcc,#0e1a2b66 3
 
 header{position:fixed;inset:var(--top) 22px auto;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:9;pointer-events:none}
 #brandMini{font:400 11px var(--logo);letter-spacing:.06em;opacity:0;transition:opacity .2s}
-body[data-screen=play] #brandMini{opacity:.8}
+body[data-screen=play] #brandMini{opacity:0}
 .headerbuttons{display:flex;gap:8px;pointer-events:auto}
 body[data-screen=play] .headerbuttons{visibility:hidden}
 .icon-button{background:#0e1a2b33;border:1px solid var(--line);width:34px;height:34px;color:var(--bone);display:grid;place-items:center}
@@ -92,7 +92,14 @@ html:not([lang=ja]):not([lang^=zh]) .title-screen h1{gap:.3em}
 .breath-meter{flex:1;height:10px;background:#0e1a2b99;box-shadow:inset 0 0 0 1px #ffffff40;position:relative;overflow:hidden}
 .breath-meter i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#3fd0bf,#bff5ee 70%,#fff)}
 .breath-meter .peak{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--sun);left:0}
-.time-row{width:min(300px,80vw)}.time-bar{height:2px;background:#ffffff22}.time-bar i{display:block;height:100%;width:100%;background:#ffffff99}
+.time-top{position:fixed;left:22px;right:22px;top:calc(var(--top) + 2px);display:flex;flex-direction:column;gap:6px;opacity:.55;transition:opacity .25s}
+body.blowing .time-top{opacity:1}
+.time-label{display:flex;align-items:baseline;gap:6px;justify-content:flex-end}
+.time-label span{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--ash);margin-right:auto}
+.time-label b{font:600 26px/1 var(--num);color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.02em}.time-label small{font-size:11px;color:var(--ash);font-weight:700}
+.time-top .time-bar{height:8px;background:#0e1a2b99;box-shadow:inset 0 0 0 1px #ffffff55}
+.time-top .time-bar i{display:block;height:100%;width:100%;background:var(--sun);transition:background .2s}
+.time-top.low .time-bar i{background:var(--peach)}.time-top.low .time-label b{color:var(--peach)}
 .mic-arrow{width:2px;height:28px;background:linear-gradient(transparent,var(--sun));position:relative;animation:mic-hint 1.1s ease-in-out infinite;margin-top:2px}
 .mic-arrow:after{content:'';position:absolute;left:-5px;bottom:-4px;border:6px solid transparent;border-top:8px solid var(--sun);border-bottom:0}
 @keyframes mic-hint{0%,100%{transform:translateY(-4px);opacity:.5}50%{transform:translateY(4px);opacity:1}}
@@ -108,11 +115,10 @@ body[data-screen=play]{touch-action:manipulation;user-select:none;-webkit-user-s
 #cut strong em{font-style:normal;color:var(--sun);font-size:.6em;margin-left:.04em;text-shadow:0 6px 0 var(--sea)}
 html:not([lang=ja]):not([lang^=zh]) #cut strong{font-size:clamp(64px,22vw,150px)}
 #cut small{font:600 14px var(--num);letter-spacing:.6em;text-indent:.6em;color:var(--sun);margin-top:16px}
-.cut-lines{position:absolute;inset:-20%;background:repeating-conic-gradient(from 0deg at 50% 50%,#ffffff00 0deg 4deg,#ffffff30 4deg 5deg);mask:radial-gradient(circle,transparent 24%,#000 60%);-webkit-mask:radial-gradient(circle,transparent 24%,#000 60%)}
-#cut.show{animation:cut-in 1.1s both}#cut.show strong{animation:cut-slam 1.1s both}#cut.show .cut-lines{animation:cut-spin 1.1s linear both}
+#cut.show{animation:cut-in 1.1s both}#cut.show strong{animation:cut-slam 1.1s both}#cut.show small{animation:cut-sub 1.1s both}
+@keyframes cut-sub{0%,10%{opacity:0;letter-spacing:1.4em}30%{opacity:1;letter-spacing:.6em}80%{opacity:1}100%{opacity:0}}
 @keyframes cut-in{0%{opacity:0}6%{opacity:1}75%{opacity:1}100%{opacity:0}}
 @keyframes cut-slam{0%{transform:skewX(-10deg) rotate(-4deg) scale(2.6);filter:blur(6px)}12%{transform:skewX(-10deg) rotate(-4deg) scale(.92);filter:none}20%{transform:skewX(-10deg) rotate(-4deg) scale(1.04)}80%{transform:skewX(-10deg) rotate(-4deg) scale(1)}100%{transform:skewX(-10deg) rotate(-4deg) scale(1.3) translateY(-30%);opacity:0}}
-@keyframes cut-spin{from{transform:rotate(0)}to{transform:rotate(25deg)}}
 
 /* シート */
 .sheet{position:fixed;inset:0;z-index:10;background:#0e1a2bb8;display:flex;align-items:flex-end;justify-content:center;padding:0 0 var(--bottom)}
