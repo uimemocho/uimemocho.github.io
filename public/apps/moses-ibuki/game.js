@@ -54,6 +54,7 @@ function refreshTexts() {
   document.title = t('name');
   $('tA').textContent = t('tA'); $('tB').textContent = t('tB');
   $('cutText').textContent = t('blowCut');
+  $('cutMark').textContent = '!';
   fitTitle();
   $('modeName').textContent = set.mode === 'mic' ? t('mic') : t('finger');
   $('modeToggle').textContent = set.mode === 'mic' ? t('mic') : t('finger');
