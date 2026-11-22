@@ -29,7 +29,7 @@ const S = {
   phase: 'title', time: 0, phaseT: 0,
   L: 0, W: 9, close: 0, front: 0, p: 0,
   started: false, startT: 0, quiet: 0, sustain: 0, mult: 1, maxMult: 1, peak: 0, dur: 0,
-  hold: false, holdT: 0, fingerUsed: false, warned: false, vibT: 0,
+  taps: [], fingerUsed: false, warned: false, vibT: 0,
   cam: [0, 6.5, -16], tgt: [0, -1.5, 60], roll: 0,
   result: null, card: null, next: null,
 };
@@ -71,7 +71,7 @@ function saveSet() { store.set('set', set); }
 async function startRound() {
   sound.init(); sound.click();
   screen('play'); document.body.classList.remove('blowing');
-  Object.assign(S, { L: 0, W: 9, close: 0, front: 0, p: 0, started: false, quiet: 0, sustain: 0, mult: 1, maxMult: 1, peak: 0, dur: 0, hold: false, holdT: 0, warned: false, fingerUsed: set.mode === 'finger' });
+  Object.assign(S, { L: 0, W: 9, close: 0, front: 0, p: 0, started: false, quiet: 0, sustain: 0, mult: 1, maxMult: 1, peak: 0, dur: 0, taps: [], warned: false, fingerUsed: set.mode === 'finger' });
   updateHud();
   $('blowGuide').hidden = true; $('holdBtn').hidden = true; $('count').hidden = true;
   sound.setMusic(false); sound.setAmb(0.12);
@@ -119,7 +119,7 @@ function phase(p) { S.phase = p; S.phaseT = 0; }
 function endBlow() {
   phase('reveal');
   document.body.classList.remove('blowing');
-  $('holdBtn').hidden = true; $('holdBtn').classList.remove('on'); S.hold = false;
+  $('holdBtn').hidden = true;
   if (breath) breath.stop();
   sound.setRumble(0);
   if (S.L > 5) { sound.roar(); vib([60, 40, 120]); }
@@ -157,9 +157,10 @@ function stepPlay(dt) {
     let p = 0;
     if (set.mode === 'mic' && breath) p = breath.update(dt);
     else {
-      if (S.hold) S.holdT += dt;
-      const target = S.hold ? (0.8 + 0.1 * Math.sin(S.holdT * 6.3) + 0.05 * Math.sin(S.holdT * 17)) * Math.max(0.5, 1 - S.holdT * 0.04) : 0;
-      S.p += (target - S.p) * (1 - Math.exp(-dt * (target > S.p ? 10 : 7))); p = S.p;
+      // 指連打：直近0.6秒の連打の速さを息の強さにする（毎秒8.5回で最大）
+      const now = S.phaseT; S.taps = S.taps.filter(x => now - x < 0.6);
+      const target = Math.min(1, S.taps.length / 0.6 / 8.5);
+      S.p += (target - S.p) * (1 - Math.exp(-dt * (target > S.p ? 8 : 4))); p = S.p;
     }
     S.p = p;
     if (!S.started && p > 0.18) { S.started = true; S.startT = S.phaseT; document.body.classList.add('blowing'); }
@@ -289,9 +290,13 @@ function bind() {
   sel.value = lang(); sel.onchange = () => { setLang(sel.value); refreshTexts(); if (S.result && S.phase === 'result') { snapshotCardText(); showResult(); } };
   // 指モード
   const hb = $('holdBtn');
-  const down = (e) => { e.preventDefault(); if (S.phase !== 'blow') return; S.hold = true; hb.classList.add('on'); try { hb.setPointerCapture(e.pointerId); } catch {} };
-  const up = () => { S.hold = false; hb.classList.remove('on'); };
-  hb.addEventListener('pointerdown', down); hb.addEventListener('pointerup', up); hb.addEventListener('pointercancel', up); hb.addEventListener('contextmenu', e => e.preventDefault());
+  addEventListener('pointerdown', (e) => {
+    if (S.phase !== 'blow' || set.mode !== 'finger') return;
+    e.preventDefault(); S.taps.push(S.phaseT);
+    hb.classList.remove('on'); void hb.offsetWidth; hb.classList.add('on');
+    sound._tone(420 + Math.random() * 80, 0.05, 0.05, 'triangle');
+  }, { passive: false });
+  hb.addEventListener('contextmenu', e => e.preventDefault());
   // 投稿
   $('shareBtn').onclick = async () => {
     sound.click(); const r = S.result; if (!r) return;
