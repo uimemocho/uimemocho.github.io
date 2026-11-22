@@ -4,6 +4,8 @@ import { Breath } from './breath.js';
 import { Sound } from './audio.js';
 import { t, setLang, detectLang, applyI18n, LANGS, lang } from './i18n.js';
 import { fmtDist, fmtMult, makeResultCard, shareResult, shareText, intentUrl, sandboxed, ensureFonts } from './share.js';
+// 指連打モードはマイクが使えないアーティファクト内だけ。公開版はマイクのみ
+const ALLOW_FINGER = sandboxed;
 
 const $ = (id) => document.getElementById(id);
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
@@ -18,7 +20,8 @@ const store = {
   set(k, v) { try { localStorage.setItem('moses.' + k, JSON.stringify(v)); } catch {} },
 };
 const set = Object.assign({ se: true, bgm: true, vib: true, hq: !/iPhone OS (1[0-4])_/.test(navigator.userAgent), mode: Breath.supported() ? 'mic' : 'finger' }, store.get('set', {}));
-if (!Breath.supported()) set.mode = 'finger';
+if (!ALLOW_FINGER) set.mode = 'mic';
+else if (!Breath.supported()) set.mode = 'finger';
 
 setLang(detectLang());
 const sound = new Sound(); sound.se = set.se; sound.bgm = set.bgm;
@@ -70,6 +73,7 @@ function saveSet() { store.set('set', set); }
 // ---- 開始 ----
 async function startRound() {
   sound.init(); sound.click();
+  if (!ALLOW_FINGER && !Breath.supported()) { toast(t('noMicPub'), 5200); return; }
   screen('play'); document.body.classList.remove('blowing');
   Object.assign(S, { L: 0, W: 9, close: 0, front: 0, p: 0, started: false, quiet: 0, sustain: 0, mult: 1, maxMult: 1, peak: 0, dur: 0, taps: [], warned: false, fingerUsed: set.mode === 'finger' });
   updateHud();
@@ -85,6 +89,7 @@ async function startRound() {
     } catch (e) {
       console.warn(e);
       if (breath) breath.stop();
+      if (!ALLOW_FINGER) { $('calib').hidden = true; goTitle(); toast(t('noMicPub'), 5200); return; }
       set.mode = 'finger'; S.fingerUsed = true; refreshTexts(); toast(t('noMic'), 3600);
     }
     $('calib').hidden = true;
@@ -324,6 +329,11 @@ async function boot() {
   try { ocean = new Ocean($('world')); }
   catch (e) { console.error(e); $('bootMsg').textContent = 'WebGL2 が使えないため表示できません'; return; }
   ocean.setQuality(set.hq);
+  if (!ALLOW_FINGER) {
+    $('modeBtn').hidden = true; $('modeToggle').closest('.set-row').hidden = true;
+    $('modeBtn').parentElement.classList.add('single');
+    const h4 = document.querySelector('[data-i18n="how4"]'); if (h4) h4.dataset.i18n = 'micHelp';
+  }
   bind(); refreshTexts(); screen('title');
   await ensureFonts(); fitTitle();
   ocean.render(drawState(0));
