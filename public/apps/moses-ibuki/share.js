@@ -3,7 +3,7 @@ import { t, lang } from './i18n.js';
 const BOLD = { 'zh-Hans': 'MosesBoldSC', 'zh-Hant': 'MosesBoldTC', ko: 'MosesBoldKR' };
 const boldFam = () => `"${BOLD[lang()] || 'MosesBold'}","MosesBold",sans-serif`;
 export const GAME_URL = 'https://uimemocho.github.io/apps/moses-ibuki/';
-const TAGS = '#ゲーム開発 #個人開発 #gamedev';
+const TAGS = '#モーゼの息吹 #ゲーム開発 #個人開発 #gamedev';
 
 export function fmtDist(m) {
   if (m < 1000) return { num: Math.round(m).toLocaleString('en-US'), unit: 'm' };
@@ -73,13 +73,8 @@ export function fmtMult(m) { return m < 10 ? m.toFixed(1) : m < 1000 ? Math.roun
 // claude.ai のアーティファクトなど、ダウンロードや共有が使えない場所
 export const sandboxed = !/(^|\.)uimemocho\.github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
 export function intentUrl(r) { const u = new URL('https://x.com/intent/post'); u.searchParams.set('text', shareText(r)); u.searchParams.set('url', GAME_URL); return u.href; }
-export async function shareResult(card, r, onSaved) {
-  const text = shareText(r);
-  const blob = await new Promise(res => card.toBlob(res, 'image/png'));
-  const file = blob ? new File([blob], 'moses-ibuki.png', { type: 'image/png' }) : null;
-  if (file && navigator.canShare && navigator.canShare({ files: [file] }) && /iP|Android/i.test(navigator.userAgent)) {
-    try { await navigator.share({ files: [file], text: text + '\n' + GAME_URL }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  if (blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'moses-ibuki.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); onSaved && onSaved(); }
-  window.open(intentUrl(r), '_blank', 'noopener');
-}
+export const mobile = /iP(hone|od|ad)|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
+// 結果画像をあらかじめ File にしておく（共有ボタンを押した瞬間に待ち時間なく共有シートを開くため）
+export function makeFile(card) { return new Promise(res => card.toBlob(b => res(b ? new File([b], 'moses-ibuki.png', { type: 'image/png' }) : null), 'image/png')); }
+export function canShareFile(file) { try { return !!(file && mobile && navigator.canShare && navigator.canShare({ files: [file] })); } catch { return false; } }
+export function saveFile(file) { const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }

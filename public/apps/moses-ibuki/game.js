@@ -3,7 +3,7 @@ import { Ocean } from './ocean.js';
 import { Breath } from './breath.js';
 import { Sound } from './audio.js';
 import { t, setLang, detectLang, applyI18n, LANGS, lang } from './i18n.js';
-import { fmtDist, fmtMult, makeResultCard, shareResult, shareText, intentUrl, sandboxed, ensureFonts } from './share.js';
+import { fmtDist, fmtMult, makeResultCard, shareText, intentUrl, sandboxed, ensureFonts, GAME_URL, makeFile, canShareFile, saveFile } from './share.js';
 // 指連打モードはマイクが使えないアーティファクト内だけ。公開版はマイクのみ
 const ALLOW_FINGER = sandboxed;
 
@@ -255,7 +255,8 @@ function snapshotCard() {
     ocean.render(st);
     const shot = document.createElement('canvas'); shot.width = 1200; shot.height = 675; shot.getContext('2d').drawImage(cv, 0, 0);
     cv.width = ow; cv.height = oh; ocean.render(drawState(S.time));
-    S.card = makeResultCard(shot, S.result);
+    S.card = makeResultCard(shot, S.result); S.shareFile = null;
+    const card = S.card; makeFile(card).then(f => { if (S.card === card) S.shareFile = f; });
   } catch (e) { console.warn(e); S.card = null; }
 }
 
@@ -310,17 +311,27 @@ function bind() {
   }, { passive: false });
   hb.addEventListener('contextmenu', e => e.preventDefault());
   // 投稿
-  $('shareBtn').onclick = async () => {
+  // 投稿：スマホは結果画像つきの共有シート（Xを選ぶと画像が添付された投稿画面になる）
+  $('shareBtn').onclick = () => {
     sound.click(); const r = S.result; if (!r) return;
-    await ensureFonts();
     if (!S.card) snapshotCardText();
-    if (sandboxed) {
-      $('sharePreview').src = S.card.toDataURL('image/png');
-      $('shareXLink').href = intentUrl(r);
-      openSheet('shareBody');
-    } else await shareResult(S.card, r, () => toast(t('saved')));
+    const file = S.shareFile;
+    if (!sandboxed && canShareFile(file)) {
+      navigator.share({ files: [file], text: shareText(r) + '\n' + GAME_URL }).catch(e => { if (!e || e.name !== 'AbortError') openShare(r); });
+      return;
+    }
+    openShare(r);
   };
-  $('copyText').onclick = async () => { try { await navigator.clipboard.writeText(shareText(S.result) + '\n' + 'https://uimemocho.github.io/apps/moses-ibuki/'); toast(t('copied')); } catch { toast(shareText(S.result)); } };
+  // 共有シートが使えない時：画像を見せて保存してもらい、Xの投稿画面へ
+  function openShare(r) {
+    $('sharePreview').src = S.card.toDataURL('image/png');
+    $('shareXLink').href = intentUrl(r);
+    $('saveImg').hidden = sandboxed;
+    $('shareNote').textContent = sandboxed || /iP|Android/i.test(navigator.userAgent) ? t('saveHint') : t('saveHintPc');
+    openSheet('shareBody');
+  }
+  $('saveImg').onclick = async () => { const f = S.shareFile || await makeFile(S.card); if (f) { saveFile(f); toast(t('saved')); } };
+  $('copyText').onclick = async () => { try { await navigator.clipboard.writeText(shareText(S.result) + '\n' + GAME_URL); toast(t('copied')); } catch { toast(shareText(S.result)); } };
   document.addEventListener('visibilitychange', () => {
     running = !document.hidden;
     if (document.hidden) { if (S.phase === 'blow') endBlow(); if (sound.ctx) sound.ctx.suspend(); }
