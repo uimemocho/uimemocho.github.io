@@ -63,6 +63,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:none
 .cb.empty .lbl{opacity:.5}
 .cb.cool{opacity:.45}
 .cb.hide{display:none}
+#ctl.pc #bFire,#ctl.pc #bMsl,#ctl.pc #bAct{display:none}
 #bFire{right:calc(18px + env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));width:86px;height:86px;font-size:16px}
 #bMsl{right:calc(28px + env(safe-area-inset-right));bottom:calc(114px + env(safe-area-inset-bottom))}
 #bAct{right:calc(28px + env(safe-area-inset-right));bottom:calc(190px + env(safe-area-inset-bottom))}
@@ -142,7 +143,9 @@ a.btn{text-decoration:none;display:inline-block}
     回避／加速：スクロールステージでは無敵ロール、全方位・宇宙ステージでは加速<br>
     アイテム：P パワーアップ　M ミサイル強化　S 修理　O オプション機<br>
     花《ブロッサム》（コロニー面）：雲を撃つと出現。撃つたびに跳ね、5発ごとに色が変化。黄 スコア／白 パワー／青 スピード／緑 オプション／赤 バリア。地上の砲台はボムで攻撃<br>
-    キーボード：矢印/WASD 操縦、Z 機銃、X ミサイル、Shift 回避/加速、Esc 一時停止
+    キーボード：矢印/WASD 操縦、Z 機銃、X ミサイル、Shift 回避/加速、Esc 一時停止<br>
+    PC操作モード：WASDで移動、左クリック長押しで機銃、右クリックでミサイル（ボム）、Shift・スペース・ホイールクリックで回避/加速
+    <div class="trow">PC操作モード（WASD移動・マウス攻撃） <span class="tog" id="togPc"></span></div>
     <div class="trow">機銃の自動連射 <span class="tog" id="togAuto"></span></div>
     <div class="trow">上下操作の反転（コクピット） <span class="tog" id="togInv"></span></div>
     <div class="trow">BGM <span class="tog" id="togBgm"></span></div>
@@ -708,14 +711,16 @@ let save={un:1,best:{},auto:null,inv:false,bgm:true};
 try{Object.assign(save,JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'));}catch(_){}
 save.debug=false;
 if(save.auto===null||save.autoV!==2){save.auto=false;save.autoV=2;}
+if(save.pc===undefined)save.pc=!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(_){}}
 function updToggles(){
   const s=(id,v)=>{const el=$(id);el.textContent=v?'オン':'オフ';el.classList.toggle('on',v);};
-  s('togAuto',save.auto);s('togInv',save.inv);s('togBgm',save.bgm);s('togDbg',!!save.debug);$('bDbg').classList.toggle('hide',!save.debug);
+  s('togAuto',save.auto);s('togPc',!!save.pc);$('ctl').classList.toggle('pc',!!save.pc);s('togInv',save.inv);s('togBgm',save.bgm);s('togDbg',!!save.debug);$('bDbg').classList.toggle('hide',!save.debug);
   $('ctl').classList.toggle('auto',save.auto);$('bFire').classList.toggle('hide',save.auto);CKL=null;
 }
 $('togAuto').onclick=()=>{save.auto=!save.auto;persist();updToggles();SFX.ui();};
 $('togInv').onclick=()=>{save.inv=!save.inv;persist();updToggles();SFX.ui();};
+$('togPc').onclick=()=>{save.pc=!save.pc;persist();updToggles();CKL=null;SFX.ui();toast(save.pc?'PC操作モード：WASD移動・左クリック機銃・右クリックミサイル':'タッチ操作モード');};
 $('togDbg').onclick=()=>{save.debug=!save.debug;persist();updToggles();SFX.ui();toast(save.debug?'デバッグモード オン（プレイ中に右上のDEBUGボタン）':'デバッグモード オフ');};
 $('togBgm').onclick=()=>{save.bgm=!save.bgm;persist();updToggles();if(musicG)musicG.gain.value=save.bgm?.32:0;SFX.ui();};
 
@@ -724,18 +729,23 @@ $('togBgm').onclick=()=>{save.bgm=!save.bgm;persist();updToggles();if(musicG)mus
 ========================================================= */
 const keys={};let fireHeld=false,boostHeld=false,mslReq=false,rollReq=false;
 addEventListener('keydown',e=>{
-  if(!keys[e.code]&&state==='play'){if(e.code==='KeyX')mslReq=true;if(e.code==='ShiftLeft'||e.code==='ShiftRight')rollReq=true;if(e.code==='Escape'||e.code==='KeyP')togglePause();}
+  if(!keys[e.code]&&state==='play'){if(e.code==='KeyX'||e.code==='KeyE')mslReq=true;if(e.code==='ShiftLeft'||e.code==='ShiftRight'||(save.pc&&e.code==='Space'))rollReq=true;if(e.code==='Escape'||e.code==='KeyP')togglePause();}
   if(state==='scene'&&(e.code==='Space'||e.code==='Enter'||e.code==='KeyZ')){sceneTap();}
   keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
 addEventListener('keyup',e=>{keys[e.code]=false;});
 const stick={id:null,ox:0,oy:0,x:0,y:0,on:false};
 const touchEl=$('touch');
-touchEl.addEventListener('pointerdown',e=>{initAudio();if(state!=='play'||stick.id!==null)return;stick.id=e.pointerId;stick.ox=e.clientX;stick.oy=e.clientY;stick.x=stick.y=0;stick.on=true;try{touchEl.setPointerCapture(e.pointerId);}catch(_){}});
+touchEl.addEventListener('contextmenu',e=>e.preventDefault());
+touchEl.addEventListener('pointerdown',e=>{initAudio();
+  if(save.pc&&e.pointerType==='mouse'){if(state!=='play')return;if(e.button===0){fireHeld=true;}else if(e.button===2){mslReq=true;}else if(e.button===1){rollReq=true;boostHeld=true;}e.preventDefault();return;}
+  if(state!=='play'||stick.id!==null)return;stick.id=e.pointerId;stick.ox=e.clientX;stick.oy=e.clientY;stick.x=stick.y=0;stick.on=true;try{touchEl.setPointerCapture(e.pointerId);}catch(_){}});
 touchEl.addEventListener('pointermove',e=>{
   if(e.pointerId!==stick.id)return;const R=Math.min(SW,SH)*.12;let dx=(e.clientX-stick.ox)/R,dy=(e.clientY-stick.oy)/R;
   const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l;if(l>1.5){stick.ox=e.clientX-dx*R;stick.oy=e.clientY-dy*R;}}stick.x=dx;stick.y=-dy;});
 const endStick=e=>{if(e.pointerId===stick.id){stick.id=null;stick.on=false;stick.x=stick.y=0;}};
-touchEl.addEventListener('pointerup',endStick);touchEl.addEventListener('pointercancel',endStick);
+touchEl.addEventListener('pointerup',e=>{if(e.pointerType==='mouse'){if(e.button===0)fireHeld=false;if(e.button===1)boostHeld=false;}endStick(e);});
+touchEl.addEventListener('mousedown',e=>{if(e.button===1)e.preventDefault();});touchEl.addEventListener('auxclick',e=>{if(e.button===1)e.preventDefault();});
+addEventListener('blur',()=>{fireHeld=false;boostHeld=false;});touchEl.addEventListener('pointercancel',endStick);
 function holdBtn(el,down,up){
   el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();down();el.classList.add('on');try{el.setPointerCapture(e.pointerId);}catch(_){}});
   const u=()=>{up();el.classList.remove('on');};el.addEventListener('pointerup',u);el.addEventListener('pointercancel',u);el.addEventListener('lostpointercapture',u);
@@ -748,7 +758,7 @@ function readInput(){
   let sx=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0);
   let sy=(keys.ArrowUp||keys.KeyW?1:0)-(keys.ArrowDown||keys.KeyS?1:0);
   if(stick.on){sx=stick.x;sy=stick.y;}
-  return {sx,sy,fire:save.auto||fireHeld||keys.KeyZ||keys.Space,boost:boostHeld||keys.ShiftLeft||keys.ShiftRight};
+  return {sx,sy,fire:save.auto||fireHeld||keys.KeyZ||(!save.pc&&keys.Space),boost:boostHeld||keys.ShiftLeft||keys.ShiftRight||(save.pc&&keys.Space)};
 }
 
 /* =========================================================
@@ -1956,7 +1966,7 @@ function cockpitLayout(){
   if(CKL)return CKL;
   const W=SW,H=SH;const ph=clamp(H*.27,84,165);const top=H-ph;
   let colL=W-SA.r;['bFire','bMsl','bAct'].forEach(id=>{const el=$(id);if(el.offsetParent!==null&&!el.classList.contains('hide')){const r=el.getBoundingClientRect();if(r.width)colL=Math.min(colL,r.left);}});
-  if(colL>W-60)colL=W-SA.r-110;
+  if(save.pc)colL=W-SA.r-10;else if(colL>W-60)colL=W-SA.r-110;
   const availL=SA.l+10,availR=colL-12;
   const b={scr:ph*1.15,scrH:ph*.72,gr:ph*.15,br:ph*.32,gap:ph*.09};
   let tot=2*b.scr+4*b.gr+2*b.br+6*b.gap;let k=1;if(tot>availR-availL)k=(availR-availL)/tot;
@@ -2139,6 +2149,24 @@ document.querySelectorAll('#dbg [data-d]').forEach(b=>b.addEventListener('click'
   }
   dbgSync();
 }));
+function drawPCGauges(){
+  if(!save.pc||!player||!ST||!(state==='play'||state==='pause'))return;
+  const p=player,r=20,W=SW,H=SH;
+  let y=H-SA.b-34;if(mode==='cockpit')y=cockpitLayout().top-34;
+  const items=[];
+  if(M.free)items.push({k:p.boost,c:'#7ee0ff',t:'加速',key:'Shift/ホイール',v:Math.round(p.boost*100)+'%'});
+  else{const k=1-p.rollCd/2.4;items.push({k,c:k>=1?'#ff7a2a':'#ffb070',t:'回避',key:'Shift/ホイール',v:k>=1?'OK':p.rollCd.toFixed(1)});}
+  if(ST.S.bee)items.push({k:1-Math.max(0,p.bombCd)/.38,c:'#ffd04a',t:'ボム',key:'右クリック',v:''});
+  else items.push({k:p.mslN>=p.mslMax?1:p.mslRe/(M.free?3.2:5),c:p.mslN>0?'#7ee0ff':'#4a6a8a',t:'ミサイル',key:'右クリック',v:p.mslN+'/'+p.mslMax});
+  items.push({k:p.wlv/5,c:'#ffb040',t:'機銃',key:'左クリック',v:'Lv'+p.wlv});
+  let x=W-SA.r-16-r;
+  for(let i=items.length-1;i>=0;i--){const it=items[i];
+    hx.fillStyle='rgba(8,20,50,.72)';hx.beginPath();hx.arc(x,y,r,0,TAU);hx.fill();
+    hx.lineWidth=4;hx.strokeStyle='rgba(255,255,255,.14)';hx.beginPath();hx.arc(x,y,r-2,0,TAU);hx.stroke();
+    hx.strokeStyle=it.c;hx.beginPath();hx.arc(x,y,r-2,-PI/2,-PI/2+TAU*clamp(it.k,0,1));hx.stroke();
+    TP(it.t,x,y-3,10,'#fff','center','middle');if(it.v)TP(it.v,x,y+8,9,'#ffd27a','center','middle');
+    T(it.key,x,y+r+3,9,'#9fc3ff','center');x-=r*2+16;}
+}
 function drawDebugHUD(dt){
   if(!save.debug)return;
   if(dt>0)DBG.fpsV=lerp(DBG.fpsV,1/Math.max(dt/DBG.ts,1e-3),.08);
@@ -2242,7 +2270,7 @@ function frame(now){
   renderer.setRenderTarget(RT);renderer.render(scene,cam);renderer.setRenderTarget(null);
   postMat.uniforms.cn.value=cam.near;postMat.uniforms.cf.value=cam.far;postMat.uniforms.orth.value=cam.isOrthographicCamera?1:0;
   renderer.render(postScene,postCam);
-  drawHUD(dt);drawDebugHUD(dt);
+  drawHUD(dt);drawPCGauges();drawDebugHUD(dt);
 }
 addEventListener('resize',resize);
 resize();updToggles();openTitle();
