@@ -1,5 +1,7 @@
 // リザルト画像・X投稿
-import { t } from './i18n.js';
+import { t, lang } from './i18n.js';
+const BOLD = { 'zh-Hans': 'MosesBoldSC', 'zh-Hant': 'MosesBoldTC', ko: 'MosesBoldKR' };
+const boldFam = () => `"${BOLD[lang()] || 'MosesBold'}","MosesBold",sans-serif`;
 export const GAME_URL = 'https://uimemocho.github.io/apps/moses-ibuki/';
 const TAGS = '#ゲーム開発 #個人開発 #gamedev';
 
@@ -12,7 +14,7 @@ export function shareText(r) {
   return t('shareText', { dist: d.num + d.unit, rank: r.rank.grade, title: t('r.' + r.rank.grade), sec: r.sec.toFixed(1), mode: r.finger ? '（' + t('finger') + '）' : '' }) + '\n' + TAGS;
 }
 export async function ensureFonts() {
-  const fams = ['400 40px "Dela Gothic One"', '700 22px "Zen Kaku Gothic New"', '400 30px Oswald', '600 60px Oswald'];
+  const fams = ['400 40px "Dela Gothic One"', '700 22px "Zen Kaku Gothic New"', '400 30px Oswald', '600 60px Oswald', '900 30px "MosesBold"', `900 30px "${BOLD[lang()] || 'MosesBold'}"`];
   try { await Promise.all(fams.map(f => document.fonts.load(f, 'モーゼの息吹ABCm0123'))); } catch {}
 }
 export function makeResultCard(scene, r) {
@@ -26,15 +28,16 @@ export function makeResultCard(scene, r) {
   g.addColorStop(0, '#0e1a2bf2'); g.addColorStop(0.42, '#0e1a2bc8'); g.addColorStop(0.7, '#0e1a2b30'); g.addColorStop(1, '#0e1a2b00');
   c.fillStyle = g; c.fillRect(0, 0, W, H);
   const fit = (text, font, max, min, width) => { let s = max; while (s > min) { c.font = font.replace('$', s); if (c.measureText(text).width <= width) break; s--; } return s; };
-  const disp = '"Dela Gothic One",sans-serif', body = '"Zen Kaku Gothic New",sans-serif', num = 'Oswald,sans-serif';
+  const cjk = !!BOLD[lang()];
+  const disp = cjk ? boldFam() : '"Dela Gothic One",sans-serif', bold = boldFam(), dw8 = cjk ? 900 : 400, body = '"Zen Kaku Gothic New",sans-serif', num = 'Oswald,sans-serif';
   // ロゴ
   c.fillStyle = '#ffd60a'; c.fillRect(60, 50, 6, 24);
   c.font = `500 20px ${num}`; c.fillStyle = '#d6dfec'; c.fillText(t('sub'), 80, 70);
   c.save(); c.transform(1, 0, -0.12, 1, 0, 0);
   const tA = t('tA'), tB = t('tB');
-  fit(tA + tB, `400 $px ${disp}`, 62, 30, 480);
+  fit(tA + tB, `${dw8} $px ${disp}`, 62, 30, 480);
   const fs = parseInt(c.font, 10);
-  c.fillStyle = '#fff'; c.fillText(tA, 76, 146); const x0 = 76 + c.measureText(tA).width + (/[a-z]/i.test(tA) ? fs * 0.25 : 2);
+  c.fillStyle = '#fff'; c.fillText(tA, 76, 146); const x0 = 76 + c.measureText(tA).width + (/[a-z가-힣]/i.test(tA) ? fs * 0.25 : 2);
   c.fillStyle = '#ffd60a'; c.fillText(tB, x0, 146);
   c.restore();
   // 距離
@@ -52,7 +55,7 @@ export function makeResultCard(scene, r) {
   if (r.rank.grade === 'SSS') { const gg = c.createLinearGradient(0, 440, 320, 560); gg.addColorStop(0, '#fff8d8'); gg.addColorStop(0.5, '#ffe37d'); gg.addColorStop(1, '#ff9a4d'); c.fillStyle = gg; }
   else c.fillStyle = r.rank.idx <= 1 ? '#d6dfec' : '#ffd60a';
   c.fillText(r.rank.grade, 64, 550); const rw = c.measureText(r.rank.grade).width; c.restore();
-  fit(t('r.' + r.rank.grade), `400 $px ${disp}`, 32, 16, Math.max(140, 430 - rw)); c.fillStyle = '#fff'; c.fillText(t('r.' + r.rank.grade), 64 + rw + 40, 538);
+  fit(t('r.' + r.rank.grade), `900 $px ${bold}`, 34, 16, Math.max(140, 430 - rw)); c.fillStyle = '#fff'; c.fillText(t('r.' + r.rank.grade), 64 + rw + 40, 538);
   if (r.finger) { c.font = `700 15px ${body}`; const ft = t('finger'); const fw = c.measureText(ft).width; c.fillStyle = '#ffffff22'; c.fillRect(64 + rw + 40, 552, fw + 18, 26); c.fillStyle = '#d6dfec'; c.fillText(ft, 64 + rw + 49, 571); }
   // 下帯
   c.fillStyle = '#0e1a2bf0'; c.fillRect(0, 596, W, 79); c.fillStyle = '#ffd60a'; c.fillRect(60, 596, 80, 3);

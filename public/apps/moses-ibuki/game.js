@@ -51,11 +51,19 @@ function refreshTexts() {
   document.title = t('name');
   $('tA').textContent = t('tA'); $('tB').textContent = t('tB');
   $('cutText').textContent = t('blowCut');
+  fitTitle();
   $('modeName').textContent = set.mode === 'mic' ? t('mic') : t('finger');
   $('modeToggle').textContent = set.mode === 'mic' ? t('mic') : t('finger');
   document.querySelectorAll('.toggle[data-key]').forEach(b => { const on = !!set[b.dataset.key]; b.setAttribute('aria-pressed', on); b.textContent = on ? t('on') : t('off'); });
   const best = store.get('best', 0);
   $('bestLine').textContent = best > 0 ? (() => { const d = fmtDist(best); return `${t('best')}  ${d.num} ${d.unit}`; })() : '';
+}
+// タイトルを1行に収める（画面幅の9割まで）
+function fitTitle() {
+  const h = $('title'); if (!h) return;
+  const max = Math.min(innerWidth * 0.9, 560);
+  let fs = /^(ja|zh)/.test(lang()) ? 76 : 60; h.style.fontSize = fs + 'px';
+  while (fs > 22 && h.scrollWidth > max) { fs -= 2; h.style.fontSize = fs + 'px'; }
 }
 function saveSet() { store.set('set', set); }
 
@@ -301,7 +309,7 @@ function bind() {
     if (document.hidden) { if (S.phase === 'blow') endBlow(); if (sound.ctx) sound.ctx.suspend(); }
     else if (sound.ctx) sound.ctx.resume();
   });
-  addEventListener('resize', () => ocean.resize());
+  addEventListener('resize', () => { ocean.resize(); fitTitle(); });
 }
 // 言語変更時は画像を作り直す
 function snapshotCardText() { if (S.result) snapshotCard(); }
@@ -312,7 +320,7 @@ async function boot() {
   catch (e) { console.error(e); $('bootMsg').textContent = 'WebGL2 が使えないため表示できません'; return; }
   ocean.setQuality(set.hq);
   bind(); refreshTexts(); screen('title');
-  await ensureFonts();
+  await ensureFonts(); fitTitle();
   ocean.render(drawState(0));
   $('boot').classList.add('gone');
   requestAnimationFrame(loop);
