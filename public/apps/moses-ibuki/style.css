@@ -35,7 +35,8 @@ main{position:fixed;inset:0;z-index:3;pointer-events:none}.screen{pointer-events
 .title-screen{height:100%;padding:clamp(70px,12svh,140px) 22px var(--bottom);display:flex;flex-direction:column;align-items:center;justify-content:space-between}
 .title-block{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
 .title-screen h1{font:400 64px/1.2 var(--logo);letter-spacing:-.03em;transform:skewX(-7deg);text-shadow:0 3px 0 #0e1a2b66,0 8px 38px #0e1a2b99;display:flex;flex-direction:row;align-items:baseline;justify-content:center;white-space:nowrap;gap:.08em;max-width:100%}
-.title-screen h1 small{font-size:1em;color:#fff}.title-screen h1 .no,#boot .no{font-size:.72em;letter-spacing:.02em}.title-screen h1 em{font-style:normal;color:var(--sun)}
+.title-screen h1 small{font-size:1em;color:#fff}.title-screen h1 .no,#boot .no{font-size:.72em;letter-spacing:0;margin-right:-.04em}
+html[lang=ja] .title-screen h1{gap:0}.title-screen h1 em{font-style:normal;color:var(--sun)}
 html:is([lang=zh-Hans],[lang=zh-Hant],[lang=ko]) .title-screen h1{font-weight:900}
 html:not([lang=ja]):not([lang^=zh]) .title-screen h1{gap:.3em}
 .title-sub{font:400 12px var(--num);letter-spacing:.42em;text-indent:.42em;color:var(--ash);text-shadow:0 1px 8px #0e1a2b;text-align:center}

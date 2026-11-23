@@ -42,7 +42,7 @@ export function makeResultCard(scene, r) {
   let x0 = 76; c.fillStyle = '#fff';
   if (tA.endsWith('の')) {
     const head = tA.slice(0, -1); c.fillText(head, x0, 146); x0 += c.measureText(head).width;
-    const f0 = c.font; c.font = f0.replace(/\d+px/, Math.round(fs * NO_SCALE) + 'px'); c.fillText('の', x0, 146); x0 += c.measureText('の').width + 2; c.font = f0;
+    const f0 = c.font; c.font = f0.replace(/\d+px/, Math.round(fs * NO_SCALE) + 'px'); c.fillText('の', x0, 146); x0 += c.measureText('の').width - fs * 0.07; c.font = f0;
   } else { c.fillText(tA, x0, 146); x0 += c.measureText(tA).width + (/[a-z가-힣]/i.test(tA) ? fs * 0.25 : 2); }
   c.fillStyle = '#ffd60a'; c.fillText(tB, x0, 146);
   c.restore();
