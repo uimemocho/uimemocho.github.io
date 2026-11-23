@@ -248,7 +248,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
     <div class="row"><span class="lb" data-i18n="control"></span><div class="seg" id="segCtrl"><button data-v="gyro" data-i18n="gyro"></button><button data-v="touch" data-i18n="touch"></button></div></div>
     <div class="row"><span class="lb" data-i18n="sens"></span><input type="range" id="sens" min="0.6" max="2.2" step="0.1"></div>
     <div class="row"><span class="lb" data-i18n="sound"></span><div class="seg" id="segSnd"><button data-v="1">ON</button><button data-v="0">OFF</button></div></div>
-    <div class="pBtns"><button class="btn" data-act="closeSettings" data-i18n="close"></button></div>
+    <div class="pBtns"><button class="btn" data-act="closeSettings" data-i18n="close"></button><button class="btn ghost" data-act="debug" style="height:40px;font-family:Oswald;letter-spacing:.2em">DEBUG MENU</button></div>
   </div>
 </section>
 
@@ -292,7 +292,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
     <div class="dbgGrid">
       <button data-dbg="unlock">UNLOCK ALL</button><button data-dbg="allstar">ALL STARS</button><button data-dbg="reset">RESET SAVE</button>
     </div>
-    <div class="pBtns"><button class="btn" data-dbg="close">CLOSE</button></div>
+    <div class="pBtns"><button class="btn" data-dbg="close">CLOSE</button><button class="btn ghost" data-dbg="hide" style="height:40px;font-family:Oswald;letter-spacing:.2em">HIDE DBG BUTTON</button></div>
   </div>
 </section>
 <button id="btnDebug" class="hidden">DBG</button>
@@ -891,6 +891,7 @@ document.addEventListener('click',e=>{const a=e.target.closest('[data-act]');if(
     case 'retry':startStage(game.si);break;
     case 'next':startStage(Math.min(STAGES.length-1,game.si+1));break;
     case 'quit':goSelect();break;
+    case 'debug':enableDebug();openDebug();break;
   }
   e.stopPropagation();
 });
@@ -900,11 +901,12 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame()
 
 /* ---------------- debug ---------------- */
 const DBG={on:false,auto:false,freeze:false,speed:1,unlock:false,fps:false,stage:0};
-(function(){let q='';try{q=location.search+location.hash;}catch(e){}if(/debug/i.test(q))DBG.on=true;})();
+(function(){let q='';try{q=location.search+location.hash;}catch(e){}if(/debug/i.test(q)||save.dbg)DBG.on=true;})();
+function enableDebug(){DBG.on=true;save.dbg=true;persist();$('btnDebug').classList.remove('hidden');}
 let lpTimer=0,suppressTitle=false;
 const logoEl=document.querySelector('.logo');
-logoEl.addEventListener('pointerdown',()=>{clearTimeout(lpTimer);lpTimer=setTimeout(()=>{DBG.on=true;suppressTitle=true;$('btnDebug').classList.remove('hidden');notice('DEBUG MODE ON');},1500);});
-['pointerup','pointercancel','pointerleave'].forEach(ev=>logoEl.addEventListener(ev,()=>clearTimeout(lpTimer)));
+logoEl.addEventListener('pointerdown',()=>{clearTimeout(lpTimer);lpTimer=setTimeout(()=>{enableDebug();suppressTitle=true;notice('DEBUG MODE ON');},1500);});
+['pointerup'].forEach(ev=>logoEl.addEventListener(ev,()=>clearTimeout(lpTimer)));logoEl.addEventListener('contextmenu',e=>e.preventDefault());
 if(DBG.on)$('btnDebug').classList.remove('hidden');
 let dbgReturn=null;
 function openDebug(){if(state==='play')pauseGame();dbgReturn=SCR.find(s=>$(s).classList.contains('on'))||null;DBG.stage=level?level.si:0;renderDebug();showScreen('scrDebug');}
@@ -921,6 +923,7 @@ document.getElementById('btnDebug').addEventListener('click',e=>{e.stopPropagati
 $('scrDebug').addEventListener('click',e=>{const b=e.target.closest('[data-dbg]');if(!b)return;e.stopPropagation();const k=b.dataset.dbg;AU.init();AU.ui();
   switch(k){
     case 'close':closeDebug();return;
+    case 'hide':DBG.on=false;save.dbg=false;persist();$('btnDebug').classList.add('hidden');closeDebug();return;
     case 'auto':DBG.auto=!DBG.auto;if(!DBG.auto)input.drag=null;break;
     case 'freeze':DBG.freeze=!DBG.freeze;break;
     case 'speed':DBG.speed=DBG.speed===1?2:DBG.speed===2?4:1;break;
