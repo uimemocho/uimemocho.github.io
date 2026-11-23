@@ -50,8 +50,6 @@ button{font-family:inherit;cursor:pointer;-webkit-appearance:none;appearance:non
 .backBtn{position:absolute;left:14px;top:calc(env(safe-area-inset-top) + 12px);height:36px;padding:0 14px;font-size:12px}
 .stageList{width:min(460px,100%);flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:0 0 24px;position:relative}
 .stg{position:relative;display:flex;align-items:center;gap:14px;width:100%;text-align:left;color:#fff;padding:14px 14px 14px 58px;margin-bottom:10px;background:var(--panel);border:1px solid var(--line);border-radius:2px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.stg::before{content:"";position:absolute;left:28px;top:-11px;bottom:-11px;width:1px;background:var(--line)}
-.stg:first-child::before{top:50%}.stg:last-child::before{bottom:50%}
 .stg .node{position:absolute;left:21px;top:50%;width:15px;height:15px;margin-top:-7.5px;border:2px solid var(--y);background:var(--navy);transform:rotate(45deg)}
 .stg.done .node{background:var(--y)}
 .stg .num{font-family:"Dela Gothic One";font-size:28px;line-height:1;min-width:44px;transform:skewX(-7deg)}
