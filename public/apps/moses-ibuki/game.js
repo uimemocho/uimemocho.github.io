@@ -76,7 +76,7 @@ async function startRound() {
   sound.init(); sound.click();
   if (!ALLOW_FINGER && !Breath.supported()) { toast(t('noMicPub'), 5200); return; }
   screen('play'); document.body.classList.remove('blowing');
-  Object.assign(S, { L: 0, W: 9, close: 0, front: 0, p: 0, started: false, quiet: 0, sustain: 0, mult: 1, maxMult: 1, peak: 0, dur: 0, taps: [], warned: false, fingerUsed: set.mode === 'finger' });
+  Object.assign(S, { L: 0, W: 9, close: 0, front: 0, p: 0, started: false, quiet: 0, avgP: 0, gapT: 0, rawS: undefined, sustain: 0, mult: 1, maxMult: 1, peak: 0, dur: 0, taps: [], warned: false, fingerUsed: set.mode === 'finger' });
   updateHud();
   $('blowGuide').hidden = true; $('holdBtn').hidden = true; $('count').hidden = true; $('timeTop').hidden = true;
   sound.setMusic(false); sound.setAmb(0.12);
@@ -180,6 +180,15 @@ function stepPlay(dt) {
       S.peak = Math.max(S.peak, p);
       S.W = Math.max(S.W - dt * 0.2, 8 + 10 * p);
       S.quiet = p < 0.07 ? S.quiet + dt : 0;
+      // ひと息判定：息継ぎ（生の息圧がそれまでの平均より大きく落ちる瞬間）があったら、そこで終わり
+      if (set.mode === 'mic' && breath) {
+        S.rawS = (S.rawS ?? breath.raw) + (breath.raw - (S.rawS ?? breath.raw)) * (1 - Math.exp(-dt * 25)); const raw = S.rawS;
+        if (S.dur > 0.35) {
+          S.gapT = raw < Math.max(0.08, S.avgP * 0.35) ? S.gapT + dt : 0;
+          if (S.gapT > 0.2) { endBlow(); return; }
+        }
+        S.avgP += (p - S.avgP) * (1 - Math.exp(-dt * 1.2));
+      }
       if (S.quiet > 0.65 || S.dur > BLOW_LIMIT) endBlow();
       S.vibT -= dt; if (p > 0.3 && S.vibT <= 0) { vib(Math.round(15 + p * 25)); S.vibT = 0.14; }
     } else {
