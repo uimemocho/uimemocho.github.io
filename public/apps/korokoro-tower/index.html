@@ -26,7 +26,7 @@ button{font-family:inherit;cursor:pointer;-webkit-appearance:none;appearance:non
 /* title */
 #scrTitle{background:radial-gradient(ellipse at 50% 40%,rgba(14,26,43,0) 0%,rgba(14,26,43,.35) 60%,rgba(14,26,43,.85) 100%)}
 .logoWrap{display:flex;flex-direction:column;align-items:center;margin-top:-8vh}
-.logo{-webkit-touch-callout:none;font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:min(12.2vw,84px);line-height:1.1;transform:skewX(-7deg);white-space:nowrap;letter-spacing:0;filter:drop-shadow(0 5px 0 rgba(9,17,29,.85)) drop-shadow(0 0 16px rgba(9,17,29,.9)) drop-shadow(0 0 28px rgba(255,214,10,.28))}
+.logo{-webkit-touch-callout:none;font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:min(12.2vw,84px);line-height:1.1;transform:skewX(-7deg);white-space:nowrap;letter-spacing:0;filter:drop-shadow(0 2px 14px rgba(9,17,29,.85)) drop-shadow(0 0 30px rgba(9,17,29,.6))}
 .logo span{text-shadow:none}
 .logo .y{color:var(--y)}
 .logoSub{font-family:Oswald,sans-serif;font-size:15px;letter-spacing:.62em;padding-left:.62em;color:var(--sub);margin-top:16px;text-shadow:0 2px 12px var(--navy);white-space:nowrap}
@@ -835,7 +835,7 @@ function makeShareImage(){
   x.restore();x.strokeStyle='rgba(214,223,236,.3)';x.lineWidth=2;x.strokeRect(sx,sy,sw,sh);
   // logo
   const L=650;{const lc=document.createElement('canvas');lc.width=560;lc.height=120;const lx=lc.getContext('2d');lx.translate(16,92);lx.transform(1,0,-0.12,1,0,0);lx.font='400 70px "Dela Gothic One"';lx.fillStyle='#fff';lx.fillText('コロコロ',0,0);const w1=lx.measureText('コロコロ').width;lx.fillStyle='#ffd60a';lx.fillText('タワー',w1,0);
-    x.save();x.shadowColor='rgba(255,214,10,.3)';x.shadowBlur=26;x.drawImage(lc,L-8,48);x.shadowColor='rgba(9,17,29,.9)';x.shadowBlur=14;x.drawImage(lc,L-8,48);x.shadowBlur=0;x.shadowOffsetY=5;x.shadowColor='rgba(9,17,29,.85)';x.drawImage(lc,L-8,48);x.restore();}
+    x.save();x.shadowColor='rgba(9,17,29,.6)';x.shadowBlur=30;x.drawImage(lc,L-8,48);x.shadowColor='rgba(9,17,29,.85)';x.shadowBlur=14;x.shadowOffsetY=2;x.drawImage(lc,L-8,48);x.restore();}
   x.font='400 20px Oswald';x.fillStyle='#d6dfec';drawSpaced(x,'KOROKORO TOWER',L+4,186,8);
   x.fillStyle='#ffd60a';x.fillRect(L,214,500,2);
   x.font='400 26px Oswald';x.fillStyle='#ffd60a';drawSpaced(x,'STAGE '+String(si+1).padStart(2,'0'),L,262,5);
