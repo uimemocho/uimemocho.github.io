@@ -52,7 +52,10 @@ function rankOf(m) { let i = 0; while (i < TH.length && m >= TH[i]) i++; return 
 function refreshTexts() {
   applyI18n();
   document.title = t('name');
-  $('tA').textContent = t('tA'); $('tB').textContent = t('tB');
+  const tA = t('tA');
+  if (tA.endsWith('の')) { $('tA').innerHTML = ''; $('tA').append(tA.slice(0, -1)); const no = document.createElement('span'); no.className = 'no'; no.textContent = 'の'; $('tA').append(no); }
+  else $('tA').textContent = tA;
+  $('tB').textContent = t('tB');
   $('cutText').textContent = t('blowCut');
   $('cutMark').textContent = '!';
   fitTitle();

@@ -2,6 +2,7 @@
 import { t, lang } from './i18n.js';
 const BOLD = { 'zh-Hans': 'MosesBoldSC', 'zh-Hant': 'MosesBoldTC', ko: 'MosesBoldKR' };
 const boldFam = () => `"${BOLD[lang()] || 'MosesBold'}","MosesBold",sans-serif`;
+export const NO_SCALE = 0.72;
 export const GAME_URL = 'https://uimemocho.github.io/apps/moses-ibuki/';
 const TAGS = '#モーゼの息吹 #ゲーム開発 #個人開発 #gamedev';
 
@@ -37,7 +38,12 @@ export function makeResultCard(scene, r) {
   const tA = t('tA'), tB = t('tB');
   fit(tA + tB, `${dw8} $px ${disp}`, 62, 30, 480);
   const fs = parseInt(c.font, 10);
-  c.fillStyle = '#fff'; c.fillText(tA, 76, 146); const x0 = 76 + c.measureText(tA).width + (/[a-z가-힣]/i.test(tA) ? fs * 0.25 : 2);
+  // 日本語は「の」を少し小さく
+  let x0 = 76; c.fillStyle = '#fff';
+  if (tA.endsWith('の')) {
+    const head = tA.slice(0, -1); c.fillText(head, x0, 146); x0 += c.measureText(head).width;
+    const f0 = c.font; c.font = f0.replace(/\d+px/, Math.round(fs * NO_SCALE) + 'px'); c.fillText('の', x0, 146); x0 += c.measureText('の').width + 2; c.font = f0;
+  } else { c.fillText(tA, x0, 146); x0 += c.measureText(tA).width + (/[a-z가-힣]/i.test(tA) ? fs * 0.25 : 2); }
   c.fillStyle = '#ffd60a'; c.fillText(tB, x0, 146);
   c.restore();
   // 距離
