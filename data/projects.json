@@ -800,5 +800,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-22T04:46:13Z",
     "updatedAt": "2026-11-22T04:46:13Z"
+  },
+  {
+    "slug": "korokoro-tower",
+    "title": "コロコロタワー",
+    "kind": "game",
+    "description": "スマホを傾けて珠を転がし、塔の上の階から1階のゴールを目指す3D箱庭迷路。穴に落ちるたびに下の階へ。流れる床・氷・バンパー・鍵と扉・ワープ・回転バーなどギミックだらけの全10ステージを、時間内クリア・クリスタル全回収・目標タイムのスター3つで攻略。結果はXに投稿できる。",
+    "url": "/apps/korokoro-tower/",
+    "thumbnail": "/project-thumbnails/catalog/korokoro-tower.webp",
+    "sourceFolder": "261123_コロコロタワー",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-23T12:13:50Z",
+    "updatedAt": "2026-11-23T12:13:50Z"
   }
 ]
