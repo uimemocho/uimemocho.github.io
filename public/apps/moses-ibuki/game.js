@@ -9,7 +9,7 @@ const ALLOW_FINGER = sandboxed;
 
 const $ = (id) => document.getElementById(id);
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
-const TH = [30, 150, 500, 1500, 5000, 15000, 30000];
+const TH = [30, 150, 500, 1500, 8000, 30000, 100000];
 const BLOW_LIMIT = 12;      // 吹き始めてからの上限秒
 const WAIT_LIMIT = 10;      // 吹き始めるまで待つ上限秒
 const lerp = (a, b, k) => a + (b - a) * k;
