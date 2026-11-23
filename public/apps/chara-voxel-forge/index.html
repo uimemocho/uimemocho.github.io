@@ -139,7 +139,7 @@ input[type=color]::-webkit-color-swatch{border:0;border-radius:2px}
 <body>
 <div class="app">
   <header>
-    <h1>CHARA VOXEL FORGE<small>v1.0</small></h1>
+    <h1>CHARA VOXEL FORGE<small>v1.1</small></h1>
     <div style="display:flex;align-items:center;gap:10px"><select class="param-select" id="langSel" style="flex:0 0 auto;font-size:10px;padding:3px 4px"></select><div id="statusText">READY</div></div>
   </header>
   <div class="progress"><i id="progressFill"></i></div>
@@ -556,6 +556,7 @@ JSONを読めませんでした|Could not read JSON|无法读取JSON|無法讀�
 出力エラー: |Export error: |导出错误：|匯出錯誤：|출력 오류: |Erreur d'export : |Exportfehler: |Ошибка экспорта: |Errore esportazione: 
 生成エラー: |Generation error: |生成错误：|生成錯誤：|생성 오류: |Erreur de génération : |Erzeugungsfehler: |Ошибка генерации: |Errore generazione: 
 保存できませんでした（|Could not save (|无法保存（|無法儲存（|저장할 수 없습니다（|Échec de l'enregistrement (|Speichern fehlgeschlagen (|Не удалось сохранить (|Salvataggio non riuscito (
+左右対称|Mirror|左右对称|左右對稱|좌우 대칭|Symétrie|Spiegeln|Симметрия|Simmetria
 `;
 function pickLang(){let Q=null;try{Q=new URLSearchParams(location.search)}catch(e){}
   const l=((Q&&Q.get('lang'))||navigator.language||'ja').toLowerCase();
@@ -615,6 +616,7 @@ class Builder{
   bone(name,parent,x,y,z){this.bi[name]=this.bones.length;this.bones.push({name,parent:parent==null?-1:this.bi[parent],pos:[x,y,z]});return this.bi[name]}
   k(x,y,z){return x+','+y+','+z}
   set(x,y,z,c,b){if(c==null||c<0)return;const bi=typeof b==='string'?this.bi[b]:b;if(bi==null)throw new Error('unknown bone '+b);this.cells.set(this.k(x,y,z),{x,y,z,c,b:bi})}
+  setE(x,y,z,c,b){if(!this.has(x,y,z))this.set(x,y,z,c,b)}
   get(x,y,z){return this.cells.get(this.k(x,y,z))}
   has(x,y,z){return this.cells.has(this.k(x,y,z))}
   del(x,y,z){this.cells.delete(this.k(x,y,z))}
@@ -752,6 +754,8 @@ function drawFace(fp,expr){
     case 'shy':both(s=>{eyeHappy(s)});mouth('small');blush();break;
     case 'dead':{const X=[[0,0],[2,0],[1,1],[0,2],[2,2]];glyph(-1,X,3,3);glyph(1,X,3,3);mouth('small');break}
   }
+  // enforce exact left/right symmetry: mirror the left half onto the right half
+  for(let y=0;y<H;y++)for(let x=0;x<Math.floor(W/2);x++)px[y*W+(W-1-x)]=px[y*W+x];
   return px;
 }
 
@@ -1027,7 +1031,7 @@ function genHuman(o){
   // ---- WEAPON / GEAR
   let weapon=o.weapon==='auto'?(sp?(MONSTER_HUMANOIDS[sp]||{}).weapon||'none':job.weapon):o.weapon;
   if(elder&&o.weapon==='auto'&&job.weapon==='none')weapon='cane';
-  const gear={sw,armT,az0,az1,yH0,hs,H,tz0,tz1,chestY,yN,legLen,metal:C.metal,accent:C.accent};
+  const gear={sw,armT,az0,az1,yH0,hs,H,tz0,tz1,chestY,yN,legLen,hy0,hx0,metal:C.metal,accent:C.accent};
   addWeapon(B,weapon,gear);
   if((o.shield==null?job.shield:o.shield)&&weapon!=='bow')addShield(B,gear,C,yN-upperLen);
   if(job.quiver&&!sp)addQuiver(B,gear);
@@ -1076,8 +1080,8 @@ function addHair(B,style,col,h,fringe,rng,o){
     if(z>=z1){ // front fringe
       if(fr<=0||ox)continue;
       const row=y1-1-y;let len=fr;
-      if(jag&&((x-x0)%3===1))len=fr-1;
-      if(style==='spiky'&&((x-x0)%2===0))len=fr-1;
+      const mi=Math.min(x-x0,x1-1-x);if(jag&&(mi%3===1))len=fr-1;
+      if(style==='spiky'&&(mi%2===0))len=fr-1;
       if(row<len)put(x,y,z);
       continue;
     }
@@ -1106,7 +1110,7 @@ function addHair(B,style,col,h,fringe,rng,o){
     for(let x=-2;x<2;x++)for(let y=y1;y<y1+3;y++)for(let z=z0-1;z<z0+2;z++){if((x===-2||x===1)&&(y===y1||y===y1+2))continue;B.set(x,y+1,z,(hash3(x,y,z,5)>.8)?cD:c,'Head')}
   }
   if(style==='spiky'){
-    for(let x=x0;x<x1;x+=2)for(let z=z0;z<z1;z+=2){const hgt=1+Math.floor(hash3(x,0,z,o?o.seed:1)*2.2);for(let k=1;k<=hgt;k++)B.set(x,y1+k,z,k===hgt?cL:c,'Head')}
+    for(let x=x0;x<0;x+=2)for(let z=z0;z<z1;z+=2){const hgt=1+Math.floor(hash3(x,0,z,o?o.seed:1)*2.2);for(let k=1;k<=hgt;k++){B.set(x,y1+k,z,k===hgt?cL:c,'Head');B.set(-1-x,y1+k,z,k===hgt?cL:c,'Head')}}
     for(let y=y1-2;y<y1;y++){B.set(x0-2,y,z0+1,c,'Head');B.set(x1+1,y,z0+1,c,'Head')}
   }
   if(style==='afro'){
@@ -1177,13 +1181,13 @@ function addHat(B,hat,h,fringe,C,o,fp){
     const col=hat==='bandana'?C.accent:C.accent;const y=y1-1-Math.max(0,fringe-1);
     for(let x=x0-1;x<=x1;x++)for(let z=z0-1;z<=z1;z++){const ox=x<x0||x>=x1,oz=z<z0||z>=z1;if(ox&&oz)continue;if(!ox&&!oz)continue;B.set(x,y,z,col,'Head')}
     if(hat==='bandana')for(let x=x0;x<x1;x++)for(let z=z0;z<z1;z++)B.set(x,y1,z,col,'Head');
-    B.set(0,y,z0-2,col,'Head');B.set(0,y-1,z0-2,col,'Head');B.set(-1,y-2,z0-2,col,'Head');
+    for(const kx of [-1,0]){B.set(kx,y,z0-2,col,'Head');B.set(kx,y-1,z0-2,col,'Head')}B.set(-2,y-2,z0-2,col,'Head');B.set(1,y-2,z0-2,col,'Head');
     if(hat==='bandana'){for(const c of [...B.cells.values()])if(c.b===B.bi.Head&&c.y>y1)B.del(c.x,c.y,c.z)}
     return;
   }
   if(hat==='crown'){
     const G=0xf0c43a,GD=0xc8962a;
-    for(let x=x0+1;x<x1-1;x++)for(let z=z0+1;z<z1-1;z++){const edge=x===x0+1||x===x1-2||z===z0+1||z===z1-2;if(!edge)continue;B.set(x,y1+1,z,GD,'Head');if((x+z)%2===0)B.set(x,y1+2,z,G,'Head')}
+    for(let x=x0+1;x<x1-1;x++)for(let z=z0+1;z<z1-1;z++){const edge=x===x0+1||x===x1-2||z===z0+1||z===z1-2;if(!edge)continue;B.set(x,y1+1,z,GD,'Head');if((Math.min(x,-1-x)+z)%2===0)B.set(x,y1+2,z,G,'Head')}
     B.set(-1,y1+1,z1-2,0xe0283a,'Head');B.set(0,y1+1,z1-2,0xe0283a,'Head');
     return;
   }
@@ -1225,49 +1229,49 @@ function addWeapon(B,w,g){
   const H=g.H;
   if(w==='sword'||w==='dagger'){
     const bl=Math.round(H*(w==='sword'?.36:.16));const bh=(w==='sword'&&H>=30)?2:1;
-    for(let x=gx-1;x<=gx+1;x++)B.set(x,gy,zf,G,bone);
-    if(bh===2)B.set(gx,gy+1,zf,G,bone),B.set(gx,gy-1,zf,G,bone);
-    for(let i=1;i<=bl;i++){const tip=i===bl;for(let k=0;k<bh;k++){if(tip&&k===bh-1&&bh>1)continue;B.set(gx,gy+k-(bh>1?0:0),zf+i,k===bh-1&&bh>1?ML:M,bone)}}
-    B.set(gx,gy,zb-1,G,bone);
+    for(let x=gx-1;x<=gx+1;x++)B.setE(x,gy,zf,G,bone);
+    if(bh===2)B.setE(gx,gy+1,zf,G,bone),B.setE(gx,gy-1,zf,G,bone);
+    for(let i=1;i<=bl;i++){const tip=i===bl;for(let k=0;k<bh;k++){if(tip&&k===bh-1&&bh>1)continue;B.setE(gx,gy+k-(bh>1?0:0),zf+i,k===bh-1&&bh>1?ML:M,bone)}}
+    B.setE(gx,gy,zb-1,G,bone);
     return;
   }
   if(w==='spear'){
     const back=Math.round(H*.2),fwd=Math.round(H*.5);
-    for(let z=zb-back;z<zf+fwd;z++)B.set(gx,gy,z,W,bone);
-    for(let i=0;i<3;i++)B.set(gx,gy,zf+fwd+i,i===2?ML:M,bone);
-    B.set(gx-1,gy,zf+fwd,MD,bone);B.set(gx+1,gy,zf+fwd,MD,bone);B.set(gx,gy+1,zf+fwd,MD,bone);B.set(gx,gy-1,zf+fwd,MD,bone);
+    for(let z=zb-back;z<zf+fwd;z++)B.setE(gx,gy,z,W,bone);
+    for(let i=0;i<3;i++)B.setE(gx,gy,zf+fwd+i,i===2?ML:M,bone);
+    B.setE(gx-1,gy,zf+fwd,MD,bone);B.setE(gx+1,gy,zf+fwd,MD,bone);B.setE(gx,gy+1,zf+fwd,MD,bone);B.setE(gx,gy-1,zf+fwd,MD,bone);
     return;
   }
   if(w==='axe'){
     const L=Math.round(H*.32);
-    for(let z=zb-1;z<zf+L;z++)B.set(gx,gy,z,W,bone);
-    for(let z=zf+L-3;z<zf+L;z++)for(let y=gy+1;y<=gy+3;y++)B.set(gx,y,z,y===gy+3||z===zf+L-3?ML:M,bone);
-    for(let z=zf+L-3;z<zf+L;z++)B.set(gx,gy+4,z,ML,bone);
-    B.set(gx,gy-1,zf+L-2,MD,bone);
+    for(let z=zb-1;z<zf+L;z++)B.setE(gx,gy,z,W,bone);
+    for(let z=zf+L-3;z<zf+L;z++)for(let y=gy+1;y<=gy+3;y++)B.setE(gx,y,z,y===gy+3||z===zf+L-3?ML:M,bone);
+    for(let z=zf+L-3;z<zf+L;z++)B.setE(gx,gy+4,z,ML,bone);
+    B.setE(gx,gy-1,zf+L-2,MD,bone);
     return;
   }
   if(w==='club'){
     const L=Math.round(H*.3);
-    for(let z=zb-1;z<zf+L;z++){const t=(z-zf)/L;const r=t>.55?1:0;for(let x=gx-r;x<=gx+r;x++)for(let y=gy-r;y<=gy+r;y++)B.set(x,y,z,hash3(x,y,z,2)>.8?WD:W,bone)}
+    for(let z=zb-1;z<zf+L;z++){const t=(z-zf)/L;const r=t>.55?1:0;for(let x=gx-r;x<=gx+r;x++)for(let y=gy-r;y<=gy+r;y++)B.setE(x,y,z,hash3(x,y,z,2)>.8?WD:W,bone)}
     return;
   }
   if(w==='staff'){
     const lo=Math.round(H*.22),hi=Math.round(H*.55);
-    for(let y=g.yH0-lo;y<g.yH0+hi;y++)B.set(gx,y,zc,W,bone);
-    const ty=g.yH0+hi;const gem=g.accent;
-    for(let x=gx-1;x<=gx+1;x++)for(let y=ty;y<ty+3;y++)for(let z=zc-1;z<=zc+1;z++){if((x!==gx&&z!==zc)&&(y!==ty+1))continue;B.set(x,y,z,(y===ty+2||x===gx+1)?mix(gem,0xffffff,.35):gem,bone)}
-    B.set(gx-1,ty-1,zc,G,bone);B.set(gx+1,ty-1,zc,G,bone);B.set(gx,ty-1,zc-1,G,bone);B.set(gx,ty-1,zc+1,G,bone);
+    {const top=(gx>=g.hx0-1&&gx<-g.hx0+1)?Math.min(g.yH0+hi,g.hy0-3):g.yH0+hi;for(let y=g.yH0-lo;y<top;y++)B.setE(gx,y,zc,W,bone)}
+    let ty=g.yH0+hi;if(gx>=g.hx0-1&&gx<-g.hx0+1)ty=Math.min(ty,g.hy0-3);const gem=g.accent;
+    for(let x=gx-1;x<=gx+1;x++)for(let y=ty;y<ty+3;y++)for(let z=zc-1;z<=zc+1;z++){if((x!==gx&&z!==zc)&&(y!==ty+1))continue;B.setE(x,y,z,(y===ty+2||x===gx+1)?mix(gem,0xffffff,.35):gem,bone)}
+    B.setE(gx-1,ty-1,zc,G,bone);B.setE(gx+1,ty-1,zc,G,bone);B.setE(gx,ty-1,zc-1,G,bone);B.setE(gx,ty-1,zc+1,G,bone);
     return;
   }
   if(w==='cane'){
-    for(let y=0;y<gy;y++)B.set(gx,y,zf,W,bone);
-    B.set(gx,gy,zf,W,bone);B.set(gx,gy+1,zf,W,bone);B.set(gx,gy+1,zf-1,W,bone);B.set(gx,gy+1,zb,WD,bone);
+    for(let y=0;y<gy;y++)B.setE(gx,y,zf,W,bone);
+    B.setE(gx,gy,zf,W,bone);B.setE(gx,gy+1,zf,W,bone);B.setE(gx,gy+1,zf-1,W,bone);B.setE(gx,gy+1,zb,WD,bone);
     return;
   }
   if(w==='bow'){
     const bx=g.sw/2+Math.floor(g.armT/2);const half=Math.round(H*.24);const by=gy;const bn='LeftHand';
-    for(let dy=-half;dy<=half;dy++){const t=dy/half;const z=zf-Math.round(2.4*t*t);B.set(bx,by+dy,z,Math.abs(dy)<=1?WD:W,bn);if(Math.abs(dy)<half&&z>zf-2&&Math.abs(t)>.4)B.set(bx,by+dy,z+1,W,bn)}
-    for(let dy=-half+1;dy<half;dy++){const z=zf-3;if(z>=zb&&z<zf)continue;B.set(bx,by+dy,z,0xe8e2d0,bn)}
+    for(let dy=-half;dy<=half;dy++){const t=dy/half;const z=zf-Math.round(2.4*t*t);B.setE(bx,by+dy,z,Math.abs(dy)<=1?WD:W,bn);if(Math.abs(dy)<half&&z>zf-2&&Math.abs(t)>.4)B.setE(bx,by+dy,z+1,W,bn)}
+    for(let dy=-half+1;dy<half;dy++){const z=zf-3;if(z>=zb&&z<zf)continue;B.setE(bx,by+dy,z,0xe8e2d0,bn)}
     return;
   }
 }
@@ -1279,14 +1283,14 @@ function addShield(B,g,C,lowerTop){
     const ey=y===y0-1||y===y1,ez=z===z0||z===z1-1;if(ey&&ez)continue;
     let c=C.accent;if(ey||ez)c=shade(C.metal,.85);
     const my=(y0+y1)/2,mz=(z0+z1)/2;if(Math.abs(y+.5-my)<1&&Math.abs(z+.5-mz)<1)c=0xf0c43a;
-    B.set(x,y,z,c,bn);
+    B.setE(x,y,z,c,bn);
   }
 }
 function addQuiver(B,g){
-  const z=g.tz0-1;const yb=g.chestY-Math.round(g.H*.08);
-  for(let i=0;i<Math.round(g.H*.32);i++){const y=yb+i;const x=Math.round(-g.sw/2+1+i*.4);B.set(x,y,z,0x7a4f2a,'Chest');B.set(x+1,y,z,0x6a4224,'Chest')}
-  const ty=yb+Math.round(g.H*.32);const tx=Math.round(-g.sw/2+1+Math.round(g.H*.32)*.4);
-  B.set(tx,ty,z,0xf2f2f2,'Chest');B.set(tx+1,ty+1,z,0xd03a3a,'Chest');B.set(tx+1,ty,z,0xf2f2f2,'Chest');
+  const z=g.tz0-1;const yb=g.chestY-Math.round(g.H*.08);const qn=Math.max(2,Math.min(Math.round(g.H*.32),g.yN-2-yb));
+  for(let i=0;i<qn;i++){const y=yb+i;const x=Math.round(-g.sw/2+1+i*.4);B.setE(x,y,z,0x7a4f2a,'Chest');B.setE(x+1,y,z,0x6a4224,'Chest')}
+  const ty=yb+qn;const tx=Math.round(-g.sw/2+1+qn*.4);
+  B.setE(tx,ty,z,0xf2f2f2,'Chest');B.setE(tx+1,ty+1,z,0xd03a3a,'Chest');B.setE(tx+1,ty,z,0xf2f2f2,'Chest');
 }
 
 /* =========================================================
@@ -1446,8 +1450,8 @@ function genQuad(o){
       B.set(x,y,z,patAt(x,y,z,c),nm)}
   }
   // dragon spikes & wings
-  if(sp.spikes){for(let z=z0+1;z<z1;z+=2){B.set(-1,yB1,z,pat,z<0?'Body':'Chest');B.set(0,yB1,z,pat,z<0?'Body':'Chest');if((z>>1)%2===0)B.set(-1,yB1+1,z,shade(pat,1.3),z<0?'Body':'Chest')}
-    for(let i=0;i<neck;i+=2){const y=neckBaseY+i+Math.round(Hb*.35);const dz=Math.round(i/(neck+Hb*.35)*fwd);B.set(-1,y,nz0+dz-1,pat,'Neck');B.set(0,y,nz0+dz-1,pat,'Neck')}}
+  if(sp.spikes){for(let z=z0+1;z<z1;z+=2){B.setE(-1,yB1,z,pat,z<0?'Body':'Chest');B.setE(0,yB1,z,pat,z<0?'Body':'Chest');if((z>>1)%2===0){B.setE(-1,yB1+1,z,shade(pat,1.3),z<0?'Body':'Chest');B.setE(0,yB1+1,z,shade(pat,1.3),z<0?'Body':'Chest')}}
+    for(let i=0;i<neck;i+=2){const y=neckBaseY+i+Math.round(Hb*.35);const dz=Math.round(i/(neck+Hb*.35)*fwd);B.setE(-1,y,nz0+dz-1,pat,'Neck');B.setE(0,y,nz0+dz-1,pat,'Neck')}}
   if(sp.wings){
     const span=Math.round(14*s),dep=Math.round(9*s);const wy=yB1;const wz=Math.round(L*.18);
     for(const sx of [1,-1]){const S=sx>0?'Left':'Right';
@@ -1511,7 +1515,7 @@ function genFlyer(o){
     const hy0=by1-Math.round(hh*(bat?.6:.45)),hz0=bz1-Math.round(hd*(bat?.6:.55)),hz1=hz0+hd,hy1=hy0+hh;
     B.bone('Head','Body',0,hy0+1,hz0+hd/2);
     B.box('Head',-hw/2,hw/2,hy0,hy1,hz0,hz1,(x,y,z)=>{const ex=x===-hw/2||x===hw/2-1,ey=y===hy1-1;if(ex&&ey)return -1;let c=main;if(!bat&&y<hy0+2&&z>=hz1-1)c=sub;return c});
-    if(!bat){B.set(-1,hy0+1,hz1,pat,'Head');B.set(0,hy0+1,hz1,pat,'Head');B.set(-1,hy0+1,hz1+1,shade(pat,.9),'Head');B.set(0,hy0+1,hz1+1,shade(pat,.9),'Head');B.set(-1,hy1,hz0+1,main,'Head');B.set(0,hy1,hz0+2,main,'Head')}
+    if(!bat){B.set(-1,hy0+1,hz1,pat,'Head');B.set(0,hy0+1,hz1,pat,'Head');B.set(-1,hy0+1,hz1+1,shade(pat,.9),'Head');B.set(0,hy0+1,hz1+1,shade(pat,.9),'Head');B.set(-1,hy1,hz0+1,main,'Head');B.set(0,hy1,hz0+1,main,'Head');B.set(-1,hy1+1,hz0+1,shade(main,1.1),'Head');B.set(0,hy1+1,hz0+1,shade(main,1.1),'Head')}
     else {for(const sx of [1,-1]){const xo=sx>0?hw/2-1:-hw/2;for(let i=0;i<R(3);i++){B.set(xo,hy1+i,hz0+1,main,'Head');B.set(xo-sx,hy1+i,hz0+1,i<R(3)-1?sub:main,'Head')}}
       B.set(-2,hy0,hz1,0xf5f2e6,'Head');B.set(1,hy0,hz1,0xf5f2e6,'Head');}
     // wings
@@ -1583,15 +1587,14 @@ function genBox(o){
   for(let z=z0+1;z<z1-1;z++)for(let x=-1;x<1;x++)B.set(x,bH-1,z,0xd0506a,'Base');
   B.set(-1,bH-1,z1-1,0xd0506a,'Base');B.set(0,bH-1,z1-1,0xd0506a,'Base');
   // teeth on base rim
-  for(let x=-W/2+1;x<W/2-1;x+=2){B.set(x,bH,z1-1,0xf5f2e6,'Base')}
+  for(let x=-W/2+1;x<0;x+=2){B.set(x,bH,z1-1,0xf5f2e6,'Base');B.set(-1-x,bH,z1-1,0xf5f2e6,'Base')}
   // lid
   B.box('Lid',-W/2,W/2,bH+1,bH+1+lH,z0,z1,(x,y,z)=>{
     const top=y===bH+lH;const ex=x===-W/2||x===W/2-1;
     if(top&&(z===z0||z===z1-1))return -1;
     if(band(x))return C.pat;
     return wood(x,y,z)});
-  for(let x=-W/2+2;x<W/2-1;x+=2)B.set(x,bH,z1-1-0,0xf5f2e6,'Lid');
-  for(let x=-W/2+2;x<W/2-1;x+=2)B.set(x,bH,z1-1,0xf5f2e6,'Lid');
+  for(let x=-W/2+2;x<0;x+=2){B.set(x,bH,z1-1,0xf5f2e6,'Lid');B.set(-1-x,bH,z1-1,0xf5f2e6,'Lid')}
   // lock
   B.box('Base',-1,1,bH-3,bH-1,z1,z1+1,C.sub);B.set(-1,bH-2,z1,shade(C.sub,.6),'Base');
   // eyes on lid front
@@ -2263,7 +2266,7 @@ function buildFaceStrip(){
     b.onclick=()=>{state.expr=k;buildFaceStrip()};b.ondblclick=()=>openEditor(k);s.appendChild(b)});
   const ed=document.createElement('button');ed.className='btn btn-sm';ed.textContent=T('表情を編集');ed.style.flex='0 0 auto';ed.onclick=()=>openEditor(state.expr==='auto'?'neutral':state.expr);s.appendChild(ed);
 }
-let EDIT={expr:'neutral',color:0,erase:false,down:false};
+let EDIT={expr:'neutral',color:0,erase:false,down:false,mirror:true};
 function openEditor(expr){
   EDIT.expr=expr;$('faceModal').classList.remove('hidden');$('editTitle').textContent=T('表情を編集：')+T(EXPRS.find(e=>e[0]===expr)[1]);
   const fp=MODEL.face.fp;const C=fp.colors;
@@ -2271,6 +2274,7 @@ function openEditor(expr){
   const pal=$('editPal');pal.innerHTML='';
   const er=document.createElement('button');er.className='erase'+(EDIT.erase?' on':'');er.title=T('透明');er.onclick=()=>{EDIT.erase=true;openEditor(EDIT.expr)};pal.appendChild(er);
   [...new Set(cols)].forEach(c=>{const b=document.createElement('button');b.style.background=int2hex(c);if(!EDIT.erase&&EDIT.color===c)b.className='on';b.onclick=()=>{EDIT.erase=false;EDIT.color=c;openEditor(EDIT.expr)};pal.appendChild(b)});
+  const mb=document.createElement('button');mb.className='btn btn-sm'+(EDIT.mirror?' on':'');mb.style.cssText='width:auto;height:28px;min-height:28px';mb.textContent=T('左右対称');mb.onclick=()=>{EDIT.mirror=!EDIT.mirror;openEditor(EDIT.expr)};pal.appendChild(mb);
   const ci=document.createElement('input');ci.type='color';ci.value=int2hex(EDIT.color||C.eye);ci.oninput=()=>{EDIT.erase=false;EDIT.color=hex2int(ci.value)};pal.appendChild(ci);
   if(!EDIT.color)EDIT.color=C.eye;
   // expression tabs
@@ -2289,7 +2293,7 @@ function paintAt(e){
   const cv=$('editCanvas');const r=cv.getBoundingClientRect();const sc=r.width/MODEL.face.w;
   const x=Math.floor((e.clientX-r.left)/sc),y=Math.floor((e.clientY-r.top)/(r.height/MODEL.face.h));
   const F=MODEL.face;if(x<0||y<0||x>=F.w||y>=F.h)return;
-  const arr=F.frames[EDIT.expr];const v=EDIT.erase?-1:EDIT.color;if(arr[y*F.w+x]===v)return;arr[y*F.w+x]=v;
+  const arr=F.frames[EDIT.expr];const v=EDIT.erase?-1:EDIT.color;const mx=F.w-1-x;if(arr[y*F.w+x]===v&&(!EDIT.mirror||arr[y*F.w+mx]===v))return;arr[y*F.w+x]=v;if(EDIT.mirror)arr[y*F.w+mx]=v;
   const key=faceKey(MODEL);(state.faceEdits[key]||(state.faceEdits[key]={}))[EDIT.expr]=arr.slice();
   redrawEditor();refreshFaceTexture();
 }
