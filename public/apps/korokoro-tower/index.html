@@ -1033,14 +1033,16 @@ $('btnPause').addEventListener('click',e=>{e.stopPropagation();AU.ui();pauseGame
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame();});
 
 /* ---------------- debug ---------------- */
+const PUBLIC_BUILD=/uimemocho\.github\.io$/.test(location.hostname);
 const DBG={on:false,auto:false,freeze:false,speed:1,unlock:false,fps:false,stage:0};
-(function(){let q='';try{q=location.search+location.hash;}catch(e){}if(/debug/i.test(q)||save.dbg)DBG.on=true;})();
+(function(){let q='';try{q=location.search+location.hash;}catch(e){}if(/debug/i.test(q)||(save.dbg&&!PUBLIC_BUILD))DBG.on=true;})();
 function enableDebug(){DBG.on=true;save.dbg=true;persist();$('btnDebug').classList.remove('hidden');}
 let lpTimer=0,suppressTitle=false;
 const logoEl=document.querySelector('.logo');
-logoEl.addEventListener('pointerdown',()=>{clearTimeout(lpTimer);lpTimer=setTimeout(()=>{enableDebug();suppressTitle=true;notice('DEBUG MODE ON');},1500);});
+logoEl.addEventListener('pointerdown',()=>{if(PUBLIC_BUILD)return;clearTimeout(lpTimer);lpTimer=setTimeout(()=>{enableDebug();suppressTitle=true;notice('DEBUG MODE ON');},1500);});
 ['pointerup'].forEach(ev=>logoEl.addEventListener(ev,()=>clearTimeout(lpTimer)));logoEl.addEventListener('contextmenu',e=>e.preventDefault());
 if(DBG.on)$('btnDebug').classList.remove('hidden');
+if(PUBLIC_BUILD&&!DBG.on){const b=document.querySelector('[data-act=debug]');if(b)b.remove();}
 let dbgReturn=null;
 function openDebug(){if(state==='play')pauseGame();dbgReturn=SCR.find(s=>$(s).classList.contains('on'))||null;DBG.stage=level?level.si:0;renderDebug();showScreen('scrDebug');}
 function closeDebug(){if(state==='paused'){resumeGame();}else showScreen(dbgReturn&&dbgReturn!=='scrDebug'?dbgReturn:(state==='select'?'scrSelect':state==='result'?'scrResult':'scrTitle'));}
@@ -1116,7 +1118,7 @@ applyI18n();buildLevel(0);
 (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>{}).finally(()=>{});
 setTimeout(()=>{$('loading').classList.add('hidden');goTitle();},60);
 requestAnimationFrame(loop);
-window.__TT={game,level:()=>level,STAGES,startStage,input,get state(){return state;},sim(sec){for(let i=0;i<sec*60;i++)update(1/60);}};
+window.__TT={game,level:()=>level,STAGES,startStage,input,get state(){return state;},sim(sec){for(let i=0;i<sec*60;i++)update(1/60);},get DBG(){return DBG;},showCele:k=>showCele(k)};
 </script>
 </body>
 </html>
