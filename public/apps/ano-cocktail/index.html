@@ -113,6 +113,22 @@ body:not([data-phase=title]) #logo{opacity:.85}
 .bk b{font:800 13px/1 Unbounded}
 .bk small{display:block;font-size:12px;color:var(--sub);font-weight:500}
 .empty{text-align:center;color:var(--sub);padding:24px 0;font-size:14px}
+.bk{grid-template-columns:18px minmax(0,1fr) auto auto}
+.bk .rp{height:36px;padding:0 14px;border-radius:99px;border:0;background:#fff;color:#140c1c;font:900 13px/1 "Zen Kaku Gothic New";cursor:pointer}
+.bh{position:relative;display:flex;justify-content:center;align-items:center;margin-bottom:12px}.bh h2{margin:0!important}
+.bh small{position:absolute;left:0;font:700 12px/1 "Zen Kaku Gothic New";color:var(--sub)}
+.ib{position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;background:none;padding:0;cursor:pointer;display:grid;place-items:center}
+.ib span{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.7);color:#fff;display:grid;place-items:center;font:800 15px/1 Unbounded}
+.ib[aria-expanded=true] span{background:#fff;color:#140c1c}
+.info{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;font:500 13px/1.7 "Zen Kaku Gothic New";color:var(--sub);text-align:left}
+.info b{color:#fff}.info ul{margin:4px 0 0;padding-left:1.2em}.modal .info p{margin:0 0 8px;text-align:left;font:inherit;color:inherit}
+.rs{display:flex;justify-content:center;margin-top:14px}
+.lnk{height:44px;padding:0 14px;border:0;background:none;color:#ff8aa8;font:700 13px/1 "Zen Kaku Gothic New";cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.cf{margin-top:12px;padding:14px;border-radius:14px;background:rgba(255,80,120,.1);border:1px solid rgba(255,120,150,.35);text-align:center}
+.cf p{margin:0 0 10px;font:700 13px/1.6 "Zen Kaku Gothic New";color:#fff}
+.btn.danger{background:#ff4f7b;color:#fff}
+#stSub{margin-top:6px;font:700 13px/1.4 "Zen Kaku Gothic New";color:var(--sub)}
+#pop small{display:block;margin-top:14px;font:700 15px/1.4 "Zen Kaku Gothic New";letter-spacing:.04em;color:rgba(255,255,255,.85)}
 #toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 110px);transform:translateX(-50%);background:rgba(255,255,255,.95);color:#140c1c;padding:10px 16px;border-radius:12px;font:700 13px/1.4 "Zen Kaku Gothic New";opacity:0;transition:opacity .3s;pointer-events:none;z-index:12;max-width:86vw;text-align:center}
 #toast.on{opacity:1}
 @media(min-width:900px) and (orientation:landscape){
@@ -156,7 +172,7 @@ body:not([data-phase=title]) #logo{opacity:.85}
 </section>
 
 <section id="shakeUI" class="layer">
- <div class="st"><div id="stLabel">シェイク！</div></div>
+ <div class="st"><div id="stLabel">シェイク！</div><div id="stSub">スマートフォンを振ろう！</div></div>
  <div class="bot">
   <div id="hint">スマホを振ってシェイク</div>
   <button id="pourBtn" class="btn hit">グラスに注ぐ</button>
@@ -173,7 +189,19 @@ body:not([data-phase=title]) #logo{opacity:.85}
  <div class="mrow"><a id="xPost" class="btn" href="#" target="_blank" rel="noopener">Xに投稿する</a><a id="dlBtn" class="btn ghost" href="#" download="ano-cocktail.png">画像を保存</a><button id="shClose" class="btn ghost">閉じる</button></div>
 </div>
 
-<div id="bookUI" class="modal"><div class="box"><h2>レシピ帳</h2><div id="bookList"></div></div><button id="bkClose" class="btn ghost">閉じる</button></div>
+<div id="bookUI" class="modal"><div class="box">
+ <div class="bh"><small id="bkCount"></small><h2>レシピ帳</h2><button id="bkInfo" class="ib" aria-label="レシピ帳について" aria-expanded="false" aria-controls="bkInfoBox"><span>!</span></button></div>
+ <div id="bkInfoBox" class="info" hidden>
+  <p><b>保存のしくみ</b><br>作った一杯は、いま使っている<b>この端末のこのブラウザの中だけ</b>に自動で保存されます。サーバーには送りません。新しい順に最大80杯までで、それを超えると古いものから消えます。</p>
+  <p><b>再現</b><br>「再現」を押すと、同じ名前・色・質感・グラスでもう一度注いで、そのままXに投稿できます。</p>
+  <p><b>こんなときに消えます</b></p>
+  <ul><li>「レシピをリセット」を押したとき</li><li>ブラウザの履歴やサイトデータ（Cookie）を消したとき</li><li>プライベートブラウズ（シークレット）を閉じたとき</li><li>iPhoneのSafariで、しばらく（目安は7日）このページを開かなかったとき</li></ul>
+  <p style="margin-top:8px">別の端末、別のブラウザ、ホーム画面に追加したアプリとは共有されません。デバッグで作った一杯は保存されません。</p>
+ </div>
+ <div id="bookList"></div>
+ <div class="rs" id="bkRs"><button id="bkResetBtn" class="lnk">レシピをリセット</button></div>
+ <div id="bkConfirm" class="cf" hidden><p>レシピ帳を全部消します。元に戻せません。</p><div class="mrow"><button id="bkDel" class="btn small danger">消す</button><button id="bkCancel" class="btn small ghost">やめる</button></div></div>
+</div><button id="bkClose" class="btn ghost">閉じる</button></div>
 <div id="toast"></div>
 <button id="dbgBtn" aria-label="デバッグ">DEBUG</button>
 <div id="dbg"><h3>DEBUG</h3>
@@ -516,7 +544,7 @@ const curA=new THREE.Color(),curB=new THREE.Color(),tgtA=new THREE.Color(),tgtB=
 const LA=new THREE.Color(),LM=new THREE.Color(),LB=new THREE.Color();let layerAmt=0;
 let phase='title',PT=0,time=0;
 function go(p){phase=p;PT=0;document.body.dataset.phase=p;['titleUI','prepUI','shakeUI','resultUI'].forEach(id=>$('#'+id).classList.toggle('on',id===({title:'titleUI',prep:'prepUI',shake:'shakeUI',result:'resultUI'})[p]));}
-function popText(t,jp){const e=$('#pop');e.textContent=t;e.classList.toggle('jp',!!jp);e.classList.remove('go');void e.offsetWidth;e.classList.add('go');}
+function popText(t,jp,sub){const e=$('#pop');e.textContent=t;if(sub){const m=document.createElement('small');m.textContent=sub;e.appendChild(m);}e.classList.toggle('jp',!!jp);e.classList.remove('go');void e.offsetWidth;e.classList.add('go');}
 function setTint(c,k){document.documentElement.style.setProperty('--tint','#'+c.clone().lerp(new THREE.Color('#0b0910'),k).getHexString());}
 
 function baseColors(ings,k){const w=[0.55,0.3,0.15],c=new THREE.Color(0,0,0);let tw=0;ings.slice(0,k).forEach((g,i)=>{const x=new THREE.Color(g.c);c.r+=x.r*w[i];c.g+=x.g*w[i];c.b+=x.b*w[i];tw+=w[i];});c.multiplyScalar(1/tw);
@@ -591,8 +619,16 @@ function decide(){const st=styleInfo();let tex=curTex(S.o);if(Math.random()<0.04
 /* ================= book ================= */
 const BK='anococktail_book_v1';
 function bookGet(){try{return JSON.parse(localStorage.getItem(BK)||'[]');}catch(e){return[];}}
-function bookAdd(r){try{const b=bookGet();b.unshift({n:r.name,r:r.rank,t:r.tex,l:r.subJp,c:'#'+r.A.getHexString(),d:Date.now()});localStorage.setItem(BK,JSON.stringify(b.slice(0,80)));}catch(e){}}
-function showBook(){HP.tap(10);const b=bookGet();$('#bookList').innerHTML=b.length?b.map(x=>`<div class="bk"><i style="background:${esc(x.c)}"></i><div>${esc(x.n)}<small>${esc(x.l||(TEX[x.t]||{}).jp||'')}</small></div><b>${esc(x.r)}</b></div>`).join(''):'<div class="empty">まだ一杯も作っていません</div>';$('#bookUI').classList.add('on');}
+const hex=c=>'#'+c.getHexString();
+function bookAdd(r){try{const b=bookGet();b.unshift({v:2,n:r.name,r:r.rank,ri:r.ri,t:r.tex,sub:r.sub,l:r.subJp,tone:r.tone,c:hex(r.A),A:hex(r.A),B:hex(r.B),L3:r.L3.map(hex),pal:r.pal,g:r.glass,
+ ings:S.ings.map(x=>INGS.indexOf(x)),sp:S.spice?hex(S.spice):'#ffffff',o:S.o,fl:r.flavor,nt:r.note,en:r.en,st:{dir:r.st.dir,rhy:r.st.rhy,pw:r.st.pw},alc:r.alc,sw:r.sweet,ba:r.bae,nz:r.nazo,tm:r.time,ct:r.count,mg:r.maxG,d:Date.now()});localStorage.setItem(BK,JSON.stringify(b.slice(0,80)));}catch(e){}}
+function showBook(){HP.tap(10);const b=bookGet();$('#bkCount').textContent=b.length?b.length+'杯':'';
+ $('#bookList').innerHTML=b.length?b.map((x,i)=>`<div class="bk"><i style="background:${esc(x.c)}"></i><div>${esc(x.n)}<small>${esc(x.l||(TEX[x.t]||{}).jp||'')}</small></div><b>${esc(x.r)}</b>${x.v===2?`<button class="rp" data-i="${i}">再現</button>`:'<span></span>'}</div>`).join(''):'<div class="empty">まだ一杯も作っていません</div>';
+ $('#bkRs').hidden=!b.length;$('#bkConfirm').hidden=true;$('#bookUI').classList.add('on');}
+function replay(e){if(!e||e.v!==2)return;HP.pattern([30,40,60]);$('#bookUI').classList.remove('on');const vt=e.t==='galaxy'?'liquid':e.t;dbgPrime(vt);
+ S.ings=e.ings.map(i=>INGS[i]||INGS[0]);[S.A,S.B]=baseColors(S.ings,3);ingLayers(2);S.spice=new THREE.Color(e.sp);S.spiceIn=1;S.o=e.o;S.energy=e.o*S.target;layerAmt=clamp(1-e.o/0.55,0,1);
+ const C=h=>new THREE.Color(h),A=C(e.A),B=C(e.B);curA.copy(A);curB.copy(B);tgtA.copy(A);tgtB.copy(B);$('#stLabel').textContent='再現';
+ startPour({tex:e.t,sub:e.sub,subJp:e.l,tone:e.tone,name:e.n,rank:e.r,ri:e.ri,flavor:e.fl,note:e.nt,A,B,L3:e.L3.map(C),pal:e.pal,glass:e.g,st:e.st,alc:e.alc,sweet:e.sw,bae:e.ba,nazo:e.nz,en:e.en,time:e.tm,count:e.ct,maxG:e.mg});}
 
 /* ================= spotlight ================= */
 const beamMat=new THREE.ShaderMaterial({uniforms:{uCol:{value:new THREE.Color(1,0.93,0.84)},uOp:{value:0},uTime:{value:0}},vertexShader:GEN_VS,fragmentShader:`uniform vec3 uCol;uniform float uOp;uniform float uTime;varying vec3 vWN;varying vec3 vWP;varying vec2 vUv;
@@ -627,7 +663,7 @@ function prepUpdate(dt){
  if(PT>sp0+1.25&&!S.lidShown){S.lidShown=true;$('#lidBtn').classList.add('show');}
 }
 function closeLid(){if(phase!=='prep'||S.closing)return;S.closing=true;HP.pattern([30,50,60]);AU.whoosh();$('#lidBtn').classList.remove('show');
- setTimeout(()=>{AU.clink();HP.tick();go('shake');popText('SHAKE!');S.closing=false;$('#stLabel').textContent='シェイク！';$('#stLabel').style.color='#fff';$('#hint').textContent='振った分だけ、中身が変わる';},380);}
+ setTimeout(()=>{AU.clink();HP.tick();go('shake');popText('SHAKE!',false,'スマートフォンを振ろう！');$('#stSub').hidden=false;S.closing=false;$('#stLabel').textContent='シェイク！';$('#stLabel').style.color='#fff';$('#hint').textContent='振った分だけ、中身が変わる';},380);}
 
 function shakeUpdate(dt,now,rot){const a=ACC,m=a.length();S.time+=dt;
  S.energy+=clamp(m-3,0,45)*dt;S.o=Math.min(2.8,S.energy/S.target);
@@ -637,6 +673,7 @@ function shakeUpdate(dt,now,rot){const a=ACC,m=a.length();S.time+=dt;
  if(S.o>0.02&&!$('#pourBtn').classList.contains('show'))$('#pourBtn').classList.add('show');
  const tex=curTex(S.o);setVP(tex);
  const stg=stageOf(S.o);if(stg>S.stage){S.stage=stg;if(stg===1){HP.pattern([70,50,70,50,220]);AU.chime();popText('飲みごろ！',true);}else{HP.pattern([25,35,25,35,25]);AU.warn(stg-2);}}
+ if(S.half>0&&!$('#stSub').hidden)$('#stSub').hidden=true;
  if(S.half>0){const lab=S.o<0.55?['まだ分離してる','#fff']:S.o<1?['まざってきた','#fff']:S.o<1.3?['いまが飲みごろ','#ffe08a']:S.o<1.75?['振りすぎ…？','#ffa173']:S.o<2.3?['質感がおかしい','#ff6f9c']:['限界突破','#c2a2ff'];
   const L=$('#stLabel');if(L.textContent!==lab[0]){L.textContent=lab[0];L.style.color=lab[1];}}
  if(!motionHintDone&&PT>2.2&&!IN.seen){motionHintDone=true;$('#hint').textContent='画面を上下にこすってもシェイクできます';}
@@ -656,7 +693,7 @@ function makePile(geo,mat,n,sp,nonUni){const L=GL.liq,rad=sp*0.5,sm=[...L.s].sor
  const im=new THREE.InstancedMesh(geo,mat,Math.max(1,tg.length));im.count=tg.length;im.renderOrder=2;const z=new THREE.Matrix4().makeScale(0,0,0);for(let i=0;i<tg.length;i++)im.setMatrixAt(i,z);GL.g.add(im);
  GL.pile={m:im,tg,rad,st:tg.map((_,i)=>({t:-1,delay:i/Math.max(1,tg.length),x:0,y:0,z:0,vy:0,q:new THREE.Quaternion().setFromEuler(new THREE.Euler(rnd(0,6),rnd(0,6),rnd(0,6))),s:nonUni?V3(rnd(.7,1.3),rnd(.6,1.05),rnd(.7,1.3)):V3(1,1,1).multiplyScalar(rnd(.85,1.12))}))};return im;}
 
-function startPour(){if(phase!=='shake'||!(S.half>=1||S.o>0.02||S.dbg))return;HP.pattern([40,40,90]);AU.whoosh();S.res=decide();const r=S.res;$('#pourBtn').classList.remove('show');AU.slosh(0);
+function startPour(given){if(phase!=='shake'||!(given||S.half>=1||S.o>0.02||S.dbg))return;if(!given)HP.pattern([40,40,90]);AU.whoosh();S.res=given||decide();const r=S.res;$('#pourBtn').classList.remove('show');AU.slosh(0);
  setVP(r.tex,r.sub,!!r.pal);for(const k in S.vt)VP[k]=S.vt[k];curA.copy(r.A);curB.copy(r.B);tgtA.copy(r.A);tgtB.copy(r.B);if(r.tex==='layer'){LA.copy(r.L3[0]);LM.copy(r.L3[1]);LB.copy(r.L3[2]);}
  GL=buildGlass(r.glass);GL.g.position.x=GX+1.4;Object.assign(GL,{tex:r.tex,sub:r.sub});const fill=GL.G.fill;
  const lu=GL.liq.mat.uniforms;lu.uColA.value.copy(r.A);lu.uColB.value.copy(r.B);lu.uAlpha.value=VPT[r.tex].alpha;lu.uVisc.value=VPT[r.tex].visc;lu.uSolid.value=0;const gal=r.tex==='galaxy',spc=gal?new THREE.Color(1,0.92,0.75):S.spice.clone().lerp(WHITE,0.25);lu.uSpark.value=Math.max(VPT[r.tex].spark,0.45);lu.uGal.value=VPT[r.tex].spark;lu.uSparkCol.value.copy(spc);lu.uFoam.value=r.tex==='foam'?(r.sub==='cream'?0.16:0.08):0;
@@ -852,7 +889,7 @@ function dbgPrime(tex){AU.init();AU.resume();$('#shareUI').classList.remove('on'
  $('#chips').innerHTML='';
  S.spiceIn=1;Object.assign(S,{dbg:true,energy:o*S.target,o,stage:stageOf(o),time:5.2,half:44,active:5,mSum:5*18,peak:24,ax:[1,4,0.5],intervals:[.24,.25,.23,.26,.24,.25],over:(tex==='doro'||tex==='tsubu')?tex:null});
  const vt=tex==='galaxy'?'liquid':tex;setVP(vt);for(const k in S.vt)VP[k]=S.vt[k];const [a,b]=texColors(vt,S.A,S.B);curA.copy(a);curB.copy(b);layerAmt=clamp(1-o/0.55,0,1);
- go('shake');$('#pourBtn').classList.add('show');$('#stLabel').textContent='DEBUG';}
+ go('shake');$('#pourBtn').classList.add('show');$('#stLabel').textContent='DEBUG';$('#stSub').hidden=true;}
 function dbgTex(){return DBG.tex||pick(Object.keys(SUBS));}
 $('#dbgBtn').onclick=()=>{HP.tap(8);$('#dbg').classList.toggle('on');};
 $('#dPour').onclick=()=>{const t=dbgTex(),keep=DBG.tex;DBG.tex=t;dbgPrime(t);startPour();DBG.tex=keep;$('#dbg').classList.remove('on');};
@@ -867,7 +904,12 @@ titleLiquid();setTint(S.A,0.45);
 $('#startBtn').onclick=()=>{HP.tap(20);AU.init();AU.resume();askMotion().then(ok=>{if(!ok)toast('モーションの許可がないので、画面をこすってシェイクできます');});newRound();go('prep');setTint(new THREE.Color('#3a2448'),0);};
 $('#lidBtn').onclick=()=>{AU.resume();closeLid();};
 $('#pourBtn').onclick=()=>{AU.resume();startPour();};
-$('#bookBtn').onclick=showBook;$('#bkClose').onclick=()=>{HP.tap(8);$('#bookUI').classList.remove('on');};
+$('#bookBtn').onclick=showBook;
+$('#bookList').onclick=e=>{const b=e.target.closest('.rp');if(!b)return;replay(bookGet()[+b.dataset.i]);};
+$('#bkInfo').onclick=()=>{HP.tap(8);const box=$('#bkInfoBox'),open=box.hidden;box.hidden=!open;$('#bkInfo').setAttribute('aria-expanded',String(open));};
+$('#bkResetBtn').onclick=()=>{HP.tap(10);$('#bkConfirm').hidden=false;$('#bkRs').hidden=true;};
+$('#bkCancel').onclick=()=>{HP.tap(8);$('#bkConfirm').hidden=true;$('#bkRs').hidden=false;};
+$('#bkDel').onclick=()=>{HP.pattern([40,40,40]);try{localStorage.removeItem(BK);}catch(e){}showBook();toast('レシピ帳をリセットしました');};$('#bkClose').onclick=()=>{HP.tap(8);$('#bookUI').classList.remove('on');};
 $('#shClose').onclick=()=>{HP.tap(8);$('#shareUI').classList.remove('on');};
 $('#snd').onclick=()=>{HP.tap(8);AU.init();AU.setOn(!AU.on);$('#snd').textContent=AU.on?'SOUND ON':'SOUND OFF';};
 requestAnimationFrame(frame);
