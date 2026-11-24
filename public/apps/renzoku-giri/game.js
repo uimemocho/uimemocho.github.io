@@ -9,7 +9,7 @@ const app = $('#app');
 const URL_GAME = 'https://uimemocho.github.io/apps/renzoku-giri/';
 const TIME_LIMIT = 5;
 const N_STANDS = 1;
-const SLICE = .026;
+const SLICE = .016;
 const MAT_BASE = .62, MAT_TOP = 1.82, MAT_R = .082;
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -559,7 +559,7 @@ function drawKatana() {
 let state = 'title', T = 0, stT = 0;
 let qi = 0, armed = true, lastSwingT = -9;
 let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = .4;
-let cutCount = 0, timeLeft = TIME_LIMIT, curStand = 0, allCut = false;
+let shallowCount = 0, cutCount = 0, timeLeft = TIME_LIMIT, curStand = 0, allCut = false;
 let cdStep = 0, punch = 0, rollKick = 0, presetIdx = 0, presetSnap = false;
 const kata = { side: 1, swing: -1, in: 0, sheathed: false, pend: null };
 let camS = { px: 0, py: 1.5, pz: -1, tx: 0, ty: 1, tz: 5, fov: 1.05, roll: 0 };
@@ -567,12 +567,13 @@ let best = 0; try { best = +localStorage.getItem('rz_best5') || 0; } catch (e) {
 let lang = detectLang(), soundOn = true; try { soundOn = localStorage.getItem('rz_snd') !== '0'; } catch (e) {}
 let inputMode = 'motion';
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
-const RANK_TH = [0, 9, 14, 19, 24, 28, 32, 36];
+const RANK_TH = [0, 8, 13, 18, 23, 28, 33, 38];
 const rankOf = n => { let r = 0; for (let i = 0; i < RANK_TH.length; i++) if (n >= RANK_TH[i]) r = i; return r; };
 const pieceCount = () => cutCount + 1;
 // a real cut needs a full swing: peak rotation rate and swept angle over one swing
-const CUT_PEAK = 600, CUT_ANGLE = 38;
-const MILESTONE = { 10: '疾風', 20: '迅雷', 28: '烈火', 32: '無双', 36: '神速' };
+const CUT_PEAK = 750, CUT_ANGLE = 75;
+const DEBUG = /[?&]debug/.test(location.search);
+const MILESTONE = { 10: '疾風', 20: '迅雷', 28: '烈火', 33: '無双', 38: '神速' };
 
 function setScreen(id) { for (const s of document.querySelectorAll('.screen')) s.classList.toggle('on', s.id === id); }
 function go(s) {
@@ -581,7 +582,7 @@ function go(s) {
   if (s === 'ready') {
     setScreen('sReady'); qi = 0; resetStands(); app.classList.remove('cine');
     curStand = 0; kata.in = 0; kata.swing = -1; kata.side = 1; kata.pend = null;
-    cutCount = 0; timeLeft = TIME_LIMIT; presetIdx = 0; allCut = false; armed = true;
+    cutCount = 0; shallowCount = 0; timeLeft = TIME_LIMIT; presetIdx = 0; allCut = false; armed = true;
     updReadyUI();
   }
   if (s === 'count') { setScreen('sHud'); cdStep = 0; updHud(); }
@@ -594,7 +595,7 @@ function go(s) {
 // every distinct swing is one cut. A new swing may interrupt the previous animation.
 function trySwing() {
   if (state !== 'play' || !armed || allCut) return false;
-  if (T - lastSwingT < .1) return false;
+  if (T - lastSwingT < .12) return false;
   if (kata.pend && !kata.pend.resolved) { if (kata.pend.ok === undefined) kata.pend.ok = false; resolveCut(kata.pend); }
   if (kata.swing >= 0) kata.side = -kata.side;
   armed = false; lastSwingT = T;
@@ -609,7 +610,7 @@ function resolveCut(pend) {
   const st = stands[curStand];
   const sd = pend.side;
   if (!pend.ok) { // too small a swing: the blade glances off
-    judge(L().shallow, 's'); A.glance(); vib(8); shake = .2; punch = .25;
+    shallowCount++; judge(L().shallow, 's'); A.glance(); vib(8); shake = .2; punch = .25;
     slashes.push({ x: st.x, y: st.top - .1, z: st.z - MAT_R, sd, t: 0, life: .14 });
     return;
   }
@@ -892,7 +893,9 @@ function onMotion(e) {
     sw.peak = Math.max(sw.peak, R); sw.ang += R * dts;
     if (R < Math.max(120, sw.peak * .35) || now - sw.t0 > 450) {
       motion.sw = null; armed = true; motion.last = { peak: sw.peak | 0, ang: sw.ang | 0 };
-      if (kata.pend && !kata.pend.resolved && kata.pend.ok === undefined) kata.pend.ok = sw.peak >= CUT_PEAK && sw.ang >= CUT_ANGLE;
+      const ok = sw.peak >= CUT_PEAK && sw.ang >= CUT_ANGLE;
+      if (kata.pend && !kata.pend.resolved && kata.pend.ok === undefined) kata.pend.ok = ok;
+      if (DEBUG) dbgLine(`${sw.peak | 0}°/s  ${sw.ang | 0}°  ${ok ? 'OK' : 'NG'}`);
     }
   } else if (R > 350 && armed && trySwing()) motion.sw = { peak: R, ang: R * dts, t0: now };
 }
@@ -1075,7 +1078,7 @@ function showResult() {
   lastResult = { n, r, cuts: cutCount, rate: cutCount / TIME_LIMIT };
   $('#rRank').textContent = RANKS[r]; $('#rRank').classList.remove('pop'); void $('#rRank').offsetWidth; $('#rRank').classList.add('pop');
   $('#rTitle').textContent = t.titles[r];
-  $('#rNum').textContent = n; $('#rPerf').textContent = cutCount; $('#rMax').textContent = (cutCount / TIME_LIMIT).toFixed(1);
+  $('#rNum').textContent = n; $('#rPerf').textContent = cutCount; $('#rShal').textContent = shallowCount; $('#rMax').textContent = (cutCount / TIME_LIMIT).toFixed(1);
   const rb = $('#rBest'); rb.textContent = nb ? t.newBest : `${t.best} ${best}`; rb.classList.toggle('nb', nb);
   $('#bestNum').textContent = best;
   setScreen('sResult');
@@ -1139,6 +1142,13 @@ async function doSave() {
   if (!shareImg) shareImg = await makeShareImage();
   const a = document.createElement('a'); a.href = URL.createObjectURL(shareImg); a.download = `renzoku-giri_${lastResult ? lastResult.n : 0}.png`; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+// ---------- debug readout (?debug) ----------
+let dbgEl = null; const dbgLog = [];
+function dbgLine(t) {
+  if (!dbgEl) { dbgEl = document.createElement('div'); dbgEl.style.cssText = 'position:absolute;left:8px;bottom:8px;z-index:30;font:600 12px/1.45 ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.55);padding:6px 8px;pointer-events:none;white-space:pre'; app.appendChild(dbgEl); }
+  dbgLog.unshift(t); dbgLog.length = Math.min(dbgLog.length, 8); dbgEl.textContent = `cut: >=${CUT_PEAK}°/s & >=${CUT_ANGLE}°\n` + dbgLog.join('\n');
 }
 
 // ---------- buttons ----------

@@ -124,8 +124,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #langList button.on{background:var(--yel);color:var(--navy)}
 #toast{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 110px);transform:translateX(-50%);z-index:12;background:rgba(14,26,43,.92);font-weight:900;font-size:13px;padding:10px 16px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center;line-height:1.6;border-left:3px solid var(--yel)}
 #toast.on{opacity:1}
-.rStats{margin-top:12px;display:flex;gap:10px}
-.rStats div{display:flex;align-items:baseline;gap:8px;background:rgba(14,26,43,.62);padding:5px 12px;font-weight:900;font-size:12px;color:var(--mut);transform:skewX(-7deg)}
+.rStats{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:94vw}
+.rStats div{display:flex;align-items:baseline;gap:7px;background:rgba(14,26,43,.62);padding:5px 10px;font-weight:900;font-size:12px;color:var(--mut);transform:skewX(-7deg)}
 .rStats b{font-family:var(--fN);font-size:22px;color:var(--wht);font-weight:600}
 a.btn{display:block;text-align:center;text-decoration:none}
 #readyHint{line-height:1.75}
