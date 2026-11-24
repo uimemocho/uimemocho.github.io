@@ -21,7 +21,7 @@
 :root{--tint:#6a2a7a;--ground:#0b0910;--ink:#f7f3ff;--sub:rgba(247,243,255,.64);--line:rgba(255,255,255,.14)}
 *{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);overflow:hidden;font-family:"Zen Kaku Gothic New",system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-touch-callout:none}
-#bg{position:fixed;inset:0;background:radial-gradient(110% 70% at 50% 36%,var(--tint) 0%,color-mix(in srgb,var(--tint) 26%,var(--ground)) 48%,var(--ground) 82%)}
+#bg{position:fixed;inset:0;background:radial-gradient(110% 70% at 50% 36%,var(--tint) 0%,#1a1224 48%,var(--ground) 82%);background:radial-gradient(110% 70% at 50% 36%,var(--tint) 0%,color-mix(in srgb,var(--tint) 26%,var(--ground)) 48%,var(--ground) 82%)}
 #bg::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 50% 100%,rgba(0,0,0,.55),transparent)}
 #beam{position:fixed;left:0;top:0;width:10px;height:10px;pointer-events:none;opacity:0;filter:blur(18px);transform:skewX(-4deg);transform-origin:50% 100%}
 #beam i{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,238,215,0) 0%,rgba(255,238,215,.08) 35%,rgba(255,238,215,.2) 88%,rgba(255,238,215,.06) 100%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%)}
@@ -222,7 +222,7 @@ body:not([data-phase=title]) #logo{opacity:.85}
 <script>
 {
 /* ================= utils ================= */
-window.addEventListener('error',e=>{try{const t=document.getElementById('toast');t.textContent='エラー: '+(e.message||'').slice(0,80);t.classList.add('on');}catch(_){}});
+window.addEventListener('error',e=>{try{if(window.__e1)return;window.__e1=1;const t=document.getElementById('toast');t.textContent='エラー: '+(e.message||'').slice(0,90)+(e.lineno?' (L'+e.lineno+')':'');t.classList.add('on');t._t&&clearTimeout(t._t);}catch(_){}});
 const $=s=>document.querySelector(s);
 const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t;
 const eIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2, eOut=t=>1-Math.pow(1-t,3);
@@ -332,9 +332,15 @@ pattern(p){if(this.vib(p))return;this.tick();let t=0;for(let k=0;k<p.length-2;k+
 };
 
 /* ================= renderer ================= */
-const cv=$('#gl');
+let cv=$('#gl');
 const LOW=(navigator.hardwareConcurrency||4)<=2;const Q={fx:LOW?0.45:1,ema:0.016,t:0};
-const R=new THREE.WebGLRenderer({canvas:cv,antialias:!LOW,alpha:true,powerPreference:'high-performance'});
+function makeRenderer(){const tries=[['webgl2',!LOW],['webgl',!LOW],['webgl',false],['experimental-webgl',false]];
+ for(let n=0;n<tries.length;n++){const [kind,aa]=tries[n];if(n>0){const c2=document.createElement('canvas');c2.id='gl';cv.replaceWith(c2);cv=c2;}
+  try{const ctx=cv.getContext(kind,{alpha:true,antialias:aa,premultipliedAlpha:true,preserveDrawingBuffer:false,failIfMajorPerformanceCaveat:false,powerPreference:'default'});
+   if(!ctx||(ctx.isContextLost&&ctx.isContextLost()))continue;return new THREE.WebGLRenderer({canvas:cv,context:ctx,antialias:aa,alpha:true});}catch(e){window.__glErr=(window.__glErr||'')+kind+': '+e.message+' / ';}}
+ return null;}
+const R=makeRenderer();
+if(!R){const t=$('#toast');t.textContent='この端末のブラウザでは3D表示（WebGL）が使えないため遊べません。'+(window.__glErr?'（'+window.__glErr.slice(0,90)+'）':'');t.classList.add('on');throw new Error('WebGL unavailable');}
 R.setClearColor(0,0);
 let DPR=LOW?1:Math.min(window.devicePixelRatio||1,2);R.setPixelRatio(DPR);
 const scene=new THREE.Scene();
