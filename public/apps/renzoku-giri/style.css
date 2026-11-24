@@ -78,7 +78,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #combo span{font-family:var(--fN);font-weight:500;font-size:13px;letter-spacing:.28em;color:#fff}
 #combo.pop #coNum{animation:bump .16s ease-out}
 #judge{position:absolute;left:0;right:0;top:61%;text-align:center;font-family:var(--fT);font-size:clamp(30px,10vw,46px);opacity:0;pointer-events:none;white-space:nowrap;text-shadow:0 0 18px rgba(14,26,43,1),0 0 30px rgba(14,26,43,.8)}
-#judge.p{color:var(--yel)}#judge.s{color:#aab6c8;font-size:clamp(20px,6vw,28px)}
+#judge.p{color:var(--yel)}#judge.s{color:#fff;top:27%;font-size:clamp(28px,9vw,40px);text-shadow:0 0 10px #0e1a2b,0 0 22px #0e1a2b,0 3px 0 #0e1a2b}
 #judge.go{animation:jg .55s cubic-bezier(.15,.9,.25,1) forwards}
 @keyframes jg{0%{opacity:0;transform:skewX(-7deg) scale(1.6)}18%{opacity:1;transform:skewX(-7deg) scale(1)}70%{opacity:1}100%{opacity:0;transform:skewX(-7deg) translateY(-12px)}}
 #swingWrap{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 7vh + 18px);display:flex;justify-content:center}

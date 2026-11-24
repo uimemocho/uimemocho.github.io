@@ -566,10 +566,12 @@ let best = 0; try { best = +localStorage.getItem('rz_best5') || 0; } catch (e) {
 let lang = detectLang(), soundOn = true; try { soundOn = localStorage.getItem('rz_snd') !== '0'; } catch (e) {}
 let inputMode = 'motion';
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
-const RANK_TH = [0, 8, 13, 18, 23, 28, 33, 38];
+const RANK_TH = [0, 9, 14, 19, 24, 28, 32, 36];
 const rankOf = n => { let r = 0; for (let i = 0; i < RANK_TH.length; i++) if (n >= RANK_TH[i]) r = i; return r; };
 const pieceCount = () => cutCount + 1;
-const MILESTONE = { 10: '疾風', 20: '迅雷', 30: '烈火', 38: '無双', 45: '神速' };
+// a real cut needs a full swing: peak rotation rate and swept angle over one swing
+const CUT_PEAK = 600, CUT_ANGLE = 38;
+const MILESTONE = { 10: '疾風', 20: '迅雷', 28: '烈火', 32: '無双', 36: '神速' };
 
 function setScreen(id) { for (const s of document.querySelectorAll('.screen')) s.classList.toggle('on', s.id === id); }
 function go(s) {
@@ -591,12 +593,12 @@ function go(s) {
 // every distinct swing is one cut. A new swing may interrupt the previous animation.
 function trySwing() {
   if (state !== 'play' || !armed || allCut) return false;
-  if (T - lastSwingT < .09) return false;
-  if (kata.pend && !kata.pend.resolved) resolveCut(kata.pend);
+  if (T - lastSwingT < .1) return false;
+  if (kata.pend && !kata.pend.resolved) { if (kata.pend.ok === undefined) kata.pend.ok = false; resolveCut(kata.pend); }
   if (kata.swing >= 0) kata.side = -kata.side;
   armed = false; lastSwingT = T;
   kata.swing = 0; kata.in = 1;
-  kata.pend = { side: kata.side, resolved: false };
+  kata.pend = { side: kata.side, resolved: false, t: 0, ok: inputMode === 'motion' ? undefined : true };
   A.whoosh(.6);
   return true;
 }
@@ -605,6 +607,11 @@ function resolveCut(pend) {
   if (state !== 'play' || allCut) return;
   const st = stands[curStand];
   const sd = pend.side;
+  if (!pend.ok) { // too small a swing: the blade glances off
+    judge(L().shallow, 's'); A.glance(); vib(8); shake = .2; punch = .25;
+    slashes.push({ x: st.x, y: st.top - .1, z: st.z - MAT_R, sd, t: 0, life: .14 });
+    return;
+  }
   for (const p of pieces) if (p.stage === 'hold') p.hold = Math.min(p.hold, 0); // previous slice starts to slide
   let h = st.top - SLICE * rr(.9, 1.1);
   if (h < MAT_BASE + SLICE * .6) { h = MAT_BASE; }
@@ -752,9 +759,13 @@ function update(rdt) {
   }
   if (state === 'final' && stT > 2.3) { go('wide'); app.classList.remove('cine'); A.taiko(1.2); }
   if (state === 'wide' && stT > 2.6) go('result');
+  if (kata.pend && !kata.pend.resolved) {
+    kata.pend.t += rdt;
+    if (kata.pend.t > .4 && kata.pend.ok === undefined) kata.pend.ok = false;
+    if (kata.pend.t >= .045 && kata.pend.ok !== undefined) resolveCut(kata.pend);
+  }
   if (kata.swing >= 0) {
     kata.swing += rdt / .12;
-    if (kata.pend && !kata.pend.resolved && kata.swing >= .4) resolveCut(kata.pend);
     if (kata.swing >= 1) { kata.swing = -1; kata.side = -kata.side; kata.in = .55; }
   }
   if (rnd() < rdt * .12 && crows.length < 4) crows.push({ a: cam.yaw + rr(-.9, -.5), e: rr(.08, .3), v: rr(.04, .08), p: rr(0, 6) });
@@ -766,8 +777,8 @@ function update(rdt) {
   camUpdate();
 }
 function endRound() {
-  if (kata.pend && !kata.pend.resolved) resolveCut(kata.pend);
-  go('final'); countIn('止め'); A.final(); flash = .4; shake = .8; vib([40, 30, 80]);
+  if (kata.pend && !kata.pend.resolved) { if (kata.pend.ok === undefined) kata.pend.ok = false; resolveCut(kata.pend); }
+  go('final'); countIn('止め'); A.gong(); flash = .4; shake = .8; vib([40, 30, 80]);
   for (const p of pieces) if (p.stage === 'hold') p.hold = Math.min(p.hold, .35);
 }
 
@@ -864,7 +875,7 @@ function composite() {
 }
 
 // ---------- input: motion (gyro) ----------
-const motion = { R: 0, A: 0, t: -9, count: 0, peak: 0 };
+const motion = { R: 0, A: 0, t: -9, count: 0, sw: null, lt: 0, last: null };
 function onMotion(e) {
   const r = e.rotationRate; if (!r) return;
   const R = Math.hypot(r.alpha || 0, r.beta || 0, r.gamma || 0);
@@ -872,10 +883,17 @@ function onMotion(e) {
   if (e.acceleration && e.acceleration.x != null) Am = Math.hypot(e.acceleration.x, e.acceleration.y, e.acceleration.z);
   else if (e.accelerationIncludingGravity) { const g = e.accelerationIncludingGravity; Am = Math.abs(Math.hypot(g.x || 0, g.y || 0, g.z || 0) - 9.8); }
   motion.R = R; motion.A = Am; motion.t = T; motion.count++;
+  const now = performance.now(); const dts = clamp((now - (motion.lt || now)) / 1000, 0, .05); motion.lt = now;
   if (inputMode !== 'motion') return;
-  // a swing ends when the rate falls well below its peak (the reversal of a back-and-forth flick)
-  if (!armed) { motion.peak = Math.max(motion.peak, R); if (R < Math.max(140, motion.peak * .5)) armed = true; }
-  else if (R > 300 && trySwing()) motion.peak = R;
+  const sw = motion.sw;
+  if (sw) {
+    // one swing = from crossing the trigger until the rate falls well below its peak (the reversal)
+    sw.peak = Math.max(sw.peak, R); sw.ang += R * dts;
+    if (R < Math.max(120, sw.peak * .35) || now - sw.t0 > 450) {
+      motion.sw = null; armed = true; motion.last = { peak: sw.peak | 0, ang: sw.ang | 0 };
+      if (kata.pend && !kata.pend.resolved && kata.pend.ok === undefined) kata.pend.ok = sw.peak >= CUT_PEAK && sw.ang >= CUT_ANGLE;
+    }
+  } else if (R > 350 && armed && trySwing()) motion.sw = { peak: R, ang: R * dts, t0: now };
 }
 window.addEventListener('devicemotion', onMotion);
 async function requestMotion() {
@@ -988,6 +1006,16 @@ const A = (() => {
     bonus() { [1568, 2093, 2637].forEach((f, i) => tone('sine', f, f, .5, .05, i * .05)); },
     taiko(g = 1) { tone('sine', 110, 46, .55, .6 * g); noise(.15, 'lowpass', 1200, 200, .8, .45 * g); },
     final() { this.taiko(1.2); tone('sine', 70, 30, 1.4, .5); [523, 784, 1046].forEach((f, i) => tone('sine', f, f * .995, 3, .05 / (i + 1), .1)); },
+    gong() { // boxing end-of-round bell: three quick metallic strikes
+      if (!ac) return;
+      const parts = [[1, .5, 2.6], [2.76, .28, 1.6], [5.4, .14, .9], [8.93, .07, .5], [1.5, .1, 1.2]];
+      for (let k = 0; k < 3; k++) {
+        const t0 = k * .23, f0 = 742;
+        for (const [m, g, d] of parts) tone('sine', f0 * m, f0 * m * .999, d * (k === 2 ? 1.6 : .9), g * .32, t0, .002);
+        noise(.03, 'highpass', 4000, 6000, 1, .25, t0);
+      }
+      tone('sine', 80, 40, .6, .35);
+    },
     bell() { if (!ac) return; [196, 392.6, 588, 830, 1046].forEach((f, i) => tone('sine', f, f * .997, 6 - i, .09 / (i + 1), 0, .01)); },
     result(r) { this.taiko(1); setTimeout(() => this.taiko(.8), 180); if (r >= 5) [1046, 1568, 2093, 3136].forEach((f, i) => tone('sine', f, f, 2.4, .05, .35 + i * .07)); }
   };
@@ -1149,7 +1177,8 @@ function loop(now) {
 window.__rz = {
   go, get state() { return state; }, get cut() { return cutCount; }, get time() { return timeLeft; },
   step: (t, fn) => { for (let i = 0; i < t * 60; i++) { update(1 / 60); if (fn) fn(); } render(); },
-  swing: () => { armed = true; lastSwingT = -9; inputMode = 'motion'; trySwing(); },
+  swing: () => { armed = true; lastSwingT = -9; inputMode = 'motion'; if (trySwing()) kata.pend.ok = true; },
+  get last() { return motion.last; },
   setMode: m => { inputMode = m; }, setQi: v => { qi = v; }, motion, get dbg() { return { qi, inputMode, T, armed, mt: motion.t }; }
 };
 
