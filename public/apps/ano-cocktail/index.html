@@ -220,7 +220,7 @@ body:not([data-phase=title]) #logo{opacity:.85}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-{
+(function(){'use strict';
 /* ================= utils ================= */
 window.addEventListener('error',e=>{try{if(window.__e1)return;window.__e1=1;const t=document.getElementById('toast');t.textContent='エラー: '+(e.message||'').slice(0,90)+(e.lineno?' (L'+e.lineno+')':'');t.classList.add('on');t._t&&clearTimeout(t._t);}catch(_){}});
 const $=s=>document.querySelector(s);
@@ -950,7 +950,7 @@ $('#bkDel').onclick=()=>{HP.pattern([40,40,40]);try{localStorage.removeItem(BK);
 $('#shClose').onclick=()=>{HP.tap(8);$('#shareUI').classList.remove('on');};
 $('#snd').onclick=()=>{HP.tap(8);AU.init();AU.setOn(!AU.on);$('#snd').textContent=AU.on?'SOUND ON':'SOUND OFF';};
 requestAnimationFrame(frame);
-}
+})();
 </script>
 </body>
 </html>
