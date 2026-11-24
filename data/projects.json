@@ -824,5 +824,17 @@
     "title": "あのカクテル",
     "updatedAt": "2026-11-24T05:39:20Z",
     "url": "/apps/ano-cocktail/"
+  },
+  {
+    "slug": "iai-giri",
+    "title": "居合切り",
+    "kind": "game",
+    "description": "スマホを刀のように構えて静止し、気が満ちた瞬間に振り抜く居合切りゲーム。ジャイロで振りの鋭さを測り、月夜の竹林を一太刀で何本斬れるかを競う。スプライトスタッキングのピクセル疑似3Dで、斬撃を追うカメラと倒れる竹をスピーディに演出。E〜SSSのランクと称号つき、結果画像でXに投稿できる。",
+    "url": "/apps/iai-giri/",
+    "thumbnail": "/project-thumbnails/catalog/iai-giri.webp",
+    "sourceFolder": "261124_居合切り",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-24T09:10:00Z",
+    "updatedAt": "2026-11-24T09:10:00Z"
   }
 ]

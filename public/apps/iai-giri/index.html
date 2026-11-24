@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0e1a2b">
+<title>居合切り</title>
+<meta name="description" content="スマホを刀のように振り抜いて、月夜の竹林を一太刀で何本斬れるかを競う居合切りゲーム。">
+<meta property="og:title" content="居合切り">
+<meta property="og:description" content="スマホを振り抜け。一太刀で、竹林を何本斬れるか。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://uimemocho.github.io/apps/iai-giri/">
+<meta property="og:image" content="https://uimemocho.github.io/apps/iai-giri/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="view"></canvas>
+  <canvas id="fx"></canvas>
+  <div id="bars"><i></i><i></i></div>
+  <div id="vignette"></div>
+  <div id="cutin"></div>
+
+  <!-- TITLE -->
+  <section id="sTitle" class="screen on">
+    <div class="tWrap">
+      <h1 class="logo"><span class="la"></span><span class="lb"></span></h1>
+      <div class="sub" data-t="sub"></div>
+      <div class="bestLine"><span data-t="best"></span><b id="bestNum">0</b><span class="u" data-t="unit"></span></div>
+    </div>
+    <div class="tBtns">
+      <button class="btn main" id="bStart" data-t="start"></button>
+      <div class="row">
+        <button class="btn ghost" id="bHow" data-t="howto"></button>
+        <button class="btn ghost" id="bSet" data-t="settings"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- READY -->
+  <section id="sReady" class="screen">
+    <div class="readyTop">
+      <div class="tag" data-t="ready"></div>
+      <div class="hint" id="readyHint"></div>
+    </div>
+    <div id="qiWrap">
+      <div class="qiK" id="qiLabel"></div>
+      <div class="qiBar"><i id="qiFill"></i></div>
+      <div class="drawCall" id="drawCall"></div>
+    </div>
+    <button class="btn ghost small" id="bBackR" data-t="back"></button>
+  </section>
+
+  <!-- HUD -->
+  <section id="sHud" class="screen">
+    <div id="counter"><b id="cNum">0</b><span id="cUnit"></span></div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="sResult" class="screen">
+    <div class="rWrap">
+      <div class="rRankLbl" data-t="rank"></div>
+      <div id="rRank">S</div>
+      <div id="rTitle"></div>
+      <div class="rCount"><b id="rNum">0</b><span data-t="unit"></span></div>
+      <div id="rBest"></div>
+    </div>
+    <div class="rBtns">
+      <a class="btn main" id="bShare" data-t="share" href="https://twitter.com/intent/tweet" target="_blank" rel="noopener"></a>
+      <div class="row">
+        <button class="btn ghost" id="bRetry" data-t="retry"></button>
+        <button class="btn ghost" id="bSave" data-t="save"></button>
+      </div>
+      <button class="btn ghost small" id="bBack" data-t="back"></button>
+    </div>
+  </section>
+
+  <!-- MODALS -->
+  <div id="mHow" class="modal"><div class="panel">
+    <h2 data-t="howto"></h2>
+    <ol id="howList"></ol>
+    <p class="warn" data-t="warn"></p>
+    <button class="btn main" data-close data-t="close"></button>
+  </div></div>
+  <div id="mWarn" class="modal"><div class="panel">
+    <h2 data-t="howto"></h2>
+    <p class="warn big" data-t="warn"></p>
+    <button class="btn main" id="bWarnOk" data-t="ok"></button>
+  </div></div>
+  <div id="mSet" class="modal"><div class="panel">
+    <h2 data-t="settings"></h2>
+    <div class="setRow"><span data-t="sound"></span><button class="btn ghost small" id="bSound"></button></div>
+    <div class="setRow col"><span data-t="lang"></span><div id="langList"></div></div>
+    <button class="btn main" data-close data-t="close"></button>
+  </div></div>
+  <div id="toast"></div>
+</div>
+<script src="i18n.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
