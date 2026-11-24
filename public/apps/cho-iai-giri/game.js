@@ -88,18 +88,18 @@ function bambooModel(v) {
   const br = []; // branches: from node, angle, length; each ends in a fan of leaves
   nodes.forEach((nl, k) => { if (nl < 54) return; for (let b = 0; b < 2; b++) { const a = la + (k % 2 ? 0 : Math.PI) + (b ? 1.1 : -.6) + rr(-.4, .4); br.push({ l: nl, a, len: rr(3.5, 7.5), leaves: Array.from({ length: 4 + (rnd() * 3 | 0) }, () => ({ a: rr(-1.3, 1.3), len: rr(4.5, 7.5), w: rr(.65, .95) })) }); } });
   seed = save;
-  const base = [0x3d7a3a, 0x4d8838, 0x2f6e4e][v], dark = [0x245a2c, 0x2e5f25, 0x1c4e3a][v];
+  const base = [0x5cae4c, 0x6cb844, 0x4aa676][v], dark = [0x3a7a34, 0x447e2e, 0x2e6e52][v];
   return vox(n, sz, .07, (x, y, l) => {
     const cx = cxA(l), cy = cyA(l), dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy);
-    const r = 1.75 - l / n * .75;
+    const r = 2.3 - l / n * .8;
     let node = -1; for (const nl of nodes) { if (l === nl) node = 0; else if (l === nl - 1 && node < 0) node = 1; }
-    if (l < n - 4 && d <= r + (node === 0 ? .5 : 0)) {
+    if (l < n - 4 && d <= r) {
       if (d < r - .95) return node === 0 ? 0xe9e2bc : 0x2a2614;
       if (d < r - .45 && node !== 0) return 0xf0e8c4;
-      if (node === 0) return 0x6f9a52;
-      if (node === 1) return 0xa8c49a;
+      if (node === 0) return mixI(base, 0x2a4a22, .35);
+      if (node === 1) return mixI(base, 0xd8f0c8, .25);
       const sh = (dx * .7 - dy * .7) / Math.max(.5, r);
-      return mixI(base, sh > 0 ? 0x7fb86a : dark, Math.min(1, Math.abs(sh)) * .55);
+      return mixI(base, sh > 0 ? 0xb8e890 : dark, Math.min(1, Math.abs(sh)) * .6);
     }
     for (const b of br) {
       const ax = Math.cos(b.a), ay = Math.sin(b.a), bx0 = cxA(b.l), by0 = cyA(b.l);
@@ -112,7 +112,7 @@ function bambooModel(v) {
         const q = -qx * ly + qy * lx, wd = Math.sin(Math.min(1, s2 / lf.len * 1.15) * Math.PI) * lf.w + .2;
         if (Math.abs(q) > wd) continue;
         if (Math.abs(l - (tl + 1 - s2 * .32 - s2 * s2 * .045)) > .75) continue;
-        return q > wd * .35 ? 0x2a5a2e : s2 > lf.len * .7 ? 0x86b85e : 0x4f8f45;
+        return q > wd * .35 ? 0x3a7a3a : s2 > lf.len * .7 ? 0xa8d878 : 0x62a852;
       }
     }
     return -1;
@@ -558,7 +558,7 @@ function buildScene(id) {
     sc.kv = 4.4; sc.space = true;
     const ps = [['earth', 5, 'magma', .14], ['mercury', 2.2, 'magma', 0], ['venus', 4.4, 'magma', .1], ['mars', 2.8, 'magma', .06], ['jupiter', 13, 'gas', .08], ['saturn', 11, 'gas', .04], ['uranus', 7, 'ice', .1], ['neptune', 7, 'ice', .12]];
     let z = 0, prevR = 0;
-    ps.forEach(([m, R, ch, gl], i) => { const ext = m === 'saturn' ? R * 2.1 : R; z += i ? prevR + ext + Math.max(R, prevR) * 1.7 + 2 : 10; prevR = ext; const zx = i ? (i % 2 ? 1 : -1) * Math.max(R, 4) * 1.5 : 0, zy = i ? [.7, -.5, .3, -.8][i % 4] * Math.max(R, 4) : 0; const o = mk(m, zx, z, { y: -R + zy, cutF: rr(.44, .56), kind: 'planet', fs: Math.max(R * 2.5, 5), chip: ch, glow: gl, big: true, R }); o.yaw = 0; P(o, 5 + i); });
+    ps.forEach(([m, R, ch, gl], i) => { const ext = m === 'saturn' ? R * 2.1 : R; z += i ? prevR + ext + Math.max(R, prevR) * 1.7 + 2 : 10; prevR = ext; const zx = i ? (i % 2 ? 1 : -1) * Math.max(R, 4) * 1.1 : 0, zy = i ? [.8, -.6, .4, -.9][i % 4] * Math.max(R, 4) : 0; const o = mk(m, zx, z, { y: -R + zy, cutF: rr(.44, .56), kind: 'planet', fs: Math.max(R * 2.5, 5), chip: ch, glow: gl, big: true, R }); o.yaw = 0; P(o, 5 + i); });
     const e = sc.objs[0]; sc.deco.push(mk('moon', 15, e.z + 16, { y: 6 }));
     for (let i = 0; i < 18; i++) { const m = sc.objs[3], j = sc.objs[4]; const zz = rr(m.z + 4, j.z - 14); const o = mk('rock', rr(6, 40), zz, { y: rr(-8, 10), yaw: rr(0, 6), sc: rr(.15, .5) }); sc.deco.push(o); }
     sc.sky = { space: 1 };
@@ -576,7 +576,7 @@ function buildScene(id) {
   sc.clouds = []; if (sc.sky.clouds) for (let i = 0; i < 11; i++) sc.clouds.push({ a: rr(-Math.PI, Math.PI), e: rr(.07, .38), w: rr(.12, .3), k: rnd() * 1000 | 0 });
   sc.neb = []; if (sc.sky.space) for (let i = 0; i < 9; i++) { const a = rr(-Math.PI, Math.PI), e = rr(-.6, .6); sc.neb.push({ d: [Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)], r: rr(.3, .8), c: pick(['80,60,200', '200,60,140', '40,120,200', '120,40,160', '200,120,80'], rnd()), a: rr(.05, .14) }); }
   sc.gals = []; if (sc.sky.gal) for (let i = 0; i < 40; i++) { const a = rr(-Math.PI, Math.PI), e = rr(-1.2, 1.2); sc.gals.push({ d: [Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)], r: rr(.006, .03), t: rr(0, 3.14), q: rr(.2, .8) }); }
-  const DR = { dojo: 6.5, bamboo: 7.5, town: 15, modern: 32, future: 62, space: 40, galaxy: 0 }[id] || 0;
+  const DR = { dojo: 6.5, bamboo: 7.5, town: 15, modern: 32, future: 62, space: 40, galaxy: 0 }[id] || 0; sc.DR = DR;
   for (const o of sc.deco) {
     if (Math.abs(o.x) - o.w * .5 > DR) continue;
     o.dz = true; o.cutL = clamp(Math.round(o.n * rr(.25, .55)), 1, o.n - 1); o.cutF = o.cutL / o.n; o.cutY = o.y + o.cutL * o.u;
@@ -1184,13 +1184,13 @@ function camForState(dt) {
     const sp = clamp(wave.v / Math.max(1, cs), 0, 40);
     const gal = o.kind === 'galaxy' ? 1 : 0;
     // desired offset from the slash (in units of cs); one continuous shot, it only breathes with speed
-    const front = easeIO(clamp(chaseT / 9, 0, 1));
-    const back = lerp(2.15 + sp * .018, 1.7, gal), up = lerp(.32 + sp * .006 + front * .1, 1.05, gal), side = lerp(lerp(1.15, .06, front), .5, gal);
-    const sway = Math.sin(T * .55) * .18 * (1 - front * .7), bob = Math.sin(T * .41) * .06;
+    const rise = easeIO(clamp(chaseT / 10, 0, 1)), grow = waveGrow();
+    const back = lerp((2.15 + sp * .018 + rise * .9) * grow, 1.7, gal), up = lerp((.32 + sp * .006 + rise * 1.55) * grow, 1.05, gal), side = lerp((1.15 - rise * .3) * grow, .5, gal);
+    const sway = Math.sin(T * .55) * .18, bob = Math.sin(T * .41) * .06;
     fol.x = lerp(fol.x, -side + sway, 1 - Math.exp(-dt * 3)); fol.y = lerp(fol.y, up + bob, 1 - Math.exp(-dt * 3)); fol.z = lerp(fol.z, -back, 1 - Math.exp(-dt * 3));
     px = wave.x + fol.x * cs; py = wave.y + fol.y * cs; pz = wave.z + fol.z * cs;
-    tx_ = wave.x + lerp(.3, 0, front) * cs; ty = wave.y + lerp(.18, -.5, gal) * cs; tz = wave.z + lerp(2.6, 1.6, gal) * cs;
-    fov = 1.05 + Math.min(.42, sp * .011); roll = (-.04 - Math.min(.06, sp * .002)) * (1 - front * .8);
+    tx_ = wave.x + .3 * cs; ty = wave.y + lerp(.18 - rise * .35, -.5, gal) * cs; tz = wave.z + lerp(2.6 + rise * 1.2, 1.6, gal) * cs;
+    fov = 1.05 + Math.min(.42, sp * .011); roll = -.04 - Math.min(.06, sp * .002);
     camKick = Math.max(0, camKick - dt * 6); fov -= camKick * camKick * .12;
     if (trans) { const k = Math.sin(Math.PI * clamp(trans.t / trans.dur, 0, 1)); fov += k * (trans.type === 'warp' ? .55 : trans.type === 'leap' ? .35 : .22); }
     snap = stT > .5;
@@ -1275,10 +1275,12 @@ function finalWave(dt) {
   else { wave.z += wave.v * dt; }
   wave.fade = Math.max(0, wave.fade - dt * (stopped || !o ? 1.4 : .3)); if (wave.fade <= 0) wave.on = false;
 }
+function waveGrow() { return 1 + Math.min(.9, chaseT * .075); }
 function blastDeco() {
   if (!wave.on || wave.fade < .25) return;
   for (const o of scene.deco) {
     if (!o.dz || o.cut || wave.z < o.z - o.w * .35) continue;
+    if (Math.abs(o.x - wave.x) - o.w * .5 > (scene.DR || 0) * (.55 + .45 * waveGrow())) continue;
     if (wave.z > o.z + o.w * 2.5) continue;
     o.cut = true; const sg = o.x >= 0 ? 1 : -1, fdz = rr(-.4, .6), l = Math.hypot(1, fdz), dx = sg / l, dz = fdz / l;
     const sp = (3 + 4 * power) * Math.sqrt(o.fs) * .7 * (ultraCut ? 1.2 : 1);
@@ -1307,7 +1309,7 @@ function updChase(dt, rdt) {
   if (trans) { updTrans(rdt); wave.v = lerp(wave.v, cs * scene.kv * accel, 1 - Math.exp(-dt * 3)); wave.z += wave.v * dt; return; }
   blastDeco();
   const objs = scene.objs, o = objs[nextIdx];
-  wave.hw = cs * (scene.id === 'galaxy' ? .5 : .5);
+  wave.hw = cs * .5 * waveGrow();
   if (o) {
     announce(o.stage);
     wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * 6)); wave.y = lerp(wave.y, o.cutY, 1 - Math.exp(-dt * 5));
