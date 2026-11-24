@@ -24,6 +24,7 @@ const rr = (a, b) => a + (b - a) * rnd();
 // ---------- sizing ----------
 let W = 0, H = 0, DPR = 1, S = 3, LW = 200, LH = 400, HW = 100, HH = 200, F = 300;
 function resize() {
+  if (!innerWidth || !innerHeight) return; // hidden / zero-size view: keep the last size
   W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, 2);
   view.width = fx.width = Math.round(W * DPR); view.height = fx.height = Math.round(H * DPR);
   S = Math.max(2, Math.round(Math.min(W, H * .62) * DPR / 210));
@@ -1169,9 +1170,10 @@ document.addEventListener('pointerdown', () => { A.unlock(); if (!bellDone) { be
 // ---------- loop ----------
 let last = performance.now();
 function loop(now) {
+  requestAnimationFrame(loop); // schedule first so one bad frame can never stop the game
   const dt = Math.min(.05, (now - last) / 1000); last = now;
-  update(dt); render();
-  requestAnimationFrame(loop);
+  if (!W || !H) { resize(); if (!W || !H) return; }
+  try { update(dt); render(); } catch (e) { console.warn(e); }
 }
 // test hooks (headless verification only)
 window.__rz = {
