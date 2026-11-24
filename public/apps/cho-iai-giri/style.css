@@ -136,3 +136,12 @@ a.btn{display:block;text-align:center;text-decoration:none}
 #dbg .r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
 #dbg input{accent-color:var(--yel)}
 .nohud #sHud,.nohud #cutin{opacity:0!important}
+
+/* caution: no panel, type on a dimmed stage */
+.warnModal{background:radial-gradient(ellipse at 50% 46%,rgba(10,18,40,.55),rgba(2,4,10,.94) 75%);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.wBox{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center;transform:translateY(8px);transition:transform .35s}
+.modal.on .wBox{transform:none}
+.wTag{display:flex;align-items:center;gap:14px;font-family:var(--fN);font-weight:700;font-size:13px;letter-spacing:.55em;padding-left:.55em;color:var(--yel)}
+.wTag::before,.wTag::after{content:"";width:38px;height:2px;background:var(--yel)}
+.wText{font-family:var(--fB);font-weight:900;font-size:17px;line-height:1.95;color:#fff;letter-spacing:.04em;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7))}
+.wBox .btn{width:100%}
