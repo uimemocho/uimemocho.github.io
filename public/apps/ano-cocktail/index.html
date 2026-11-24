@@ -25,6 +25,7 @@ html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);overflo
 #bg::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 50% 100%,rgba(0,0,0,.55),transparent)}
 #beam{position:fixed;left:0;top:0;width:10px;height:10px;pointer-events:none;opacity:0;filter:blur(18px);transform:skewX(-4deg);transform-origin:50% 100%}
 #beam i{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,238,215,0) 0%,rgba(255,238,215,.08) 35%,rgba(255,238,215,.2) 88%,rgba(255,238,215,.06) 100%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%)}
+#dustB,#dustF{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;display:block}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 .layer{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .4s,visibility .4s;padding:calc(env(safe-area-inset-top) + 14px) 20px calc(env(safe-area-inset-bottom) + 22px)}
 .layer.on{opacity:1;visibility:visible}
@@ -86,6 +87,7 @@ body:not([data-phase=title]) #logo{opacity:.85}
 .rk b.r-SSS{background:linear-gradient(100deg,#ffe58a,#ff7ab8,#9b8cff,#7ff0ff);-webkit-background-clip:text;background-clip:text;color:transparent}
 .rk b.r-SS{color:#ffd76a}.rk b.r-S{color:#e8f1ff}
 .nm{margin:6px 0 0;font:400 clamp(22px,3.9vh,36px)/1.15 "Dela Gothic One",sans-serif;text-wrap:balance;word-break:keep-all;overflow-wrap:anywhere}
+.nm.long{font-size:clamp(20px,3.2vh,30px)}
 .en{margin-top:5px;font:600 10px/1.3 Unbounded;color:var(--sub)}
 .fl{margin:8px 0 0;font:700 clamp(12px,1.75vh,14px)/1.55 "Zen Kaku Gothic New";color:rgba(247,243,255,.88)}
 .fl span{color:var(--sub);font-weight:500}
@@ -153,8 +155,8 @@ body:not([data-phase=title]) #logo{opacity:.85}
 </style>
 </head>
 <body data-phase="title">
-<div id="bg"></div><div id="beam"><i></i></div>
-<canvas id="gl"></canvas>
+<div id="bg"></div><div id="beam"><i></i></div><canvas id="dustB"></canvas>
+<canvas id="gl"></canvas><canvas id="dustF"></canvas>
 <div id="top"><div id="logo">あのカクテル</div><button id="snd" aria-label="サウンド切替">SOUND ON</button></div>
 
 <section id="titleUI" class="layer on">
@@ -761,7 +763,7 @@ function addGarnish(){const r=S.res,t=r.tone,list=[];
 function showResult(){const r=S.res;go('result');if(!S.dbg)bookAdd(r);AU.fanfare();HP.pattern([20,40,20]);
  const pips=n=>`<span class="pips">${[1,2,3,4,5].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</span>`;
  $('#resBody').innerHTML=`<div class="rk"><small>RANK</small><b class="r-${r.rank}">${r.rank}</b></div>
- <h2 class="nm">${esc(r.name)}</h2><div class="en">${esc(r.en)}</div>
+ <h2 class="nm${[...r.name].length>=10?' long':''}">${esc(r.name)}</h2><div class="en">${esc(r.en)}</div>
  <p class="fl">${esc(r.flavor)} <span>${esc(r.note)}</span></p>
  <div class="tags"><span class="tag">質感 ${esc(r.subJp)}</span><span class="tag">${esc(r.st.dir)}・${esc(r.st.rhy)}</span><span class="tag">${esc(GLASS_JP[r.glass])}グラス</span>${r.pal?`<span class="tag">色 ${esc(r.pal)}</span>`:''}</div>
  <div class="stats"><div>度数<span class="val">${esc(r.alc)}</span></div><div>甘さ${pips(r.sweet)}</div><div>映え${pips(r.bae)}</div><div>謎度${pips(r.nazo)}</div></div>
@@ -785,6 +787,7 @@ async function makeShareImage(){const r=S.res;try{await Promise.all(['400 80px "
  const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
  const tint=r.A.clone().lerp(new THREE.Color('#0b0910'),0.55),mid=tint.clone().lerp(new THREE.Color('#0b0910'),0.75);
  g.fillStyle='#0b0910';g.fillRect(0,0,W,H);const gr=g.createRadialGradient(W/2,H*0.34,40,W/2,H*0.34,H*0.75);gr.addColorStop(0,'#'+tint.getHexString());gr.addColorStop(0.5,'#'+mid.getHexString());gr.addColorStop(1,'#0b0910');g.fillStyle=gr;g.fillRect(0,0,W,H);
+ g.globalCompositeOperation='lighter';for(let i=0;i<46;i++){const r=i<34?rnd(6,26):rnd(2,5),x=rnd(0,W),y=rnd(0,860);g.globalAlpha=i<34?rnd(0.05,0.18):rnd(0.4,0.8);g.drawImage(DU.sp[i%3===2?1:0],x-r*2.6,y-r*2.6,r*5.2,r*5.2);}g.globalAlpha=1;g.globalCompositeOperation='source-over';
  const sw=1080,sh=800;const pr=R.getPixelRatio(),ps=PS_U.uScale.value;const cp=cam.position.clone(),cq=cam.quaternion.clone(),ca=cam.aspect;
  R.setPixelRatio(1);R.setSize(sw,sh,false);cam.clearViewOffset();cam.aspect=sw/sh;cam.updateProjectionMatrix();PS_U.uScale.value=sh/(2*Math.tan(cam.fov*Math.PI/360));
  const hh=GL.yT+0.45,cy=hh/2-0.05,d=hh/(0.86*2*Math.tan(cam.fov*Math.PI/360));cam.position.set(GX+0.12*d,cy+0.12*d,d);cam.lookAt(GX,cy,0);updUniforms(0);R.render(scene,cam);g.drawImage(R.domElement,0,0,sw,sh,0,50,sw,sh);
@@ -799,6 +802,25 @@ async function makeShareImage(){const r=S.res;try{await Promise.all(['400 80px "
  y+=48;const tl=`質感 ${r.subJp}  ・  ${r.st.dir}／${r.st.rhy}  ・  ${S.ings.map(x=>x.n).join('＋')}＋あのスパイス`;let ts=28;do{g.font=`700 ${ts}px "Zen Kaku Gothic New"`;ts-=1;}while(g.measureText(tl).width>940&&ts>18);g.fillStyle='rgba(247,243,255,.9)';g.fillText(tl,W/2,y);
  g.font='400 30px "Dela Gothic One"';g.fillStyle='#fff';g.fillText('あのカクテル',W/2,H-36);
  return await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/png'));}
+
+/* ================= luxury dust ================= */
+const DU={b:$('#dustB'),f:$('#dustF'),pb:[],pf:[],k:1,dpr:Math.min(window.devicePixelRatio||1,1.5),rm:matchMedia('(prefers-reduced-motion: reduce)').matches};
+DU.bx=DU.b.getContext('2d');DU.fx=DU.f.getContext('2d');
+function spr(r,g,b){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,`rgba(${r},${g},${b},1)`);gr.addColorStop(0.25,`rgba(${r},${g},${b},.55)`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`);x.fillStyle=gr;x.fillRect(0,0,64,64);return c;}
+DU.sp=[spr(255,222,160),spr(255,247,235),spr(255,190,210)];
+function dustSize(){for(const c of [DU.b,DU.f]){c.width=Math.round(VW*DU.dpr);c.height=Math.round(VH*DU.dpr);}}
+function dustNew(front,anyY){const d=DU.dpr;return front?{x:Math.random()*VW*d,y:anyY?Math.random()*VH*d:VH*d+10,r:rnd(1.2,3.2)*d,vy:-rnd(8,22)*d,sw:rnd(6,18)*d,ph:Math.random()*6.28,ts:rnd(1.5,4),a:rnd(0.45,0.95),s:Math.random()<0.35,c:Math.random()<0.6?0:1}
+ :{x:Math.random()*VW*d,y:anyY?Math.random()*VH*d:VH*d+40,r:rnd(4,16)*d,vy:-rnd(4,14)*d,sw:rnd(10,30)*d,ph:Math.random()*6.28,ts:rnd(0.6,1.6),a:rnd(0.06,0.2),c:Math.random()<0.55?0:Math.random()<0.7?1:2};}
+function dustInit(){dustSize();const nb=DU.rm?18:44,nf=DU.rm?8:22;DU.pb=[];DU.pf=[];for(let i=0;i<nb;i++)DU.pb.push(dustNew(false,true));for(let i=0;i<nf;i++)DU.pf.push(dustNew(true,true));}
+function dustUpdate(dt){const tk={title:1,prep:0.75,shake:0.7,pour:0.85,result:1.25}[phase]||1;DU.k=lerp(DU.k,tk,1-Math.exp(-dt*1.5));const d=DU.dpr,W=DU.b.width,H=DU.b.height,sp=DU.rm?0.35:1;
+ const push=phase==='shake'?ACC.x*0.9*d:0;
+ for(const [ctx,arr,front] of [[DU.bx,DU.pb,false],[DU.fx,DU.pf,true]]){ctx.clearRect(0,0,W,H);ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<arr.length;i++){let p=arr[i];p.y+=p.vy*dt*sp;p.ph+=dt*p.ts;const x=p.x+Math.sin(p.ph*0.7)*p.sw-push*(front?1.6:0.8);
+   if(p.y<-40||x<-60||x>W+60){arr[i]=dustNew(front,false);continue;}
+   const tw=0.55+0.45*Math.sin(p.ph*2.1),a=Math.min(1,p.a*tw*DU.k);if(a<0.01)continue;ctx.globalAlpha=a;const R2=p.r*(front?3.2:2.6);ctx.drawImage(DU.sp[p.c],x-R2,p.y-R2,R2*2,R2*2);
+   if(front&&p.s&&tw>0.85){const L=p.r*(3+4*(tw-0.85)/0.15);ctx.globalAlpha=a*0.8;ctx.strokeStyle='rgba(255,240,215,1)';ctx.lineWidth=0.8*d;ctx.beginPath();ctx.moveTo(x-L,p.y);ctx.lineTo(x+L,p.y);ctx.moveTo(x,p.y-L);ctx.lineTo(x,p.y+L);ctx.stroke();}}
+  ctx.globalAlpha=1;}}
+dustInit();addEventListener('resize',dustSize);
 
 /* ================= per-frame ================= */
 function updUniforms(dt){const t=time;[SH.liq.mat,GL&&GL.liq.mat,GL&&GL.block&&GL.block.m.material].forEach(m=>{if(m&&m.uniforms&&m.uniforms.uTime)m.uniforms.uTime.value=t;});streamMat.uniforms.uTime.value=t;beamMat.uniforms.uTime.value=t;SH.bub.material.uniforms.uTime.value=t;if(GL)GL.bub.material.uniforms.uTime.value=t;}
@@ -873,7 +895,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.05,(now-las
  if(phase!=='prep'&&phase!=='pour'){ST.on=false;updStream(dt);}
  if(phase==='shake'&&PT<0.4)SH.tin.position.y=lerp(SH.tin.position.y,0,1-Math.exp(-dt*18));else if(phase==='shake')SH.tin.position.y=0;
  if(SH.g.visible)shakerLiquid(dt,ACC);
- glassUpdate(dt);worldSmoke(dt);splashUpdate(dt);glitUpdate(dt);lightUpdate(dt);
+ glassUpdate(dt);worldSmoke(dt);splashUpdate(dt);glitUpdate(dt);lightUpdate(dt);dustUpdate(dt);
  if(GL&&phase==='result')GL.g.rotation.y+=dt*0.22;
  updUniforms(dt);camUpdate(dt);R.render(scene,cam);}
 
