@@ -836,5 +836,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-24T09:10:00Z",
     "updatedAt": "2026-11-24T09:30:00Z"
+  },
+  {
+    "slug": "renzoku-giri",
+    "title": "連続斬り",
+    "kind": "game",
+    "description": "居合斬りの続編。スマホを刀のように振り続けて、夕暮れの道場の庭に立つ一本の巻藁を、5秒の連続斬りで何個に斬り分けられるかを競う。ジャイロで往復の振りを1回ずつ判定し、斬った輪切りは一拍おいてずり落ちる。スプライトスタッキングのピクセル疑似3Dで、振るたびに寄るカメラと時間切れ後の回り込みを演出。E〜SSSのランクと称号つき、結果画像でXに投稿できる。",
+    "url": "/apps/renzoku-giri/",
+    "thumbnail": "/project-thumbnails/catalog/renzoku-giri.webp",
+    "sourceFolder": "261124_連続斬り",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-24T11:20:00Z",
+    "updatedAt": "2026-11-24T11:20:00Z"
   }
 ]
