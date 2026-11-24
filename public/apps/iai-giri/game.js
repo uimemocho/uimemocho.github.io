@@ -1,4 +1,4 @@
-// 居合切り — sprite-stack pixel pseudo-3D (Canvas 2D)
+// 居合斬り — sprite-stack pixel pseudo-3D (Canvas 2D)
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);

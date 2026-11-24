@@ -1,7 +1,7 @@
-// 居合切り i18n
+// 居合斬り i18n
 const I18N = {
   ja: {
-    name: ['居合', '切り'], sub: 'I A I - G I R I',
+    name: ['居合', '斬り'], sub: 'I A I - G I R I',
     start: 'はじめる', howto: '遊び方', settings: '設定', best: '自己ベスト', unit: '本',
     ready: '構える', hold: 'スマホを刀のように構えて静止', qi: '気', draw: '振り抜け',
     swipeHold: '画面を長押しして気を溜め、素早くスワイプで斬る',
@@ -10,7 +10,7 @@ const I18N = {
     how: ['スマホを刀のように両手で構え、静かに静止して「気」を溜める。', '気が満ちて光った瞬間に、スマホを勢いよく振り抜く。', '振りが鋭いほど、斬撃は竹林の奥まで届く。光っている間に振れば「一閃」。'],
     sound: '音', on: 'オン', off: 'オフ', lang: '言語', close: '閉じる', back: 'タイトルへ',
     motionOff: 'モーションセンサーが使えないため、指モードで遊べます',
-    shareText: (n, r, t) => `居合切りで竹を${n}本斬った！\nランク${r}「${t}」\n#居合切り`,
+    shareText: (n, r, t) => `居合斬りで竹を${n}本斬った！\nランク${r}「${t}」\n#居合斬り`,
     titles: ['素振り見習い', '竹取りの翁', '竹林の門下生', '一刀の剣士', '月下の剣豪', '竹林無双', '剣聖', '月をも断つ者'],
     cuts: n => `${n}本`
   },
@@ -24,7 +24,7 @@ const I18N = {
     how: ['Hold your phone with both hands like a sword. Stay still to build focus.', 'The moment the focus glows, swing your phone hard.', 'The sharper the swing, the deeper the slash travels. Swing while it glows for a perfect cut.'],
     sound: 'SOUND', on: 'ON', off: 'OFF', lang: 'LANGUAGE', close: 'CLOSE', back: 'TITLE',
     motionOff: 'Motion sensors are unavailable. Swipe mode is on.',
-    shareText: (n, r, t) => `I cut ${n} bamboo in one draw!\nRank ${r} "${t}"\n#居合切り #IAIGIRI`,
+    shareText: (n, r, t) => `I cut ${n} bamboo in one draw!\nRank ${r} "${t}"\n#居合斬り #IAIGIRI`,
     titles: ['Practice Swinger', 'Old Bamboo Cutter', 'Grove Apprentice', 'One-Stroke Swordsman', 'Moonlit Master', 'Peerless of the Grove', 'Grandmaster of the Blade', 'Cleaver of the Moon'],
     cuts: n => `${n} CUTS`
   },
@@ -38,7 +38,7 @@ const I18N = {
     how: ['双手像握刀一样握住手机，保持静止来蓄“气”。', '气满发光的瞬间，用力挥动手机。', '挥得越快，斩击越能深入竹林。发光时挥动即为“一闪”。'],
     sound: '声音', on: '开', off: '关', lang: '语言', close: '关闭', back: '返回标题',
     motionOff: '无法使用动作传感器，已切换为手指模式',
-    shareText: (n, r, t) => `我用居合斩斩断了${n}根竹子！\n等级${r}「${t}」\n#居合切り`,
+    shareText: (n, r, t) => `我用居合斩斩断了${n}根竹子！\n等级${r}「${t}」\n#居合斬り`,
     titles: ['挥空见习生', '伐竹老翁', '竹林门生', '一刀剑士', '月下剑豪', '竹林无双', '剑道宗师', '斩月之人'],
     cuts: n => `${n}根`
   },
@@ -52,7 +52,7 @@ const I18N = {
     how: ['雙手像握刀一樣握住手機，保持靜止來蓄「氣」。', '氣滿發光的瞬間，用力揮動手機。', '揮得越快，斬擊越能深入竹林。發光時揮動即為「一閃」。'],
     sound: '聲音', on: '開', off: '關', lang: '語言', close: '關閉', back: '返回標題',
     motionOff: '無法使用動作感測器，已切換為手指模式',
-    shareText: (n, r, t) => `我用居合斬斬斷了${n}根竹子！\n等級${r}「${t}」\n#居合切り`,
+    shareText: (n, r, t) => `我用居合斬斬斷了${n}根竹子！\n等級${r}「${t}」\n#居合斬り`,
     titles: ['揮空見習生', '伐竹老翁', '竹林門生', '一刀劍士', '月下劍豪', '竹林無雙', '劍道宗師', '斬月之人'],
     cuts: n => `${n}根`
   },
@@ -66,7 +66,7 @@ const I18N = {
     how: ['휴대폰을 두 손으로 칼처럼 쥐고 가만히 멈춰 기를 모으세요.', '기가 가득 차 빛나는 순간, 휴대폰을 힘차게 휘두르세요.', '빠르게 휘두를수록 참격이 대숲 깊이 닿습니다. 빛날 때 휘두르면 일섬.'],
     sound: '소리', on: '켜기', off: '끄기', lang: '언어', close: '닫기', back: '타이틀로',
     motionOff: '모션 센서를 사용할 수 없어 손가락 모드로 플레이합니다',
-    shareText: (n, r, t) => `이아이기리로 대나무 ${n}그루를 베었다!\n랭크 ${r} 「${t}」\n#居合切り`,
+    shareText: (n, r, t) => `이아이기리로 대나무 ${n}그루를 베었다!\n랭크 ${r} 「${t}」\n#居合斬り`,
     titles: ['헛스윙 수련생', '대나무 베는 노인', '죽림의 문하생', '일도의 검사', '월하의 검호', '죽림무쌍', '검의 대가', '달마저 베는 자'],
     cuts: n => `${n}그루`
   },
@@ -80,7 +80,7 @@ const I18N = {
     how: ['Tenez le téléphone à deux mains comme un sabre et restez immobile.', 'Dès que la concentration brille, balancez le téléphone avec force.', 'Plus le geste est vif, plus la coupe va loin. Pendant la lueur : coupe parfaite.'],
     sound: 'SON', on: 'OUI', off: 'NON', lang: 'LANGUE', close: 'FERMER', back: 'TITRE',
     motionOff: 'Capteurs de mouvement indisponibles. Mode tactile activé.',
-    shareText: (n, r, t) => `J'ai tranché ${n} bambous d'un seul coup !\nRang ${r} « ${t} »\n#居合切り #IAIGIRI`,
+    shareText: (n, r, t) => `J'ai tranché ${n} bambous d'un seul coup !\nRang ${r} « ${t} »\n#居合斬り #IAIGIRI`,
     titles: ['Apprenti du vent', 'Vieux coupeur de bambou', 'Disciple du bosquet', "Sabreur d'un trait", 'Maître au clair de lune', 'Sans égal du bosquet', 'Grand maître de la lame', 'Celui qui tranche la lune'],
     cuts: n => `${n} COUPES`
   },
@@ -94,7 +94,7 @@ const I18N = {
     how: ['Halte das Handy mit beiden Händen wie ein Schwert und bleib ruhig.', 'Sobald der Fokus leuchtet, schwing das Handy kräftig durch.', 'Je schärfer der Schwung, desto weiter reicht der Schnitt. Beim Leuchten: perfekter Schnitt.'],
     sound: 'TON', on: 'AN', off: 'AUS', lang: 'SPRACHE', close: 'SCHLIESSEN', back: 'TITEL',
     motionOff: 'Bewegungssensoren nicht verfügbar. Wischmodus aktiv.',
-    shareText: (n, r, t) => `Ich habe ${n} Bambusrohre mit einem Hieb geschnitten!\nRang ${r} „${t}“\n#居合切り #IAIGIRI`,
+    shareText: (n, r, t) => `Ich habe ${n} Bambusrohre mit einem Hieb geschnitten!\nRang ${r} „${t}“\n#居合斬り #IAIGIRI`,
     titles: ['Luftschlag-Lehrling', 'Alter Bambusschneider', 'Schüler des Hains', 'Schwertkämpfer des einen Hiebs', 'Meister im Mondlicht', 'Unbesiegt im Hain', 'Großmeister der Klinge', 'Der den Mond zerteilt'],
     cuts: n => `${n} SCHNITTE`
   },
@@ -108,7 +108,7 @@ const I18N = {
     how: ['Держите телефон двумя руками как меч и замрите, чтобы набрать фокус.', 'Когда фокус засияет, резко взмахните телефоном.', 'Чем резче взмах, тем дальше удар. Взмах во время сияния — идеальный удар.'],
     sound: 'ЗВУК', on: 'ВКЛ', off: 'ВЫКЛ', lang: 'ЯЗЫК', close: 'ЗАКРЫТЬ', back: 'В МЕНЮ',
     motionOff: 'Датчики движения недоступны. Включён режим касания.',
-    shareText: (n, r, t) => `Я срубил ${n} стеблей бамбука одним ударом!\nРанг ${r} «${t}»\n#居合切り #IAIGIRI`,
+    shareText: (n, r, t) => `Я срубил ${n} стеблей бамбука одним ударом!\nРанг ${r} «${t}»\n#居合斬り #IAIGIRI`,
     titles: ['Ученик взмаха', 'Старый резчик бамбука', 'Ученик рощи', 'Мечник одного удара', 'Мастер под луной', 'Непревзойдённый в роще', 'Великий мастер клинка', 'Рассекающий луну'],
     cuts: n => `${n} СТЕБЛЕЙ`
   },
@@ -122,7 +122,7 @@ const I18N = {
     how: ['Impugna il telefono con due mani come una spada e resta immobile.', 'Appena la concentrazione brilla, fendi l’aria con forza.', 'Più il colpo è rapido, più lontano arriva il taglio. Durante il bagliore: taglio perfetto.'],
     sound: 'AUDIO', on: 'SÌ', off: 'NO', lang: 'LINGUA', close: 'CHIUDI', back: 'TITOLO',
     motionOff: 'Sensori di movimento non disponibili. Modalità tocco attiva.',
-    shareText: (n, r, t) => `Ho tagliato ${n} bambù con un solo colpo!\nGrado ${r} «${t}»\n#居合切り #IAIGIRI`,
+    shareText: (n, r, t) => `Ho tagliato ${n} bambù con un solo colpo!\nGrado ${r} «${t}»\n#居合斬り #IAIGIRI`,
     titles: ['Apprendista del vento', 'Vecchio tagliatore di bambù', 'Discepolo del boschetto', 'Spadaccino del colpo unico', 'Maestro al chiaro di luna', 'Imbattibile del boschetto', 'Gran maestro della lama', 'Colui che fende la luna'],
     cuts: n => `${n} TAGLI`
   }
