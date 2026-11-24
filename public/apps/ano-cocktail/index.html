@@ -338,7 +338,7 @@ varying vec3 vWN;varying vec3 vWP;varying vec3 vLP;
 void main(){vec3 N=normalize(vWN);if(!gl_FrontFacing)N=-N;vec3 V=normalize(cameraPosition-vWP);vec3 e=envS(reflect(-V,N));float fr=pow(1.0-abs(dot(N,V)),4.0);float br=0.95+0.05*sin(vLP.y*320.0);
 vec3 c=(e*1.3*vec3(0.92,0.94,0.98)+vec3(0.07,0.07,0.08))*br+fr*0.25;gl_FragColor=vec4(c,1.0);}`,side:THREE.DoubleSide});}
 const LIQ_FS=`${ENV}
-uniform vec3 uN;uniform vec3 uC;uniform vec3 uSurfN;uniform float uTime;uniform vec3 uColA;uniform vec3 uColB;uniform float uFoam;uniform float uWave;uniform float uSolid;uniform float uVisc;uniform float uAlpha;uniform float uSpark;uniform float uH;uniform float uLayer;uniform vec3 uColM;
+uniform vec3 uN;uniform vec3 uC;uniform vec3 uSurfN;uniform float uTime;uniform vec3 uColA;uniform vec3 uColB;uniform float uFoam;uniform float uWave;uniform float uSolid;uniform float uVisc;uniform float uAlpha;uniform float uSpark;uniform float uH;uniform float uLayer;uniform vec3 uColM;uniform vec3 uSparkCol;uniform float uGal;
 varying vec3 vLP;varying vec3 vWN;varying vec3 vWP;
 void main(){
  float w=(sin(vLP.x*13.0+uTime*3.1)*cos(vLP.z*11.0-uTime*2.3)+0.5*sin((vLP.x+vLP.z)*23.0-uTime*5.0))*uWave;
@@ -361,10 +361,10 @@ void main(){
   col=uColA*1.12+envS(reflect(-V,N))*(0.12+0.6*fr+0.3*uVisc);
   col=mix(col,foamC,clamp(uFoam*7.0,0.0,0.92));
  }
- if(uSpark>0.001){float s=hash3(floor(vLP*55.0)+floor(uTime*4.0));col+=vec3(1.0,0.92,0.75)*step(0.975,s)*uSpark*1.6;col+=vec3(0.45,0.3,1.0)*0.18*uSpark*(0.5+0.5*sin(vLP.y*12.0+uTime));}
+ if(uSpark>0.001){float s=hash3(floor(vLP*55.0)+floor(uTime*4.0));float tw=0.6+0.4*sin(uTime*9.0+hash3(floor(vLP*55.0))*40.0);col+=uSparkCol*step(0.975,s)*uSpark*1.7*tw;col+=vec3(0.45,0.3,1.0)*0.18*uGal*(0.5+0.5*sin(vLP.y*12.0+uTime));}
  gl_FragColor=vec4(col,uAlpha);
 }`;
-function liqMat(){return new THREE.ShaderMaterial({uniforms:{envMap:{value:envTex},uN:{value:V3(0,1,0)},uC:{value:V3()},uSurfN:{value:V3(0,1,0)},uTime:{value:0},uColA:{value:new THREE.Color()},uColB:{value:new THREE.Color()},uFoam:{value:0},uWave:{value:0.005},uSolid:{value:0},uVisc:{value:0},uAlpha:{value:0.86},uSpark:{value:0},uH:{value:0.6},uLayer:{value:0},uColM:{value:new THREE.Color()}},vertexShader:GEN_VS,fragmentShader:LIQ_FS,transparent:true,side:THREE.DoubleSide});}
+function liqMat(){return new THREE.ShaderMaterial({uniforms:{envMap:{value:envTex},uN:{value:V3(0,1,0)},uC:{value:V3()},uSurfN:{value:V3(0,1,0)},uTime:{value:0},uColA:{value:new THREE.Color()},uColB:{value:new THREE.Color()},uFoam:{value:0},uWave:{value:0.005},uSolid:{value:0},uVisc:{value:0},uAlpha:{value:0.86},uSpark:{value:0},uH:{value:0.6},uLayer:{value:0},uColM:{value:new THREE.Color()},uSparkCol:{value:new THREE.Color(1,0.92,0.75)},uGal:{value:0}},vertexShader:GEN_VS,fragmentShader:LIQ_FS,transparent:true,side:THREE.DoubleSide});}
 
 /* ================= geometry helpers ================= */
 const lathe=(pts,seg=64)=>new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),seg);
@@ -528,7 +528,7 @@ function ingLayers(k){const n=S.ings.length;LB.copy(vivid(S.ings[0].c));LM.copy(
 
 function newRound(){const pool=[...INGS].sort(()=>Math.random()-0.5);
  Object.assign(S,{dbg:false,chipK:-1,lidShown:false,closing:false,garn:false,fracNow:0,vt:null,ings:pool.slice(0,3),energy:0,target:85,o:0,half:0,lastSign:0,lastFlip:0,intervals:[],ax:[0,0,0],rotSum:0,active:0,mSum:0,peak:0,time:0,stage:0,over:null,res:null,blob:null});
- [S.A,S.B]=baseColors(S.ings,3);ingLayers(0);layerAmt=1;
+ [S.A,S.B]=baseColors(S.ings,3);ingLayers(0);layerAmt=1;S.spice=new THREE.Color().setHSL(Math.random(),0.95,0.66);S.spiceIn=0;S.spiceChip=0;glit.kill();
  for(const k in VPT.liquid)VP[k]=VPT.liquid[k];setVP('layer');
  SH.frac=0;SH.liq.frac=0;SH.liq.wob.set(0,0);SH.liq.wv.set(0,0);SH.g.visible=true;SH.g.position.set(0,0,0);SH.g.quaternion.identity();SH.tin.position.y=0;
  shDrops.kill();shSmoke.kill();wSmoke.kill();splash.kill();motes.kill();disposeGlass();
@@ -603,6 +603,7 @@ const flMat=new THREE.ShaderMaterial({uniforms:{uC:floorMat.uniforms.uC,uGlow:fl
 void main(){vec2 d=vWP.xz-uC;float r=length(d);float rs=length((d-vec2(0.02,-0.01))*vec2(1.0,1.2));float s=(1.0-smoothstep(0.32,0.95,rs))*uOp*0.32;float g=exp(-r*r*2.4)*uGI*0.3;float a=clamp(s+g,0.0,1.0);gl_FragColor=vec4((vec3(1.0,0.93,0.82)*s+uGlow*g)/(s+g+0.001),a);}`,transparent:true,depthWrite:false});
 const floorL=new THREE.Mesh(new THREE.PlaneGeometry(10,10).rotateX(-Math.PI/2),flMat);floorL.position.y=0.002;floorL.renderOrder=0;scene.add(floorL);
 const motes=new PSys(70,{soft:1,order:9});motes.col.set('#fff3e0');
+const glit=new PSys(260,{soft:0,order:6});
 
 /* ================= phases ================= */
 const pourTo={p:V3(),q:new THREE.Quaternion()},pourFrom={p:V3(),q:new THREE.Quaternion()};
@@ -619,7 +620,11 @@ function prepUpdate(dt){
  else{ST.on=false;AU.pour(0,'liquid');}
  ST.target=SH.liq.frac>0.003?SH.liq.d:0.07;
  if(updStream(dt)&&ST.on){if(Math.random()<0.6)shDrops.spawn(rnd(-.05,.05),ST.target,rnd(-.05,.05),rnd(-.6,.6),rnd(1,2.2),rnd(-.6,.6),0.6,0.022);SH.liq.wv.x+=rnd(-1,1)*dt*20;SH.liq.wv.y+=rnd(-1,1)*dt*20;}
- if(PT>3.6&&!S.lidShown){S.lidShown=true;$('#lidBtn').classList.add('show');}
+ const sp0=3.5;if(PT>=sp0&&PT<sp0+1.0){if(!S.spiceChip){S.spiceChip=1;const c=document.createElement('span'),hx='#'+S.spice.getHexString();c.className='chip';c.innerHTML=`<i style="background:${hx};color:${hx}"></i>あのスパイス`;$('#chips').appendChild(c);}
+  for(let i=0;i<4;i++)glit.spawn(rnd(-0.12,0.12),2.7+rnd(0,0.1),rnd(-0.08,0.12),rnd(-.15,.15),rnd(-0.6,-0.2),rnd(-.15,.15),2,rnd(0.012,0.026));
+  if(AU.c&&Math.random()<0.5)AU.tn(AU.c.currentTime,3000+Math.random()*4000,0.12,0.03,'sine');
+  S.spiceIn=Math.min(1,S.spiceIn+dt*1.2);}
+ if(PT>sp0+1.25&&!S.lidShown){S.lidShown=true;$('#lidBtn').classList.add('show');}
 }
 function closeLid(){if(phase!=='prep'||S.closing)return;S.closing=true;HP.pattern([30,50,60]);AU.whoosh();$('#lidBtn').classList.remove('show');
  setTimeout(()=>{AU.clink();HP.tick();go('shake');popText('SHAKE!');S.closing=false;$('#stLabel').textContent='シェイク！';$('#stLabel').style.color='#fff';$('#hint').textContent='振った分だけ、中身が変わる';},380);}
@@ -654,7 +659,7 @@ function makePile(geo,mat,n,sp,nonUni){const L=GL.liq,rad=sp*0.5,sm=[...L.s].sor
 function startPour(){if(phase!=='shake'||!(S.half>=1||S.o>0.02||S.dbg))return;HP.pattern([40,40,90]);AU.whoosh();S.res=decide();const r=S.res;$('#pourBtn').classList.remove('show');AU.slosh(0);
  setVP(r.tex,r.sub,!!r.pal);for(const k in S.vt)VP[k]=S.vt[k];curA.copy(r.A);curB.copy(r.B);tgtA.copy(r.A);tgtB.copy(r.B);if(r.tex==='layer'){LA.copy(r.L3[0]);LM.copy(r.L3[1]);LB.copy(r.L3[2]);}
  GL=buildGlass(r.glass);GL.g.position.x=GX+1.4;Object.assign(GL,{tex:r.tex,sub:r.sub});const fill=GL.G.fill;
- const lu=GL.liq.mat.uniforms;lu.uColA.value.copy(r.A);lu.uColB.value.copy(r.B);lu.uAlpha.value=VPT[r.tex].alpha;lu.uVisc.value=VPT[r.tex].visc;lu.uSolid.value=0;lu.uSpark.value=VPT[r.tex].spark;lu.uFoam.value=r.tex==='foam'?(r.sub==='cream'?0.16:0.08):0;
+ const lu=GL.liq.mat.uniforms;lu.uColA.value.copy(r.A);lu.uColB.value.copy(r.B);lu.uAlpha.value=VPT[r.tex].alpha;lu.uVisc.value=VPT[r.tex].visc;lu.uSolid.value=0;const gal=r.tex==='galaxy',spc=gal?new THREE.Color(1,0.92,0.75):S.spice.clone().lerp(WHITE,0.25);lu.uSpark.value=Math.max(VPT[r.tex].spark,0.45);lu.uGal.value=VPT[r.tex].spark;lu.uSparkCol.value.copy(spc);lu.uFoam.value=r.tex==='foam'?(r.sub==='cream'?0.16:0.08):0;
  if(r.tex==='layer'){lu.uLayer.value=Math.max(0.6,1-S.o/0.55);lu.uColA.value.copy(r.L3[0]);lu.uColM.value.copy(r.L3[1]);lu.uColB.value.copy(r.L3[2]);}
  GL.bub.material.uniforms.uOn.value=['liquid','foam','galaxy'].includes(r.tex)?1:0;GL.bub.material.uniforms.uSpd.value=r.sub==='spark'?2.4:r.tex==='foam'?1.6:1;
  GL.target={layer:1,liquid:1,foam:1,galaxy:1,doro:1,tsubu:0.92,solid:0,smoke:0}[r.tex]*fill;
@@ -665,7 +670,7 @@ function startPour(){if(phase!=='shake'||!(S.half>=1||S.o>0.02||S.dbg))return;HP
  if(r.tex==='solid'){const sb=r.sub;
   if(sb==='cube'||sb==='ball'||sb==='stone'){const R0=GL.liq.R(GL.y0+0.25),s=clamp(Math.min(R0*1.3,0.44),0.2,0.44);let restY=GL.y0+s/2+0.005;for(let y=GL.y0;y<GL.yT;y+=0.01){if(GL.liq.R(y)>=s*0.62){restY=y+s/2;break;}}
    let mesh;if(sb==='stone'){mesh=new THREE.Mesh(rockGeo(s*0.56,2),new THREE.MeshStandardMaterial({color:r.A.clone().lerp(new THREE.Color('#77736e'),0.45),roughness:0.88,flatShading:true}));restY-=s*0.06;}
-   else{const bm=liqMat(),u=bm.uniforms;u.uN.value.set(0,1,0);u.uC.value.set(0,100,0);u.uSolid.value=1;u.uAlpha.value=0.94;u.uColA.value.copy(r.A);u.uColB.value.copy(r.B);u.uH.value=s;u.uVisc.value=0.5;bm.side=THREE.FrontSide;mesh=new THREE.Mesh(sb==='cube'?roundBox(s,s*0.18):new THREE.SphereGeometry(s*0.5,40,30),bm);}
+   else{const bm=liqMat(),u=bm.uniforms;u.uN.value.set(0,1,0);u.uC.value.set(0,100,0);u.uSolid.value=1;u.uAlpha.value=0.94;u.uColA.value.copy(r.A);u.uColB.value.copy(r.B);u.uH.value=s;u.uVisc.value=0.5;u.uSpark.value=0.5;u.uSparkCol.value.copy(spc);bm.side=THREE.FrontSide;mesh=new THREE.Mesh(sb==='cube'?roundBox(s,s*0.18):new THREE.SphereGeometry(s*0.5,40,30),bm);}
    mesh.renderOrder=2;mesh.visible=false;GL.g.add(mesh);GL.block={m:mesh,s,restY,t:-1,y:0,vy:0,x:0,landed:0,sq:0,rigid:sb==='stone'};}
   else if(sb==='ikura'){makePile(new THREE.SphereGeometry(0.05,20,14),new THREE.MeshStandardMaterial({color:r.A,roughness:0.05,transparent:true,opacity:0.84,emissive:r.A.clone().multiplyScalar(0.28)}),34,0.098);}
   else if(sb==='gravel'){const im=makePile(rockGeo(0.05,1),new THREE.MeshStandardMaterial({color:'#ffffff',roughness:0.9,flatShading:true}),48,0.085,true);const c=new THREE.Color();for(let i=0;i<im.count;i++){c.copy(r.A).lerp(new THREE.Color('#8a8580'),rnd(0.2,0.75)).offsetHSL(0,0,rnd(-0.12,0.1));im.setColorAt(i,c);}if(im.instanceColor)im.instanceColor.needsUpdate=true;}
@@ -723,7 +728,7 @@ function showResult(){const r=S.res;go('result');if(!S.dbg)bookAdd(r);AU.fanfare
  <p class="fl">${esc(r.flavor)} <span>${esc(r.note)}</span></p>
  <div class="tags"><span class="tag">質感 ${esc(r.subJp)}</span><span class="tag">${esc(r.st.dir)}・${esc(r.st.rhy)}</span><span class="tag">${esc(GLASS_JP[r.glass])}グラス</span>${r.pal?`<span class="tag">色 ${esc(r.pal)}</span>`:''}</div>
  <div class="stats"><div>度数<span class="val">${esc(r.alc)}</span></div><div>甘さ${pips(r.sweet)}</div><div>映え${pips(r.bae)}</div><div>謎度${pips(r.nazo)}</div></div>
- <div class="meta">${r.time.toFixed(1)}秒・${r.count}回・最大${esc(r.maxG)}G・${esc(r.st.pw)} ／ ${S.ings.map(g=>esc(g.n)).join('＋')}</div>
+ <div class="meta">${r.time.toFixed(1)}秒・${r.count}回・最大${esc(r.maxG)}G・${esc(r.st.pw)} ／ ${S.ings.map(g=>esc(g.n)).join('＋')}＋あのスパイス</div>
  <div class="acts"><button class="btn wide" id="shareBtn">Xでシェア</button><button class="btn ghost" id="againBtn">もう一杯</button><button class="btn ghost" id="imgBtn">画像を見る</button><button class="btn ghost" id="titleBtn">タイトル</button></div>`;
  $('#shareBtn').onclick=share;$('#againBtn').onclick=again;$('#imgBtn').onclick=()=>{HP.tap(10);openShare();};$('#titleBtn').onclick=toTitle;
  setTint(r.A,0.66);
@@ -754,7 +759,7 @@ async function makeShareImage(){const r=S.res;try{await Promise.all(['400 80px "
  g.font='800 64px Unbounded';if(r.rank==='SSS'){const lg=g.createLinearGradient(W/2-120,0,W/2+120,0);lg.addColorStop(0,'#ffe58a');lg.addColorStop(.5,'#ff7ab8');lg.addColorStop(1,'#7ff0ff');g.fillStyle=lg;}else g.fillStyle=r.rank==='SS'?'#ffd76a':'#ffffff';g.fillText(r.rank,W/2,PY+118);
  const fl=fitLines(g,r.name,940,80,'"Dela Gothic One"',2);g.fillStyle='#fff';fl.lines.forEach((l,i)=>g.fillText(l,W/2,PY+205+i*fl.s*1.1));
  let y=PY+205+(fl.lines.length-1)*fl.s*1.1+54;g.font='600 24px Unbounded';g.fillStyle='rgba(247,243,255,.6)';g.fillText(r.en,W/2,y);
- y+=48;const tl=`質感 ${r.subJp}  ・  ${r.st.dir}／${r.st.rhy}  ・  ${S.ings.map(x=>x.n).join('＋')}`;let ts=28;do{g.font=`700 ${ts}px "Zen Kaku Gothic New"`;ts-=1;}while(g.measureText(tl).width>940&&ts>18);g.fillStyle='rgba(247,243,255,.9)';g.fillText(tl,W/2,y);
+ y+=48;const tl=`質感 ${r.subJp}  ・  ${r.st.dir}／${r.st.rhy}  ・  ${S.ings.map(x=>x.n).join('＋')}＋あのスパイス`;let ts=28;do{g.font=`700 ${ts}px "Zen Kaku Gothic New"`;ts-=1;}while(g.measureText(tl).width>940&&ts>18);g.fillStyle='rgba(247,243,255,.9)';g.fillText(tl,W/2,y);
  g.font='400 30px "Dela Gothic One"';g.fillStyle='#fff';g.fillText('あのカクテル',W/2,H-36);
  return await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/png'));}
 
@@ -768,7 +773,7 @@ function shakerLiquid(dt,a){const L=SH.liq,u=L.mat.uniforms;lerpVP(dt);const ck=
  u.uLayer.value=layerAmt;u.uColM.value.copy(LM);
  if(layerAmt>0.001){u.uColA.value.copy(curA).lerp(LA,layerAmt);u.uColB.value.copy(curB).lerp(LB,layerAmt);}else{u.uColA.value.copy(curA);u.uColB.value.copy(curB);}
  u.uWave.value=VP.wave+clamp(a.length()/30,0,1)*0.028*(1-VP.solid)*(1-VP.visc*0.85);
- u.uFoam.value=VP.foam;u.uSolid.value=VP.solid;u.uVisc.value=VP.visc;u.uAlpha.value=VP.alpha;u.uSpark.value=VP.spark;L.apply(wl);
+ u.uFoam.value=VP.foam;u.uSolid.value=VP.solid;u.uVisc.value=VP.visc;u.uAlpha.value=VP.alpha;const spk=S.spice&&phase!=='title'?(S.spiceIn||0)*0.45:0;u.uSpark.value=Math.max(VP.spark,spk);u.uGal.value=VP.spark;u.uSparkCol.value.copy(VP.spark>0.5||!S.spice?new THREE.Color(1,0.92,0.75):S.spice.clone().lerp(WHITE,0.25));L.apply(wl);
  SH.bub.material.uniforms.uOn.value=(1-VP.visc)*(1-VP.solid)*(1-VP.smoke)*(phase==='title'?0.6:1)*(L.frac>0.01?1:0);
  const pv=VP.pearl*(L.frac>0.02?1:0),M=new THREE.Matrix4(),pq=new THREE.Quaternion(),ps=V3();
  for(let i=0;i<60;i++){const p=pearlIdx[i],sc=(phase==='pour'?(1-clamp((PT-1)/S.pourDur*1.3,0,1)):1)*pv;const x=p.x+L.wob.x*0.08*Math.sin(time*3+i),y=p.y+Math.sin(time*7+i*1.7)*0.02*clamp(a.length()/15,0,1),z=p.z+L.wob.y*0.08;
@@ -795,6 +800,8 @@ function worldSmoke(dt){if(!GL){wSmoke.step(dt,0,1);wSmoke.commit();return;}cons
  wSmoke.step(dt,-0.3,0.9,(i,k)=>{const P=wSmoke.p,V=wSmoke.v,x=P[k]-gx,z=P[k+2],h=Math.hypot(x,z)+1e-4,y=P[k+1];
   if(y<GL.yT&&y>GL.y0-0.02&&h<GL.rT+0.03){const rr=L.R(y)*0.93;if(h>rr&&h<rr+0.07){P[k]=gx+x*rr/h;P[k+2]=z*rr/h;V[k]*=-0.3;V[k+2]*=-0.3;}if(y<GL.y0+0.01&&h<rr){P[k+1]=GL.y0+0.01;V[k+1]=Math.abs(V[k+1])*0.1;V[k]+=x/h*0.1;V[k+2]+=z/h*0.1;}}
   if(y<0.03){P[k+1]=0.03;V[k+1]=0;V[k]+=x/h*0.25*dt;V[k+2]+=z/h*0.25*dt;}});wSmoke.commit(0.3);}
+function glitUpdate(dt){if(S.spice)glit.col.copy(S.spice).lerp(WHITE,0.35);glit.alpha=0.75+0.25*Math.sin(time*31);const L=SH.liq,top=SH.g.position.y+(L.frac>0.003?L.d:0.07);
+ glit.step(dt,-5,0.6,(i,k)=>{const P=glit.p;P[k]+=Math.sin(time*6+i)*0.02*dt;if(P[k+1]<top){glit.life[i]=0;}});glit.commit();}
 function splashUpdate(dt){if(S.res)splash.col.copy(S.res.sub==='powder'?S.res.A.clone().lerp(WHITE,0.4):S.res.A);splash.step(dt,-9,0.3,(i,k)=>{if(splash.p[k+1]<ST.hitY-0.02&&splash.v[k+1]<0)splash.life[i]=0;});splash.commit();}
 function lightUpdate(dt){const on=phase==='result'||(phase==='pour'&&S.pourDur&&PT>1+S.pourDur+0.2);const k=1-Math.exp(-dt*(on?1.2:4));beamMat.uniforms.uOp.value=lerp(beamMat.uniforms.uOp.value,on?1:0,k);flMat.uniforms.uOp.value=beamMat.uniforms.uOp.value;
  const op=beamMat.uniforms.uOp.value;beam.visible=false;beamEl.style.opacity=(op*0.85).toFixed(3);
@@ -829,7 +836,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(0.05,(now-las
  if(phase!=='prep'&&phase!=='pour'){ST.on=false;updStream(dt);}
  if(phase==='shake'&&PT<0.4)SH.tin.position.y=lerp(SH.tin.position.y,0,1-Math.exp(-dt*18));else if(phase==='shake')SH.tin.position.y=0;
  if(SH.g.visible)shakerLiquid(dt,ACC);
- glassUpdate(dt);worldSmoke(dt);splashUpdate(dt);lightUpdate(dt);
+ glassUpdate(dt);worldSmoke(dt);splashUpdate(dt);glitUpdate(dt);lightUpdate(dt);
  if(GL&&phase==='result')GL.g.rotation.y+=dt*0.22;
  updUniforms(dt);camUpdate(dt);R.render(scene,cam);}
 
@@ -843,7 +850,7 @@ function dbgUI(){seg('dTex','tex',Object.keys(SUBS).map(k=>[k,TEX[k].jp]),subUI)
 function dbgPrime(tex){AU.init();AU.resume();$('#shareUI').classList.remove('on');$('#bookUI').classList.remove('on');newRound();
  const o=TEX_O[tex];SH.frac=SH.fill;SH.liq.frac=SH.fill*VPT[tex].fracMul;SH.tin.position.y=0;[S.A,S.B]=baseColors(S.ings,3);ingLayers(2);
  $('#chips').innerHTML='';
- Object.assign(S,{dbg:true,energy:o*S.target,o,stage:stageOf(o),time:5.2,half:44,active:5,mSum:5*18,peak:24,ax:[1,4,0.5],intervals:[.24,.25,.23,.26,.24,.25],over:(tex==='doro'||tex==='tsubu')?tex:null});
+ S.spiceIn=1;Object.assign(S,{dbg:true,energy:o*S.target,o,stage:stageOf(o),time:5.2,half:44,active:5,mSum:5*18,peak:24,ax:[1,4,0.5],intervals:[.24,.25,.23,.26,.24,.25],over:(tex==='doro'||tex==='tsubu')?tex:null});
  const vt=tex==='galaxy'?'liquid':tex;setVP(vt);for(const k in S.vt)VP[k]=S.vt[k];const [a,b]=texColors(vt,S.A,S.B);curA.copy(a);curB.copy(b);layerAmt=clamp(1-o/0.55,0,1);
  go('shake');$('#pourBtn').classList.add('show');$('#stLabel').textContent='DEBUG';}
 function dbgTex(){return DBG.tex||pick(Object.keys(SUBS));}
