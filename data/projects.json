@@ -814,7 +814,7 @@
     "updatedAt": "2026-11-23T12:51:33Z"
   },
   {
-    "description": "スマホを振ってシェイクすると、振り方で色も名前も変わる不思議なカクテルができる3Dゲーム。振りすぎるとドロドロ、つぶつぶ、カチカチ、けむりに化ける。ランクはSSSまで、できた一杯は画像つきでXに投稿できる。",
+    "description": "スマホを振ってシェイクすると、振り方で色も名前も変わる不思議なカクテルができる3Dゲーム。振りが足りないと分離、振りすぎるとドロドロ、つぶつぶ、プルプル、石、砂利、粉、けむりに化ける。ランクはSSSまで、できた一杯は画像つきでXに投稿できる。",
     "kind": "game",
     "publishedAt": "2026-11-24T04:00:02Z",
     "slug": "ano-cocktail",
@@ -822,7 +822,7 @@
     "sourceFolder": "261124_あのカクテル",
     "thumbnail": "/project-thumbnails/catalog/ano-cocktail.webp",
     "title": "あのカクテル",
-    "updatedAt": "2026-11-24T04:00:02Z",
+    "updatedAt": "2026-11-24T05:39:20Z",
     "url": "/apps/ano-cocktail/"
   }
 ]
