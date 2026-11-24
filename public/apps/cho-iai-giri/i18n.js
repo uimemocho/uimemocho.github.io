@@ -1,0 +1,166 @@
+// 超居合斬り i18n
+const I18N = {
+  ja: {
+    name: ['超', '居合', '斬り'], sub: 'C H O - I A I - G I R I',
+    start: 'はじめる', howto: '遊び方', settings: '設定', best: '自己ベスト',
+    ready: '構える', hold: 'スマホを刀のように構えて静止', hold2: 'そのまま静止すると、気はさらに溜まる', qi: '気', qi2: '超気', draw: '振り抜け', draw2: '超・振り抜け',
+    swipeHold: '画面を長押しして気を溜め、素早くスワイプで斬る', swipeHold2: '長押しを続けると、気はさらに溜まる',
+    warn: '周囲に人や物がないことを確認し、スマホをしっかり握って振ってください。',
+    ok: 'わかった', retry: 'もう一度', share: 'Xに投稿', save: '画像を保存', newBest: '自己ベスト更新', rank: 'ランク',
+    how: ['スマホを刀のように両手で構え、静止して「気」を溜める。', '気が満ちてもさらに静止を続けると、虹色の「超気」になりプラズマを帯びる。', '振りが鋭いほど、斬撃は藁から竹林、城下町、時空を越えて星々へ届く。超気が満ちた直後に振れば「超一閃」。'],
+    sound: '音', on: 'オン', off: 'オフ', lang: '言語', close: '閉じる', back: 'タイトルへ',
+    motionOff: 'モーションセンサーが使えないため、指モードで遊べます',
+    dist: '斬撃距離', reach: '到達', ly: '光年',
+    stages: ['道場', '竹林', '城下町', '現代', '未来都市', '地球', '水星', '金星', '火星', '木星', '土星', '天王星', '海王星', '銀河'],
+    eras: [['江戸', '令和'], ['令和', '未来']],
+    cut: '斬', perfect: '超一閃', ultra: '超斬', nick: '止', galaxyCut: '銀河一閃', timeCut: '時空斬り',
+    titles: ['藁斬り見習い', '竹林の剣士', '城下の剣豪', '時を越えし侍', '未来を斬る侍', '星を断つ者', '太陽系無双', '銀河を断つ者'],
+    shareText: (st, d, r, t) => `超居合斬りで${st}まで斬った！\n斬撃距離 ${d}\nランク${r}「${t}」\n#超居合斬り`
+  },
+  en: {
+    name: ['ULTRA ', 'IAI', 'GIRI'], sub: 'F R O M   S T R A W   T O   G A L A X Y',
+    start: 'START', howto: 'HOW TO PLAY', settings: 'SETTINGS', best: 'BEST',
+    ready: 'READY', hold: 'Hold your phone like a sword and stay still', hold2: 'Stay still and your focus keeps rising', qi: 'FOCUS', qi2: 'ULTRA FOCUS', draw: 'SWING', draw2: 'ULTRA SWING',
+    swipeHold: 'Press and hold to focus, then swipe fast to slash', swipeHold2: 'Keep holding and your focus keeps rising',
+    warn: 'Make sure the area around you is clear, and grip your phone firmly before swinging.',
+    ok: 'GOT IT', retry: 'RETRY', share: 'POST TO X', save: 'SAVE IMAGE', newBest: 'NEW BEST', rank: 'RANK',
+    how: ['Hold your phone with both hands like a sword. Stay still to build focus.', 'Stay still even after it fills, and it turns into rainbow Ultra Focus crackling with plasma.', 'The sharper the swing, the farther the slash flies: straw, bamboo, a castle town, across time, to the stars. Swing right after Ultra Focus fills for an Ultra Flash.'],
+    sound: 'SOUND', on: 'ON', off: 'OFF', lang: 'LANGUAGE', close: 'CLOSE', back: 'TITLE',
+    motionOff: 'Motion sensors are unavailable. Swipe mode is on.',
+    dist: 'SLASH DISTANCE', reach: 'REACHED', ly: 'ly',
+    stages: ['DOJO', 'BAMBOO GROVE', 'CASTLE TOWN', 'PRESENT DAY', 'FUTURE CITY', 'EARTH', 'MERCURY', 'VENUS', 'MARS', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUNE', 'GALAXY'],
+    eras: [['EDO', 'REIWA'], ['REIWA', 'FUTURE']],
+    cut: 'SLASH', perfect: 'ULTRA FLASH', ultra: 'ULTRA SLASH', nick: 'HALT', galaxyCut: 'GALAXY SLASH', timeCut: 'TIME SLASH',
+    titles: ['Straw Apprentice', 'Bamboo Swordsman', 'Master of the Castle Town', 'Samurai Beyond Time', 'Samurai Who Cuts the Future', 'Planet Cleaver', 'Lord of the Solar System', 'Cleaver of the Galaxy'],
+    shareText: (st, d, r, t) => `I slashed all the way to ${st}!\nSlash distance ${d}\nRank ${r} "${t}"\n#超居合斬り #ULTRAIAIGIRI`
+  },
+  'zh-Hans': {
+    name: ['超', '居合', '斩'], sub: 'C H O - I A I - G I R I',
+    start: '开始', howto: '玩法', settings: '设置', best: '最佳纪录',
+    ready: '架势', hold: '像握刀一样握住手机并保持静止', hold2: '继续保持静止，气会继续积蓄', qi: '气', qi2: '超气', draw: '挥刀', draw2: '超·挥刀',
+    swipeHold: '长按屏幕蓄气，然后快速滑动斩击', swipeHold2: '继续长按，气会继续积蓄',
+    warn: '请确认周围没有人或物品，并紧握手机后再挥动。',
+    ok: '知道了', retry: '再来一次', share: '发布到X', save: '保存图片', newBest: '刷新纪录', rank: '等级',
+    how: ['双手像握刀一样握住手机，保持静止来蓄“气”。', '气满之后继续保持静止，会化为彩虹色的“超气”并带上等离子。', '挥得越快，斩击越远：草靶、竹林、城下町，穿越时空直达星辰。超气蓄满的瞬间挥动即为“超一闪”。'],
+    sound: '声音', on: '开', off: '关', lang: '语言', close: '关闭', back: '返回标题',
+    motionOff: '无法使用动作传感器，已切换为手指模式',
+    dist: '斩击距离', reach: '到达', ly: '光年',
+    stages: ['道场', '竹林', '城下町', '现代', '未来都市', '地球', '水星', '金星', '火星', '木星', '土星', '天王星', '海王星', '银河'],
+    eras: [['江户', '令和'], ['令和', '未来']],
+    cut: '斩', perfect: '超一闪', ultra: '超斩', nick: '止', galaxyCut: '银河一闪', timeCut: '时空斩',
+    titles: ['草靶学徒', '竹林剑士', '城下剑豪', '穿越时空的武士', '斩断未来的武士', '断星者', '太阳系无双', '斩断银河者'],
+    shareText: (st, d, r, t) => `我用超居合斩一路斩到了${st}！\n斩击距离 ${d}\n等级${r}「${t}」\n#超居合斬り`
+  },
+  'zh-Hant': {
+    name: ['超', '居合', '斬'], sub: 'C H O - I A I - G I R I',
+    start: '開始', howto: '玩法', settings: '設定', best: '最佳紀錄',
+    ready: '架勢', hold: '像握刀一樣握住手機並保持靜止', hold2: '繼續保持靜止，氣會繼續積蓄', qi: '氣', qi2: '超氣', draw: '揮刀', draw2: '超・揮刀',
+    swipeHold: '長按畫面蓄氣，然後快速滑動斬擊', swipeHold2: '繼續長按，氣會繼續積蓄',
+    warn: '請確認周圍沒有人或物品，並緊握手機後再揮動。',
+    ok: '知道了', retry: '再來一次', share: '發佈到X', save: '儲存圖片', newBest: '刷新紀錄', rank: '等級',
+    how: ['雙手像握刀一樣握住手機，保持靜止來蓄「氣」。', '氣滿之後繼續保持靜止，會化為彩虹色的「超氣」並帶上電漿。', '揮得越快，斬擊越遠：草靶、竹林、城下町，穿越時空直達星辰。超氣蓄滿的瞬間揮動即為「超一閃」。'],
+    sound: '聲音', on: '開', off: '關', lang: '語言', close: '關閉', back: '返回標題',
+    motionOff: '無法使用動作感測器，已切換為手指模式',
+    dist: '斬擊距離', reach: '到達', ly: '光年',
+    stages: ['道場', '竹林', '城下町', '現代', '未來都市', '地球', '水星', '金星', '火星', '木星', '土星', '天王星', '海王星', '銀河'],
+    eras: [['江戶', '令和'], ['令和', '未來']],
+    cut: '斬', perfect: '超一閃', ultra: '超斬', nick: '止', galaxyCut: '銀河一閃', timeCut: '時空斬',
+    titles: ['草靶學徒', '竹林劍士', '城下劍豪', '穿越時空的武士', '斬斷未來的武士', '斷星者', '太陽系無雙', '斬斷銀河者'],
+    shareText: (st, d, r, t) => `我用超居合斬一路斬到了${st}！\n斬擊距離 ${d}\n等級${r}「${t}」\n#超居合斬り`
+  },
+  ko: {
+    name: ['초', '이아이', '기리'], sub: 'C H O - I A I - G I R I',
+    start: '시작', howto: '게임 방법', settings: '설정', best: '최고 기록',
+    ready: '자세', hold: '휴대폰을 칼처럼 잡고 가만히 있으세요', hold2: '계속 가만히 있으면 기가 더 모입니다', qi: '기', qi2: '초월의 기', draw: '휘둘러라', draw2: '초월 베기',
+    swipeHold: '화면을 길게 눌러 기를 모으고, 빠르게 밀어서 베세요', swipeHold2: '계속 누르고 있으면 기가 더 모입니다',
+    warn: '주변에 사람이나 물건이 없는지 확인하고, 휴대폰을 단단히 쥔 채 휘두르세요.',
+    ok: '알겠어', retry: '다시 하기', share: 'X에 게시', save: '이미지 저장', newBest: '최고 기록 경신', rank: '랭크',
+    how: ['휴대폰을 칼처럼 두 손으로 잡고, 가만히 있으며 「기」를 모읍니다.', '기가 가득 찬 뒤에도 계속 가만히 있으면 무지개빛 「초월의 기」가 되어 플라스마를 두릅니다.', '휘두르기가 날카로울수록 참격은 짚단에서 대나무 숲, 성하마을, 시공을 넘어 별까지 닿습니다. 초월의 기가 차오른 직후에 휘두르면 「초일섬」.'],
+    sound: '소리', on: '켜기', off: '끄기', lang: '언어', close: '닫기', back: '타이틀로',
+    motionOff: '모션 센서를 사용할 수 없어 손가락 모드로 플레이합니다',
+    dist: '참격 거리', reach: '도달', ly: '광년',
+    stages: ['도장', '대나무 숲', '성하마을', '현대', '미래 도시', '지구', '수성', '금성', '화성', '목성', '토성', '천왕성', '해왕성', '은하'],
+    eras: [['에도', '레이와'], ['레이와', '미래']],
+    cut: '참', perfect: '초일섬', ultra: '초참', nick: '멈춤', galaxyCut: '은하일섬', timeCut: '시공 베기',
+    titles: ['짚단 베기 견습생', '대나무 숲의 검사', '성하마을의 검호', '시간을 넘은 사무라이', '미래를 베는 사무라이', '별을 가르는 자', '태양계 무쌍', '은하를 가르는 자'],
+    shareText: (st, d, r, t) => `초 이아이기리로 ${st}까지 베었다!\n참격 거리 ${d}\n랭크 ${r} 「${t}」\n#超居合斬り`
+  },
+  fr: {
+    name: ['ULTRA ', 'IAI', 'GIRI'], sub: 'D E   L A   P A I L L E   À   L A   G A L A X I E',
+    start: 'JOUER', howto: 'COMMENT JOUER', settings: 'RÉGLAGES', best: 'RECORD',
+    ready: 'EN GARDE', hold: 'Tiens ton téléphone comme un sabre et reste immobile', hold2: 'Reste immobile : ta concentration monte encore', qi: 'CONCENTRATION', qi2: 'ULTRA CONCENTRATION', draw: 'TRANCHE', draw2: 'ULTRA TRANCHE',
+    swipeHold: 'Maintiens le doigt pour te concentrer, puis glisse vite pour trancher', swipeHold2: 'Continue d’appuyer : ta concentration monte encore',
+    warn: 'Vérifie qu’il n’y a personne ni rien autour de toi et tiens fermement ton téléphone.',
+    ok: 'COMPRIS', retry: 'REJOUER', share: 'PUBLIER SUR X', save: 'ENREGISTRER', newBest: 'NOUVEAU RECORD', rank: 'RANG',
+    how: ['Tiens ton téléphone à deux mains comme un sabre et reste immobile pour te concentrer.', 'Une fois la jauge pleine, reste encore immobile : elle devient l’Ultra Concentration arc-en-ciel, chargée de plasma.', 'Plus le geste est vif, plus la tranche va loin : paille, bambous, ville du château, à travers le temps, jusqu’aux étoiles. Tranche juste après l’Ultra Concentration pour un Ultra Éclair.'],
+    sound: 'SON', on: 'OUI', off: 'NON', lang: 'LANGUE', close: 'FERMER', back: 'TITRE',
+    motionOff: 'Capteurs de mouvement indisponibles. Mode tactile activé.',
+    dist: 'DISTANCE', reach: 'ATTEINT', ly: 'al',
+    stages: ['DOJO', 'BAMBOUSERAIE', 'VILLE DU CHÂTEAU', 'PRÉSENT', 'CITÉ DU FUTUR', 'TERRE', 'MERCURE', 'VÉNUS', 'MARS', 'JUPITER', 'SATURNE', 'URANUS', 'NEPTUNE', 'GALAXIE'],
+    eras: [['EDO', 'REIWA'], ['REIWA', 'FUTUR']],
+    cut: 'TRANCHE', perfect: 'ULTRA ÉCLAIR', ultra: 'ULTRA TRANCHE', nick: 'ARRÊT', galaxyCut: 'TRANCHE GALACTIQUE', timeCut: 'TRANCHE DU TEMPS',
+    titles: ['Apprenti de la paille', 'Sabreur des bambous', 'Maître de la ville du château', 'Samouraï au-delà du temps', 'Samouraï qui tranche le futur', 'Pourfendeur de planètes', 'Maître du système solaire', 'Celui qui tranche la galaxie'],
+    shareText: (st, d, r, t) => `J’ai tout tranché jusqu’à : ${st} !\nDistance ${d}\nRang ${r} « ${t} »\n#超居合斬り #ULTRAIAIGIRI`
+  },
+  de: {
+    name: ['ULTRA ', 'IAI', 'GIRI'], sub: 'V O M   S T R O H   Z U R   G A L A X I S',
+    start: 'START', howto: 'ANLEITUNG', settings: 'EINSTELLUNGEN', best: 'BESTWERT',
+    ready: 'BEREIT', hold: 'Halte dein Handy wie ein Schwert und bleib ruhig', hold2: 'Bleib ruhig – die Konzentration steigt weiter', qi: 'KONZENTRATION', qi2: 'ULTRA-KONZENTRATION', draw: 'SCHWING', draw2: 'ULTRA-SCHWUNG',
+    swipeHold: 'Gedrückt halten zum Konzentrieren, dann schnell wischen', swipeHold2: 'Weiter halten – die Konzentration steigt weiter',
+    warn: 'Achte darauf, dass niemand und nichts in der Nähe ist, und halte dein Handy gut fest.',
+    ok: 'VERSTANDEN', retry: 'NOCHMAL', share: 'AUF X POSTEN', save: 'BILD SPEICHERN', newBest: 'NEUER BESTWERT', rank: 'RANG',
+    how: ['Halte dein Handy mit beiden Händen wie ein Schwert und bleib ruhig, um dich zu konzentrieren.', 'Bleib auch nach dem Füllen ruhig – dann wird daraus die regenbogenfarbene Ultra-Konzentration voller Plasma.', 'Je schärfer der Schwung, desto weiter fliegt der Schnitt: Stroh, Bambus, Burgstadt, durch die Zeit bis zu den Sternen. Direkt nach der Ultra-Konzentration schwingen ergibt einen Ultra-Blitz.'],
+    sound: 'TON', on: 'AN', off: 'AUS', lang: 'SPRACHE', close: 'SCHLIESSEN', back: 'TITEL',
+    motionOff: 'Bewegungssensoren nicht verfügbar. Wischmodus aktiv.',
+    dist: 'DISTANZ', reach: 'ERREICHT', ly: 'Lj',
+    stages: ['DOJO', 'BAMBUSWALD', 'BURGSTADT', 'GEGENWART', 'ZUKUNFTSSTADT', 'ERDE', 'MERKUR', 'VENUS', 'MARS', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUN', 'GALAXIS'],
+    eras: [['EDO', 'REIWA'], ['REIWA', 'ZUKUNFT']],
+    cut: 'SCHNITT', perfect: 'ULTRA-BLITZ', ultra: 'ULTRA-SCHNITT', nick: 'HALT', galaxyCut: 'GALAXIS-SCHNITT', timeCut: 'ZEITSCHNITT',
+    titles: ['Strohlehrling', 'Bambus-Schwertkämpfer', 'Meister der Burgstadt', 'Samurai jenseits der Zeit', 'Samurai, der die Zukunft schneidet', 'Planetenspalter', 'Herr des Sonnensystems', 'Spalter der Galaxis'],
+    shareText: (st, d, r, t) => `Ich habe bis ${st} durchgeschnitten!\nDistanz ${d}\nRang ${r} „${t}“\n#超居合斬り #ULTRAIAIGIRI`
+  },
+  ru: {
+    name: ['УЛЬТРА ', 'ИАЙ', 'ГИРИ'], sub: 'О Т   С О Л О М Ы   Д О   Г А Л А К Т И К И',
+    start: 'ИГРАТЬ', howto: 'КАК ИГРАТЬ', settings: 'НАСТРОЙКИ', best: 'РЕКОРД',
+    ready: 'СТОЙКА', hold: 'Держи телефон как меч и замри', hold2: 'Не двигайся — концентрация растёт дальше', qi: 'КОНЦЕНТРАЦИЯ', qi2: 'УЛЬТРА-КОНЦЕНТРАЦИЯ', draw: 'РУБИ', draw2: 'УЛЬТРА-УДАР',
+    swipeHold: 'Удерживай палец для концентрации, затем быстро проведи', swipeHold2: 'Продолжай удерживать — концентрация растёт дальше',
+    warn: 'Убедись, что рядом нет людей и предметов, и крепко держи телефон.',
+    ok: 'ПОНЯТНО', retry: 'ЕЩЁ РАЗ', share: 'ОПУБЛИКОВАТЬ В X', save: 'СОХРАНИТЬ', newBest: 'НОВЫЙ РЕКОРД', rank: 'РАНГ',
+    how: ['Держи телефон обеими руками как меч и замри, чтобы сосредоточиться.', 'Если и после заполнения не двигаться, шкала станет радужной ультра-концентрацией с плазмой.', 'Чем резче взмах, тем дальше летит удар: солома, бамбук, замковый город, сквозь время к звёздам. Взмах сразу после ультра-концентрации — ультра-вспышка.'],
+    sound: 'ЗВУК', on: 'ВКЛ', off: 'ВЫКЛ', lang: 'ЯЗЫК', close: 'ЗАКРЫТЬ', back: 'В МЕНЮ',
+    motionOff: 'Датчики движения недоступны. Включён режим касаний.',
+    dist: 'ДИСТАНЦИЯ', reach: 'ДОСТИГНУТО', ly: 'св. лет',
+    stages: ['ДОДЗЁ', 'БАМБУКОВАЯ РОЩА', 'ЗАМКОВЫЙ ГОРОД', 'НАШИ ДНИ', 'ГОРОД БУДУЩЕГО', 'ЗЕМЛЯ', 'МЕРКУРИЙ', 'ВЕНЕРА', 'МАРС', 'ЮПИТЕР', 'САТУРН', 'УРАН', 'НЕПТУН', 'ГАЛАКТИКА'],
+    eras: [['ЭДО', 'РЭЙВА'], ['РЭЙВА', 'БУДУЩЕЕ']],
+    cut: 'УДАР', perfect: 'УЛЬТРА-ВСПЫШКА', ultra: 'УЛЬТРА-УДАР', nick: 'СТОП', galaxyCut: 'УДАР ПО ГАЛАКТИКЕ', timeCut: 'РАЗРЕЗ ВРЕМЕНИ',
+    titles: ['Ученик соломы', 'Мечник бамбуковой рощи', 'Мастер замкового города', 'Самурай вне времени', 'Самурай, рассекающий будущее', 'Раскалывающий планеты', 'Владыка Солнечной системы', 'Рассекающий галактику'],
+    shareText: (st, d, r, t) => `Я прорубился до цели: ${st}!\nДистанция ${d}\nРанг ${r} «${t}»\n#超居合斬り #ULTRAIAIGIRI`
+  },
+  it: {
+    name: ['ULTRA ', 'IAI', 'GIRI'], sub: 'D A L L A   P A G L I A   A L L A   G A L A S S I A',
+    start: 'GIOCA', howto: 'COME SI GIOCA', settings: 'IMPOSTAZIONI', best: 'RECORD',
+    ready: 'IN GUARDIA', hold: 'Impugna il telefono come una spada e resta immobile', hold2: 'Resta immobile: la concentrazione sale ancora', qi: 'CONCENTRAZIONE', qi2: 'ULTRA CONCENTRAZIONE', draw: 'COLPISCI', draw2: 'ULTRA COLPO',
+    swipeHold: 'Tieni premuto per concentrarti, poi scorri veloce per tagliare', swipeHold2: 'Continua a tenere premuto: la concentrazione sale ancora',
+    warn: 'Assicurati che intorno a te non ci siano persone o oggetti e stringi bene il telefono.',
+    ok: 'HO CAPITO', retry: 'RIPROVA', share: 'PUBBLICA SU X', save: 'SALVA IMMAGINE', newBest: 'NUOVO RECORD', rank: 'GRADO',
+    how: ['Impugna il telefono con due mani come una spada e resta immobile per concentrarti.', 'Anche quando la barra è piena resta immobile: diventa l’Ultra Concentrazione arcobaleno carica di plasma.', 'Più il colpo è rapido, più lontano arriva il taglio: paglia, bambù, città del castello, attraverso il tempo fino alle stelle. Colpisci appena si riempie l’Ultra Concentrazione per un Ultra Lampo.'],
+    sound: 'AUDIO', on: 'SÌ', off: 'NO', lang: 'LINGUA', close: 'CHIUDI', back: 'TITOLO',
+    motionOff: 'Sensori di movimento non disponibili. Modalità tocco attiva.',
+    dist: 'DISTANZA', reach: 'RAGGIUNTO', ly: 'al',
+    stages: ['DOJO', 'BAMBUSETO', 'CITTÀ DEL CASTELLO', 'PRESENTE', 'CITTÀ DEL FUTURO', 'TERRA', 'MERCURIO', 'VENERE', 'MARTE', 'GIOVE', 'SATURNO', 'URANO', 'NETTUNO', 'GALASSIA'],
+    eras: [['EDO', 'REIWA'], ['REIWA', 'FUTURO']],
+    cut: 'TAGLIO', perfect: 'ULTRA LAMPO', ultra: 'ULTRA TAGLIO', nick: 'STOP', galaxyCut: 'TAGLIO GALATTICO', timeCut: 'TAGLIO DEL TEMPO',
+    titles: ['Apprendista della paglia', 'Spadaccino del bambù', 'Maestro della città del castello', 'Samurai oltre il tempo', 'Samurai che taglia il futuro', 'Fendipianeti', 'Signore del sistema solare', 'Colui che fende la galassia'],
+    shareText: (st, d, r, t) => `Ho tagliato fino a: ${st}!\nDistanza ${d}\nGrado ${r} «${t}»\n#超居合斬り #ULTRAIAIGIRI`
+  }
+};
+const LANG_NAMES = { ja: '日本語', en: 'English', 'zh-Hans': '简体中文', 'zh-Hant': '繁體中文', ko: '한국어', fr: 'Français', de: 'Deutsch', ru: 'Русский', it: 'Italiano' };
+const STAGE_EN = ['EDO DOJO', 'BAMBOO GROVE', 'CASTLE TOWN', 'A.D. 2026', 'A.D. 3026', 'EARTH', 'MERCURY', 'VENUS', 'MARS', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUNE', 'THE GALAXY'];
+function detectLang() {
+  try { const s = localStorage.getItem('choiai_lang'); if (s && I18N[s]) return s; } catch (e) {}
+  const n = (navigator.language || 'ja').toLowerCase();
+  if (n.startsWith('ja')) return 'ja';
+  if (n.startsWith('zh')) return (n.includes('tw') || n.includes('hk') || n.includes('hant') || n.includes('mo')) ? 'zh-Hant' : 'zh-Hans';
+  for (const k of ['ko', 'fr', 'de', 'ru', 'it', 'en']) if (n.startsWith(k)) return k;
+  return 'en';
+}

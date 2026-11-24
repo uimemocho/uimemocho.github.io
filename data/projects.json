@@ -848,5 +848,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-24T11:20:00Z",
     "updatedAt": "2026-11-24T13:20:00Z"
+  },
+  {
+    "slug": "cho-iai-giri",
+    "title": "超居合斬り",
+    "kind": "game",
+    "description": "居合斬りのインフレ版。スマホを刀のように構えて気を溜め、さらに静止して虹色の超気を満たし、ジャイロで一発振り抜く。剣圧は夜の道場の巻藁から竹林、城下町、時空を斬って現代と未来の都市へ、さらに地球、太陽系の惑星を一つずつ、最後は銀河まで斬り進む。年号が回るタイムリープ演出と、周囲の建物も吹き飛ぶ剣圧、加速し続けるカメラ。WebGLのボクセル描画で、斬った惑星の断面に核まで見える。E〜SSSのランクと称号つき、結果画像でXに投稿できる。",
+    "url": "/apps/cho-iai-giri/",
+    "thumbnail": "/project-thumbnails/catalog/cho-iai-giri.webp",
+    "sourceFolder": "261124_超居合斬り",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-24T14:20:00Z",
+    "updatedAt": "2026-11-24T14:20:00Z"
   }
 ]
