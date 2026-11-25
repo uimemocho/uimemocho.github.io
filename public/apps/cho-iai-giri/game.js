@@ -1443,6 +1443,7 @@ function update(rdt) {
 }
 function rTarget() {
   if (state === 'final') return REACH;
+  if (orbit) return Math.min(REACH, orbit.o.stage + .95 * clamp(orbit.t / orbit.T, 0, 1));
   const o = scene.objs[nextIdx];
   if (!o) { const l = scene.objs[scene.objs.length - 1]; return Math.min(REACH, l.stage + 1); }
   const prevZ = nextIdx > 0 ? scene.objs[nextIdx - 1].z : scene.startZ;
@@ -1493,7 +1494,7 @@ function updChase(dt, rdt) {
   const objs = scene.objs, o = objs[nextIdx];
   wave.hw = cs * .5 * waveGrow();
   if (o) {
-    announce(o.stage);
+    if (!orbit) announce(o.stage);
     const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 : o.cutY;
     const wr = o.kind === 'galaxy' ? 7 : 3; wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * wr)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * Math.max(wr, 6)));
     if (!orbit && o.m === 'earth' && !o.orbited && canCut(o) && wave.z >= o.z - o.R * 4.3) startOrbit(o);
@@ -1967,7 +1968,7 @@ let hudStage = -2;
 function updHud(force) {
   const [n, u] = fmtDist(distOf(rDisp));
   const el = $('#cNum'); if (el.textContent !== n) el.textContent = n; const ue = $('#cUnit'); if (ue.textContent !== u) ue.textContent = u;
-  const o = scene && (scene.objs[nextIdx] || scene.objs[scene.objs.length - 1]); const st = o ? o.stage : 0;
+  const o = scene && (orbit ? orbit.o : scene.objs[nextIdx] || scene.objs[scene.objs.length - 1]); const st = o ? o.stage : 0;
   if (st !== hudStage || force) { hudStage = st; const h = $('#hStage'); h.textContent = tx().stages[st]; h.classList.add('on'); }
 }
 let cutinTO = 0;
