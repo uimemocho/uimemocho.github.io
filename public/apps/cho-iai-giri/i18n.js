@@ -11,7 +11,7 @@ const I18N = {
     sound: '音', on: 'オン', off: 'オフ', lang: '言語', close: '閉じる', back: 'タイトルへ',
     motionOff: 'モーションセンサーが使えないため、指モードで遊べます',
     dist: '斬撃距離', reach: '到達', ly: '光年',
-    stages: ['道場', '竹林', '城下町', '現代', '未来都市', '地球', '水星', '金星', '火星', '木星', '土星', '天王星', '海王星', '銀河'],
+    stages: ['道場', '竹林', '城下町', '現代', '未来都市', '地球', '月', '火星', '小惑星帯', '木星', '土星', '天王星', '海王星', '銀河'],
     eras: [['江戸', '令和'], ['令和', '未来']],
     cut: '斬', perfect: '超一閃', ultra: '超斬', nick: '止', galaxyCut: '銀河一閃', timeCut: '時空斬り',
     titles: ['藁斬り見習い', '竹林の剣士', '城下の剣豪', '時を越えし侍', '未来を斬る侍', '星を断つ者', '太陽系無双', '銀河を断つ者'],
@@ -28,7 +28,7 @@ const I18N = {
     sound: 'SOUND', on: 'ON', off: 'OFF', lang: 'LANGUAGE', close: 'CLOSE', back: 'TITLE',
     motionOff: 'Motion sensors are unavailable. Swipe mode is on.',
     dist: 'SLASH DISTANCE', reach: 'REACHED', ly: 'ly',
-    stages: ['DOJO', 'BAMBOO GROVE', 'CASTLE TOWN', 'PRESENT DAY', 'FUTURE CITY', 'EARTH', 'MERCURY', 'VENUS', 'MARS', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUNE', 'GALAXY'],
+    stages: ['DOJO', 'BAMBOO GROVE', 'CASTLE TOWN', 'PRESENT DAY', 'FUTURE CITY', 'EARTH', 'MOON', 'MARS', 'ASTEROID BELT', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUNE', 'GALAXY'],
     eras: [['EDO', 'REIWA'], ['REIWA', 'FUTURE']],
     cut: 'SLASH', perfect: 'ULTRA FLASH', ultra: 'ULTRA SLASH', nick: 'HALT', galaxyCut: 'GALAXY SLASH', timeCut: 'TIME SLASH',
     titles: ['Straw Apprentice', 'Bamboo Swordsman', 'Master of the Castle Town', 'Samurai Beyond Time', 'Samurai Who Cuts the Future', 'Planet Cleaver', 'Lord of the Solar System', 'Cleaver of the Galaxy'],
@@ -45,7 +45,7 @@ const I18N = {
     sound: '声音', on: '开', off: '关', lang: '语言', close: '关闭', back: '返回标题',
     motionOff: '无法使用动作传感器，已切换为手指模式',
     dist: '斩击距离', reach: '到达', ly: '光年',
-    stages: ['道场', '竹林', '城下町', '现代', '未来都市', '地球', '水星', '金星', '火星', '木星', '土星', '天王星', '海王星', '银河'],
+    stages: ['道场', '竹林', '城下町', '现代', '未来都市', '地球', '月球', '火星', '小行星带', '木星', '土星', '天王星', '海王星', '银河'],
     eras: [['江户', '令和'], ['令和', '未来']],
     cut: '斩', perfect: '超一闪', ultra: '超斩', nick: '止', galaxyCut: '银河一闪', timeCut: '时空斩',
     titles: ['草靶学徒', '竹林剑士', '城下剑豪', '穿越时空的武士', '斩断未来的武士', '断星者', '太阳系无双', '斩断银河者'],
@@ -62,7 +62,7 @@ const I18N = {
     sound: '聲音', on: '開', off: '關', lang: '語言', close: '關閉', back: '返回標題',
     motionOff: '無法使用動作感測器，已切換為手指模式',
     dist: '斬擊距離', reach: '到達', ly: '光年',
-    stages: ['道場', '竹林', '城下町', '現代', '未來都市', '地球', '水星', '金星', '火星', '木星', '土星', '天王星', '海王星', '銀河'],
+    stages: ['道場', '竹林', '城下町', '現代', '未來都市', '地球', '月球', '火星', '小行星帶', '木星', '土星', '天王星', '海王星', '銀河'],
     eras: [['江戶', '令和'], ['令和', '未來']],
     cut: '斬', perfect: '超一閃', ultra: '超斬', nick: '止', galaxyCut: '銀河一閃', timeCut: '時空斬',
     titles: ['草靶學徒', '竹林劍士', '城下劍豪', '穿越時空的武士', '斬斷未來的武士', '斷星者', '太陽系無雙', '斬斷銀河者'],
@@ -79,7 +79,7 @@ const I18N = {
     sound: '소리', on: '켜기', off: '끄기', lang: '언어', close: '닫기', back: '타이틀로',
     motionOff: '모션 센서를 사용할 수 없어 손가락 모드로 플레이합니다',
     dist: '참격 거리', reach: '도달', ly: '광년',
-    stages: ['도장', '대나무 숲', '성하마을', '현대', '미래 도시', '지구', '수성', '금성', '화성', '목성', '토성', '천왕성', '해왕성', '은하'],
+    stages: ['도장', '대나무 숲', '성하마을', '현대', '미래 도시', '지구', '달', '화성', '소행성대', '목성', '토성', '천왕성', '해왕성', '은하'],
     eras: [['에도', '레이와'], ['레이와', '미래']],
     cut: '참', perfect: '초일섬', ultra: '초참', nick: '멈춤', galaxyCut: '은하일섬', timeCut: '시공 베기',
     titles: ['짚단 베기 견습생', '대나무 숲의 검사', '성하마을의 검호', '시간을 넘은 사무라이', '미래를 베는 사무라이', '별을 가르는 자', '태양계 무쌍', '은하를 가르는 자'],
@@ -96,7 +96,7 @@ const I18N = {
     sound: 'SON', on: 'OUI', off: 'NON', lang: 'LANGUE', close: 'FERMER', back: 'TITRE',
     motionOff: 'Capteurs de mouvement indisponibles. Mode tactile activé.',
     dist: 'DISTANCE', reach: 'ATTEINT', ly: 'al',
-    stages: ['DOJO', 'BAMBOUSERAIE', 'VILLE DU CHÂTEAU', 'PRÉSENT', 'CITÉ DU FUTUR', 'TERRE', 'MERCURE', 'VÉNUS', 'MARS', 'JUPITER', 'SATURNE', 'URANUS', 'NEPTUNE', 'GALAXIE'],
+    stages: ['DOJO', 'BAMBOUSERAIE', 'VILLE DU CHÂTEAU', 'PRÉSENT', 'CITÉ DU FUTUR', 'TERRE', 'LUNE', 'MARS', 'CEINTURE D\'ASTÉROÏDES', 'JUPITER', 'SATURNE', 'URANUS', 'NEPTUNE', 'GALAXIE'],
     eras: [['EDO', 'REIWA'], ['REIWA', 'FUTUR']],
     cut: 'TRANCHE', perfect: 'ULTRA ÉCLAIR', ultra: 'ULTRA TRANCHE', nick: 'ARRÊT', galaxyCut: 'TRANCHE GALACTIQUE', timeCut: 'TRANCHE DU TEMPS',
     titles: ['Apprenti de la paille', 'Sabreur des bambous', 'Maître de la ville du château', 'Samouraï au-delà du temps', 'Samouraï qui tranche le futur', 'Pourfendeur de planètes', 'Maître du système solaire', 'Celui qui tranche la galaxie'],
@@ -113,7 +113,7 @@ const I18N = {
     sound: 'TON', on: 'AN', off: 'AUS', lang: 'SPRACHE', close: 'SCHLIESSEN', back: 'TITEL',
     motionOff: 'Bewegungssensoren nicht verfügbar. Wischmodus aktiv.',
     dist: 'DISTANZ', reach: 'ERREICHT', ly: 'Lj',
-    stages: ['DOJO', 'BAMBUSWALD', 'BURGSTADT', 'GEGENWART', 'ZUKUNFTSSTADT', 'ERDE', 'MERKUR', 'VENUS', 'MARS', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUN', 'GALAXIS'],
+    stages: ['DOJO', 'BAMBUSWALD', 'BURGSTADT', 'GEGENWART', 'ZUKUNFTSSTADT', 'ERDE', 'MOND', 'MARS', 'ASTEROIDENGÜRTEL', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUN', 'GALAXIS'],
     eras: [['EDO', 'REIWA'], ['REIWA', 'ZUKUNFT']],
     cut: 'SCHNITT', perfect: 'ULTRA-BLITZ', ultra: 'ULTRA-SCHNITT', nick: 'HALT', galaxyCut: 'GALAXIS-SCHNITT', timeCut: 'ZEITSCHNITT',
     titles: ['Strohlehrling', 'Bambus-Schwertkämpfer', 'Meister der Burgstadt', 'Samurai jenseits der Zeit', 'Samurai, der die Zukunft schneidet', 'Planetenspalter', 'Herr des Sonnensystems', 'Spalter der Galaxis'],
@@ -130,7 +130,7 @@ const I18N = {
     sound: 'ЗВУК', on: 'ВКЛ', off: 'ВЫКЛ', lang: 'ЯЗЫК', close: 'ЗАКРЫТЬ', back: 'В МЕНЮ',
     motionOff: 'Датчики движения недоступны. Включён режим касаний.',
     dist: 'ДИСТАНЦИЯ', reach: 'ДОСТИГНУТО', ly: 'св. лет',
-    stages: ['ДОДЗЁ', 'БАМБУКОВАЯ РОЩА', 'ЗАМКОВЫЙ ГОРОД', 'НАШИ ДНИ', 'ГОРОД БУДУЩЕГО', 'ЗЕМЛЯ', 'МЕРКУРИЙ', 'ВЕНЕРА', 'МАРС', 'ЮПИТЕР', 'САТУРН', 'УРАН', 'НЕПТУН', 'ГАЛАКТИКА'],
+    stages: ['ДОДЗЁ', 'БАМБУКОВАЯ РОЩА', 'ЗАМКОВЫЙ ГОРОД', 'НАШИ ДНИ', 'ГОРОД БУДУЩЕГО', 'ЗЕМЛЯ', 'ЛУНА', 'МАРС', 'ПОЯС АСТЕРОИДОВ', 'ЮПИТЕР', 'САТУРН', 'УРАН', 'НЕПТУН', 'ГАЛАКТИКА'],
     eras: [['ЭДО', 'РЭЙВА'], ['РЭЙВА', 'БУДУЩЕЕ']],
     cut: 'УДАР', perfect: 'УЛЬТРА-ВСПЫШКА', ultra: 'УЛЬТРА-УДАР', nick: 'СТОП', galaxyCut: 'УДАР ПО ГАЛАКТИКЕ', timeCut: 'РАЗРЕЗ ВРЕМЕНИ',
     titles: ['Ученик соломы', 'Мечник бамбуковой рощи', 'Мастер замкового города', 'Самурай вне времени', 'Самурай, рассекающий будущее', 'Раскалывающий планеты', 'Владыка Солнечной системы', 'Рассекающий галактику'],
@@ -147,7 +147,7 @@ const I18N = {
     sound: 'AUDIO', on: 'SÌ', off: 'NO', lang: 'LINGUA', close: 'CHIUDI', back: 'TITOLO',
     motionOff: 'Sensori di movimento non disponibili. Modalità tocco attiva.',
     dist: 'DISTANZA', reach: 'RAGGIUNTO', ly: 'al',
-    stages: ['DOJO', 'BAMBUSETO', 'CITTÀ DEL CASTELLO', 'PRESENTE', 'CITTÀ DEL FUTURO', 'TERRA', 'MERCURIO', 'VENERE', 'MARTE', 'GIOVE', 'SATURNO', 'URANO', 'NETTUNO', 'GALASSIA'],
+    stages: ['DOJO', 'BAMBUSETO', 'CITTÀ DEL CASTELLO', 'PRESENTE', 'CITTÀ DEL FUTURO', 'TERRA', 'LUNA', 'MARTE', 'FASCIA DEGLI ASTEROIDI', 'GIOVE', 'SATURNO', 'URANO', 'NETTUNO', 'GALASSIA'],
     eras: [['EDO', 'REIWA'], ['REIWA', 'FUTURO']],
     cut: 'TAGLIO', perfect: 'ULTRA LAMPO', ultra: 'ULTRA TAGLIO', nick: 'STOP', galaxyCut: 'TAGLIO GALATTICO', timeCut: 'TAGLIO DEL TEMPO',
     titles: ['Apprendista della paglia', 'Spadaccino del bambù', 'Maestro della città del castello', 'Samurai oltre il tempo', 'Samurai che taglia il futuro', 'Fendipianeti', 'Signore del sistema solare', 'Colui che fende la galassia'],
@@ -155,7 +155,7 @@ const I18N = {
   }
 };
 const LANG_NAMES = { ja: '日本語', en: 'English', 'zh-Hans': '简体中文', 'zh-Hant': '繁體中文', ko: '한국어', fr: 'Français', de: 'Deutsch', ru: 'Русский', it: 'Italiano' };
-const STAGE_EN = ['EDO DOJO', 'BAMBOO GROVE', 'CASTLE TOWN', 'A.D. 2026', 'A.D. 3026', 'EARTH', 'MERCURY', 'VENUS', 'MARS', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUNE', 'THE GALAXY'];
+const STAGE_EN = ['EDO DOJO', 'BAMBOO GROVE', 'CASTLE TOWN', 'A.D. 2026', 'A.D. 3026', 'EARTH', 'THE MOON', 'MARS', 'ASTEROID BELT', 'JUPITER', 'SATURN', 'URANUS', 'NEPTUNE', 'THE GALAXY'];
 function detectLang() {
   try { const s = localStorage.getItem('choiai_lang'); if (s && I18N[s]) return s; } catch (e) {}
   const n = (navigator.language || 'ja').toLowerCase();
