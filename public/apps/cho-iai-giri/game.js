@@ -2007,18 +2007,18 @@ function showResult() {
 
 // ---------- share ----------
 let shareImg = null;
-async function makeShareImage(generic) {
+async function makeShareImage(generic, CW = 1200, CH = 630) {
   try {
     const t0 = generic ? I18N.ja : tx(), r0 = lastResult; const txt = t0.name.join('') + t0.sub + '一太刀で、どこまで斬れるか。藁から、銀河まで。0123456789.,kmuimemocho.github.io/apps/cho-iai-giri' + (r0 ? r0.n + r0.u + t0.reach + t0.stages[r0.st] + t0.titles[r0.r] + RANKS[r0.r] : '');
     await Promise.all(['400 88px "Dela Gothic One"', '900 40px "Zen Kaku Gothic New"', '700 150px Oswald', '500 18px Oswald'].map(f => document.fonts.load(f, txt).catch(() => {})));
     await document.fonts.ready;
   } catch (e) {}
-  const c = document.createElement('canvas'); c.width = 1200; c.height = 630; let x = c.getContext('2d'); x.imageSmoothingEnabled = false;
-  const scn = renderLandscape(400, 210, generic ? generic : null);
-  x.filter = 'brightness(1.2) saturate(1.1)'; x.drawImage(scn, 0, 0, 1200, 630); x.filter = 'none';
-  const g = x.createLinearGradient(0, 0, 1200, 0); g.addColorStop(0, 'rgba(14,26,43,.86)'); g.addColorStop(.5, 'rgba(14,26,43,.42)'); g.addColorStop(1, 'rgba(14,26,43,0)'); x.fillStyle = g; x.fillRect(0, 0, 1200, 630);
+  const c = document.createElement('canvas'); c.width = CW; c.height = CH; let x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  const scn = renderLandscape(Math.round(CW / 3), Math.round(CH / 3), generic ? generic : null);
+  x.filter = 'brightness(1.2) saturate(1.1)'; x.drawImage(scn, 0, 0, CW, CH); x.filter = 'none';
+  const g = x.createLinearGradient(0, 0, CW, 0); g.addColorStop(0, 'rgba(14,26,43,.86)'); g.addColorStop(.5, 'rgba(14,26,43,.42)'); g.addColorStop(1, 'rgba(14,26,43,0)'); x.fillStyle = g; x.fillRect(0, 0, CW, CH);
   const t = generic ? I18N.ja : tx(), r = lastResult;
-  const base = x, tl = document.createElement('canvas'); tl.width = 1200; tl.height = 630; x = tl.getContext('2d');
+  const base = x, tl = document.createElement('canvas'); tl.width = CW; tl.height = CH; x = tl.getContext('2d');
   x.save(); x.transform(1, 0, -0.12, 1, 0, 0); x.textBaseline = 'alphabetic';
   x.font = '400 88px "Dela Gothic One"'; const w0 = x.measureText(t.name[0]).width, w1 = x.measureText(t.name[1]).width;
   const rg = x.createLinearGradient(96, 70, 96 + w0, 150); ['#ff3b6b', '#ffb020', '#fff35a', '#4dff8a', '#3fd8ff', '#7a6bff'].forEach((cc, i) => rg.addColorStop(i / 5, cc));
@@ -2035,8 +2035,8 @@ async function makeShareImage(generic) {
     x.fillText(t.titles[r.r], 190 + rw, 524); x.restore();
   }
   base.save(); base.shadowColor = 'rgba(14,26,43,.95)'; base.shadowBlur = 22; base.drawImage(tl, 0, 0); base.restore(); x = base;
-  x.font = '500 20px Oswald'; x.fillStyle = 'rgba(214,223,236,.85)'; x.textAlign = 'right'; x.fillText('uimemocho.github.io/apps/cho-iai-giri', 1170, 606);
-  const bar = x.createLinearGradient(0, 0, 1200, 0); ['#ff3b6b', '#ffb020', '#fff35a', '#4dff8a', '#3fd8ff', '#7a6bff', '#ff4fd8'].forEach((cc, i) => bar.addColorStop(i / 6, cc)); x.fillStyle = bar; x.fillRect(0, 622, 1200, 8);
+  x.font = '500 20px Oswald'; x.fillStyle = 'rgba(214,223,236,.85)'; x.textAlign = 'right'; x.fillText('uimemocho.github.io/apps/cho-iai-giri', CW - 30, CH - 24);
+  const bar = x.createLinearGradient(0, 0, CW, 0); ['#ff3b6b', '#ffb020', '#fff35a', '#4dff8a', '#3fd8ff', '#7a6bff', '#ff4fd8'].forEach((cc, i) => bar.addColorStop(i / 6, cc)); x.fillStyle = bar; x.fillRect(0, CH - 8, CW, 8);
   return new Promise(res => c.toBlob(b => res(b), 'image/png'));
 }
 function shareText() { const r = lastResult, t = tx(); return t.shareText(t.stages[r.st], `${r.n} ${r.u}`, RANKS[r.r], t.titles[r.r]); }
@@ -2081,7 +2081,8 @@ function loop(now) {
   if (DBG.on) { DBG.acc += raw; DBG.n++; if (DBG.acc > .5) { DBG.fps = Math.round(DBG.n / DBG.acc); DBG.acc = 0; DBG.n = 0; const e = $('#dFps'); if (e) e.textContent = `${DBG.fps} fps  ${tx().stages[stageOf(Math.max(rDisp, .01))]}  ${state}`; } }
   update(raw * DBG.speed); render(); requestAnimationFrame(loop);
 }
-// ---------- debug mode (?debug or tap the title logo 5 times) ----------
+// ---------- debug mode (?debug or tap the title logo 5 times); the public build sets DEBUG_BUILD = false ----------
+const DEBUG_BUILD = false;
 const DBG = { on: false, speed: 1, fps: 0, acc: 0, n: 0, taps: [] };
 function dbgOpen() {
   if (DBG.on) return; DBG.on = true;
@@ -2117,8 +2118,8 @@ function dbgGo(i, reach, ultra) {
   chaseT = 0; timeScale = 1; shownStage = -1; rDisp = SC_STAGE[i]; fol.x = -1.1; fol.y = .3; fol.z = -2.2; stT = .6; anc.x = wave.x; anc.y = wave.y; galS = wave.vert ? 1 : 0; wave.vt = wave.vert ? 1 : 0; camReset(); earthCut = false;
   camS.px = wave.x + fol.x * cs; camS.py = wave.y + fol.y * cs; camS.pz = wave.z + fol.z * cs; camS.tx = wave.x; camS.ty = wave.y; camS.tz = wave.z + 2.5 * cs;
 }
-$('.logo').addEventListener('click', () => { const t = performance.now(); DBG.taps = DBG.taps.filter(v => t - v < 2500); DBG.taps.push(t); if (DBG.taps.length >= 5) { DBG.taps = []; dbgOpen(); toast('DEBUG MODE'); } });
-if (/[?&#]debug/.test(location.search + location.hash)) setTimeout(dbgOpen, 0);
+if (DEBUG_BUILD) $('.logo').addEventListener('click', () => { const t = performance.now(); DBG.taps = DBG.taps.filter(v => t - v < 2500); DBG.taps.push(t); if (DBG.taps.length >= 5) { DBG.taps = []; dbgOpen(); toast('DEBUG MODE'); } });
+if (DEBUG_BUILD && /[?&#]debug/.test(location.search + location.hash)) setTimeout(dbgOpen, 0);
 function preloadFonts() {
   if (!document.fonts || !document.fonts.load) return;
   const t = tx(); const all = '0123456789.,AD TIMELEAPkmly→？' + t.stages.join('') + t.eras.flat().join('') + t.titles.join('') + t.name.join('') + t.cut + t.perfect + t.ultra + t.nick + t.galaxyCut + t.timeCut + t.reach + t.dist + t.ly + t.qi + t.qi2 + t.draw + t.draw2 + t.newBest + t.best;
@@ -2126,7 +2127,7 @@ function preloadFonts() {
   document.fonts.load('700 40px Oswald', all).catch(() => {}); document.fonts.load('500 40px Oswald', all).catch(() => {});
 }
 // debug hook (testing only)
-window.__cho = {
+if (DEBUG_BUILD) window.__cho = {
   fire: (p, q = 2) => { qi = q; qiUltraAt = T; qiFullAt = T; fire(p); }, go, get state() { return state; }, get scene() { return scene && scene.id; }, get reach() { return REACH; }, get rDisp() { return rDisp; }, get trans() { return trans && trans.type; },
   dcut: () => scene.deco.filter(o => o.cut).length + "/" + scene.deco.filter(o => o.dz).length + "/" + scene.deco.length,
   tri: () => { let t = 0; root.traverse(o => { if (o.isMesh && o.geometry.index) t += o.geometry.index.count / 3; if (o.isPoints) t += o.geometry.attributes.position.count; }); return t; },
@@ -2135,11 +2136,11 @@ window.__cho = {
   trace: n => { const r = []; for (let i = 0; i < n; i++) { update(1 / 60); r.push([cam.yaw, cam.pitch, cam.fov, cam.x / cs, cam.y / cs, cam.z / cs, state, trans ? 1 : 0, timeScale, scene.id, earthCut ? 1 : 0, nextIdx, +CS.th.x.toFixed(3), +CS.d.x.toFixed(3), shotK, +stT.toFixed(2), +camS.px.toFixed(2), +camS.pz.toFixed(2), +camS.tx.toFixed(2), +camS.tz.toFixed(2)]); if (state === 'result' || state === 'wide') break; } return r; },
   fdbg: () => { const o = scene.objs[nextIdx]; if (!o) return null; const ok = proj(o.x, o.cutY, o.z, tA); return [nextIdx, +FW.x.toFixed(2), +((o.z - wave.z)).toFixed(1), ok ? Math.round(tA[3]) : null, LW, +cs.toFixed(1), +waveGrow().toFixed(2), +camS.tx.toFixed(1), +o.x.toFixed(1), +cam.x.toFixed(1)]; },
   fl: () => [flight ? +flight.t.toFixed(2) : -1, nextIdx, +wave.z.toFixed(1), +wave.v.toFixed(1), scene.objs[nextIdx] ? scene.objs[nextIdx].m : '', scene.objs[nextIdx] ? +scene.objs[nextIdx].z.toFixed(1) : 0, !!orbit],
-  pause: v => { DBG.speed = v ? 0 : 1; },
+  pause: v => { DBG.speed = v ? 0 : 1; }, audio: A,
   tr: () => trans && [trans.t.toFixed(3), trans.sw, trans.done, !!trans.snapped, trans.glass && trans.glass.sh ? trans.glass.sh.length : 0, snapC.width],
   skip: t => { for (let i = 0; i < t * 60; i++) update(1 / 60); render(); }, setQi: v => { qi = v; }, buildAll: () => { while (!preDone) prebuildNext(1e15); },
   view: (id, setup) => { loadScene(SCENES.indexOf(id)); state = 'view'; if (setup) setup({ scene, cutObj, lookAt, cam, camS, upd: d => { updPieces(d); updParts(d); } }); },
-  ogp: async () => { const sv = scene; loadScene(5); const e = scene.objs[0]; power = .8; cutObj(e); for (let i = 0; i < 90; i++) { updPieces(1 / 60); updParts(1 / 60); } parts = []; slashes = []; const b = await makeShareImage(() => lookAt(e.x - 15, e.y + 9, e.z - 14, e.x + 2, e.y + 4, e.z + 3)); scene = sv; return await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); }
+  ogp: async (W2, H2) => { const sv = scene; loadScene(5); const e = scene.objs[0]; power = .8; cutObj(e); for (let i = 0; i < 90; i++) { updPieces(1 / 60); updParts(1 / 60); } parts = []; slashes = []; const b = await makeShareImage(() => lookAt(e.x - 15, e.y + 9, e.z - 14, e.x + 2, e.y + 4, e.z + 3), W2 || 1200, H2 || 630); scene = sv; return await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); }
 };
 
 loadScene(0);
