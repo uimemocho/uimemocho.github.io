@@ -1094,7 +1094,26 @@ let state = 'title', T = 0, stT = 0;
 let qi = 0, qiFullAt = 0, qiUltraAt = 0, kataIn = 0;
 let quake = 0, orbit = null, orbK = 0, ringF = 0; let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = -.4, slowT = 0;
 let power = 0, perfect = false, ultraCut = false, REACH = 0, rDisp = 0, nextIdx = 0, finalObj = null, stopped = false, galaxyDone = false;
-const fol = { x: -1.1, y: .3, z: -2.2 }, anc = { x: 0, y: 1 }; let galS = 0, RDT = .016;
+const fol = { x: -1.1, y: .3, z: -2.2 }, anc = { x: 0, y: 1 };
+const smooth = t => t * t * (3 - 2 * t);
+// chase shot presets (th: azimuth, negative = camera on the left of travel; ph: elevation; d: distance; L: look-ahead; ly: look height; du: dutch)
+const SHOTS = [
+  { th: -.42, ph: .17, d: 2.3, L: 2.4, ly: .05, fov: 1.12, du: -.05 },   // chase
+  { th: -.62, ph: -.03, d: 1.65, L: 2.8, ly: .3, fov: 1.3, du: .11 },   // low skim, looking up
+  { th: -.95, ph: .1, d: 2.35, L: 1.3, ly: .02, fov: 1.08, du: -.08 },  // side tracking
+  { th: -.48, ph: .46, d: 2.6, L: 2.1, ly: -.18, fov: 1.12, du: .05 },  // high three-quarter
+];
+SHOTS.hero = { th: -.82, ph: -.06, d: 1.85, L: 1.5, ly: .6, fov: 1.27, du: .13 };
+const SEQ = [0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 2, 0];
+const CS = {}; for (const k of ['th', 'ph', 'd', 'L', 'ly', 'fov', 'du']) CS[k] = { x: SHOTS[0][k === 'fov' ? 'fov' : k], v: 0, t: 0 };
+let dirO = null, dirZ0 = 0, shotK = 0, shotN = 0, earthCut = false;
+function pickShot(o) { shotN++; if (o.kind === 'galaxy') return 0; return scene.space ? [0, 2, 3][shotN % 3] : SEQ[shotN % SEQ.length]; }
+function spring(sp2, dt, w, z) { const n = Math.max(1, Math.ceil(dt / .012)), h = dt / n; for (let i = 0; i < n; i++) { const a = w * w * (sp2.t - sp2.x) - 2 * z * w * sp2.v; sp2.v += a * h; sp2.x += sp2.v * h; } }
+function camReset() { for (const k in CS) { CS[k].x = SHOTS[0][k]; CS[k].v = 0; } dirO = null; }
+function camImpulse(o) {
+  const big = o.big || o.kind === 'planet';
+  CS.d.v += big ? 2.6 : 1.3; CS.fov.v += big ? 2.6 : 1.4; CS.du.v += kickDir * (big ? 1.1 : .5); CS.th.v += big ? 1.3 : .3; if (big) CS.ph.v += .6;
+} let galS = 0, RDT = .016;
 let camKick = 0, kickDir = 1, cs = 1.2, shot = 0, cutsInScene = 0, trans = null, shownStage = -1;
 let camS = { px: 0, py: 1.5, pz: -1, tx: 0, ty: 1, tz: 5, fov: 1.05, roll: 0 };
 let best = 0; try { best = +localStorage.getItem('choiai_best') || 0; } catch (e) {}
@@ -1143,7 +1162,7 @@ function startChase() {
   go('chase');
   const o = scene.objs[0];
   wave.on = true; wave.z = .6; wave.x = 0; wave.y = o.cutY; wave.v = 0; wave.fade = 1; wave.vert = false;
-  cs = o.fs; shot = 0; timeScale = .45; shownStage = 0; chaseT = 0; fol.x = -1.1; fol.y = .3; fol.z = -2.2; anc.x = wave.x; anc.y = wave.y; galS = 0; wave.vt = 0;
+  cs = o.fs; shot = 0; timeScale = .45; shownStage = 0; chaseT = 0; fol.x = -1.1; fol.y = .3; fol.z = -2.2; anc.x = wave.x; anc.y = wave.y; galS = 0; wave.vt = 0; camReset(); earthCut = false;
 }
 function startPiece(o) {
   const fdz = rr(-.5, .2), fl = Math.hypot(1, fdz), dx = 1 / fl, dz = fdz / fl;
@@ -1163,7 +1182,7 @@ function cutObj(o) {
   burst(o); shockAt(o.x, o.cutY, o.z, o.fs * (o.big ? .75 : .45));
   if (o.kind !== 'galaxy') debris(o.x, o.cutY, o.z, o.kind === 'planet' ? o.R * 1.2 : Math.min(o.w, o.fs * 1.2), o.chip, o.kind === 'planet' ? 70 : o.big ? 46 : 28, o.fs * (3 + power * 2.5), !!scene.space);
   if (!scene.space) smoke(o.x, o.cutY, o.z, Math.min(o.w, o.fs) * .5, o.big ? 12 : 7);
-  camKick = 1; kickDir = -kickDir; flash = Math.max(flash, .1);
+  camKick = 1; kickDir = -kickDir; flash = Math.max(flash, .1); camImpulse(o);
   if (o.kind === 'planet') {
     A.bigCut(); vib([30, 30, 60]); flash = Math.max(flash, o.meteor ? .12 : .26);
     quake = Math.max(quake, o.meteor ? .55 : 1); shake = Math.max(shake, .7);
@@ -1227,25 +1246,35 @@ function camForState(dt) {
     cs = lerp(cs, o.fs, 1 - Math.exp(-dt * 1.5));
     const sp = clamp(wave.v / Math.max(1, cs), 0, 40);
     galS = lerp(galS, o.kind === 'galaxy' ? 1 : 0, 1 - Math.exp(-dt * 1.6)); const gal = galS;
-    // one continuous low chase shot behind the slash; it only breathes with speed and blade size
-    const rise = scene.space ? .15 : .25, grow = scene.space ? 1 : waveGrow();
-    const back = lerp((2.15 + sp * .018) * grow, 1.7, gal), up = lerp((.32 + sp * .006 + rise * .9) * grow, 1.05, gal), side = lerp(1.15 * grow, .5, gal);
-    const sway = Math.sin(T * .55) * .18, bob = Math.sin(T * .41) * .06;
-    fol.x = lerp(fol.x, -side + sway, 1 - Math.exp(-dt * 3)); fol.y = lerp(fol.y, up + bob, 1 - Math.exp(-dt * 3)); fol.z = lerp(fol.z, -back, 1 - Math.exp(-dt * 3));
-    anc.x = lerp(anc.x, wave.x, 1 - Math.exp(-dt * 2.2)); anc.y = lerp(anc.y, wave.y, 1 - Math.exp(-dt * 2.2));
-    px = anc.x + fol.x * cs; py = anc.y + fol.y * cs; pz = wave.z + fol.z * cs;
-    tx_ = anc.x + .3 * cs; ty = anc.y + lerp(.12, -.5, gal) * cs; tz = wave.z + lerp(2.6, 1.6, gal) * cs;
-    fov = 1.05 + Math.min(.42, sp * .011); roll = -.04 - Math.min(.06, sp * .002);
-    // Earth orbit: ease into a wide shot of the whole planet from the same side, drifting forward
-    orbK = lerp(orbK, orbit ? 1 : 0, 1 - Math.exp(-dt * (orbit ? 4 : 2.2)));
-    if (orbK > .001 && ringO) {
-      const e = ringO.o, D = e.R * 2.5, q = clamp(ringO.t / ringO.T, 0, 1), dz = (q - .4) * e.R * 2.2;
-      const opx = e.x - D * 1.05, opy = e.cutY + D * .62, opz = e.z - D * 1.75 + dz, otx = e.x + e.R * .15, oty = e.cutY - e.R * .15, otz = e.z + dz * .6;
-      px = lerp(px, opx, orbK); py = lerp(py, opy, orbK); pz = lerp(pz, opz, orbK); tx_ = lerp(tx_, otx, orbK); ty = lerp(ty, oty, orbK); tz = lerp(tz, otz, orbK); fov = lerp(fov, 1.0, orbK);
+    if (orbit && ringO) {
+      // separate cut: the whole Earth fills the frame while the blade circles it
+      const e = ringO.o, q = clamp(ringO.t / ringO.T, 0, 1), cx = e.x, cy = e.y + e.R, cz = e.z, D = e.R * (6.2 - q * .7), a = -.42 + q * .14;
+      px = cx + Math.sin(a) * D; py = cy + D * (.22 + q * .05); pz = cz - Math.cos(a) * D; tx_ = cx; ty = cy - e.R * .05; tz = cz;
+      fov = 1.0; roll = -.05 + q * .03; snap = true; earthCut = true;
+    } else {
+      if (earthCut) { earthCut = false; camReset(); CS.fov.v += 2.5; CS.d.v += 2; flash = Math.max(flash, .25); camKick = 1; }
+      // ---- shot director: a new framing per target, sprung so it swings and settles ----
+      if (dirO !== o) { dirO = o; dirZ0 = wave.z; shotK = pickShot(o); }
+      const gap = Math.max(cs * .5, o.z - dirZ0), ap = clamp(1 - (o.z - wave.z) / gap, 0, 1);
+      const hero = o.big && !scene.space && o.kind !== 'galaxy', H = hero ? smooth(clamp(ap * 1.6, 0, 1)) : 0;
+      const S = SHOTS[shotK], HS = SHOTS.hero, ant = smooth(clamp((ap - .72) / .28, 0, 1));
+      let th = lerp(S.th, HS.th, H), ph = lerp(S.ph, HS.ph, H), d = lerp(S.d, HS.d, H), L = lerp(S.L, HS.L, H), ly = lerp(S.ly, HS.ly, H), fv = lerp(S.fov, HS.fov, H), du = lerp(S.du, HS.du, H);
+      if (scene.space) { d *= 1.15; ph = Math.max(ph, .05); }
+      d *= 1 - .16 * ant; fv -= .09 * ant;                   // anticipation: lean in right before the cut
+      fv += Math.min(.32, sp * .009);
+      CS.th.t = lerp(th, -.12, gal); CS.ph.t = lerp(ph, .5, gal); CS.d.t = lerp(d, 2.1, gal); CS.L.t = lerp(L, 1.4, gal); CS.ly.t = lerp(ly, -.5, gal); CS.fov.t = fv; CS.du.t = lerp(du, 0, gal);
+      for (const k in CS) spring(CS[k], dt, k === 'fov' ? 7 : k === 'du' ? 5 : 4.2, k === 'fov' ? .55 : .72);
+      const grow = scene.space ? 1 : waveGrow(), D = Math.max(.8, CS.d.x) * cs * grow;
+      anc.x = lerp(anc.x, wave.x, 1 - Math.exp(-dt * 2.6)); anc.y = lerp(anc.y, wave.y, 1 - Math.exp(-dt * 2.6));
+      const by = anc.y + .12 * cs * grow, cph = Math.cos(CS.ph.x);
+      px = anc.x + Math.sin(CS.th.x) * cph * D; py = by + Math.sin(CS.ph.x) * D; pz = wave.z - Math.cos(CS.th.x) * cph * D;
+      tx_ = anc.x + .22 * cs * grow; ty = anc.y + CS.ly.x * cs * grow; tz = wave.z + CS.L.x * cs * grow;
+      fov = CS.fov.x; roll = CS.du.x - CS.th.v * .1 - .02 - Math.min(.05, sp * .002);
+      // high-speed micro vibration
+      const vib2 = Math.min(1, sp / 14) * .004 * cs; px += Math.sin(T * 61) * vib2; py += Math.sin(T * 53.7) * vib2;
+      snap = smooth(clamp((stT - .15) / 1.1, 0, 1));
     }
-    camKick = Math.max(0, camKick - dt * 3); fov -= Math.sin(Math.PI * camKick) * .025;
     if (trans) { const k = Math.sin(Math.PI * clamp(trans.t / trans.dur, 0, 1)); fov += k * (trans.type === 'warp' ? .55 : trans.type === 'leap' ? .35 : .22); }
-    snap = stT > .5;
   } else if (state === 'final') {
     const b = finalObj; const c = b.fs; const a = stT * .2;
     px = b.x - 2.6 * c * Math.cos(a) + Math.sin(a) * c; py = b.cutY + (.25 + stT * .2) * c; pz = b.z - 2.4 * c * Math.cos(a) - Math.sin(a) * c * .6;
@@ -1258,7 +1287,7 @@ function camForState(dt) {
     if (b.kind === 'galaxy') { px = b.x - .3 * c; py = b.y + lerp(1.2, 1.7, t) * c; pz = b.z - lerp(1.4, 1.9, t) * c; tx_ = b.x; ty = b.y; tz = b.z + .3 * c; }
   }
   if (!scene.space && state !== 'title') py = Math.max(py, .12 * Math.min(cs, 6) + .06);
-  const k = snap ? 1 : 1 - Math.exp(-dt * (state === 'wide' ? 6 : state === 'chase' ? 3.2 : 3));
+  const k0 = 1 - Math.exp(-dt * (state === 'wide' ? 6 : state === 'chase' ? 3.2 : 3)), k = snap === true ? 1 : lerp(k0, 1, +snap || 0);
   camS.px = lerp(camS.px, px, k); camS.py = lerp(camS.py, py, k); camS.pz = lerp(camS.pz, pz, k);
   camS.tx = lerp(camS.tx, tx_, k); camS.ty = lerp(camS.ty, ty, k); camS.tz = lerp(camS.tz, tz, k);
   camS.fov = lerp(camS.fov, fov, 1 - Math.exp(-dt * (state === 'chase' ? 14 : 5))); camS.roll = lerp(camS.roll, roll, 1 - Math.exp(-dt * (state === 'chase' ? 10 : 4)));
@@ -1947,7 +1976,7 @@ function dbgGo(i, reach, ultra) {
   qi = ultra ? 2 : 1; ultraCut = ultra; perfect = false; power = 1; REACH = clamp(Math.max(reach, SC_STAGE[i] + .01), .21, 14);
   loadScene(i); go('chase'); hitstop = 0; split = 0; flash = .6; finalObj = null; stopped = false;
   const o = scene.objs[0]; cs = o.fs; wave.on = true; wave.fade = 1; wave.vert = o.kind === 'galaxy'; wave.x = 0; wave.y = o.cutY; wave.v = cs * scene.kv; wave.z = scene.startZ; wave.hw = cs * .5;
-  chaseT = 0; timeScale = 1; shownStage = -1; rDisp = SC_STAGE[i]; fol.x = -1.1; fol.y = .3; fol.z = -2.2; stT = .6; anc.x = wave.x; anc.y = wave.y; galS = wave.vert ? 1 : 0; wave.vt = wave.vert ? 1 : 0;
+  chaseT = 0; timeScale = 1; shownStage = -1; rDisp = SC_STAGE[i]; fol.x = -1.1; fol.y = .3; fol.z = -2.2; stT = .6; anc.x = wave.x; anc.y = wave.y; galS = wave.vert ? 1 : 0; wave.vt = wave.vert ? 1 : 0; camReset(); earthCut = false;
   camS.px = wave.x + fol.x * cs; camS.py = wave.y + fol.y * cs; camS.pz = wave.z + fol.z * cs; camS.tx = wave.x; camS.ty = wave.y; camS.tz = wave.z + 2.5 * cs;
 }
 $('.logo').addEventListener('click', () => { const t = performance.now(); DBG.taps = DBG.taps.filter(v => t - v < 2500); DBG.taps.push(t); if (DBG.taps.length >= 5) { DBG.taps = []; dbgOpen(); toast('DEBUG MODE'); } });
@@ -1965,7 +1994,7 @@ window.__cho = {
   tri: () => { let t = 0; root.traverse(o => { if (o.isMesh && o.geometry.index) t += o.geometry.index.count / 3; if (o.isPoints) t += o.geometry.attributes.position.count; }); return t; },
   prof: n => { const r = { upd: 0, scene: 0, sky: 0, gl: 0, comp: 0 }; for (let i = 0; i < n; i++) { let t = performance.now(); update(1 / 60); r.upd += performance.now() - t; t = performance.now(); drawSky(); r.sky += performance.now() - t; t = performance.now(); render3D(); r.gl += performance.now() - t; t = performance.now(); renderScene(true); r.scene += performance.now() - t; t = performance.now(); composite(); r.comp += performance.now() - t; } for (const k in r) r[k] = +(r[k] / n).toFixed(1); return r; },
   perf: n => { const t0 = performance.now(); for (let i = 0; i < n; i++) renderScene(true); return (performance.now() - t0) / n; },
-  trace: n => { const r = []; for (let i = 0; i < n; i++) { update(1 / 60); r.push([cam.yaw, cam.pitch, cam.fov, cam.x / cs, cam.y / cs, cam.z / cs, state, trans ? 1 : 0, timeScale]); if (state === 'result' || state === 'wide') break; } return r; },
+  trace: n => { const r = []; for (let i = 0; i < n; i++) { update(1 / 60); r.push([cam.yaw, cam.pitch, cam.fov, cam.x / cs, cam.y / cs, cam.z / cs, state, trans ? 1 : 0, timeScale, scene.id, earthCut ? 1 : 0, nextIdx, +CS.th.x.toFixed(3), +CS.d.x.toFixed(3), shotK, +stT.toFixed(2), +camS.px.toFixed(2), +camS.pz.toFixed(2), +camS.tx.toFixed(2), +camS.tz.toFixed(2)]); if (state === 'result' || state === 'wide') break; } return r; },
   tr: () => trans && [trans.t.toFixed(3), trans.sw, trans.done, !!trans.snapped, trans.glass && trans.glass.sh ? trans.glass.sh.length : 0, snapC.width],
   skip: t => { for (let i = 0; i < t * 60; i++) update(1 / 60); render(); }, setQi: v => { qi = v; }, buildAll: () => { while (!preDone) prebuildNext(1e15); },
   view: (id, setup) => { loadScene(SCENES.indexOf(id)); state = 'view'; if (setup) setup({ scene, cutObj, lookAt, cam, camS, upd: d => { updPieces(d); updParts(d); } }); },
