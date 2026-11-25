@@ -1134,7 +1134,7 @@ function drawKatana(t, mode) {
 // ---------- game state ----------
 let state = 'title', T = 0, stT = 0;
 let qi = 0, qiFullAt = 0, qiUltraAt = 0, kataIn = 0;
-let quake = 0, orbit = null, orbK = 0, ringF = 0; let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = -.4, slowT = 0;
+const OW = { x: 0, v: 0, t: 0 }; let quake = 0, orbit = null, orbK = 0, ringF = 0; let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = -.4, slowT = 0;
 let power = 0, perfect = false, ultraCut = false, REACH = 0, rDisp = 0, nextIdx = 0, finalObj = null, stopped = false, galaxyDone = false;
 const fol = { x: -1.1, y: .3, z: -2.2 }, anc = { x: 0, y: 1 };
 const smooth = t => t * t * (3 - 2 * t);
@@ -1151,7 +1151,7 @@ const CS = {}; for (const k of ['th', 'ph', 'd', 'L', 'ly', 'fov', 'du']) CS[k] 
 let dirO = null, dirZ0 = 0, shotK = 0, shotN = 0, earthCut = false; const FW = { x: 0, v: 0, t: 0 }, FP = { x: 0, y: 1, z: 0 }, FT = { x: 0 }; let GRs = 1;
 function pickShot(o) { shotN++; if (o.kind === 'galaxy') return 0; return scene.space ? [0, 2, 3][shotN % 3] : SEQ[shotN % SEQ.length]; }
 function spring(sp2, dt, w, z) { const n = Math.max(1, Math.ceil(dt / .012)), h = dt / n; for (let i = 0; i < n; i++) { const a = w * w * (sp2.t - sp2.x) - 2 * z * w * sp2.v; sp2.v += a * h; sp2.x += sp2.v * h; } }
-function camReset() { for (const k in CS) { CS[k].x = SHOTS[0][k]; CS[k].v = 0; } dirO = null; GRs = scene && scene.space ? 1 : waveGrow(); FW.x = FW.v = 0; FP.x = wave.x; FP.y = wave.y; FP.z = wave.z; }
+function camReset() { for (const k in CS) { CS[k].x = SHOTS[0][k]; CS[k].v = 0; } dirO = null; OW.x = OW.v = 0; GRs = scene && scene.space ? 1 : waveGrow(); FW.x = FW.v = 0; FP.x = wave.x; FP.y = wave.y; FP.z = wave.z; }
 function camImpulse(o) {
   const big = o.big || o.kind === 'planet';
   CS.d.v += big ? 2.6 : 1.3; CS.fov.v += big ? 2.6 : 1.4; CS.du.v += kickDir * (big ? 1.1 : .5); CS.th.v += big ? 1.3 : .3; if (big) CS.ph.v += .6;
@@ -1289,13 +1289,7 @@ function camForState(dt) {
     cs = lerp(cs, o.fs, 1 - Math.exp(-dt * 1.5));
     const sp = clamp(wave.v / Math.max(1, cs), 0, 40);
     galS = lerp(galS, o.kind === 'galaxy' ? 1 : 0, 1 - Math.exp(-dt * 1.6)); const gal = galS;
-    if (orbit && ringO) {
-      // separate cut: the whole Earth fills the frame while the blade circles it
-      const e = ringO.o, q = clamp(ringO.t / ringO.T, 0, 1), cx = e.x, cy = e.y + e.R, cz = e.z, D = e.R * (6.2 - q * .7), a = -.42 + q * .14;
-      px = cx + Math.sin(a) * D; py = cy + D * (.22 + q * .05); pz = cz - Math.cos(a) * D; tx_ = cx; ty = cy - e.R * .05; tz = cz;
-      fov = 1.0; roll = -.05 + q * .03; snap = true; earthCut = true;
-    } else {
-      if (earthCut) { earthCut = false; camReset(); CS.fov.v += 2.5; CS.d.v += 2; flash = Math.max(flash, .25); camKick = 1; }
+    {
       // ---- shot director: a new framing per target, sprung so it swings and settles ----
       if (dirO !== o) { dirO = o; dirZ0 = wave.z; shotK = pickShot(o); }
       const gap = Math.max(cs * .5, o.z - dirZ0), ap = clamp(1 - (o.z - wave.z) / gap, 0, 1);
@@ -1322,6 +1316,14 @@ function camForState(dt) {
       // high-speed micro vibration
       const vib2 = Math.min(1, sp / 14) * .004 * cs; px += Math.sin(T * 61) * vib2; py += Math.sin(T * 53.7) * vib2;
       snap = smooth(clamp((stT - .15) / 1.1, 0, 1));
+    }
+    // Earth: one continuous move — drift out to frame the whole planet while the blade circles it, then fly back into the chase
+    OW.t = orbit ? 1 : 0; spring(OW, dt, orbit ? 3.4 : 2.6, 1);
+    if (ringO && OW.x > .002) {
+      const e = ringO.o, q = clamp(ringO.t / ringO.T, 0, 1), cx = e.x, cy = e.y + e.R, cz = e.z, D = e.R * (6.2 - q * .9), a = -.42 + q * .12;
+      const b = smooth(clamp(OW.x, 0, 1));
+      px = lerp(px, cx + Math.sin(a) * D, b); py = lerp(py, cy + D * (.22 + q * .05), b); pz = lerp(pz, cz - Math.cos(a) * D, b);
+      tx_ = lerp(tx_, cx, b); ty = lerp(ty, cy - e.R * .05, b); tz = lerp(tz, cz, b); fov = lerp(fov, 1.0, b); roll = lerp(roll, -.04, b);
     }
     if (trans) { const k = Math.sin(Math.PI * clamp(trans.t / trans.dur, 0, 1)); fov += k * (trans.type === 'warp' ? .55 : trans.type === 'leap' ? .35 : .22); }
   } else if (state === 'final') {
