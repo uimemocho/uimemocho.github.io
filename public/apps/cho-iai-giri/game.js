@@ -869,8 +869,8 @@ function updWave3D() {
       let ex, ey, ez = zz - u * u * hw * .42, bx, by, bz;
       // blend horizontal arch -> vertical arch by rotating smoothly (vt 0..1)
       const t = wave.vt, an = t * Math.PI * .5, ca = Math.cos(an), sa = Math.sin(an);
-      const hx = u * hw, hy = -u * hw * .32 + (1 - u * u) * hw * .26;
-      const hyc = hy - hw * .26 * sa; ex = wave.x + hx * ca - hyc * sa; ey = wave.y + hy * ca + hx * sa;
+      const hx = u * hw, hy = 0;  // leading edge lies flat in the cut plane; the crescent comes from the swept-back tips
+      const hyc = hy; ex = wave.x + hx * ca - hyc * sa; ey = wave.y + hy * ca + hx * sa;
       if (zb === 0 && i % 3 === 0 && (i / 3 | 0) < TK) { const q = (i / 3 | 0) * 3; EDGE[q] = ex; EDGE[q + 1] = ey; EDGE[q + 2] = ez; }
       bx = lerp(-u * .1, .7, t); by = lerp(.78, -u * .1, t); bz = lerp(-.62, -.7, t);
       for (let j = 0; j < NV; j++) {
@@ -1061,10 +1061,24 @@ function drawParts() {
   ctx.globalAlpha = 1;
   if (scene.traffic) { ctx.globalCompositeOperation = 'lighter'; ctx.lineWidth = 1; for (const c of scene.traffic) { const zz = c.z + ((T * c.v) % 300); toCam(c.x, c.y, zz, tmp); if (tmp[2] < .5 || tmp[2] > 260) continue; ctx.strokeStyle = c.c; ctx.globalAlpha = .8; ctx.beginPath(); line3(c.x, c.y, zz, c.x, c.y, zz - c.v * .12); ctx.stroke(); } ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
 }
+function bladeEdgePts() {
+  const hw = wave.hw, t = wave.vt, an = t * Math.PI * .5, ca = Math.cos(an), sa = Math.sin(an), pts = [];
+  for (let k = 0; k < TK; k++) { const u = k * 3 / (NU - 1) * 2 - 1, hx = u * hw, hy = 0, hyc = 0; pts.push([wave.x + hx * ca - hyc * sa, wave.y + hy * ca + hx * sa, wave.z - u * u * hw * .42]); }
+  return pts;
+}
 function drawSlashes() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'lighter';
   for (const s of slashes) {
     const a = 1 - s.t / s.life; if (a <= 0) continue; const L = s.L * (.85 + (1 - a) * .5);
+    if (s.pts) {
+      const P2 = []; for (const q of s.pts) { if (proj(q[0], q[1], q[2], tA)) P2.push([tA[3], tA[4], clamp(1 - (Math.abs(q[0] - s.x) - s.L) / Math.max(.01, s.L), 0, 1)]); else P2.push(null); }
+      const fl = .85 + .15 * Math.sin(T * 70); ctx.lineCap = 'round';
+      const pass = (col, lw) => { ctx.lineWidth = lw; for (let i = 1; i < P2.length; i++) { const p0 = P2[i - 1], p1 = P2[i]; if (!p0 || !p1) continue; const k = Math.min(p0[2], p1[2]) * a; if (k < .02) continue; ctx.strokeStyle = col(k); ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke(); } };
+      pass(k => ultraCut ? `hsla(${(T * 400) % 360},100%,65%,${k * .22})` : `rgba(120,180,255,${k * .2})`, 11);
+      pass(k => ultraCut ? `hsla(${(T * 400 + 60) % 360},100%,72%,${k * .6})` : `rgba(160,210,255,${k * .55})`, 4.5);
+      pass(k => `rgba(255,255,255,${k * fl})`, 1.8);
+      continue;
+    }
     if (s.a) { if (!proj(s.a[0], s.a[1], s.a[2], tA)) continue; if (!proj(s.b[0], s.b[1], s.b[2], tB)) continue; }
     else { if (!proj(s.x - L, s.y + L * .12, s.z - .05 * L, tA)) continue; if (!proj(s.x + L, s.y - L * .12, s.z + .05 * L, tB)) continue; }
     const ax = tA[3], ay = tA[4], bx2 = tB[3], by2 = tB[4], fl = .85 + .15 * Math.sin(T * 70);
@@ -1244,8 +1258,8 @@ function cutObj(o) {
   o.cut = true; o.cutT = T;
   if (o.kind === 'galaxy') { o.gal = { off: 0, th: 0, dz: 0, v: o.w * .17 * (1 + power) }; galaxyDone = true; }
   else startPiece(o);
-  if (o.kind === 'galaxy') { galCutT = T; const Rg = o.w * .5, gy = o.y + o.h / 2; o.cutY = gy; slashes.push({ x: o.x, y: gy, z: o.z, a: [o.x - Rg, gy, o.z], b: [o.x + Rg, gy, o.z], t: 0, life: 2.2, L: 1 }); for (let i = 0; i < 160; i++) { const xx = o.x + rr(-1, 1) * Rg; addP({ x: xx, y: gy + rr(-.02, .02) * Rg, z: o.z, vx: rr(-.1, .1) * Rg, vy: rr(-1, 1) * Rg * .25, vz: rr(-.1, .1) * Rg, life: rr(.6, 1.6), t: 0, k: 'spark', c: ultraCut ? `hsl(${rnd() * 360 | 0},100%,75%)` : rnd() < .5 ? '#ffffff' : '#bcd8ff', s: Rg * .012, g: 0 }); } shockFlat(o.x, o.y + o.h / 2, o.z, Rg * 1.4); }
-  else slashes.push({ x: o.x, y: o.cutY, z: o.z, t: 0, life: .55, L: o.w * (o.kind === 'planet' ? .8 : .7) });
+  if (o.kind === 'galaxy') { galCutT = T; const Rg = o.w * .5, gy = o.y + o.h / 2; o.cutY = gy; slashes.push({ x: o.x, y: gy, z: o.z, pts: bladeEdgePts(), t: 0, life: 2.2, L: Rg }); for (let i = 0; i < 160; i++) { const xx = o.x + rr(-1, 1) * Rg; addP({ x: xx, y: gy + rr(-.02, .02) * Rg, z: o.z, vx: rr(-.1, .1) * Rg, vy: rr(-1, 1) * Rg * .25, vz: rr(-.1, .1) * Rg, life: rr(.6, 1.6), t: 0, k: 'spark', c: ultraCut ? `hsl(${rnd() * 360 | 0},100%,75%)` : rnd() < .5 ? '#ffffff' : '#bcd8ff', s: Rg * .012, g: 0 }); } shockFlat(o.x, o.y + o.h / 2, o.z, Rg * 1.4); }
+  else slashes.push({ x: o.x, y: o.cutY, z: o.z, pts: bladeEdgePts(), t: 0, life: .55, L: o.w * (o.kind === 'planet' ? .8 : .7) });
   burst(o); shockAt(o.x, o.cutY, o.z, o.fs * (o.big ? .75 : .45));
   if (o.kind !== 'galaxy') debris(o.x, o.cutY, o.z, o.kind === 'planet' ? o.R * 1.2 : Math.min(o.w, o.fs * 1.2), o.chip, o.kind === 'planet' ? 70 : o.big ? 46 : 28, o.fs * (3 + power * 2.5), !!scene.space);
   if (!scene.space) smoke(o.x, o.cutY, o.z, Math.min(o.w, o.fs) * .5, o.big ? 12 : 7);
@@ -1480,8 +1494,8 @@ function updChase(dt, rdt) {
   wave.hw = cs * .5 * waveGrow();
   if (o) {
     announce(o.stage);
-    const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 - wave.hw * .26 : o.cutY;
-    const wr = o.kind === 'galaxy' ? 7 : 3; wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * wr)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * wr));
+    const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 : o.cutY;
+    const wr = o.kind === 'galaxy' ? 7 : 3; wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * wr)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * Math.max(wr, 6)));
     if (!orbit && o.m === 'earth' && !o.orbited && canCut(o) && wave.z >= o.z - o.R * 4.3) startOrbit(o);
     if (orbit) { updOrbit(dt); return; }
     if (canCut(o)) {
