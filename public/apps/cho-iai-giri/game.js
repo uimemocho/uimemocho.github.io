@@ -567,7 +567,7 @@ function buildScene(id) {
   } else if (id === 'space') {
     sc.kv = 4.4; sc.space = true;
     // outward from Earth: Moon -> Mars -> asteroid belt -> gas giants (extra gaps leave room for the fly-out shot)
-    const ps = [['earth', 5, 'magma', .14, 5, 0], ['moon', 3.2, 'magma', 0, 6, 45], ['mars', 2.8, 'magma', .06, 7, 32], ['asteroid', 2.4, 'magma', 0, 8, 6], ['asteroid', 3.2, 'magma', 0, 8, 0], ['asteroid', 2.7, 'magma', 0, 8, 0], ['jupiter', 13, 'gas', .08, 9, 8], ['saturn', 11, 'gas', .04, 10, 0], ['uranus', 7, 'ice', .1, 11, 0], ['neptune', 7, 'ice', .12, 12, 0]];
+    const ps = [['earth', 5, 'magma', .14, 5, 0], ['moon', 3.2, 'magma', 0, 6, 62], ['mars', 2.8, 'magma', .06, 7, 32], ['asteroid', 2.4, 'magma', 0, 8, 6], ['asteroid', 3.2, 'magma', 0, 8, 0], ['asteroid', 2.7, 'magma', 0, 8, 0], ['jupiter', 13, 'gas', .08, 9, 8], ['saturn', 11, 'gas', .04, 10, 0], ['uranus', 7, 'ice', .1, 11, 0], ['neptune', 7, 'ice', .12, 12, 0]];
     let z = 0, prevR = 0;
     ps.forEach(([m, R, ch, gl, st, gx], i) => { const ext = m === 'saturn' ? R * 2.1 : R; z += i ? prevR + ext + Math.max(R, prevR) * 1.7 + 2 + gx : 10; prevR = ext; const zx = i ? (i % 2 ? 1 : -1) * Math.max(R, 4) * 1.1 : 0, zy = i ? [.8, -.6, .4, -.9][i % 4] * Math.max(R, 4) : 0; const o = mk(m, zx, z, { y: -R + zy, cutF: rr(.44, .56), kind: 'planet', fs: Math.max(R * 2.5, 5), chip: ch, glow: gl, big: true, R, sc: m === 'asteroid' ? R / 3 : 1, yaw: m === 'asteroid' ? rr(0, 6) : 0 }); if (m === 'asteroid') o.meteor = true; else o.yaw = 0; P(o, st); });
     for (let i = 0; i < 26; i++) { const m = sc.objs[2], j = sc.objs[6]; const zz = rr(m.z + 4, j.z - 14); const o = mk(rnd() < .5 ? 'rock' : 'asteroid', (rnd() < .5 ? -1 : 1) * rr(6, 40), zz, { y: rr(-10, 12), yaw: rr(0, 6), sc: rr(.15, .6) }); sc.deco.push(o); }
@@ -722,6 +722,7 @@ function sync3D() {
       if (t > 0 && t < 1) { const px2 = cam.x + dx0 * t, pz2 = cam.z + dz0 * t, d = Math.hypot(o.x - px2, o.z - pz2), sy = cam.y + (wave.y - cam.y) * t; if (d < hw * 1.15 + .2 && o.y + o.h > sy) o.occT = T; }
       if (o.occT && T - o.occT < .2) vis = false;
     }
+    if (vis && scene.id === 'galaxy' && (state === 'final' || state === 'wide') && Math.hypot(cam.x - o.x, cam.y - (o.y + o.h * .5), cam.z - o.z) < o.w * 3 + cs * .4) vis = false;
     ms.visible = vis; ms.position.set(o.x, o.y, o.z); ms.rotation.y = o.yaw;
     if (o.top) {
       const tp = o.top, sh = o.shake ? Math.sin(T * 60) * o.shake * o.w * .02 : 0; tp.visible = vis || o.cut; ms.position.x += sh;
@@ -1156,10 +1157,11 @@ function drawKatana(t, mode) {
 // ---------- game state ----------
 let state = 'title', T = 0, stT = 0;
 let qi = 0, qiFullAt = 0, qiUltraAt = 0, kataIn = 0;
-const OW = { x: 0, v: 0, t: 0 }, FLW = { x: 0, v: 0, t: 0 }; let flight = null; let quake = 0, orbit = null, orbK = 0, ringF = 0; let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = -.4, slowT = 0;
+const OW = { x: 0, v: 0, t: 0 }, FLW = { x: 0, v: 0, t: 0 }; let flight = null, burstT = -9; let quake = 0, orbit = null, orbK = 0, ringF = 0; let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = -.4, slowT = 0;
 let power = 0, perfect = false, ultraCut = false, REACH = 0, rDisp = 0, nextIdx = 0, finalObj = null, stopped = false, galaxyDone = false;
 const fol = { x: -1.1, y: .3, z: -2.2 }, anc = { x: 0, y: 1 };
 const smooth = t => t * t * (3 - 2 * t);
+let galCutT = -1; const galSpin = () => galCutT < 0 ? 0 : .42 * (1 - Math.exp(-(T - galCutT) * .32));
 // chase shot presets (th: azimuth, negative = camera on the left of travel; ph: elevation; d: distance; L: look-ahead; ly: look height; du: dutch)
 const SHOTS = [
   { th: -.42, ph: .17, d: 2.3, L: 2.4, ly: .05, fov: 1.12, du: -.05 },   // chase
@@ -1173,7 +1175,7 @@ const CS = {}; for (const k of ['th', 'ph', 'd', 'L', 'ly', 'fov', 'du']) CS[k] 
 let shotHold = 0, dirO = null, dirZ0 = 0, shotK = 0, shotN = 0, earthCut = false; const FW = { x: 0, v: 0, t: 0 }, FP = { x: 0, y: 1, z: 0 }, FT = { x: 0 }; let GRs = 1;
 function pickShot(o) { shotN++; if (o.kind === 'galaxy') return 0; return scene.space ? [0, 2, 3][shotN % 3] : SEQ[shotN % SEQ.length]; }
 function spring(sp2, dt, w, z) { const n = Math.max(1, Math.ceil(dt / .012)), h = dt / n; for (let i = 0; i < n; i++) { const a = w * w * (sp2.t - sp2.x) - 2 * z * w * sp2.v; sp2.v += a * h; sp2.x += sp2.v * h; } }
-function camReset() { for (const k in CS) { CS[k].x = SHOTS[0][k]; CS[k].v = 0; } dirO = null; OW.x = OW.v = 0; FLW.x = FLW.v = 0; flight = null; GRs = scene && scene.space ? 1 : waveGrow(); FW.x = FW.v = 0; FP.x = wave.x; FP.y = wave.y; FP.z = wave.z; }
+function camReset() { galCutT = -1; for (const k in CS) { CS[k].x = SHOTS[0][k]; CS[k].v = 0; } dirO = null; OW.x = OW.v = 0; FLW.x = FLW.v = 0; flight = null; GRs = scene && scene.space ? 1 : waveGrow(); FW.x = FW.v = 0; FP.x = wave.x; FP.y = wave.y; FP.z = wave.z; }
 function camImpulse(o) {
   const big = o.big || o.kind === 'planet';
   CS.d.v += big ? 2.6 : .45; CS.fov.v += big ? 2.6 : .7; CS.du.v += kickDir * (big ? 1.1 : .12); CS.th.v += big ? 1.3 : .05; if (big) CS.ph.v += .6;
@@ -1242,7 +1244,7 @@ function cutObj(o) {
   o.cut = true; o.cutT = T;
   if (o.kind === 'galaxy') { o.gal = { off: 0, th: 0, dz: 0, v: o.w * .17 * (1 + power) }; galaxyDone = true; }
   else startPiece(o);
-  if (o.kind === 'galaxy') { const Rg = o.w * .5, gy = o.y + o.h / 2; o.cutY = gy; slashes.push({ x: o.x, y: gy, z: o.z, a: [o.x - Rg, gy, o.z], b: [o.x + Rg, gy, o.z], t: 0, life: 2.2, L: 1 }); for (let i = 0; i < 160; i++) { const xx = o.x + rr(-1, 1) * Rg; addP({ x: xx, y: gy + rr(-.02, .02) * Rg, z: o.z, vx: rr(-.1, .1) * Rg, vy: rr(-1, 1) * Rg * .25, vz: rr(-.1, .1) * Rg, life: rr(.6, 1.6), t: 0, k: 'spark', c: ultraCut ? `hsl(${rnd() * 360 | 0},100%,75%)` : rnd() < .5 ? '#ffffff' : '#bcd8ff', s: Rg * .012, g: 0 }); } shockFlat(o.x, o.y + o.h / 2, o.z, Rg * 1.4); }
+  if (o.kind === 'galaxy') { galCutT = T; const Rg = o.w * .5, gy = o.y + o.h / 2; o.cutY = gy; slashes.push({ x: o.x, y: gy, z: o.z, a: [o.x - Rg, gy, o.z], b: [o.x + Rg, gy, o.z], t: 0, life: 2.2, L: 1 }); for (let i = 0; i < 160; i++) { const xx = o.x + rr(-1, 1) * Rg; addP({ x: xx, y: gy + rr(-.02, .02) * Rg, z: o.z, vx: rr(-.1, .1) * Rg, vy: rr(-1, 1) * Rg * .25, vz: rr(-.1, .1) * Rg, life: rr(.6, 1.6), t: 0, k: 'spark', c: ultraCut ? `hsl(${rnd() * 360 | 0},100%,75%)` : rnd() < .5 ? '#ffffff' : '#bcd8ff', s: Rg * .012, g: 0 }); } shockFlat(o.x, o.y + o.h / 2, o.z, Rg * 1.4); }
   else slashes.push({ x: o.x, y: o.cutY, z: o.z, t: 0, life: .55, L: o.w * (o.kind === 'planet' ? .8 : .7) });
   burst(o); shockAt(o.x, o.cutY, o.z, o.fs * (o.big ? .75 : .45));
   if (o.kind !== 'galaxy') debris(o.x, o.cutY, o.z, o.kind === 'planet' ? o.R * 1.2 : Math.min(o.w, o.fs * 1.2), o.chip, o.kind === 'planet' ? 70 : o.big ? 46 : 28, o.fs * (3 + power * 2.5), !!scene.space);
@@ -1364,12 +1366,12 @@ function camForState(dt) {
     const b = finalObj; const c = b.fs; const a = stT * .2;
     px = b.x - 2.6 * c * Math.cos(a) + Math.sin(a) * c; py = b.cutY + (.25 + stT * .2) * c; pz = b.z - 2.4 * c * Math.cos(a) - Math.sin(a) * c * .6;
     tx_ = b.x + .5 * c; ty = b.cutY + .1 * c; tz = b.z + .2 * c; fov = 1.1 + stT * .05; roll = .05;
-    if (b.kind === 'galaxy') { const e2 = ease(clamp(stT / 1.4, 0, 1)), gy = b.y + b.h / 2; px = b.x - lerp(.1, .3, e2) * c; py = gy + lerp(.1, .25, e2) * c; pz = b.z - lerp(1.2, 2.3, e2) * c - stT * .06 * c; tx_ = b.x; ty = gy; tz = b.z; roll = lerp(-.04, 0, e2); fov = 1.12; }
+    if (b.kind === 'galaxy') { const e2 = ease(clamp(stT / 1.4, 0, 1)), gy = b.y + b.h / 2, ga = galSpin(), D = lerp(1.2, 2.3, e2) * c + stT * .06 * c, a = -.08 + ga; px = b.x + Math.sin(a) * D; py = gy + lerp(.1, .25, e2) * c; pz = b.z - Math.cos(a) * D; tx_ = b.x; ty = gy; tz = b.z; roll = -ga * .9; fov = 1.12; }
   } else if (state === 'wide' || state === 'result') {
     const b = finalObj || scene.objs[0]; const c = b.fs; const t = ease(Math.min(1, (state === 'wide' ? stT : 3) / 2.2));
     px = lerp(b.x - 2.6 * c, b.x - 3.4 * c, t) + Math.sin(T * .1) * .3 * c; py = lerp(b.cutY + .3 * c, b.cutY + 1.6 * c, t); pz = lerp(b.z - 2.4 * c, b.z - 5.2 * c, t);
     tx_ = b.x + .6 * c; ty = lerp(b.cutY, b.cutY - .1 * c, t); tz = b.z + .4 * c; fov = lerp(1.0, 1.12, t);
-    if (b.kind === 'galaxy') { const gy = b.y + b.h / 2; px = b.x - .3 * c; py = gy + .25 * c; pz = b.z - lerp(2.4, 2.8, t) * c; tx_ = b.x; ty = gy; tz = b.z; }
+    if (b.kind === 'galaxy') { const gy = b.y + b.h / 2, ga = galSpin(), D = lerp(2.4, 2.8, t) * c, a = -.08 + ga; px = b.x + Math.sin(a) * D; py = gy + .25 * c; pz = b.z - Math.cos(a) * D; tx_ = b.x; ty = gy; tz = b.z; roll = -ga * .9; }
   }
   if (!scene.space && state !== 'title') py = Math.max(py, .12 * Math.min(cs, 6) + .06);
   const k0 = 1 - Math.exp(-dt * (state === 'wide' ? 6 : state === 'chase' ? 3.2 : 3)), k = snap === true ? 1 : lerp(k0, 1, +snap || 0);
@@ -1478,7 +1480,7 @@ function updChase(dt, rdt) {
   wave.hw = cs * .5 * waveGrow();
   if (o) {
     announce(o.stage);
-    const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 : o.cutY;
+    const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 - wave.hw * .26 : o.cutY;
     const wr = o.kind === 'galaxy' ? 7 : 3; wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * wr)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * wr));
     if (!orbit && o.m === 'earth' && !o.orbited && canCut(o) && wave.z >= o.z - o.R * 4.3) startOrbit(o);
     if (orbit) { updOrbit(dt); return; }
@@ -1520,7 +1522,7 @@ function updOrbit(dt) {
     ob.cut = true; cutObj(o); nextIdx++; quake = 1.2; flash = Math.max(flash, .4); shockFlat(o.x, o.cutY, o.z, o.R * 4.5);
     const nx = scene.objs[nextIdx]; if (nx && !canCut(nx)) { orbit = null; finalObj = o; go('final'); A.final(); return; }
   }
-  if (q >= 1) { orbit = null; flight = { t: 0, a0: -.6 }; FLW.x = 1; FLW.v = 0; }
+  if (q >= 1) { orbit = null; burstT = T; camReset(); CS.fov.v += 2.5; A.whip(); }
 }
 let ringM = null, ringD = null; const RN = 160;
 if (renderer) {
@@ -1763,6 +1765,11 @@ function composite() {
       fctx.restore();
     }
   }
+  { const kb = Math.exp(-Math.pow((T - burstT - .05) / .22, 2)), D = Math.hypot(w, h); if (kb > .02 && !tr) {
+      fctx.save(); fctx.globalCompositeOperation = 'lighter'; fctx.lineCap = 'round';
+      for (let i = 0; i < 110; i++) { const an = i * 2.399 + i * i * .001, ph = (i * .618 + (T - burstT) * 3.2) % 1, r0 = D * (.06 + ph * .5), r1 = r0 * (1.4 + kb * 2.2); fctx.strokeStyle = `rgba(${i % 3 ? '210,230,255' : '255,240,210'},${(kb * (.35 + ph * .6)).toFixed(3)})`; fctx.lineWidth = (1 + ph * 2.5) * DPR; fctx.beginPath(); fctx.moveTo(w / 2 + Math.cos(an) * r0, h * .48 + Math.sin(an) * r0); fctx.lineTo(w / 2 + Math.cos(an) * r1, h * .48 + Math.sin(an) * r1); fctx.stroke(); }
+      const g = fctx.createRadialGradient(w / 2, h * .48, 0, w / 2, h * .48, D * .45); g.addColorStop(0, `rgba(255,255,255,${(kb * .5).toFixed(3)})`); g.addColorStop(.35, `rgba(170,200,255,${(kb * .18).toFixed(3)})`); g.addColorStop(1, 'rgba(0,0,0,0)'); fctx.fillStyle = g; fctx.fillRect(0, 0, w, h);
+      fctx.restore(); } }
   if (tr && tr.type === 'warp') {
     const k = tr.t < tr.sw ? tr.t / tr.sw : 1 - (tr.t - tr.sw) / (tr.dur - tr.sw); fctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 70; i++) { const an = i * 2.399, r0 = Math.max(w, h) * (.05 + ((i * .37 + tr.t * 2.5) % 1) * .6); fctx.strokeStyle = `rgba(200,220,255,${k * .6})`; fctx.lineWidth = 1.5 * DPR; fctx.beginPath(); fctx.moveTo(w / 2 + Math.cos(an) * r0, h / 2 + Math.sin(an) * r0); fctx.lineTo(w / 2 + Math.cos(an) * r0 * (1.3 + k), h / 2 + Math.sin(an) * r0 * (1.3 + k)); fctx.stroke(); }
