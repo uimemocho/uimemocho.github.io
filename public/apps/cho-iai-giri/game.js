@@ -505,7 +505,7 @@ function buildScene(id) {
     sc.deco.push(mk('pine0', -10, 17)); sc.deco.push(mk('pine1', 10.5, 17.5)); sc.deco.push(mk('pine0', 12, 6)); sc.deco.push(mk('pine1', -12, 5));
     sc.deco.push(mk('lantern', 2.4, 4.6)); sc.deco.push(mk('lantern', -3.2, 10.5)); sc.deco.push(mk('lantern', 2.6, 13));
     for (let i = 0; i < 900; i++) sc.dots.push([rr(-12, 14), rr(-6, 22), pick(['#4a4e66', '#5a5e78', '#3a3e54', '#6a6e88'], rnd()), rnd() < .12 ? 2 : 1]);
-    sc.sky = { top: '#03050d', mid: '#0b1636', hor: '#2a3c70', gnd: ['#3a3e52', '#2a2e40', '#161926'], sun: [-.9, .55, '#fbf6dc', .055], moon: 1, stars: 1, clouds: 1, far: 'bamboo', farC: ['#0e1a2a', '#0b1422', '#081019'] };
+    sc.sky = { top: '#03050d', mid: '#0b1636', hor: '#2a3c70', gnd: ['#3a3e52', '#2a2e40', '#161926'], sun: [-.9, .55, '#fbf6dc', .055], moon: 1, stars: 1, clouds: 1, far: 'mount', farC: ['#0d1630', '#15214a'] };
   } else if (id === 'bamboo') {
     sc.kv = 11;
     for (let i = 0; i < 12; i++) P(mk('bamboo' + (rnd() * 3 | 0), rr(-.25, .25), 2 + i * 1.25, { cutF: rr(.11, .16), kind: 'tall', fs: 1.35, chip: 'bamboo', yaw: rr(0, 6) }), 1);
@@ -523,11 +523,12 @@ function buildScene(id) {
     const list = ['machiya0', 'machiya1', 'kura', 'machiya2', 'yagura', 'machiya0', 'kura', 'machiya1', 'machiya2'].map(m => [m, { cutF: m === 'yagura' ? rr(.3, .42) : rr(.42, .56), kind: m === 'yagura' ? 'tall' : 'wide', fs: m === 'yagura' ? 5 : 4.6, chip: m === 'kura' ? 'white' : 'wood', yaw: m === 'kura' ? 0 : 0 }]);
     list.push(['castle', { cutF: .37, kind: 'wide', fs: 13, chip: 'white', big: true }, 0]);
     place(list, 2, 3, 1.6);
-    const end = sc.objs[sc.objs.length - 1].z;
-    for (let z = -4; z < end + 20; z += 4.4) sc.deco.push(mk('machiya' + (rnd() * 3 | 0), 8.2 + rr(0, .6), z));
-    for (let z = -2; z < end + 20; z += 4.4) sc.deco.push(mk('machiya' + (rnd() * 3 | 0), -26, z, { yaw: Math.PI }));
-    for (let z = 2; z < end + 16; z += rr(4.4, 6)) sc.deco.push(mk(rnd() < .2 ? 'kura' : 'machiya' + (rnd() * 3 | 0), -14.5, z, { yaw: Math.PI }));
-    for (let z = -2; z < end + 24; z += rr(4.4, 5.5)) sc.deco.push(mk(rnd() < .2 ? 'kura' : 'machiya' + (rnd() * 3 | 0), 15 + rr(0, 1), z));
+    const end = sc.objs[sc.objs.length - 1].z, z0 = sc.objs[0].z - 6;
+    for (let i = 0; i < 60; i++) { const z = rr(z0 - 46, z0 - 2), x = (rnd() < .55 ? 1 : -1) * rr(1.8, 16); sc.deco.push(mk('bamboo' + (rnd() * 3 | 0), x, z, { yaw: rr(0, 6) })); }
+    for (let z = z0; z < end + 20; z += 4.4) sc.deco.push(mk('machiya' + (rnd() * 3 | 0), 8.2 + rr(0, .6), z));
+    for (let z = z0 + 2; z < end + 20; z += 4.4) sc.deco.push(mk('machiya' + (rnd() * 3 | 0), -26, z, { yaw: Math.PI }));
+    for (let z = z0 + 2; z < end + 16; z += rr(4.4, 6)) sc.deco.push(mk(rnd() < .2 ? 'kura' : 'machiya' + (rnd() * 3 | 0), -14.5, z, { yaw: Math.PI }));
+    for (let z = z0 + 4; z < end + 24; z += rr(4.4, 5.5)) sc.deco.push(mk(rnd() < .2 ? 'kura' : 'machiya' + (rnd() * 3 | 0), 15 + rr(0, 1), z));
     for (let z = 10; z < end + 30; z += rr(18, 26)) sc.deco.push(mk('yagura', rnd() < .5 ? 22 : -21, z));
     for (let z = 6; z < end; z += rr(9, 14)) sc.deco.push(mk('pine' + (rnd() * 2 | 0), 5.3, z));
     for (let i = 0; i < 1000; i++) sc.dots.push([rr(-14, 16), rr(-6, end + 24), pick(['#4a4458', '#5a546a', '#3a3446', '#6a6278'], rnd()), rnd() < .12 ? 2 : 1]);
@@ -865,7 +866,7 @@ function updWave3D() {
       // blend horizontal arch -> vertical arch by rotating smoothly (vt 0..1)
       const t = wave.vt, an = t * Math.PI * .5, ca = Math.cos(an), sa = Math.sin(an);
       const hx = u * hw, hy = -u * hw * .32 + (1 - u * u) * hw * .26;
-      ex = wave.x + hx * ca - hy * sa; ey = wave.y + hy * ca + hx * sa;
+      const hyc = hy - hw * .26 * sa; ex = wave.x + hx * ca - hyc * sa; ey = wave.y + hy * ca + hx * sa;
       if (zb === 0 && i % 3 === 0 && (i / 3 | 0) < TK) { const q = (i / 3 | 0) * 3; EDGE[q] = ex; EDGE[q + 1] = ey; EDGE[q + 2] = ez; }
       bx = lerp(-u * .1, .7, t); by = lerp(.78, -u * .1, t); bz = lerp(-.62, -.7, t);
       for (let j = 0; j < NV; j++) {
@@ -1257,7 +1258,7 @@ function updPieces(dt) {
   const objs = scene.objs;
   for (const o of objs) {
     if (o.shake > 0) o.shake = Math.max(0, o.shake - dt * 1.4);
-    if (o.kind === 'galaxy' && o.gal) { const g = o.gal; g.off += g.v * dt; g.v *= Math.exp(-dt * .35); g.th = Math.min(.7, g.th + dt * .3); g.dz += g.v * .1 * dt; continue; }
+    if (o.kind === 'galaxy' && o.gal) { const g = o.gal; g.off += g.v * dt; g.v *= Math.exp(-dt * .35); g.th = 0; g.dz += g.v * .1 * dt; continue; }
     const p = o.piece; if (!p || p.landed === 2) continue;
     if (o.kind === 'planet') { p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.th = Math.min(1.2, p.th + p.w * dt); o.bx += o.bvx * dt; o.by += o.bvy * dt; o.bz += o.bvz * dt; continue; }
     if (o.kind === 'tall') {
@@ -1314,13 +1315,13 @@ function camForState(dt) {
       const hero = o.big && !scene.space && o.kind !== 'galaxy', H = hero ? smooth(clamp(ap * 1.6, 0, 1)) : 0;
       const S = SHOTS[shotK], HS = SHOTS.hero, ant = smooth(clamp((ap - .72) / .28, 0, 1));
       let th = lerp(S.th, HS.th, H), ph = lerp(S.ph, HS.ph, H), d = lerp(S.d, HS.d, H), L = lerp(S.L, HS.L, H), ly = lerp(S.ly, HS.ly, H), fv = lerp(S.fov, HS.fov, H), du = lerp(S.du, HS.du, H);
-      if (scene.space) { d *= 1.15; ph = Math.max(ph, .05); }
+      if (scene.space) { d *= 1.15; ph = Math.max(ph, .05); const pr = scene.id === 'galaxy' ? 1 : smooth(clamp(nextIdx / Math.max(1, scene.objs.length - 2), 0, 1)); th = lerp(th, -.05, pr); du = lerp(du, 0, pr); ph = lerp(ph, .1, pr); L = lerp(L, 2.6, pr); }
       d *= 1 - .16 * ant; fv -= .09 * ant;                   // anticipation: lean in right before the cut
       fv += Math.min(.32, sp * .009);
       CS.th.t = lerp(th, -.12, gal); CS.ph.t = lerp(ph, .5, gal); CS.d.t = lerp(d, 2.1, gal); CS.L.t = lerp(L, 1.4, gal); CS.ly.t = lerp(ly, -.5, gal); CS.fov.t = fv; CS.du.t = lerp(du, 0, gal);
       for (const k in CS) spring(CS[k], dt, k === 'fov' ? 7 : k === 'du' ? 5 : 4.2, k === 'fov' ? .55 : .72);
       // keep the target in frame as it is cut: sprung focus weight + eased focus point, pushing in
-      FW.t = o.kind === 'galaxy' || orbit ? 0 : smooth(clamp(1 - (o.z - wave.z - cs * 1.5) / (cs * 5), 0, 1)) * (scene.space ? .5 : o.big || FT.x > .5 ? .7 : .25);
+      FW.t = o.kind === 'galaxy' || orbit ? 0 : smooth(clamp(1 - (o.z - wave.z - cs * 1.5) / (cs * 5), 0, 1)) * (scene.space ? .85 : o.big || FT.x > .5 ? .7 : .25);
       spring(FW, dt, 6, .9); const tallK = clamp((o.h / Math.max(.1, cs) - 1.2) / 1.5, 0, 1), fo = o.kind === 'planet' ? o.y + o.R : lerp(o.cutY, o.cutY + (o.h - o.h * o.cutF) * .35, tallK);
       const fr = scene.space ? 5 : o.big ? 2.4 : 1.4; FP.x = lerp(FP.x, o.x, 1 - Math.exp(-dt * fr)); FP.y = lerp(FP.y, fo, 1 - Math.exp(-dt * fr)); FP.z = lerp(FP.z, o.z, 1 - Math.exp(-dt * fr));
       const fw = clamp(FW.x, 0, .9);
@@ -1473,7 +1474,7 @@ function updChase(dt, rdt) {
   if (o) {
     announce(o.stage);
     const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 : o.cutY; if (o.kind === 'galaxy') wave.vert = true;
-    wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * 3)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * 3));
+    const wr = o.kind === 'galaxy' ? 7 : 3; wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * wr)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * wr));
     if (!orbit && o.m === 'earth' && !o.orbited && canCut(o) && wave.z >= o.z - o.R * 4.3) startOrbit(o);
     if (orbit) { updOrbit(dt); return; }
     if (canCut(o)) {
