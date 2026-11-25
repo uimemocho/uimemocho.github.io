@@ -490,7 +490,7 @@ function mk(m, x, z, o = {}) {
     stage: 0, jj: 0, cnt: 1, cut: false, piece: null, shake: 0, bx: 0, by: 0, bz: 0, comp: o.comp || null, name: o.name ?? -1, R: o.R || 0 };
 }
 let scene = null, sceneI = 0;
-function buildScene(id) {
+function buildScene(id, noLink) {
   const save = seed; seed = 777 + SCENES.indexOf(id) * 1013;
   const sc = { id, objs: [], deco: [], dots: [], space: false, kv: 6, startZ: 0 };
   const P = (o, stage) => { o.path = true; o.stage = stage; sc.objs.push(o); return o; };
@@ -512,10 +512,6 @@ function buildScene(id) {
     for (let i = 0; i < 20; i++) { const side = rnd() < .62; const x = side ? rr(1.9, 9) : -rr(7, 13); sc.deco.push(mk('bamboo' + (rnd() * 3 | 0), x, rr(-4, 27), { yaw: rr(0, 6) })); }
     for (let i = 0; i < 34; i++) { const x = (rnd() < .5 ? 1 : -1) * rr(10, 24); sc.deco.push(mk('bamboo' + (rnd() * 3 | 0), x, rr(-6, 34), { yaw: rr(0, 6) })); }
     sc.deco.push(mk('lantern', 1.6, 6));
-    // the grove thins out onto the castle town: its streets and the castle are already in view ahead
-    for (let z = 26; z < 70; z += 4.4) { sc.deco.push(mk('machiya' + (rnd() * 3 | 0), 8.2 + rr(0, .6), z)); sc.deco.push(mk(rnd() < .2 ? 'kura' : 'machiya' + (rnd() * 3 | 0), -14.5, z + 2, { yaw: Math.PI })); }
-    for (let z = 30; z < 74; z += rr(4.4, 5.5)) sc.deco.push(mk('machiya' + (rnd() * 3 | 0), 15 + rr(0, 1), z));
-    sc.deco.push(mk('yagura', -21, 46)); sc.deco.push(mk('castle', 2, 92)); sc.deco.push(mk('pine0', 5.3, 30)); sc.deco.push(mk('pine1', 5.3, 44));
     for (let i = 0; i < 900; i++) sc.dots.push([rr(-10, 10), rr(-4, 28), pick(['#24362e', '#2e4436', '#1a2a22', '#3a5040', '#20281e'], rnd()), rnd() < .2 ? 2 : 1]);
     sc.sky = { top: '#03050d', mid: '#0b1430', hor: '#1d2e5a', gnd: ['#1a2622', '#111a18', '#080c0c'], sun: [-.8, .7, '#fbf6dc', .05], moon: 1, stars: 1, rays: 1, far: 'bamboo', farC: ['#0e1a2a', '#0b1422', '#081019'] };
   } else if (id === 'town') {
@@ -524,7 +520,6 @@ function buildScene(id) {
     list.push(['castle', { cutF: .37, kind: 'wide', fs: 13, chip: 'white', big: true }, 0]);
     place(list, 2, 3, 1.6);
     const end = sc.objs[sc.objs.length - 1].z, z0 = sc.objs[0].z - 6;
-    for (let i = 0; i < 60; i++) { const z = rr(z0 - 46, z0 - 2), x = (rnd() < .55 ? 1 : -1) * rr(1.8, 16); sc.deco.push(mk('bamboo' + (rnd() * 3 | 0), x, z, { yaw: rr(0, 6) })); }
     for (let z = z0; z < end + 20; z += 4.4) sc.deco.push(mk('machiya' + (rnd() * 3 | 0), 8.2 + rr(0, .6), z));
     for (let z = z0 + 2; z < end + 20; z += 4.4) sc.deco.push(mk('machiya' + (rnd() * 3 | 0), -26, z, { yaw: Math.PI }));
     for (let z = z0 + 2; z < end + 16; z += rr(4.4, 6)) sc.deco.push(mk(rnd() < .2 ? 'kura' : 'machiya' + (rnd() * 3 | 0), -14.5, z, { yaw: Math.PI }));
@@ -587,6 +582,14 @@ function buildScene(id) {
   const cnt = {}; for (const o of sc.objs) cnt[o.stage] = (cnt[o.stage] || 0) + 1;
   const ix = {}; for (const o of sc.objs) { o.cnt = cnt[o.stage]; o.jj = ix[o.stage] = (ix[o.stage] ?? -1) + 1; o.cutL = clamp(Math.round(o.n * o.cutF), 1, o.n - 1); o.cutF = o.cutL / o.n; o.cutY = o.y + o.h * o.cutF; }
   sc.startZ = sc.objs[0].z - sc.objs[0].fs * 2.6;
+  // bamboo grove -> castle town share one world: D maps a bamboo-scene z to the town-scene z at the switch
+  if (!noLink && (id === 'bamboo' || id === 'town')) {
+    const B = id === 'bamboo' ? sc : buildScene('bamboo', true), Tn = id === 'town' ? sc : buildScene('town', true);
+    const lb = B.objs[B.objs.length - 1], Sb = lb.z + lb.fs * 1.3, Tf = Tn.objs[0], St = Tf.z - Tf.fs * 2.2, D = St - Sb;
+    const clone = o => mk(o.m, o.x, 0, { y: o.y, yaw: o.yaw, sc: o.sc });
+    if (id === 'bamboo') { for (const o of Tn.objs.concat(Tn.deco)) if (o.z > St - 30 && o.z < St + 140 && !/^bamboo/.test(o.m)) { const c = clone(o); c.z = o.z - D; sc.deco.push(c); } }
+    else { sc.linkD = D; for (const o of B.deco) if (o.z > Sb - 30 && o.z < Sb + 40) { const c = clone(o); c.z = o.z + D; sc.deco.push(c); } }
+  }
   sc.stars = []; for (let i = 0; i < (sc.space ? 700 : 260); i++) sc.stars.push({ x: rr(-1, 1), y: sc.space ? rr(-1, 1) : rr(.02, 1), z: rr(-1, 1), b: rr(.25, 1), s: rr(.5, 3), p: rr(0, 6.28), big: rnd() < .06, c: rnd() < .15 ? '#ffd8b0' : rnd() < .2 ? '#b0c8ff' : '#ffffff' });
   for (const s of sc.stars) { const l = Math.hypot(s.x, s.y, s.z) || 1; s.x /= l; s.y /= l; s.z /= l; }
   sc.clouds = []; if (sc.sky.clouds) for (let i = 0; i < 11; i++) sc.clouds.push({ a: rr(-Math.PI, Math.PI), e: rr(.07, .38), w: rr(.12, .3), k: rnd() * 1000 | 0 });
@@ -1441,9 +1444,15 @@ function update(rdt) {
   updPieces(dt); updDeco(dt); updParts(dt); if (renderer) updFx3D(dt);
   camForState(rdt); camUpdate();
 }
+function earthHold() {
+  if (orbit) return orbit.o;
+  const e = scene.space && scene.objs[0] && scene.objs[0].m === 'earth' ? scene.objs[0] : null; if (!e || !e.cut || !e.piece || T - (e.cutT || 0) > 8) return null;
+  const p = e.piece; for (const c of [[e.x + e.bx, e.y + e.by + e.R * .5, e.z + e.bz], [p.x, p.y + e.R * .5, p.z]]) if (proj(c[0], c[1], c[2], tB)) { const r = e.R * F / Math.max(.01, tB[2]); if (tB[3] > -r && tB[3] < LW + r && tB[4] > -r && tB[4] < LH + r) return e; }
+  return null;
+}
 function rTarget() {
   if (state === 'final') return REACH;
-  if (orbit) return Math.min(REACH, orbit.o.stage + .95 * clamp(orbit.t / orbit.T, 0, 1));
+  const eh = earthHold(); if (eh) return Math.min(REACH, eh.stage + (orbit ? .95 * clamp(orbit.t / orbit.T, 0, 1) : .95));
   const o = scene.objs[nextIdx];
   if (!o) { const l = scene.objs[scene.objs.length - 1]; return Math.min(REACH, l.stage + 1); }
   const prevZ = nextIdx > 0 ? scene.objs[nextIdx - 1].z : scene.startZ;
@@ -1494,7 +1503,7 @@ function updChase(dt, rdt) {
   const objs = scene.objs, o = objs[nextIdx];
   wave.hw = cs * .5 * waveGrow();
   if (o) {
-    if (!orbit) announce(o.stage);
+    if (!earthHold()) announce(o.stage);
     const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 : o.cutY;
     const wr = o.kind === 'galaxy' ? 7 : 3; wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * wr)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * Math.max(wr, 6)));
     if (!orbit && o.m === 'earth' && !o.orbited && canCut(o) && wave.z >= o.z - o.R * 4.3) startOrbit(o);
@@ -1567,13 +1576,13 @@ function updRing(dt) {
 function startTrans() {
   const type = TRANS[sceneI]; trans = { type, t: 0, dur: type === 'leap' ? 1.7 : type === 'warp' ? .9 : type === 'ground' ? 2.05 : .4, sw: type === 'leap' ? .55 : type === 'warp' ? .45 : type === 'ground' ? 1.4 : .2, gp: null, done: false, li: sceneI === 2 ? 0 : 1, locks: 0 };
   if (type === 'leap') { A.leap(); vib([30, 30, 30, 30, 80]); }
-  else if (type === 'warp') A.warp(); else if (type === 'ground') { A.bigCut(); wave.vert = true; } else A.whip();
+  else if (type === 'warp') A.warp(); else if (type === 'ground') { A.bigCut(); } else A.whip();
 }
 function updTrans(rdt) {
   const tr = trans; tr.t += rdt;
   if (tr.type === 'ground' && !tr.done) {
     // the vertical blade bites into the ground and keeps tearing it open
-    const hw = wave.hw; wave.y = lerp(wave.y, hw * .15, 1 - Math.exp(-rdt * 5));
+    const hw = wave.hw; wave.y = lerp(wave.y, .12, 1 - Math.exp(-rdt * 5));
     const gx = wave.x, gz = wave.z; if (tr.gp && Math.hypot(gz - tr.gp[1], gx - tr.gp[0]) > hw * .15) { slashes.push({ x: gx, y: .04, z: gz, a: [tr.gp[0], .04, tr.gp[1]], b: [gx, .04, gz], t: 0, life: 2.2, L: 1, gr: 1 }); tr.gp = [gx, gz]; } else if (!tr.gp) tr.gp = [gx, gz];
     if (Math.random() < .8) debris(gx, .05, gz, hw * .5, CHIP.neon, 3, hw * 3, false);
     if (Math.random() < .5) dust(gx, gz, 2, hw * .8);
@@ -1584,11 +1593,13 @@ function updTrans(rdt) {
   if (!tr.done && tr.t >= tr.sw && tr.type === 'leap' && !tr.snapped) { tr.wantSnap = true; tr.t = tr.sw; }
   if (!tr.done && tr.t >= tr.sw && (tr.type !== 'leap' || tr.snapped)) {
     tr.done = true; const gnd = tr.type === 'ground'; if (tr.type === 'leap') { if (tr.glass) glassShatter(tr); A.bigCut(); quake = Math.max(quake, .6); } loadScene(sceneI + 1);
-    const o = scene.objs[0], ratio = o.fs / Math.max(.01, cs);
+    const o = scene.objs[0], link = scene.linkD !== undefined, ratio = link ? 1 : o.fs / Math.max(.01, cs);
     const ox = anc.x, oy = anc.y, oz = wave.z, ocs = cs;
-    cs = o.fs; wave.v *= ratio;
-    wave.z = gnd ? o.z - (o.R || 1) * 4.1 : o.z - Math.max(o.fs * 2.2, wave.v * .35); wave.x = o.x; wave.y = o.cutY; wave.vert = o.kind === 'galaxy'; wave.vt = wave.vert ? 1 : 0; wave.hw = cs * .5 * waveGrow();
-    anc.x = wave.x; anc.y = wave.y; dirO = o; dirZ0 = wave.z;
+    if (!link) { cs = o.fs; wave.v *= ratio; }
+    if (link) wave.z = oz + scene.linkD;
+    else { wave.z = gnd ? o.z - (o.R || 1) * 4.1 : o.z - Math.max(o.fs * 2.2, wave.v * .35); wave.x = o.x; wave.y = o.cutY; }
+    wave.vert = o.kind === 'galaxy'; wave.vt = wave.vert ? 1 : 0; wave.hw = cs * .5 * waveGrow();
+    if (!link) { anc.x = wave.x; anc.y = wave.y; } dirO = o; dirZ0 = wave.z;
     // carry the camera across in slash-relative space so nothing jumps
     const rm = (v, a, b) => b + (v - a) * ratio;
     camS.px = rm(camS.px, ox, anc.x); camS.py = rm(camS.py, oy, anc.y); camS.pz = rm(camS.pz, oz, wave.z);
@@ -1968,7 +1979,7 @@ let hudStage = -2;
 function updHud(force) {
   const [n, u] = fmtDist(distOf(rDisp));
   const el = $('#cNum'); if (el.textContent !== n) el.textContent = n; const ue = $('#cUnit'); if (ue.textContent !== u) ue.textContent = u;
-  const o = scene && (orbit ? orbit.o : scene.objs[nextIdx] || scene.objs[scene.objs.length - 1]); const st = o ? o.stage : 0;
+  const o = scene && (earthHold() || scene.objs[nextIdx] || scene.objs[scene.objs.length - 1]); const st = o ? o.stage : 0;
   if (st !== hudStage || force) { hudStage = st; const h = $('#hStage'); h.textContent = tx().stages[st]; h.classList.add('on'); }
 }
 let cutinTO = 0;
