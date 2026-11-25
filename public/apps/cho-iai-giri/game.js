@@ -745,10 +745,12 @@ vec3 hue(float x){ return clamp(abs(fract(x + vec3(0.0, 0.666, 0.333)) * 6.0 - 3
 void main(){
   float u = vUv.x, v = vUv.y, uc = u * 2.0 - 1.0;
   float taper = pow(max(0.0, 1.0 - uc * uc), 0.45);
-  float edge = exp(-v * 26.0) * 1.7 + exp(-v * 7.0) * 0.35;
+  float shim = 0.75 + 0.5 * n(vec2(u * 70.0, uT * 24.0)) * (0.7 + 0.3 * sin(uT * 53.0 + u * 21.0));
+  float edge = (exp(-v * 26.0) * 1.7 + exp(-v * 7.0) * 0.35) * shim;
   float flow = n(vec2(u * 46.0, v * 2.5 - uT * 9.0)) * 0.65 + n(vec2(u * 120.0, v * 5.0 - uT * 16.0)) * 0.35;
   float streak = smoothstep(0.42, 0.95, flow);
-  float body = pow(1.0 - v, 1.8) * (0.3 + 1.0 * streak);
+  float tongue = n(vec2(u * 16.0 + sin(uT * 3.0) * 0.6, v * 2.2 - uT * 13.0));
+  float body = pow(1.0 - v, 1.8) * (0.3 + 1.0 * streak) * mix(1.0, 0.25 + 1.7 * tongue, v);
   float a = (edge * (1.0 - uGhost * 0.7) + body) * taper * uFade * smoothstep(1.0, 0.7, v);
   vec3 tint = uUltra > 0.5 ? hue(u * 0.9 + uHue + v * 0.3) * 0.85 + 0.15 : vec3(0.55, 0.8, 1.0);
   vec3 col = mix(tint, vec3(1.0), clamp(edge * 0.8 - uGhost, 0.0, 1.0));
@@ -761,6 +763,39 @@ function waveSheet(ghost) {
   const mat = new THREE.ShaderMaterial({ vertexShader: WAVE_VS, fragmentShader: WAVE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
     uniforms: { uT: { value: 0 }, uFade: { value: 1 }, uUltra: { value: 0 }, uHue: { value: 0 }, uGhost: { value: ghost } } });
   const m = new THREE.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = 3; return m;
+}
+// swept trail: the leading edge's recent positions as a fading ribbon, so the cut plane reads through objects
+const TK = 22, TH = 26, EDGE = new Float32Array(TK * 3), trailH = []; let trailM = null, trailZ = 0;
+const TRAIL_FS = `precision mediump float; varying vec2 vUv; uniform float uT, uFade, uUltra, uHue;
+float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1.0, 0.0)), f.x), mix(h(i + vec2(0.0, 1.0)), h(i + vec2(1.0, 1.0)), f.x), f.y); }
+vec3 hue(float x){ return clamp(abs(fract(x + vec3(0.0, 0.666, 0.333)) * 6.0 - 3.0) - 1.0, 0.0, 1.0); }
+void main(){
+  float u = vUv.x, v = vUv.y, uc = u * 2.0 - 1.0, taper = pow(max(0.0, 1.0 - uc * uc), 0.6);
+  float flow = n(vec2(u * 40.0, v * 8.0 - uT * 6.0)) * 0.6 + n(vec2(u * 9.0, v * 3.0 + uT * 2.0)) * 0.4;
+  float a = pow(1.0 - v, 2.0) * taper * uFade * (0.25 + 0.75 * flow) * 0.55;
+  vec3 tint = uUltra > 0.5 ? hue(u * 0.8 + uHue - v * 0.4) * 0.8 + 0.2 : mix(vec3(1.0), vec3(0.45, 0.75, 1.0), smoothstep(0.0, 0.3, v));
+  gl_FragColor = vec4(tint * a, a);
+}`;
+if (renderer) {
+  const g = new THREE.BufferGeometry(), uv = new Float32Array(TK * TH * 2), idx = [];
+  for (let j = 0; j < TH; j++) for (let i = 0; i < TK; i++) { const k = j * TK + i; uv[k * 2] = i / (TK - 1); uv[k * 2 + 1] = j / (TH - 1); if (i < TK - 1 && j < TH - 1) idx.push(k, k + 1, k + TK, k + 1, k + TK + 1, k + TK); }
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TK * TH * 3), 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx);
+  trailM = new THREE.Mesh(g, new THREE.ShaderMaterial({ vertexShader: WAVE_VS, fragmentShader: TRAIL_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, uniforms: { uT: { value: 0 }, uFade: { value: 1 }, uUltra: { value: 0 }, uHue: { value: 0 } } }));
+  trailM.frustumCulled = false; trailM.renderOrder = 2;
+}
+function updTrail() {
+  if (!trailM) return;
+  // reset on teleports (scene switch) so the ribbon never stretches across worlds
+  if (Math.abs(wave.z - trailZ) > Math.max(cs * 3, wave.v * .25)) trailH.length = 0; trailZ = wave.z;
+  trailH.unshift(Float32Array.from(EDGE)); if (trailH.length > TH) trailH.pop();
+  const on = wave.on && wave.fade > .05 && trailH.length > 2; trailM.visible = on; if (!on) return;
+  const P = trailM.geometry.attributes.position.array, U = trailM.material.uniforms;
+  U.uT.value = T; U.uFade.value = wave.fade; U.uUltra.value = ultraCut ? 1 : 0; U.uHue.value = (T * .35) % 1;
+  for (let j = 0; j < TH; j++) { const e = trailH[Math.min(j, trailH.length - 1)]; for (let i = 0; i < TK; i++) { const k = (j * TK + i) * 3, q = i * 3; P[k] = e[q]; P[k + 1] = e[q + 1]; P[k + 2] = e[q + 2]; } }
+  trailM.geometry.attributes.position.needsUpdate = true;
+  // energy shed from the edge
+  if (state === 'chase' && Math.random() < .9) { const q = (Math.random() * TK | 0) * 3, hw = wave.hw; addP({ x: EDGE[q], y: EDGE[q + 1], z: EDGE[q + 2], vx: rr(-.3, .3) * hw, vy: rr(-.1, .5) * hw, vz: -rr(.2, .9) * hw, life: rr(.15, .35), t: 0, k: 'spark', c: ultraCut ? `hsl(${Math.random() * 360 | 0},100%,72%)` : Math.random() < .6 ? '#cfe6ff' : '#ffffff', s: hw * .025, g: 0 }); }
 }
 const shocks = [], DEB = 700; let debM = null; const deb = [];
 if (renderer) {
@@ -807,12 +842,14 @@ function updWave3D() {
     U.uT.value = T; U.uFade.value = wave.fade * m.userData.fa; U.uUltra.value = ultraCut ? 1 : 0; U.uHue.value = (T * .35) % 1;
     const zz = wave.z - zb * hw * stretch;
     for (let i = 0; i < NU; i++) {
-      const u = i / (NU - 1) * 2 - 1, W = hw * .62 * stretch * Math.pow(Math.max(0, 1 - u * u), .55);
+      const ph = zb * 7.1, u = i / (NU - 1) * 2 - 1, W = hw * .62 * stretch * Math.pow(Math.max(0, 1 - u * u), .55) * (.88 + .09 * Math.sin(T * 31 + u * 5 + ph) + .06 * Math.sin(T * 57 - u * 11 + ph));
       let ex, ey, ez = zz - u * u * hw * .42, bx, by, bz;
       // blend horizontal arch -> vertical arch by rotating smoothly (vt 0..1)
       const t = wave.vt, an = t * Math.PI * .5, ca = Math.cos(an), sa = Math.sin(an);
       const hx = u * hw, hy = -u * hw * .32 + (1 - u * u) * hw * .26;
-      ex = wave.x + hx * ca - hy * sa; ey = wave.y + hy * ca + hx * sa;
+      const wob = (Math.sin(u * 7 + T * 23 + ph) * .012 + Math.sin(u * 13 - T * 37) * .006) * hw;
+      ex = wave.x + hx * ca - hy * sa - wob * sa; ey = wave.y + hy * ca + hx * sa + wob * ca;
+      if (zb === 0 && i % 3 === 0 && (i / 3 | 0) < TK) { const q = (i / 3 | 0) * 3; EDGE[q] = ex; EDGE[q + 1] = ey; EDGE[q + 2] = ez; }
       bx = lerp(-u * .1, .7, t); by = lerp(.78, -u * .1, t); bz = lerp(-.62, -.7, t);
       for (let j = 0; j < NV; j++) {
         const v = j / (NV - 1), k = (j * NU + i) * 3, d = v * W, curl = v * v * W * .3;
@@ -821,6 +858,7 @@ function updWave3D() {
     }
     m.geometry.attributes.position.needsUpdate = true;
   }
+  updTrail();
 }
 function render3D() {
   if (!renderer) return;
@@ -1004,10 +1042,14 @@ function drawParts() {
 function drawSlashes() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'lighter';
   for (const s of slashes) {
-    const a = 1 - s.t / s.life; if (a <= 0) continue; const L = s.L * (.8 + (1 - a) * .6);
-    if (!proj(s.x - L, s.y + L * .3, s.z - .05 * L, tA)) continue; const ax = tA[3], ay = tA[4]; if (!proj(s.x + L, s.y - L * .3, s.z + .05 * L, tB)) continue;
-    ctx.strokeStyle = ultraCut ? `hsla(${(T * 400) % 360},100%,70%,${a * .5})` : `rgba(150,200,255,${a * .4})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(tB[3], tB[4]); ctx.stroke();
-    ctx.strokeStyle = `rgba(255,255,255,${a})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(tB[3], tB[4]); ctx.stroke();
+    const a = 1 - s.t / s.life; if (a <= 0) continue; const L = s.L * (.85 + (1 - a) * .5);
+    if (s.a) { if (!proj(s.a[0], s.a[1], s.a[2], tA)) continue; if (!proj(s.b[0], s.b[1], s.b[2], tB)) continue; }
+    else { if (!proj(s.x - L, s.y + L * .12, s.z - .05 * L, tA)) continue; if (!proj(s.x + L, s.y - L * .12, s.z + .05 * L, tB)) continue; }
+    const ax = tA[3], ay = tA[4], bx2 = tB[3], by2 = tB[4], fl = .85 + .15 * Math.sin(T * 70);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = ultraCut ? `hsla(${(T * 400) % 360},100%,65%,${a * .22})` : `rgba(120,180,255,${a * .2})`; ctx.lineWidth = 11; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx2, by2); ctx.stroke();
+    ctx.strokeStyle = ultraCut ? `hsla(${(T * 400 + 60) % 360},100%,72%,${a * .6})` : `rgba(160,210,255,${a * .55})`; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx2, by2); ctx.stroke();
+    ctx.strokeStyle = `rgba(255,255,255,${a * fl})`; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx2, by2); ctx.stroke();
   }
   ctx.globalCompositeOperation = 'source-over';
   for (let i = slashes.length - 1; i >= 0; i--) if (slashes[i].t > slashes[i].life) slashes.splice(i, 1);
@@ -1106,10 +1148,10 @@ const SHOTS = [
 SHOTS.hero = { th: -.82, ph: -.06, d: 1.85, L: 1.5, ly: .6, fov: 1.27, du: .13 };
 const SEQ = [0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 2, 0];
 const CS = {}; for (const k of ['th', 'ph', 'd', 'L', 'ly', 'fov', 'du']) CS[k] = { x: SHOTS[0][k === 'fov' ? 'fov' : k], v: 0, t: 0 };
-let dirO = null, dirZ0 = 0, shotK = 0, shotN = 0, earthCut = false;
+let dirO = null, dirZ0 = 0, shotK = 0, shotN = 0, earthCut = false; const FW = { x: 0, v: 0, t: 0 }, FP = { x: 0, y: 1, z: 0 }, FT = { x: 0 }; let GRs = 1;
 function pickShot(o) { shotN++; if (o.kind === 'galaxy') return 0; return scene.space ? [0, 2, 3][shotN % 3] : SEQ[shotN % SEQ.length]; }
 function spring(sp2, dt, w, z) { const n = Math.max(1, Math.ceil(dt / .012)), h = dt / n; for (let i = 0; i < n; i++) { const a = w * w * (sp2.t - sp2.x) - 2 * z * w * sp2.v; sp2.v += a * h; sp2.x += sp2.v * h; } }
-function camReset() { for (const k in CS) { CS[k].x = SHOTS[0][k]; CS[k].v = 0; } dirO = null; }
+function camReset() { for (const k in CS) { CS[k].x = SHOTS[0][k]; CS[k].v = 0; } dirO = null; GRs = scene && scene.space ? 1 : waveGrow(); FW.x = FW.v = 0; FP.x = wave.x; FP.y = wave.y; FP.z = wave.z; }
 function camImpulse(o) {
   const big = o.big || o.kind === 'planet';
   CS.d.v += big ? 2.6 : 1.3; CS.fov.v += big ? 2.6 : 1.4; CS.du.v += kickDir * (big ? 1.1 : .5); CS.th.v += big ? 1.3 : .3; if (big) CS.ph.v += .6;
@@ -1133,7 +1175,7 @@ function fmtDist(m) {
 }
 const canCut = o => REACH >= o.stage + (o.jj + 1) / o.cnt - 1e-9;
 function setScreen(id) { for (const s of document.querySelectorAll('.screen')) s.classList.toggle('on', s.id === id); }
-function loadScene(i) { sceneI = i; scene = getScene(i); for (const o of scene.objs.concat(scene.deco)) { o.cut = false; o.piece = null; o.shake = 0; o.bx = o.by = o.bz = 0; o.gal = null; } deb.length = 0; attachScene(scene); for (const m of waveLayers) root.add(m); if (debM) root.add(debM); if (ringM) root.add(ringM, ringD); orbit = null; ringO = null; ringF = 0; parts = []; slashes = []; nextIdx = 0; cutsInScene = 0; A.scene(SCENES[i]); }
+function loadScene(i) { sceneI = i; scene = getScene(i); for (const o of scene.objs.concat(scene.deco)) { o.cut = false; o.piece = null; o.shake = 0; o.bx = o.by = o.bz = 0; o.gal = null; } deb.length = 0; attachScene(scene); for (const m of waveLayers) root.add(m); if (debM) root.add(debM); if (ringM) root.add(ringM, ringD); if (trailM) { root.add(trailM); trailH.length = 0; } orbit = null; ringO = null; ringF = 0; parts = []; slashes = []; nextIdx = 0; cutsInScene = 0; A.scene(SCENES[i]); }
 function resetAll() { loadScene(0); wave.on = false; trans = null; finalObj = null; stopped = false; galaxyDone = false; rDisp = 0; shownStage = -1; slowT = 0; }
 function go(s) {
   state = s; stT = 0;
@@ -1170,15 +1212,16 @@ function startPiece(o) {
   const L = o.h - o.h * o.cutF, sq = Math.sqrt(o.fs);
   if (o.kind === 'tall' || o.kind === 'wide') { const sd = rr(.2, .5), l2 = Math.hypot(sd, 1); p.dx = sd / l2; p.dz = 1 / l2; p.kx = p.dz; p.kz = -p.dx; p.ws = rr(-1.2, 1.2); }
   if (o.kind === 'tall') { p.w = 2.4 + power * 1.8; p.vx = p.dx * (1.4 + power * 1.8) * sq; p.vz = p.dz * (2.2 + power * 2.6) * sq; p.vy = (1.8 + power * 1.8) * sq; p.L = L; }
-  else if (o.kind === 'wide') { p.vs = (2.6 + 3.4 * power) * sq * .8; p.vy = (1.3 + 1.5 * power) * sq; p.w = 1.6 + power; }
+  else if (o.kind === 'wide') { p.vs = (2.4 + 3 * power) * sq * .8; p.vy = (2.6 + 2.2 * power) * sq; p.w = 2.6 + power * 1.4; p.ws = rr(-2.5, 2.5); }
   else if (o.kind === 'planet') { const v = o.R * (.3 + .4 * power); p.vx = Math.abs(dx) * v * .8; p.vz = v * .25; p.vy = o.R * .7; p.w = .18 + power * .15; p.spin = 0; o.bvx = Math.abs(dx) * v * .15; o.bvz = v * .1; o.bvy = -o.R * .6; }
   o.piece = p;
 }
 function cutObj(o) {
   o.cut = true; o.cutT = T;
-  if (o.kind === 'galaxy') { o.gal = { off: 0, th: 0, dz: 0, v: o.w * .09 * (1 + power) }; galaxyDone = true; }
+  if (o.kind === 'galaxy') { o.gal = { off: 0, th: 0, dz: 0, v: o.w * .17 * (1 + power) }; galaxyDone = true; }
   else startPiece(o);
-  slashes.push({ x: o.x, y: o.cutY, z: o.z, t: 0, life: .4, L: o.w * (o.kind === 'planet' ? .75 : .5) });
+  if (o.kind === 'galaxy') { const Rg = o.w * .5; slashes.push({ x: o.x, y: o.y + o.h / 2, z: o.z, a: [o.x, o.y + o.h / 2, o.z - Rg], b: [o.x, o.y + o.h / 2, o.z + Rg], t: 0, life: 2.2, L: 1 }); for (let i = 0; i < 160; i++) { const zz = o.z + rr(-1, 1) * Rg; addP({ x: o.x, y: o.y + o.h / 2 + rr(-.02, .02) * Rg, z: zz, vx: rr(-1, 1) * Rg * .25, vy: rr(-1, 1) * Rg * .05, vz: rr(-.1, .1) * Rg, life: rr(.6, 1.6), t: 0, k: 'spark', c: ultraCut ? `hsl(${rnd() * 360 | 0},100%,75%)` : rnd() < .5 ? '#ffffff' : '#bcd8ff', s: Rg * .012, g: 0 }); } shockFlat(o.x, o.y + o.h / 2, o.z, Rg * 1.4); }
+  else slashes.push({ x: o.x, y: o.cutY, z: o.z, t: 0, life: .55, L: o.w * (o.kind === 'planet' ? .8 : .7) });
   burst(o); shockAt(o.x, o.cutY, o.z, o.fs * (o.big ? .75 : .45));
   if (o.kind !== 'galaxy') debris(o.x, o.cutY, o.z, o.kind === 'planet' ? o.R * 1.2 : Math.min(o.w, o.fs * 1.2), o.chip, o.kind === 'planet' ? 70 : o.big ? 46 : 28, o.fs * (3 + power * 2.5), !!scene.space);
   if (!scene.space) smoke(o.x, o.cutY, o.z, Math.min(o.w, o.fs) * .5, o.big ? 12 : 7);
@@ -1188,7 +1231,7 @@ function cutObj(o) {
     quake = Math.max(quake, o.meteor ? .55 : 1); shake = Math.max(shake, .7);
     shockFlat(o.x, o.cutY, o.z, o.R * (o.meteor ? 2.4 : 3.4)); shockAt(o.x, o.cutY, o.z, o.R * 2.6);
     timeScale = Math.min(timeScale, o.meteor ? .4 : .12); slowT = o.meteor ? .05 : .22;
-  } else if (o.big) { A.bigCut(); timeScale = Math.min(timeScale, .3); slowT = .08; shake = Math.max(shake, .5); quake = Math.max(quake, .35); flash = Math.max(flash, .2); vib([20, 30, 40]); } else { A.cut(cutsInScene); shake = Math.max(shake, .25); }
+  } else if (o.big) { A.bigCut(); timeScale = Math.min(timeScale, .3); slowT = .08; shake = Math.max(shake, .5); quake = Math.max(quake, .35); flash = Math.max(flash, .2); vib([20, 30, 40]); } else { A.cut(cutsInScene); shake = Math.max(shake, .25); timeScale = Math.min(timeScale, .5); slowT = Math.max(slowT, .04); }
   cutsInScene++;
   const n = $('#cNum'); n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump');
 }
@@ -1212,7 +1255,7 @@ function updPieces(dt) {
     } else {
       if (!p.landed) {
         const step = p.vs * dt; p.x += p.dx * step; p.z += p.dz * step; p.slide += step; p.vs *= Math.exp(-dt * .6);
-        p.vy -= 9.8 * dt; p.y += p.vy * dt; p.th = Math.min(.6, p.th + p.w * dt); p.spin += (p.ws || 0) * dt * .5;
+        p.vy -= 9.8 * dt; p.y += p.vy * dt; p.th = Math.min(1.25, p.th + p.w * dt); p.spin += (p.ws || 0) * dt * .6;
         if (p.y <= 0) { p.y = 0; p.landed = 1; dust(p.x, p.z, 10, o.fs); if (state !== 'title') A.thud(o.fs); }
       } else { p.vs *= Math.exp(-dt * 6); const step = p.vs * dt; p.x += p.dx * step; p.z += p.dz * step; p.th = lerp(p.th, .32, 1 - Math.exp(-dt * 6)); if (p.vs < .05) p.landed = 2; }
     }
@@ -1264,11 +1307,17 @@ function camForState(dt) {
       fv += Math.min(.32, sp * .009);
       CS.th.t = lerp(th, -.12, gal); CS.ph.t = lerp(ph, .5, gal); CS.d.t = lerp(d, 2.1, gal); CS.L.t = lerp(L, 1.4, gal); CS.ly.t = lerp(ly, -.5, gal); CS.fov.t = fv; CS.du.t = lerp(du, 0, gal);
       for (const k in CS) spring(CS[k], dt, k === 'fov' ? 7 : k === 'du' ? 5 : 4.2, k === 'fov' ? .55 : .72);
-      const grow = scene.space ? 1 : waveGrow(), D = Math.max(.8, CS.d.x) * cs * grow;
+      // keep the target in frame as it is cut: sprung focus weight + eased focus point, pushing in
+      FW.t = o.kind === 'galaxy' || orbit ? 0 : smooth(clamp(1 - (o.z - wave.z - cs * 1.5) / (cs * 5), 0, 1)) * (scene.space ? .5 : .8);
+      spring(FW, dt, 6, .9); const tallK = clamp((o.h / Math.max(.1, cs) - 1.2) / 1.5, 0, 1), fo = o.kind === 'planet' ? o.y + o.R : lerp(o.cutY, o.cutY + (o.h - o.h * o.cutF) * .35, tallK);
+      FP.x = lerp(FP.x, o.x, 1 - Math.exp(-dt * 5)); FP.y = lerp(FP.y, fo, 1 - Math.exp(-dt * 5)); FP.z = lerp(FP.z, o.z, 1 - Math.exp(-dt * 5));
+      const fw = clamp(FW.x, 0, .9);
+      FT.x = lerp(FT.x, tallK, 1 - Math.exp(-dt * 3)); GRs = lerp(GRs, scene.space ? 1 : waveGrow(), 1 - Math.exp(-dt * 1.8)); const grow = GRs, D = Math.max(.7, CS.d.x * (1 - .3 * fw * (1 - FT.x) + .35 * fw * FT.x)) * cs * grow;
       anc.x = lerp(anc.x, wave.x, 1 - Math.exp(-dt * 2.6)); anc.y = lerp(anc.y, wave.y, 1 - Math.exp(-dt * 2.6));
       const by = anc.y + .12 * cs * grow, cph = Math.cos(CS.ph.x);
       px = anc.x + Math.sin(CS.th.x) * cph * D; py = by + Math.sin(CS.ph.x) * D; pz = wave.z - Math.cos(CS.th.x) * cph * D;
       tx_ = anc.x + .22 * cs * grow; ty = anc.y + CS.ly.x * cs * grow; tz = wave.z + CS.L.x * cs * grow;
+      tx_ = lerp(tx_, FP.x, fw); ty = lerp(ty, FP.y, fw); tz = lerp(tz, Math.max(FP.z, wave.z + cs * .3), fw);
       fov = CS.fov.x; roll = CS.du.x - CS.th.v * .1 - .02 - Math.min(.05, sp * .002);
       // high-speed micro vibration
       const vib2 = Math.min(1, sp / 14) * .004 * cs; px += Math.sin(T * 61) * vib2; py += Math.sin(T * 53.7) * vib2;
@@ -1279,12 +1328,12 @@ function camForState(dt) {
     const b = finalObj; const c = b.fs; const a = stT * .2;
     px = b.x - 2.6 * c * Math.cos(a) + Math.sin(a) * c; py = b.cutY + (.25 + stT * .2) * c; pz = b.z - 2.4 * c * Math.cos(a) - Math.sin(a) * c * .6;
     tx_ = b.x + .5 * c; ty = b.cutY + .1 * c; tz = b.z + .2 * c; fov = 1.1 + stT * .05; roll = .05;
-    if (b.kind === 'galaxy') { px = b.x - .2 * c; py = b.y + 1.15 * c + stT * .1 * c; pz = b.z - 1.45 * c - stT * .15 * c; tx_ = b.x; ty = b.y; tz = b.z + .2 * c; roll = 0; }
+    if (b.kind === 'galaxy') { const e2 = ease(clamp(stT / 1.4, 0, 1)); px = b.x - .15 * c; py = b.y + lerp(1.15, 1.75, e2) * c + stT * .06 * c; pz = b.z - lerp(1.45, 2.15, e2) * c - stT * .08 * c; tx_ = b.x; ty = b.y; tz = b.z + .25 * c; roll = 0; fov = 1.12; }
   } else if (state === 'wide' || state === 'result') {
     const b = finalObj || scene.objs[0]; const c = b.fs; const t = ease(Math.min(1, (state === 'wide' ? stT : 3) / 2.2));
     px = lerp(b.x - 2.6 * c, b.x - 3.4 * c, t) + Math.sin(T * .1) * .3 * c; py = lerp(b.cutY + .3 * c, b.cutY + 1.6 * c, t); pz = lerp(b.z - 2.4 * c, b.z - 5.2 * c, t);
     tx_ = b.x + .6 * c; ty = lerp(b.cutY, b.cutY - .1 * c, t); tz = b.z + .4 * c; fov = lerp(1.0, 1.12, t);
-    if (b.kind === 'galaxy') { px = b.x - .3 * c; py = b.y + lerp(1.2, 1.7, t) * c; pz = b.z - lerp(1.4, 1.9, t) * c; tx_ = b.x; ty = b.y; tz = b.z + .3 * c; }
+    if (b.kind === 'galaxy') { px = b.x - .2 * c; py = b.y + lerp(1.9, 2.2, t) * c; pz = b.z - lerp(2.3, 2.6, t) * c; tx_ = b.x; ty = b.y; tz = b.z + .3 * c; }
   }
   if (!scene.space && state !== 'title') py = Math.max(py, .12 * Math.min(cs, 6) + .06);
   const k0 = 1 - Math.exp(-dt * (state === 'wide' ? 6 : state === 'chase' ? 3.2 : 3)), k = snap === true ? 1 : lerp(k0, 1, +snap || 0);
@@ -1387,7 +1436,7 @@ let chaseT = 0;
 function updChase(dt, rdt) {
   chaseT += dt;
   const accel = 1 + Math.min(1.5, chaseT * .085);
-  if (trans) { updTrans(rdt); wave.v = lerp(wave.v, Math.max(wave.v, cs * scene.kv * (.85 + .35 * power) * accel), 1 - Math.exp(-dt * 3)); wave.z += wave.v * dt; return; }
+  if (trans) { updTrans(rdt); if (trans && !trans.done) { wave.v = lerp(wave.v, Math.max(wave.v, cs * scene.kv * (.85 + .35 * power) * accel), 1 - Math.exp(-dt * 3)); wave.z += wave.v * dt; return; } }
   blastDeco();
   const objs = scene.objs, o = objs[nextIdx];
   wave.hw = cs * .5 * waveGrow();
@@ -1477,10 +1526,11 @@ function updTrans(rdt) {
     const ox = anc.x, oy = anc.y, oz = wave.z, ocs = cs;
     cs = o.fs; wave.v *= ratio;
     wave.z = o.z - Math.max(o.fs * 2.2, wave.v * .35); wave.x = o.x; wave.y = o.cutY; wave.vert = o.kind === 'galaxy'; wave.vt = wave.vert ? 1 : 0; wave.hw = cs * .5 * waveGrow();
-    anc.x = wave.x; anc.y = wave.y;
+    anc.x = wave.x; anc.y = wave.y; dirO = o; dirZ0 = wave.z;
     // carry the camera across in slash-relative space so nothing jumps
     const rm = (v, a, b) => b + (v - a) * ratio;
     camS.px = rm(camS.px, ox, anc.x); camS.py = rm(camS.py, oy, anc.y); camS.pz = rm(camS.pz, oz, wave.z);
+    FP.x = rm(FP.x, ox, anc.x); FP.y = rm(FP.y, oy, anc.y); FP.z = rm(FP.z, oz, wave.z);
     camS.tx = rm(camS.tx, ox, anc.x); camS.ty = rm(camS.ty, oy, anc.y); camS.tz = rm(camS.tz, oz, wave.z);
   }
   if (tr.t >= tr.dur) { trans = null; }
@@ -1995,6 +2045,7 @@ window.__cho = {
   prof: n => { const r = { upd: 0, scene: 0, sky: 0, gl: 0, comp: 0 }; for (let i = 0; i < n; i++) { let t = performance.now(); update(1 / 60); r.upd += performance.now() - t; t = performance.now(); drawSky(); r.sky += performance.now() - t; t = performance.now(); render3D(); r.gl += performance.now() - t; t = performance.now(); renderScene(true); r.scene += performance.now() - t; t = performance.now(); composite(); r.comp += performance.now() - t; } for (const k in r) r[k] = +(r[k] / n).toFixed(1); return r; },
   perf: n => { const t0 = performance.now(); for (let i = 0; i < n; i++) renderScene(true); return (performance.now() - t0) / n; },
   trace: n => { const r = []; for (let i = 0; i < n; i++) { update(1 / 60); r.push([cam.yaw, cam.pitch, cam.fov, cam.x / cs, cam.y / cs, cam.z / cs, state, trans ? 1 : 0, timeScale, scene.id, earthCut ? 1 : 0, nextIdx, +CS.th.x.toFixed(3), +CS.d.x.toFixed(3), shotK, +stT.toFixed(2), +camS.px.toFixed(2), +camS.pz.toFixed(2), +camS.tx.toFixed(2), +camS.tz.toFixed(2)]); if (state === 'result' || state === 'wide') break; } return r; },
+  fdbg: () => { const o = scene.objs[nextIdx]; if (!o) return null; const ok = proj(o.x, o.cutY, o.z, tA); return [nextIdx, +FW.x.toFixed(2), +((o.z - wave.z)).toFixed(1), ok ? Math.round(tA[3]) : null, LW, +cs.toFixed(1), +waveGrow().toFixed(2), +camS.tx.toFixed(1), +o.x.toFixed(1), +cam.x.toFixed(1)]; },
   tr: () => trans && [trans.t.toFixed(3), trans.sw, trans.done, !!trans.snapped, trans.glass && trans.glass.sh ? trans.glass.sh.length : 0, snapC.width],
   skip: t => { for (let i = 0; i < t * 60; i++) update(1 / 60); render(); }, setQi: v => { qi = v; }, buildAll: () => { while (!preDone) prebuildNext(1e15); },
   view: (id, setup) => { loadScene(SCENES.indexOf(id)); state = 'view'; if (setup) setup({ scene, cutObj, lookAt, cam, camS, upd: d => { updPieces(d); updParts(d); } }); },
