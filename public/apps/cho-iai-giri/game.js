@@ -382,6 +382,7 @@ MODEL.arco = () => vox(120, 56, .9, (x, y, l) => {
   if (along % 3 === 0) return 0x2a3048;
   return hs(along >> 1, l >> 1, tier) > .55 ? (0xd8f4ff | EM) : mixI(0x1d2338, 0x3a4468, hs(along, l >> 2, 2) * .6);
 }, { ao: .7, top: 1.1 });
+MODEL.asteroid = () => { const n = 26, sz = 30, c = 14.5; return vox(n, sz, .2, (x, y, l) => { const yy = (l - 12.5) * 1.12, d = Math.hypot(x - c, y - c, yy); const a = Math.atan2(y - c, x - c), b = Math.atan2(yy, Math.hypot(x - c, y - c)); const rad = 12.6 * (1 + .16 * Math.sin(a * 2 + 1.3 + b) + .1 * Math.sin(a * 3 + b * 2.2)) * (.86 + .28 * fbm3(x * .14, y * .14, l * .14, 3)); if (d > rad) return -1; if (d < rad * .5) return hs(x, y, l) < .35 ? 0xffc060 | EM : 0xe0742c | EM; if (d < rad * .72) return hs(x, y, l) < .5 ? 0x8a4a2a : 0x6a3a26; const cr = hs(x >> 2, y >> 2, l >> 2); return cr < .18 ? 0x4c4640 : hs(x, y, l) < .5 ? 0x77705f : 0x8e8574; }, { ao: .6 }); };
 MODEL.rock = () => { const ph = [1.2, 4.1, 2.7]; const n = 14; return vox(n, 16, .3, (x, y, l) => { const r0 = 7 * Math.sqrt(1 - Math.pow(l / n, 1.6)); const a = Math.atan2(y - 7.5, x - 7.5), d = Math.hypot(x - 7.5, y - 7.5); const rad = r0 * (1 + .2 * Math.sin(a * 2 + ph[0]) + .12 * Math.sin(a * 3 + ph[1])); return d <= rad ? (hs(x, y, l) < .5 ? 0x5a5650 : 0x6e6a62) : -1; }, { ao: .6 }); };
 
 // planets: n = 2R layers, light baked from world light dir
@@ -463,7 +464,7 @@ MODEL.galL = () => galaxyModel(-1); MODEL.galR = () => galaxyModel(1);
 const Mcache = {};
 function getMs(k) { return Mcache[k] || (Mcache[k] = MODEL[k]()); }
 function getM(k) { const m = getMs(k); if (!m.done) stepModel(m, Infinity); return m; }
-const BUILD_Q = ['bamboo0', 'bamboo1', 'bamboo2', 'machiya0', 'machiya1', 'machiya2', 'kura', 'yagura', 'castle', 'office0', 'office1', 'office2', 'office3', 'store', 'pole', 'car0', 'car1', 'car2', 'tower', 'spire0', 'spire1', 'ringT', 'dome', 'arco', 'earth', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'rock', 'galL', 'galR'];
+const BUILD_Q = ['bamboo0', 'bamboo1', 'bamboo2', 'machiya0', 'machiya1', 'machiya2', 'kura', 'yagura', 'castle', 'office0', 'office1', 'office2', 'office3', 'store', 'pole', 'car0', 'car1', 'car2', 'tower', 'spire0', 'spire1', 'ringT', 'dome', 'arco', 'earth', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'rock', 'asteroid', 'galL', 'galR'];
 let buildI = 0;
 function buildStep(budget) { if (!preDone) prebuildNext(performance.now() + budget); }
 
@@ -480,7 +481,7 @@ const CHIP = {
 };
 function chipFor(m) {
   if (m.startsWith('pine')) return [0x46733b, 0x6e9a55, 0x5b4030]; if (m.startsWith('bamboo')) return CHIP.bamboo; if (m.startsWith('office') || m === 'store') return CHIP.glass;
-  if (m.startsWith('spire') || m === 'ringT' || m === 'arco' || m === 'dome') return CHIP.neon; if (m === 'rock' || m === 'moon' || m === 'lantern') return [0x6a6d72, 0x9a9a94, 0x4c6a3c];
+  if (m.startsWith('spire') || m === 'ringT' || m === 'arco' || m === 'dome') return CHIP.neon; if (m === 'rock' || m === 'asteroid' || m === 'moon' || m === 'lantern') return [0x6a6d72, 0x9a9a94, 0x4c6a3c];
   if (m.startsWith('car')) return [0xd23b3b, 0x2a3444, 0xf2f2f2]; if (m === 'pole') return CHIP.metal; return CHIP.wood;
 }
 function mk(m, x, z, o = {}) {
@@ -564,7 +565,13 @@ function buildScene(id) {
     sc.sky = { space: 1 };
   } else if (id === 'galaxy') {
     sc.kv = 3.2; sc.space = true;
-    const o = mk('galL', 0, 40, { y: 0, kind: 'galaxy', fs: 190, chip: 'stars', big: true, comp: 'lighter' }); o.y = -o.h / 2; o.cutF = .5; P(o, 13);
+    const o = mk('galL', 0, 40, { y: 0, kind: 'galaxy', fs: 190, chip: 'stars', big: true, comp: 'lighter' }); o.y = -o.h / 2; o.cutF = .5;
+    // a meteor field to slice through on the way to the galaxy (sizes ramp up toward galaxy scale)
+    const ms = [3, 4.5, 6.5, 9, 12, 16, 21], list = []; let z = o.z - o.fs * 1.6;
+    for (let k = ms.length - 1; k >= 0; k--) { const s2 = ms[k], Rm = 2.7 * s2, fs = Rm * 2.5; z -= fs * 2.3; const zy = [.5, -.4, .3, -.5, .4, -.3, .2][k] * Rm, zx = (k % 2 ? 1 : -1) * Rm * .5; list.unshift(mk('asteroid', zx, z, { y: -Rm + zy, sc: s2, cutF: rr(.42, .58), kind: 'planet', fs, chip: 'magma', big: true, R: Rm, yaw: rr(0, 6) })); }
+    for (const m of list) { m.meteor = true; P(m, 13); }
+    P(o, 13);
+    for (let i = 0; i < 46; i++) { const zz = rr(list[0].z - 40, o.z - o.fs * 1.2), f = clamp((zz - list[0].z) / (o.z - list[0].z), 0, 1), sc2 = rr(.8, 3.2) * (1 + f * 6), sd = rnd() < .5 ? -1 : 1; sc.deco.push(mk('asteroid', sd * rr(12, 70) * (1 + f * 5), zz, { y: rr(-40, 40) * (1 + f * 4), yaw: rr(0, 6), sc: sc2 })); }
     sc.sky = { space: 1, gal: 1 };
   }
   // stage counts
@@ -576,7 +583,7 @@ function buildScene(id) {
   sc.clouds = []; if (sc.sky.clouds) for (let i = 0; i < 11; i++) sc.clouds.push({ a: rr(-Math.PI, Math.PI), e: rr(.07, .38), w: rr(.12, .3), k: rnd() * 1000 | 0 });
   sc.neb = []; if (sc.sky.space) for (let i = 0; i < 9; i++) { const a = rr(-Math.PI, Math.PI), e = rr(-.6, .6); sc.neb.push({ d: [Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)], r: rr(.3, .8), c: pick(['80,60,200', '200,60,140', '40,120,200', '120,40,160', '200,120,80'], rnd()), a: rr(.05, .14) }); }
   sc.gals = []; if (sc.sky.gal) for (let i = 0; i < 40; i++) { const a = rr(-Math.PI, Math.PI), e = rr(-1.2, 1.2); sc.gals.push({ d: [Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)], r: rr(.006, .03), t: rr(0, 3.14), q: rr(.2, .8) }); }
-  const DR = { dojo: 6.5, bamboo: 7.5, town: 15, modern: 32, future: 62, space: 40, galaxy: 0 }[id] || 0; sc.DR = DR;
+  const DR = { dojo: 6.5, bamboo: 7.5, town: 15, modern: 32, future: 62, space: 40, galaxy: 220 }[id] || 0; sc.DR = DR;
   for (const o of sc.deco) {
     if (Math.abs(o.x) - o.w * .5 > DR) continue;
     o.dz = true; o.cutL = clamp(Math.round(o.n * rr(.25, .55)), 1, o.n - 1); o.cutF = o.cutL / o.n; o.cutY = o.y + o.cutL * o.u;
@@ -763,7 +770,8 @@ if (renderer) {
   debM = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }), DEB); debM.frustumCulled = false; debM.count = 0; root.add(debM);
   debM.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(DEB * 3), 3);
 }
-function shockAt(x, y, z, size) { const s = shocks.find(q => q.t >= q.life) || shocks[0]; s.t = 0; s.s = size; s.m.position.set(-x, y, z); s.m.visible = true; }
+function shockAt(x, y, z, size) { const s = shocks.find(q => q.t >= q.life) || shocks[0]; s.t = 0; s.s = size; s.flat = false; s.life = .28; s.m.position.set(-x, y, z); s.m.visible = true; }
+function shockFlat(x, y, z, size) { if (!shocks.length) return; const s = shocks.find(q => q.t >= q.life) || shocks[1]; s.t = 0; s.s = size; s.flat = true; s.life = .6; s.m.position.set(-x, y, z); s.m.visible = true; }
 const _c = new THREE.Color(), _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3(), _sv = new THREE.Vector3();
 function debris(x, y, z, size, cols, n, speed, sp) {
   if (!debM) return;
@@ -773,7 +781,8 @@ function debris(x, y, z, size, cols, n, speed, sp) {
   }
 }
 function updFx3D(dt) {
-  for (const s of shocks) { if (s.t >= s.life) { s.m.visible = false; continue; } s.t += dt; const k = s.t / s.life; const sc2 = s.s * (.3 + ease(k) * 1.2); s.m.scale.set(sc2, sc2, sc2); s.m.material.opacity = (1 - k) * (1 - k) * .55; s.m.quaternion.copy(cam3.quaternion); }
+  for (const s of shocks) { if (s.t >= s.life) { s.m.visible = false; continue; } s.t += dt; const k = s.t / s.life; const sc2 = s.s * (.3 + ease(k) * 1.2); s.m.scale.set(sc2, sc2, sc2); s.m.material.opacity = (1 - k) * (1 - k) * (s.flat ? .5 : .55); if (s.flat) s.m.quaternion.setFromAxisAngle(_v.set(1, 0, 0), -Math.PI / 2); else s.m.quaternion.copy(cam3.quaternion); }
+  updRing(dt);
   if (!debM) return;
   for (let i = deb.length - 1; i >= 0; i--) {
     const d = deb[i]; d.t += dt; if (d.t > d.life) { deb.splice(i, 1); continue; }
@@ -932,12 +941,28 @@ function drawSky() {
   }
   if (K.rays) { ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 5; i++) { const x0 = ((i * 53 + 20) % 100) / 100 * LW; ctx.fillStyle = `rgba(170,200,255,${.025 + .015 * Math.sin(T * .5 + i)})`; ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x0 + LW * .12, 0); ctx.lineTo(x0 + LW * .45, LH); ctx.lineTo(x0 + LW * .22, LH); ctx.fill(); } ctx.globalCompositeOperation = 'source-over'; }
 }
+const warpP = [];
+function drawWarp(k) {
+  if (!(state === 'chase' || state === 'final' || state === 'wide') || !wave.on) return;
+  const S = Math.max(6, cs) * 3.2, L = S * 7, sp = clamp(wave.v / Math.max(1, cs), 0, 40), len = Math.min(L * .45, wave.v * .085 + S * .04);
+  while (warpP.length < 190) warpP.push({ x: 0, y: 0, z: -1e9, s: 0 });
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+  const kk = k * clamp(sp / 8, .2, 1);
+  for (const p of warpP) {
+    if (p.s !== S || p.z < cam.z - S * .3 || p.z > cam.z + L * 1.3 || Math.hypot(p.x - cam.x, p.y - cam.y) > S * 3) { const a = Math.random() * 6.283, r = S * (.35 + Math.random() * 1.7); p.x = cam.x + Math.cos(a) * r; p.y = cam.y + Math.sin(a) * r; p.z = cam.z + (p.s !== S ? Math.random() : .85 + Math.random() * .4) * L; p.s = S; }
+    if (!proj(p.x, p.y, p.z, tA)) continue; const zb = Math.max(p.z - len, cam.z + S * .08); if (!proj(p.x, p.y, zb, tB)) continue;
+    const a = clamp(1 - (p.z - cam.z) / L, 0, 1) * kk; if (a < .02) continue;
+    ctx.strokeStyle = `rgba(185,210,255,${(a * .85).toFixed(3)})`; ctx.lineWidth = .6 + a * 1.2; ctx.beginPath(); ctx.moveTo(tA[3], tA[4]); ctx.lineTo(tB[3], tB[4]); ctx.stroke();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
 function drawSpace(K) {
   ctx.fillStyle = '#020309'; ctx.fillRect(0, 0, LW, LH);
   ctx.globalCompositeOperation = 'lighter';
   for (const nb of scene.neb) { const p = dirScreen(nb.d[0], nb.d[1], nb.d[2]); if (!p) continue; const r = nb.r * F; const g = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], r); g.addColorStop(0, `rgba(${nb.c},${nb.a})`); g.addColorStop(1, `rgba(${nb.c},0)`); ctx.fillStyle = g; ctx.fillRect(p[0] - r, p[1] - r, r * 2, r * 2); }
   ctx.globalCompositeOperation = 'source-over';
   drawStars(scene.stars, LH, 1);
+  drawWarp(K.gal ? 1 : .5);
   if (K.gal) for (const g of scene.gals) { const p = dirScreen(g.d[0], g.d[1], g.d[2]); if (!p) continue; const r = Math.max(1, g.r * F); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(200,210,255,.5)'; ctx.beginPath(); ctx.ellipse(p[0], p[1], r, r * g.q, g.t, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,240,200,.8)'; ctx.fillRect(p[0] | 0, p[1] | 0, 1, 1); ctx.globalCompositeOperation = 'source-over'; }
   if (!K.gal) { const p = dirScreen(LX / LN, LY / LN, LZ / LN); if (p) { const r = Math.max(4, F * .09); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(p[0], p[1], r * .4, p[0], p[1], r * 7); g.addColorStop(0, 'rgba(255,240,200,.9)'); g.addColorStop(.2, 'rgba(255,190,100,.3)'); g.addColorStop(1, 'rgba(255,140,60,0)'); ctx.fillStyle = g; ctx.fillRect(p[0] - r * 7, p[1] - r * 7, r * 14, r * 14); ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#fff6dc'; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 7); ctx.fill(); } }
 }
@@ -953,10 +978,11 @@ function burst(o) {
   if (ultraCut) for (let i = 0; i < 8; i++) addP({ x, y, z, vx: rr(-4, 4) * s * .4, vy: rr(-3, 3) * s * .4, vz: rr(-3, 5) * s * .4, life: rr(.3, .6), t: 0, k: 'spark', c: `hsl(${rnd() * 360 | 0},100%,70%)`, s: s * .025, g: 0 });
 }
 function dust(x, z, n, s) { for (let i = 0; i < n; i++) addP({ x: x + rr(-1.5, 1.5) * s * .4, y: .05, z: z + rr(-1.5, 1.5) * s * .4, vx: rr(-.8, .8) * s * .4, vy: rr(.2, .9) * s * .3, vz: rr(-.8, .8) * s * .4, life: rr(.7, 1.5), t: 0, k: 'dust', c: scene.id === 'dojo' || scene.id === 'town' ? '#d8ccb0' : scene.id === 'bamboo' ? '#7a7a50' : '#6a6a78', s: s * .12, g: 0 }); }
+function smoke(x, y, z, s, n) { const c = scene.id === 'future' ? '#8e7cb0' : scene.id === 'bamboo' ? '#8a8e78' : '#a29c98'; for (let i = 0; i < n; i++) addP({ x: x + rr(-.5, .5) * s, y: y + rr(-.25, .35) * s, z: z + rr(-.5, .5) * s, vx: rr(-.7, .7) * s, vy: rr(.15, .7) * s, vz: rr(-.3, .9) * s, life: rr(.9, 1.9), t: 0, k: 'smoke', c, s: s * rr(.22, .42), g: 0 }); }
 function updParts(dt) {
   for (let i = parts.length - 1; i >= 0; i--) {
     const p = parts[i]; p.t += dt; if (p.t > p.life) { parts.splice(i, 1); continue; }
-    if (p.k === 'dust') { p.vx *= .94; p.vy *= .94; p.vz *= .94; } else if (p.g) p.vy -= 9.8 * dt * (p.k === 'spark' ? .3 : 1);
+    if (p.k === 'dust' || p.k === 'smoke') { const dm = p.k === 'smoke' ? .955 : .94; p.vx *= dm; p.vy *= dm; p.vz *= dm; } else if (p.g) p.vy -= 9.8 * dt * (p.k === 'spark' ? .3 : 1);
     p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
     if (p.g && p.y < 0) { p.y = 0; p.vy *= -.25; p.vx *= .6; p.vz *= .6; }
   }
@@ -966,8 +992,9 @@ function drawParts() {
   for (const p of parts) {
     toCam(p.x, p.y, p.z, tmp); if (tmp[2] < .15) continue;
     const x = HW + F * tmp[0] / tmp[2], y = HH - F * tmp[1] / tmp[2]; if (x < -4 || x > LW + 4 || y < -4 || y > LH + 4) continue;
-    const a = 1 - p.t / p.life, sz = clamp(p.s * F / tmp[2], 1, p.k === 'dust' ? 30 : 5);
+    const a = 1 - p.t / p.life, sz = clamp(p.s * F / tmp[2], 1, p.k === 'dust' ? 30 : p.k === 'smoke' ? 70 : 5);
     if (p.k === 'spark') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = a; ctx.fillStyle = p.c; ctx.fillRect(x, y, sz, sz); ctx.globalCompositeOperation = 'source-over'; }
+    else if (p.k === 'smoke') { const r2 = sz * (1 + p.t * 1.6) * .5; ctx.globalAlpha = a * .32 * Math.min(1, p.t * 8); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, r2, 0, 6.283); ctx.fill(); ctx.globalAlpha *= .6; ctx.beginPath(); ctx.arc(x - r2 * .25, y - r2 * .2, r2 * .6, 0, 6.283); ctx.fill(); }
     else if (p.k === 'dust') { ctx.globalAlpha = a * .3; ctx.fillStyle = p.c; const s2 = sz * (1 + p.t); ctx.fillRect(x - s2 / 2, y - s2 / 2, s2, s2); }
     else { ctx.globalAlpha = Math.min(1, a * 2); ctx.fillStyle = p.c; ctx.fillRect(x, y, sz, sz); }
   }
@@ -1065,7 +1092,7 @@ function drawKatana(t, mode) {
 // ---------- game state ----------
 let state = 'title', T = 0, stT = 0;
 let qi = 0, qiFullAt = 0, qiUltraAt = 0, kataIn = 0;
-let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = -.4, slowT = 0;
+let quake = 0, orbit = null, orbK = 0, ringF = 0; let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = -.4, slowT = 0;
 let power = 0, perfect = false, ultraCut = false, REACH = 0, rDisp = 0, nextIdx = 0, finalObj = null, stopped = false, galaxyDone = false;
 const fol = { x: -1.1, y: .3, z: -2.2 }, anc = { x: 0, y: 1 }; let galS = 0, RDT = .016;
 let camKick = 0, kickDir = 1, cs = 1.2, shot = 0, cutsInScene = 0, trans = null, shownStage = -1;
@@ -1087,7 +1114,7 @@ function fmtDist(m) {
 }
 const canCut = o => REACH >= o.stage + (o.jj + 1) / o.cnt - 1e-9;
 function setScreen(id) { for (const s of document.querySelectorAll('.screen')) s.classList.toggle('on', s.id === id); }
-function loadScene(i) { sceneI = i; scene = getScene(i); for (const o of scene.objs.concat(scene.deco)) { o.cut = false; o.piece = null; o.shake = 0; o.bx = o.by = o.bz = 0; o.gal = null; } deb.length = 0; attachScene(scene); for (const m of waveLayers) root.add(m); if (debM) root.add(debM); parts = []; slashes = []; nextIdx = 0; cutsInScene = 0; A.scene(SCENES[i]); }
+function loadScene(i) { sceneI = i; scene = getScene(i); for (const o of scene.objs.concat(scene.deco)) { o.cut = false; o.piece = null; o.shake = 0; o.bx = o.by = o.bz = 0; o.gal = null; } deb.length = 0; attachScene(scene); for (const m of waveLayers) root.add(m); if (debM) root.add(debM); if (ringM) root.add(ringM, ringD); orbit = null; ringO = null; ringF = 0; parts = []; slashes = []; nextIdx = 0; cutsInScene = 0; A.scene(SCENES[i]); }
 function resetAll() { loadScene(0); wave.on = false; trans = null; finalObj = null; stopped = false; galaxyDone = false; rDisp = 0; shownStage = -1; slowT = 0; }
 function go(s) {
   state = s; stT = 0;
@@ -1122,8 +1149,9 @@ function startPiece(o) {
   const fdz = rr(-.5, .2), fl = Math.hypot(1, fdz), dx = 1 / fl, dz = fdz / fl;
   const p = { x: o.x, y: o.cutY, z: o.z, dx, dz, kx: dz, kz: -dx, th: .02, w: 0, vx: 0, vy: 0, vz: 0, landed: 0, slide: 0, spin: 0 };
   const L = o.h - o.h * o.cutF, sq = Math.sqrt(o.fs);
-  if (o.kind === 'tall') { p.w = .6 + power * .8; p.vx = dx * rr(.8, 1.6) * sq * .8; p.vz = dz * rr(.6, 1.2) * sq * .8; p.vy = (rr(.4, 1) + power) * sq * .5; p.L = L; }
-  else if (o.kind === 'wide') { p.vs = (1.2 + 2.6 * power) * sq * .7; p.w = 0; }
+  if (o.kind === 'tall' || o.kind === 'wide') { const sd = rr(.2, .5), l2 = Math.hypot(sd, 1); p.dx = sd / l2; p.dz = 1 / l2; p.kx = p.dz; p.kz = -p.dx; p.ws = rr(-1.2, 1.2); }
+  if (o.kind === 'tall') { p.w = 2.4 + power * 1.8; p.vx = p.dx * (1.4 + power * 1.8) * sq; p.vz = p.dz * (2.2 + power * 2.6) * sq; p.vy = (1.8 + power * 1.8) * sq; p.L = L; }
+  else if (o.kind === 'wide') { p.vs = (2.6 + 3.4 * power) * sq * .8; p.vy = (1.3 + 1.5 * power) * sq; p.w = 1.6 + power; }
   else if (o.kind === 'planet') { const v = o.R * (.3 + .4 * power); p.vx = Math.abs(dx) * v * .8; p.vz = v * .25; p.vy = o.R * .7; p.w = .18 + power * .15; p.spin = 0; o.bvx = Math.abs(dx) * v * .15; o.bvz = v * .1; o.bvy = -o.R * .6; }
   o.piece = p;
 }
@@ -1133,9 +1161,15 @@ function cutObj(o) {
   else startPiece(o);
   slashes.push({ x: o.x, y: o.cutY, z: o.z, t: 0, life: .4, L: o.w * (o.kind === 'planet' ? .75 : .5) });
   burst(o); shockAt(o.x, o.cutY, o.z, o.fs * (o.big ? .75 : .45));
-  if (o.kind !== 'galaxy') debris(o.x, o.cutY, o.z, o.kind === 'planet' ? o.R * 1.2 : Math.min(o.w, o.fs * 1.2), o.chip, o.big ? 40 : 18, o.fs * (2.5 + power * 2), !!scene.space);
+  if (o.kind !== 'galaxy') debris(o.x, o.cutY, o.z, o.kind === 'planet' ? o.R * 1.2 : Math.min(o.w, o.fs * 1.2), o.chip, o.kind === 'planet' ? 70 : o.big ? 46 : 28, o.fs * (3 + power * 2.5), !!scene.space);
+  if (!scene.space) smoke(o.x, o.cutY, o.z, Math.min(o.w, o.fs) * .5, o.big ? 12 : 7);
   camKick = 1; kickDir = -kickDir; flash = Math.max(flash, .1);
-  if (o.big) { A.bigCut(); timeScale = Math.min(timeScale, o.kind === 'planet' ? .1 : .3); slowT = o.kind === 'planet' ? .22 : .08; shake = Math.max(shake, .5); flash = Math.max(flash, o.kind === 'planet' ? .16 : .2); vib([20, 30, 40]); } else { A.cut(cutsInScene); shake = Math.max(shake, .2); }
+  if (o.kind === 'planet') {
+    A.bigCut(); vib([30, 30, 60]); flash = Math.max(flash, o.meteor ? .12 : .26);
+    quake = Math.max(quake, o.meteor ? .55 : 1); shake = Math.max(shake, .7);
+    shockFlat(o.x, o.cutY, o.z, o.R * (o.meteor ? 2.4 : 3.4)); shockAt(o.x, o.cutY, o.z, o.R * 2.6);
+    timeScale = Math.min(timeScale, o.meteor ? .4 : .12); slowT = o.meteor ? .05 : .22;
+  } else if (o.big) { A.bigCut(); timeScale = Math.min(timeScale, .3); slowT = .08; shake = Math.max(shake, .5); quake = Math.max(quake, .35); flash = Math.max(flash, .2); vib([20, 30, 40]); } else { A.cut(cutsInScene); shake = Math.max(shake, .25); }
   cutsInScene++;
   const n = $('#cNum'); n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump');
 }
@@ -1149,7 +1183,7 @@ function updPieces(dt) {
     if (o.kind === 'tall') {
       if (!p.landed) {
         const alpha = 1.5 * 9.8 / p.L * Math.sin(p.th) + .4;
-        p.w += alpha * dt; p.th += p.w * dt;
+        p.w += alpha * dt; p.th += p.w * dt; p.spin += (p.ws || 0) * dt;
         p.x += p.vx * dt; p.z += p.vz * dt; p.vy -= 9.8 * dt; p.y = Math.max(0, p.y + p.vy * dt); if (p.y <= 0) { p.vx *= .9; p.vz *= .9; }
         if (p.th >= 1.53) { p.th = 1.53; p.landed = 1; p.w = -p.w * .18; p.vx *= .2; p.vz *= .2; dust(p.x + p.dx * p.L * .6, p.z + p.dz * p.L * .6, 7, o.fs); if (state !== 'title') A.thud(o.fs); }
       } else {
@@ -1158,9 +1192,8 @@ function updPieces(dt) {
       }
     } else {
       if (!p.landed) {
-        const step = p.vs * dt; p.x += p.dx * step; p.z += p.dz * step; p.slide += step; p.vs *= Math.exp(-dt * .5);
-        if (p.slide > o.w * .38) { p.vy -= 9.8 * dt; p.y += p.vy * dt; p.th = Math.min(.5, p.th + dt * .9); }
-        else p.th = Math.min(.08, p.th + dt * .1);
+        const step = p.vs * dt; p.x += p.dx * step; p.z += p.dz * step; p.slide += step; p.vs *= Math.exp(-dt * .6);
+        p.vy -= 9.8 * dt; p.y += p.vy * dt; p.th = Math.min(.6, p.th + p.w * dt); p.spin += (p.ws || 0) * dt * .5;
         if (p.y <= 0) { p.y = 0; p.landed = 1; dust(p.x, p.z, 10, o.fs); if (state !== 'title') A.thud(o.fs); }
       } else { p.vs *= Math.exp(-dt * 6); const step = p.vs * dt; p.x += p.dx * step; p.z += p.dz * step; p.th = lerp(p.th, .32, 1 - Math.exp(-dt * 6)); if (p.vs < .05) p.landed = 2; }
     }
@@ -1203,6 +1236,13 @@ function camForState(dt) {
     px = anc.x + fol.x * cs; py = anc.y + fol.y * cs; pz = wave.z + fol.z * cs;
     tx_ = anc.x + .3 * cs; ty = anc.y + lerp(.12, -.5, gal) * cs; tz = wave.z + lerp(2.6, 1.6, gal) * cs;
     fov = 1.05 + Math.min(.42, sp * .011); roll = -.04 - Math.min(.06, sp * .002);
+    // Earth orbit: ease into a wide shot of the whole planet from the same side, drifting forward
+    orbK = lerp(orbK, orbit ? 1 : 0, 1 - Math.exp(-dt * (orbit ? 4 : 2.2)));
+    if (orbK > .001 && ringO) {
+      const e = ringO.o, D = e.R * 2.5, q = clamp(ringO.t / ringO.T, 0, 1), dz = (q - .4) * e.R * 2.2;
+      const opx = e.x - D * 1.05, opy = e.cutY + D * .62, opz = e.z - D * 1.75 + dz, otx = e.x + e.R * .15, oty = e.cutY - e.R * .15, otz = e.z + dz * .6;
+      px = lerp(px, opx, orbK); py = lerp(py, opy, orbK); pz = lerp(pz, opz, orbK); tx_ = lerp(tx_, otx, orbK); ty = lerp(ty, oty, orbK); tz = lerp(tz, otz, orbK); fov = lerp(fov, 1.0, orbK);
+    }
     camKick = Math.max(0, camKick - dt * 3); fov -= Math.sin(Math.PI * camKick) * .025;
     if (trans) { const k = Math.sin(Math.PI * clamp(trans.t / trans.dur, 0, 1)); fov += k * (trans.type === 'warp' ? .55 : trans.type === 'leap' ? .35 : .22); }
     snap = stT > .5;
@@ -1244,7 +1284,7 @@ function update(rdt) {
     timeScale = lerp(timeScale, target, 1 - Math.exp(-rdt * (state === 'final' ? 8 : 3.5)));
   } else timeScale = lerp(timeScale, 1, 1 - Math.exp(-rdt * 4));
   const dt = rdt * timeScale; stT += rdt;
-  shake = Math.max(0, shake - rdt * 2.6); flash = Math.max(0, flash - rdt * 3.2); split = Math.max(0, split - rdt * 2.2);
+  shake = Math.max(0, shake - rdt * 2.6); quake = Math.max(0, quake - rdt * 1.5); flash = Math.max(0, flash - rdt * 3.2); split = Math.max(0, split - rdt * 2.2);
 
   if (state === 'ready') {
     kataIn = Math.min(1, kataIn + rdt * 2.2);
@@ -1318,7 +1358,7 @@ let chaseT = 0;
 function updChase(dt, rdt) {
   chaseT += dt;
   const accel = 1 + Math.min(1.5, chaseT * .085);
-  if (trans) { updTrans(rdt); wave.v = lerp(wave.v, cs * scene.kv * accel * 1.6, 1 - Math.exp(-dt * 4)); wave.z += wave.v * dt; return; }
+  if (trans) { updTrans(rdt); wave.v = lerp(wave.v, Math.max(wave.v, cs * scene.kv * (.85 + .35 * power) * accel), 1 - Math.exp(-dt * 3)); wave.z += wave.v * dt; return; }
   blastDeco();
   const objs = scene.objs, o = objs[nextIdx];
   wave.hw = cs * .5 * waveGrow();
@@ -1326,6 +1366,8 @@ function updChase(dt, rdt) {
     announce(o.stage);
     const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 : o.cutY; if (o.kind === 'galaxy') wave.vert = true;
     wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * 3)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * 3));
+    if (!orbit && o.m === 'earth' && !o.orbited && canCut(o) && wave.z >= o.z - o.R * 4.2) startOrbit(o);
+    if (orbit) { updOrbit(dt); return; }
     if (canCut(o)) {
       wave.v = lerp(wave.v, cs * scene.kv * (.85 + .35 * power) * accel, 1 - Math.exp(-dt * 6)); wave.z += wave.v * dt;
       if (wave.z >= o.z - o.w * .12) {
@@ -1346,6 +1388,51 @@ function updChase(dt, rdt) {
     if (wave.z > last.z + last.fs * 1.3 || stT > 0 && wave.z > last.z + last.w) startTrans();
   }
 }
+function startOrbit(o) {
+  const TT = 1.6, v0 = Math.max(wave.v, cs), D0 = (o.z + o.R * 3) - wave.z, If = .2268;
+  const vm = clamp((D0 - v0 * If * TT) / (TT * (1 - If)), v0 * .1, v0);
+  const cy = o.y + o.R, dy = o.cutY - cy, r0 = Math.sqrt(Math.max(.01, o.R * o.R - dy * dy));
+  orbit = { o, t: 0, T: TT, v0, vm, a0: Math.atan2(cam.z - o.z, cam.x - o.x), dir: -1, r: r0 * 1.02, pr: 0, cut: false };
+  o.orbited = true; ringF = 1; A.whoosh(1);
+}
+function updOrbit(dt) {
+  const ob = orbit, o = ob.o; ob.t += dt; const q = clamp(ob.t / ob.T, 0, 1);
+  const f = Math.pow(1 - Math.sin(Math.PI * q), 2); wave.v = ob.vm + (ob.v0 - ob.vm) * f; wave.z += wave.v * dt;
+  wave.fade = lerp(wave.fade, q < .8 ? .12 : 1, 1 - Math.exp(-dt * 7));
+  ob.pr = easeIO(clamp(q / .82, 0, 1));
+  const a = ob.a0 + ob.dir * ob.pr * Math.PI * 2, hx = o.x + Math.cos(a) * ob.r, hz = o.z + Math.sin(a) * ob.r;
+  if (q < .82) for (let i = 0; i < 2; i++) addP({ x: hx, y: o.cutY, z: hz, vx: rr(-1, 1) * o.R * .5, vy: rr(-1, 1) * o.R * .4, vz: rr(-1, 1) * o.R * .5, life: rr(.15, .4), t: 0, k: 'spark', c: ultraCut ? `hsl(${rnd() * 360 | 0},100%,70%)` : rnd() < .5 ? '#bfe0ff' : '#ffffff', s: o.R * .05, g: 0 });
+  if (!ob.cut && q >= .82) {
+    ob.cut = true; cutObj(o); nextIdx++; quake = 1.2; flash = Math.max(flash, .4); shockFlat(o.x, o.cutY, o.z, o.R * 4.5);
+    const nx = scene.objs[nextIdx]; if (nx && !canCut(nx)) { orbit = null; finalObj = o; go('final'); A.final(); return; }
+  }
+  if (q >= 1) orbit = null;
+}
+let ringM = null, ringD = null; const RN = 160;
+if (renderer) {
+  const mkR = () => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array((RN + 1) * 2 * 3), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array((RN + 1) * 2 * 3), 3)); const idx = []; for (let i = 0; i < RN; i++) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); } g.setIndex(idx); const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })); m.frustumCulled = false; m.renderOrder = 5; m.visible = false; return m; };
+  ringM = mkR(); ringD = mkR();
+}
+let ringO = null;
+function updRing(dt) {
+  if (!ringM) return;
+  if (orbit) ringO = orbit; else ringF = Math.max(0, ringF - dt * 1.6);
+  const ob = ringO, on = !!ob && ringF > 0; ringM.visible = ringD.visible = on; if (!on) return;
+  const o = ob.o, head = ob.pr * RN, P1 = ringM.geometry.attributes.position.array, C1 = ringM.geometry.attributes.color.array, P2 = ringD.geometry.attributes.position.array, C2 = ringD.geometry.attributes.color.array;
+  const hh = o.R * .075, y = o.cutY, fadeAll = ob.cut ? ringF : 1;
+  for (let i = 0; i <= RN; i++) {
+    const a = ob.a0 + ob.dir * (i / RN) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a), k = i * 6;
+    const lit = i <= head ? (.7 + 1.3 * Math.exp(-(head - i) / (RN * .08))) * fadeAll : 0;
+    const hue = ultraCut ? (i / RN + T * .4) % 1 : .58; _c.setHSL(hue, ultraCut ? 1 : .6, .62);
+    const r = ob.r, x = o.x + ca * r, z = o.z + sa * r;
+    P1[k] = x; P1[k + 1] = y - hh; P1[k + 2] = z; P1[k + 3] = x; P1[k + 4] = y + hh; P1[k + 5] = z;
+    for (let j = 0; j < 2; j++) { C1[k + j * 3] = lit * (.55 + .45 * _c.r); C1[k + j * 3 + 1] = lit * (.55 + .45 * _c.g); C1[k + j * 3 + 2] = lit * (.55 + .45 * _c.b); }
+    const ro = r * (1 + .9 * (i <= head ? Math.exp(-(head - i) / (RN * .06)) : 0));
+    P2[k] = x; P2[k + 1] = y; P2[k + 2] = z; P2[k + 3] = o.x + ca * ro; P2[k + 4] = y; P2[k + 5] = o.z + sa * ro;
+    C2[k] = lit * _c.r; C2[k + 1] = lit * _c.g; C2[k + 2] = lit * _c.b; C2[k + 3] = C2[k + 4] = C2[k + 5] = 0;
+  }
+  for (const m of [ringM, ringD]) { m.geometry.attributes.position.needsUpdate = true; m.geometry.attributes.color.needsUpdate = true; }
+}
 function startTrans() {
   const type = TRANS[sceneI]; trans = { type, t: 0, dur: type === 'leap' ? 1.7 : type === 'warp' ? .9 : .4, sw: type === 'leap' ? .55 : type === 'warp' ? .45 : .2, done: false, li: sceneI === 2 ? 0 : 1, locks: 0 };
   if (type === 'leap') { A.leap(); vib([30, 30, 30, 30, 80]); }
@@ -1354,8 +1441,9 @@ function startTrans() {
 function updTrans(rdt) {
   const tr = trans; tr.t += rdt;
   if (tr.type === 'leap') { const tt = tr.t; while (tr.locks < 4 && tt >= LEAP_LK[tr.locks]) { tr.locks++; A.lock(tr.locks === 4); vib(tr.locks === 4 ? 60 : 18); } if (tt > .15 && tt < LEAP_LK[3] && Math.random() < rdt * 22) A.tick(); }
-  if (!tr.done && tr.t >= tr.sw) {
-    tr.done = true; loadScene(sceneI + 1);
+  if (!tr.done && tr.t >= tr.sw && tr.type === 'leap' && !tr.snapped) { tr.wantSnap = true; tr.t = tr.sw; }
+  if (!tr.done && tr.t >= tr.sw && (tr.type !== 'leap' || tr.snapped)) {
+    tr.done = true; if (tr.type === 'leap') { if (tr.glass) glassShatter(tr); A.bigCut(); quake = Math.max(quake, .6); } loadScene(sceneI + 1);
     const o = scene.objs[0], ratio = o.fs / Math.max(.01, cs);
     const ox = anc.x, oy = anc.y, oz = wave.z, ocs = cs;
     cs = o.fs; wave.v *= ratio;
@@ -1377,7 +1465,7 @@ function qiAdd(v) {
 
 // ---------- render ----------
 const sortList = [];
-function render() { renderScene(true); composite(); }
+function render() { renderScene(true); if (trans && trans.wantSnap && !trans.snapped) { const w = view.width, h = view.height; snapC.width = w; snapC.height = h; snapX.imageSmoothingEnabled = false; snapX.drawImage(skyC, 0, 0, w, h); if (renderer) snapX.drawImage(glc, 0, 0, w, h); snapX.drawImage(ovC, 0, 0, w, h); trans.snapped = true; } composite(); }
 function renderScene(withUI) {
   ctx = skyCtx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   drawSky();
@@ -1385,6 +1473,7 @@ function renderScene(withUI) {
   render3D();
   ctx = ovCtx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.clearRect(0, 0, LW, LH);
   drawParts(); drawSlashes(); drawWave();
+  if (orbit && orbit.pr < 1) { const ob = orbit, o = ob.o, a = ob.a0 + ob.dir * ob.pr * Math.PI * 2; if (proj(o.x + Math.cos(a) * ob.r, o.cutY, o.z + Math.sin(a) * ob.r, tA)) { const x = tA[3], y = tA[4], r = clamp(o.R * 1.1 * F / tA[2], 6, LW * .5); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.12, ultraCut ? `hsla(${(T * 300) % 360},100%,70%,.6)` : 'rgba(150,200,255,.55)'); g.addColorStop(1, 'rgba(80,120,255,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(x - r * 1.2, y - .7, r * 2.4, 1.4); ctx.globalCompositeOperation = 'source-over'; } }
   if (withUI && state === 'ready') drawKatana(0, 0);
   if (withUI && state === 'slash') drawKatana(Math.min(1, stT / .3), 1);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1411,17 +1500,70 @@ function drawTunnel(c, w, h, t) {
   c.globalCompositeOperation = 'source-over';
 }
 const grpC = document.createElement('canvas'), grpX = grpC.getContext('2d');
+const snapC = document.createElement('canvas'), snapX = snapC.getContext('2d');
+function glassInit(tr, w, h) {
+  const g = tr.glass = { w, h, ix: w * .5, iy: h * .55, br: [], rings: [] };
+  if (proj(wave.x, wave.y + wave.hw * .2, wave.z + wave.hw * .3, tA)) { g.ix = clamp(tA[3] * w / LW, w * .2, w * .8); g.iy = clamp(tA[4] * h / LH, h * .3, h * .75); }
+  const D = Math.hypot(w, h), NB = 18;
+  g.ang = []; for (let i = 0; i < NB; i++) g.ang.push(i / NB * 6.283 + (Math.random() - .5) * .25);
+  for (let i = 0; i < NB; i++) { const pts = [[g.ix, g.iy]]; let a = g.ang[i], x = g.ix, y = g.iy; const L = D * (.05 + Math.random() * .03); for (let k = 0; k < 16; k++) { a += (Math.random() - .5) * .35; x += Math.cos(a) * L; y += Math.sin(a) * L; pts.push([x, y]); } g.br.push({ pts, d: Math.random() * .12 }); }
+  // the main slash crack straight across
+  const ma = -.06 + (Math.random() - .5) * .06, mp = []; for (let k = -12; k <= 12; k++) { const t = k / 12 * D * .7; mp.push([g.ix + Math.cos(ma) * t + (Math.random() - .5) * 4 * DPR, g.iy + Math.sin(ma) * t + (Math.random() - .5) * 4 * DPR]); }
+  g.main = mp;
+  g.rad = [0, .045, .1, .17, .27, .4, .58, .82, 1.2].map(r => r * D);
+}
+function glassShatter(tr) {
+  const g = tr.glass, NB = g.ang.length, D = Math.hypot(g.w, g.h), J = [];
+  const vtx = (j, i) => { const key = j * 100 + ((i % NB + NB) % NB); if (!J[key]) { const a = g.ang[(i % NB + NB) % NB] + (j > 0 ? (Math.random() - .5) * .12 : 0), r = g.rad[j] * (j > 0 ? .9 + Math.random() * .2 : 0); J[key] = [g.ix + Math.cos(a) * r, g.iy + Math.sin(a) * r]; } return J[key]; };
+  g.sh = [];
+  for (let j = 0; j < g.rad.length - 1; j++) for (let i = 0; i < NB; i++) {
+    const poly = j === 0 ? [vtx(0, 0), vtx(1, i), vtx(1, i + 1)] : [vtx(j, i), vtx(j, i + 1), vtx(j + 1, i + 1), vtx(j + 1, i)];
+    const parts2 = j >= 3 && Math.random() < .6 ? [[poly[0], poly[1], poly[2]], [poly[0], poly[2], poly[3]]] : [poly];
+    for (const pl of parts2) {
+      let cx = 0, cy = 0; for (const q of pl) { cx += q[0]; cy += q[1]; } cx /= pl.length; cy /= pl.length;
+      const dx = cx - g.ix, dy = cy - g.iy, dl = Math.hypot(dx, dy) || 1, near = 1 - clamp(dl / D, 0, 1);
+      const sp = D * (.22 + near * .6) * (.7 + Math.random() * .6); g.sh.push({ pl, cx, cy, vx: dx / dl * sp, vy: dy / dl * sp + D * .05, w: (Math.random() - .5) * 4, gs: .4 + near * 1.6 + Math.random() * .6, life: .8 + Math.random() * .4 });
+    }
+  }
+  g.pat = null;
+}
+function drawGlass(c, w, h, tr) {
+  const g = tr.glass; if (!g) return; const D = Math.hypot(w, h);
+  c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
+  if (!tr.done) {
+    // cracks race out from the slash
+    const t = tr.t / tr.sw;
+    c.globalCompositeOperation = 'lighter'; c.fillStyle = `rgba(170,200,255,${.06 * t})`; c.fillRect(0, 0, w, h);
+    const drawPl = (pts, fr) => { const n = Math.max(1, Math.floor((pts.length - 1) * fr)); c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k <= n; k++) c.lineTo(pts[k][0], pts[k][1]); };
+    const mf = clamp(t / .25, 0, 1), mid = (g.main.length - 1) / 2, mn = Math.floor(mid * mf);
+    c.beginPath(); c.moveTo(g.main[mid - mn][0], g.main[mid - mn][1]); for (let k = mid - mn + 1; k <= mid + mn; k++) c.lineTo(g.main[k][0], g.main[k][1]);
+    c.strokeStyle = 'rgba(140,190,255,.45)'; c.lineWidth = 7 * DPR; c.stroke(); c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = 2 * DPR; c.stroke();
+    for (const b of g.br) { const fr = clamp((t - .15 - b.d) / .7, 0, 1); if (fr <= 0) continue; drawPl(b.pts, ease(fr)); c.strokeStyle = 'rgba(150,200,255,.3)'; c.lineWidth = 4 * DPR; c.stroke(); c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1.1 * DPR; c.stroke(); }
+    // spider-web rings
+    const rf = clamp((t - .45) / .5, 0, 1);
+    if (rf > 0) { c.strokeStyle = `rgba(255,255,255,${.6 * rf})`; c.lineWidth = .9 * DPR; for (let j = 1; j < 5; j++) { c.beginPath(); for (let i = 0; i <= g.ang.length; i++) { const a = g.ang[i % g.ang.length], r = g.rad[j] * (.95 + .1 * hs(i, j, 7)); const x = g.ix + Math.cos(a) * r, y = g.iy + Math.sin(a) * r; if (i) c.lineTo(x, y); else c.moveTo(x, y); } c.stroke(); } }
+  } else if (g.sh && snapC.width) {
+    // shards of the old era fly at the camera and dissolve
+    const t = tr.t - tr.sw; if (!g.pat) g.pat = c.createPattern(snapC, 'no-repeat');
+    for (const sh of g.sh) {
+      const k = t / sh.life; if (k >= 1) continue; const a = 1 - clamp((k - .45) / .55, 0, 1), sc2 = 1 + sh.gs * k * k, m = t * t / (t + .22) + t * .08;
+      c.save(); c.translate(sh.cx + sh.vx * m, sh.cy + sh.vy * m + D * .12 * t * t); c.rotate(sh.w * m); c.scale(sc2, sc2); c.translate(-sh.cx, -sh.cy);
+      c.beginPath(); c.moveTo(sh.pl[0][0], sh.pl[0][1]); for (let q = 1; q < sh.pl.length; q++) c.lineTo(sh.pl[q][0], sh.pl[q][1]); c.closePath();
+      c.globalAlpha = a; c.globalCompositeOperation = 'source-over'; c.fillStyle = g.pat; c.fill();
+      c.globalCompositeOperation = 'lighter'; c.fillStyle = `rgba(190,220,255,${.12 + .25 * k})`; c.fill(); c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 1.2 * DPR / sc2; c.stroke();
+      c.restore();
+    }
+    // glitter left behind
+    c.globalCompositeOperation = 'lighter'; c.globalAlpha = 1;
+    for (let i = 0; i < 70; i++) { const sh = g.sh[(i * 7) % g.sh.length], k = t / (sh.life * 1.4); if (k >= 1) continue; const x = sh.cx + sh.vx * t * 1.15 + Math.sin(i * 3.1) * 20 * DPR, y = sh.cy + sh.vy * t * 1.15 + Math.cos(i * 2.3) * 20 * DPR; c.fillStyle = `rgba(255,255,255,${(1 - k) * (.5 + .5 * Math.sin(T * 40 + i))})`; c.fillRect(x, y, 2 * DPR, 2 * DPR); }
+  }
+  c.restore();
+}
 function drawLeapFx(c, w, h, tt, tr) {
   const env = Math.sin(Math.PI * clamp(tt / tr.dur, 0, 1)), fadeOut = clamp((tr.dur - tt) / .3, 0, 1);
   const cx = w / 2, cy = h * .46, R = Math.hypot(w, h) * .6;
-  c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
-  for (let i = 0; i < 90; i++) {
-    const a = i * 2.39996 + tt * .9, ph = (i * .618 + tt * 2.4) % 1, r0 = R * (.32 + ph * .7), r1 = r0 + R * (.05 + ph * .25);
-    c.strokeStyle = `hsla(${(i * 11 + tt * 300) % 360},100%,70%,${ph * .55 * env})`; c.lineWidth = (.8 + ph * 2.4) * DPR;
-    c.beginPath(); c.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); c.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); c.stroke();
-  }
-  const eg = c.createRadialGradient(cx, cy, R * .45, cx, cy, R); eg.addColorStop(0, 'rgba(120,60,255,0)'); eg.addColorStop(1, `hsla(${(tt * 200) % 360},100%,55%,${.35 * env})`); c.fillStyle = eg; c.fillRect(0, 0, w, h);
-  c.restore();
+  if (!tr.glass) glassInit(tr, w, h);
+  drawGlass(c, w, h, tr);
   // compact year read-out, upper part of the screen
   const [y0, y1] = LEAP_YEARS[tr.li], eras = tx().eras[tr.li], lk = LEAP_LK;
   const fs = Math.min(w * .15, h * .075), ycy = h * .34;
@@ -1450,7 +1592,8 @@ let viewFill = '';
 function composite() {
   const w = view.width, h = view.height;
   const sx = (Math.sin(T * 47) + Math.sin(T * 31.7) * .6) * shake * 3, sy = (Math.sin(T * 41.3) + Math.sin(T * 27.1) * .6) * shake * 3;
-  const roll = cam.roll; let zoom = 1 + Math.abs(roll) * .35 + shake * .02, rot = 0, tx2 = 0;
+  const qk = quake * quake, roll = cam.roll + Math.sin(T * 23) * qk * .02; let zoom = 1 + Math.abs(roll) * .35 + shake * .02 + qk * .05, rot = 0, tx2 = 0;
+  const qx = (Math.sin(T * 37) + Math.sin(T * 21.7) * .7) * qk * 11, qy = (Math.sin(T * 33.3) + Math.sin(T * 19.1) * .7) * qk * 11;
   const tr = trans; let mode = 'layers', splitOff = 0, smear = 0;
   if (tr) {
     const q = clamp(tr.t / tr.dur, 0, 1); smear = Math.pow(Math.sin(Math.PI * q), 2); zoom *= 1 + smear * .1;
@@ -1458,7 +1601,7 @@ function composite() {
   stageEl.style.visibility = mode === 'layers' ? 'visible' : 'hidden';
   vctx.setTransform(1, 0, 0, 1, 0, 0); vctx.globalAlpha = 1; vctx.globalCompositeOperation = 'source-over';
   if (mode === 'layers') {
-    stageEl.style.transform = `translate(${(sx + tx2).toFixed(1)}px,${sy.toFixed(1)}px) rotate(${(roll + rot).toFixed(4)}rad) scale(${zoom.toFixed(4)})`;
+    stageEl.style.transform = `translate(${(sx + tx2 + qx).toFixed(1)}px,${(sy + qy).toFixed(1)}px) rotate(${(roll + rot).toFixed(4)}rad) scale(${zoom.toFixed(4)})`;
     if (viewFill !== '#05080f') { vctx.fillStyle = '#05080f'; vctx.fillRect(0, 0, w, h); viewFill = '#05080f'; }
   } else {
     viewFill = '';
@@ -1497,7 +1640,7 @@ function composite() {
     fctx.strokeStyle = ultraCut ? `hsla(${(T * 500) % 360},100%,65%,${a * .6})` : `rgba(140,190,255,${a * .5})`; fctx.lineWidth = 26 * DPR * a; fctx.beginPath(); fctx.moveTo(-ca * R, -sa * R); fctx.lineTo(ca * R, sa * R); fctx.stroke();
     fctx.strokeStyle = `rgba(255,255,255,${a})`; fctx.lineWidth = 4 * DPR * a + 1; fctx.stroke(); fctx.restore();
   }
-  if (tr && tr.type === 'leap' && tr.t < .5) { const a = 1 - tr.t / .5; fctx.save(); fctx.translate(w / 2, h / 2); fctx.rotate(-.42); fctx.globalCompositeOperation = 'lighter'; fctx.fillStyle = `rgba(255,255,255,${a})`; fctx.fillRect(-w * 2, -3 * DPR, w * 4, 6 * DPR); fctx.fillStyle = `rgba(160,120,255,${a * .5})`; fctx.fillRect(-w * 2, -20 * DPR, w * 4, 40 * DPR); fctx.restore(); }
+  if (false) { const a = 0; fctx.save(); fctx.translate(w / 2, h / 2); fctx.rotate(-.42); fctx.globalCompositeOperation = 'lighter'; fctx.fillStyle = `rgba(255,255,255,${a})`; fctx.fillRect(-w * 2, -3 * DPR, w * 4, 6 * DPR); fctx.fillStyle = `rgba(160,120,255,${a * .5})`; fctx.fillRect(-w * 2, -20 * DPR, w * 4, 40 * DPR); fctx.restore(); }
   if (flash > 0) { fctx.globalCompositeOperation = 'source-over'; fctx.fillStyle = `rgba(235,245,255,${flash * .85})`; fctx.fillRect(0, 0, w, h); }
   if (state === 'ready' && qi >= 1) {
     if (qi < 2) { const a = .12 + .08 * Math.sin(T * 10); const g = fctx.createRadialGradient(w / 2, h / 2, h * .2, w / 2, h / 2, h * .75); g.addColorStop(0, 'rgba(255,214,10,0)'); g.addColorStop(1, `rgba(255,200,40,${a})`); fctx.fillStyle = g; fctx.fillRect(0, 0, w, h); }
@@ -1823,6 +1966,7 @@ window.__cho = {
   prof: n => { const r = { upd: 0, scene: 0, sky: 0, gl: 0, comp: 0 }; for (let i = 0; i < n; i++) { let t = performance.now(); update(1 / 60); r.upd += performance.now() - t; t = performance.now(); drawSky(); r.sky += performance.now() - t; t = performance.now(); render3D(); r.gl += performance.now() - t; t = performance.now(); renderScene(true); r.scene += performance.now() - t; t = performance.now(); composite(); r.comp += performance.now() - t; } for (const k in r) r[k] = +(r[k] / n).toFixed(1); return r; },
   perf: n => { const t0 = performance.now(); for (let i = 0; i < n; i++) renderScene(true); return (performance.now() - t0) / n; },
   trace: n => { const r = []; for (let i = 0; i < n; i++) { update(1 / 60); r.push([cam.yaw, cam.pitch, cam.fov, cam.x / cs, cam.y / cs, cam.z / cs, state, trans ? 1 : 0, timeScale]); if (state === 'result' || state === 'wide') break; } return r; },
+  tr: () => trans && [trans.t.toFixed(3), trans.sw, trans.done, !!trans.snapped, trans.glass && trans.glass.sh ? trans.glass.sh.length : 0, snapC.width],
   skip: t => { for (let i = 0; i < t * 60; i++) update(1 / 60); render(); }, setQi: v => { qi = v; }, buildAll: () => { while (!preDone) prebuildNext(1e15); },
   view: (id, setup) => { loadScene(SCENES.indexOf(id)); state = 'view'; if (setup) setup({ scene, cutObj, lookAt, cam, camS, upd: d => { updPieces(d); updParts(d); } }); },
   ogp: async () => { const sv = scene; loadScene(5); const e = scene.objs[0]; power = .8; cutObj(e); for (let i = 0; i < 90; i++) { updPieces(1 / 60); updParts(1 / 60); } parts = []; slashes = []; const b = await makeShareImage(() => lookAt(e.x - 15, e.y + 9, e.z - 14, e.x + 2, e.y + 4, e.z + 3)); scene = sv; return await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); }
