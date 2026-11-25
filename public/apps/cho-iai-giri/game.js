@@ -498,19 +498,24 @@ function buildScene(id) {
   if (id === 'dojo') {
     sc.kv = 12.5;
     for (let i = 0; i < 5; i++) P(mk('makiwara', rr(-.08, .08), 3 + i * 2.1, { cutF: rr(.48, .66), kind: 'tall', fs: 1.15, chip: 'straw', yaw: rr(0, 6) }), 0);
-    sc.deco.push(mk('dojoHall', 1.5, 31, { yaw: -Math.PI / 2 }));
-    for (const x of [-15, -9.4, 12.4, 18]) sc.deco.push(mk('fence', x, 27.5, { yaw: Math.PI / 2 }));
+    // the dojo hall itself is the last thing cut; the bamboo grove waits behind it
+    { const hall = mk('dojoHall', 0, 24, { yaw: -Math.PI / 2, cutF: .46, kind: 'wide', fs: 5.2, chip: 'wood', big: true }); hall.cutAt = hall.w * .5; hall.passThru = true; P(hall, 0); }
     for (let z = 2; z < 27; z += 5.6) sc.deco.push(mk('fence', 15.5, z));
+    for (let i = 0; i < 90; i++) { const z = rr(33, 80), x = (rnd() < .5 ? -1 : 1) * rr(.5, 22) * (z < 40 ? 1 : 1); sc.deco.push(mk('bamboo' + (rnd() * 3 | 0), x, z, { yaw: rr(0, 6) })); }
     sc.deco.push(mk('pine0', -10, 17)); sc.deco.push(mk('pine1', 10.5, 17.5)); sc.deco.push(mk('pine0', 12, 6)); sc.deco.push(mk('pine1', -12, 5));
     sc.deco.push(mk('lantern', 2.4, 4.6)); sc.deco.push(mk('lantern', -3.2, 10.5)); sc.deco.push(mk('lantern', 2.6, 13));
     for (let i = 0; i < 900; i++) sc.dots.push([rr(-12, 14), rr(-6, 22), pick(['#4a4e66', '#5a5e78', '#3a3e54', '#6a6e88'], rnd()), rnd() < .12 ? 2 : 1]);
-    sc.sky = { top: '#03050d', mid: '#0b1636', hor: '#2a3c70', gnd: ['#3a3e52', '#2a2e40', '#161926'], sun: [-.9, .55, '#fbf6dc', .055], moon: 1, stars: 1, clouds: 1, far: 'mount', farC: ['#0d1630', '#15214a'] };
+    sc.sky = { top: '#03050d', mid: '#0b1636', hor: '#2a3c70', gnd: ['#3a3e52', '#2a2e40', '#161926'], sun: [-.9, .55, '#fbf6dc', .055], moon: 1, stars: 1, clouds: 1, far: 'bamboo', farC: ['#0e1a2a', '#0b1422', '#081019'] };
   } else if (id === 'bamboo') {
     sc.kv = 11;
     for (let i = 0; i < 12; i++) P(mk('bamboo' + (rnd() * 3 | 0), rr(-.25, .25), 2 + i * 1.25, { cutF: rr(.11, .16), kind: 'tall', fs: 1.35, chip: 'bamboo', yaw: rr(0, 6) }), 1);
     for (let i = 0; i < 20; i++) { const side = rnd() < .62; const x = side ? rr(1.9, 9) : -rr(7, 13); sc.deco.push(mk('bamboo' + (rnd() * 3 | 0), x, rr(-4, 27), { yaw: rr(0, 6) })); }
     for (let i = 0; i < 34; i++) { const x = (rnd() < .5 ? 1 : -1) * rr(10, 24); sc.deco.push(mk('bamboo' + (rnd() * 3 | 0), x, rr(-6, 34), { yaw: rr(0, 6) })); }
     sc.deco.push(mk('lantern', 1.6, 6));
+    // the grove thins out onto the castle town: its streets and the castle are already in view ahead
+    for (let z = 26; z < 70; z += 4.4) { sc.deco.push(mk('machiya' + (rnd() * 3 | 0), 8.2 + rr(0, .6), z)); sc.deco.push(mk(rnd() < .2 ? 'kura' : 'machiya' + (rnd() * 3 | 0), -14.5, z + 2, { yaw: Math.PI })); }
+    for (let z = 30; z < 74; z += rr(4.4, 5.5)) sc.deco.push(mk('machiya' + (rnd() * 3 | 0), 15 + rr(0, 1), z));
+    sc.deco.push(mk('yagura', -21, 46)); sc.deco.push(mk('castle', 2, 92)); sc.deco.push(mk('pine0', 5.3, 30)); sc.deco.push(mk('pine1', 5.3, 44));
     for (let i = 0; i < 900; i++) sc.dots.push([rr(-10, 10), rr(-4, 28), pick(['#24362e', '#2e4436', '#1a2a22', '#3a5040', '#20281e'], rnd()), rnd() < .2 ? 2 : 1]);
     sc.sky = { top: '#03050d', mid: '#0b1430', hor: '#1d2e5a', gnd: ['#1a2622', '#111a18', '#080c0c'], sun: [-.8, .7, '#fbf6dc', .05], moon: 1, stars: 1, rays: 1, far: 'bamboo', farC: ['#0e1a2a', '#0b1422', '#081019'] };
   } else if (id === 'town') {
@@ -745,6 +750,7 @@ function sync3D() {
     } else {
       a.visible = b.visible = true; a.scale.setScalar(1); b.scale.setScalar(1);
       // a flying top piece that swings right into the lens is taken out rather than filling the frame
+      if (o.passThru && o.cut && Math.abs(cam.x - o.x) < o.w * .55 && Math.abs(cam.z - o.z) < o.w * .55 && cam.y < o.cutY + .5) a.visible = false;
       if (o.cut && o.piece && o.kind !== 'galaxy') { const p = o.piece, ht = o.h * (1 - o.cutF), rad = Math.max(o.w, ht) * .75; if (Math.hypot(cam.x - p.x, cam.y - (p.y + ht * .5), cam.z - p.z) < rad) b.visible = false; }
     }
   }
@@ -1472,7 +1478,7 @@ function updChase(dt, rdt) {
     if (orbit) { updOrbit(dt); return; }
     if (canCut(o)) {
       wave.v = lerp(wave.v, cs * scene.kv * (.85 + .35 * power) * accel, 1 - Math.exp(-dt * 6)); wave.z += wave.v * dt;
-      if (wave.z >= o.z - o.w * .12) {
+      if (wave.z >= o.z - (o.cutAt ?? o.w * .12)) {
         cutObj(o); nextIdx++;
         const nx = objs[nextIdx];
         if (o.kind === 'galaxy') { finalObj = o; go('final'); A.final(); cutin(`<em>${tx().galaxyCut}</em>`, lang === 'ja' ? 'GALAXY SLASH' : ''); flash = 1; shake = 1; vib([60, 40, 120]); return; }
