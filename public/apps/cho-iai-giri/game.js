@@ -529,18 +529,21 @@ function buildScene(id) {
     sc.sky = { top: '#04060f', mid: '#101a3c', hor: '#33406e', gnd: ['#3a3646', '#2a2734', '#16141c'], sun: [-1.2, .45, '#fff4d0', .075], moon: 1, stars: 1, clouds: 1, far: 'mount', farC: ['#0e1630', '#18234a'], roofs: '#0a0e1c', roofLit: 1 };
   } else if (id === 'modern') {
     sc.kv = 9;
-    const L = [['car0', 'car', 0], ['office0', 'off', 0], ['pole', 'pole', 0], ['store', 'store', 0], ['office1', 'off', 0], ['car2', 'car', 0], ['office3', 'off', 0], ['pole', 'pole', 0], ['office2', 'off', 0]].map(([m, k]) => [m, k === 'car' ? { cutF: .5, kind: 'wide', fs: 4.6, chip: 'glass', yaw: Math.PI / 2 } : k === 'pole' ? { cutF: .42, kind: 'tall', fs: 5, chip: 'metal' } : k === 'store' ? { cutF: .5, kind: 'wide', fs: 7, chip: 'glass' } : { cutF: rr(.35, .55), kind: 'wide', fs: 12, chip: 'glass' }]);
+    const L = [['car0', 'car', 0], ['office0', 'off', 0], ['pole', 'pole', 0], ['store', 'store', 0], ['office1', 'off', 0], ['car2', 'car', 0], ['office2', 'off', 0]].map(([m, k]) => [m, k === 'car' ? { cutF: .5, kind: 'wide', fs: 4.6, chip: 'glass', yaw: Math.PI / 2 } : k === 'pole' ? { cutF: .42, kind: 'tall', fs: 5, chip: 'metal' } : k === 'store' ? { cutF: .5, kind: 'wide', fs: 7, chip: 'glass' } : { cutF: rr(.35, .55), kind: 'wide', fs: 12, chip: 'glass' }]);
     L.push(['tower', { cutF: .3, kind: 'tall', fs: 42, chip: 'metal', big: true }, 0]);
     place(L, 3, 4, 2.4);
+    { const tw = sc.objs[sc.objs.length - 1]; tw.z += 22; tw.x = 0; }
     const end = sc.objs[sc.objs.length - 1].z;
-    for (let z = -12; z < end + 40; z += rr(10, 13)) sc.deco.push(mk('office' + (rnd() * 4 | 0), rr(19, 24), z));
-    for (let z = -12; z < end + 40; z += rr(12, 16)) sc.deco.push(mk('office' + (rnd() * 4 | 0), -rr(42, 48), z, { yaw: Math.PI }));
-    for (let z = -6; z < end + 40; z += rr(11, 15)) sc.deco.push(mk(rnd() < .25 ? 'store' : 'office' + (rnd() * 4 | 0), -rr(24, 28), z, { yaw: Math.PI }));
-    for (let z = -16; z < end + 60; z += rr(12, 16)) sc.deco.push(mk('office' + (rnd() * 4 | 0), rr(34, 40), z));
-    for (let z = -20; z < end + 80; z += rr(14, 20)) sc.deco.push(mk('office' + (rnd() * 4 | 0), (rnd() < .5 ? 1 : -1) * rr(58, 70), z));
-    for (let z = 4; z < end; z += 15) sc.deco.push(mk('pole', -8.5, z));
-    for (let z = 0; z < end; z += 15) sc.deco.push(mk('pole', 8.5, z));
-    for (let z = 8; z < end; z += rr(16, 26)) sc.deco.push(mk('car' + (rnd() * 3 | 0), 5.2, z, { yaw: Math.PI / 2 }));
+    // the street opens up toward the tower: later rows are pushed back and sparser so the cut targets read clearly
+    const mid = end * .4, op = z => clamp((z - mid) / (end - mid), 0, 1);
+    for (let z = -12; z < end + 40; z += rr(10, 13) * (1 + op(z) * .8)) sc.deco.push(mk('office' + (rnd() * 4 | 0), rr(19, 24) + op(z) * 16, z));
+    for (let z = -12; z < end + 40; z += rr(12, 16) * (1 + op(z))) sc.deco.push(mk('office' + (rnd() * 4 | 0), -rr(42, 48) - op(z) * 14, z, { yaw: Math.PI }));
+    for (let z = -6; z < end + 40; z += rr(11, 15) * (1 + op(z) * .8)) sc.deco.push(mk(rnd() < .25 ? 'store' : 'office' + (rnd() * 4 | 0), -rr(24, 28) - op(z) * 14, z, { yaw: Math.PI }));
+    for (let z = -16; z < end + 60; z += rr(12, 16) * (1 + op(z) * 1.5)) if (op(z) < .6) sc.deco.push(mk('office' + (rnd() * 4 | 0), rr(34, 40), z));
+    for (let z = -20; z < end + 80; z += rr(14, 20)) sc.deco.push(mk('office' + (rnd() * 4 | 0), (rnd() < .5 ? 1 : -1) * rr(62, 76), z));
+    for (let z = 4; z < mid; z += 15) sc.deco.push(mk('pole', -8.5, z));
+    for (let z = 0; z < mid; z += 15) sc.deco.push(mk('pole', 8.5, z));
+    for (let z = 8; z < mid; z += rr(16, 26)) sc.deco.push(mk('car' + (rnd() * 3 | 0), 5.2, z, { yaw: Math.PI / 2 }));
     for (let i = 0; i < 1100; i++) sc.dots.push([rr(-30, 30), rr(-10, end + 40), pick(['#34343e', '#26262e', '#40404a', '#1e1e24'], rnd()), 1]);
     sc.sky = { top: '#04050e', mid: '#121838', mid2: '#2a2452', hor: '#5a3e6e', gnd: ['#2c2a38', '#1c1c26', '#101016'], sun: [.5, .5, '#f6f2e0', .045], moon: 1, stars: 1, far: 'sky', farC: ['#0c0e1e', '#141830'], road: 1, endZ: end };
   } else if (id === 'future') {
@@ -703,9 +706,16 @@ function attachScene(sc) {
 }
 const qY = new THREE.Quaternion(), qT = new THREE.Quaternion(), vAx = new THREE.Vector3(), vUp = new THREE.Vector3(0, 1, 0);
 function sync3D() {
+  // background buildings that stand between the camera and the blade are taken out of the shot
+  const occ = !scene.space && wave.on && (state === 'chase' || state === 'final'), fx0 = wave.x, fz0 = wave.z, dx0 = fx0 - cam.x, dz0 = fz0 - cam.z, L2 = dx0 * dx0 + dz0 * dz0 || 1;
   for (const o of scene.deco) {
     const ms = o.mesh; if (!ms) continue; const hw = o.w * .5;
     let vis = !(Math.abs(cam.x - o.x) < hw + .3 && Math.abs(cam.z - o.z) < hw + .3 && cam.y < o.y + o.h);
+    if (vis && occ && !o.blast) {
+      const t = ((o.x - cam.x) * dx0 + (o.z - cam.z) * dz0) / L2;
+      if (t > 0 && t < 1) { const px2 = cam.x + dx0 * t, pz2 = cam.z + dz0 * t, d = Math.hypot(o.x - px2, o.z - pz2), sy = cam.y + (wave.y - cam.y) * t; if (d < hw * 1.15 + .2 && o.y + o.h > sy) o.occT = T; }
+      if (o.occT && T - o.occT < .2) vis = false;
+    }
     ms.visible = vis; ms.position.set(o.x, o.y, o.z); ms.rotation.y = o.yaw;
     if (o.top) {
       const tp = o.top, sh = o.shake ? Math.sin(T * 60) * o.shake * o.w * .02 : 0; tp.visible = vis || o.cut; ms.position.x += sh;
@@ -732,7 +742,11 @@ function sync3D() {
       const ka = fz(Math.hypot(cam.x - (o.x + o.bx), cam.y - (o.y + o.by + R0 * .5), cam.z - (o.z + o.bz)));
       const p = o.piece, kb = fz(Math.hypot(cam.x - p.x, cam.y - (p.y + R0 * .5), cam.z - p.z));
       a.scale.setScalar(Math.max(.001, ka)); b.scale.setScalar(Math.max(.001, kb)); a.visible = ka > .01; b.visible = kb > .01;
-    } else { a.visible = b.visible = true; a.scale.setScalar(1); b.scale.setScalar(1); }
+    } else {
+      a.visible = b.visible = true; a.scale.setScalar(1); b.scale.setScalar(1);
+      // a flying top piece that swings right into the lens is taken out rather than filling the frame
+      if (o.cut && o.piece && o.kind !== 'galaxy') { const p = o.piece, ht = o.h * (1 - o.cutF), rad = Math.max(o.w, ht) * .75; if (Math.hypot(cam.x - p.x, cam.y - (p.y + ht * .5), cam.z - p.z) < rad) b.visible = false; }
+    }
   }
 }
 // sword pressure: a curved sheet of compressed air with a razor-bright leading edge and wind streaks flowing back
@@ -745,12 +759,10 @@ vec3 hue(float x){ return clamp(abs(fract(x + vec3(0.0, 0.666, 0.333)) * 6.0 - 3
 void main(){
   float u = vUv.x, v = vUv.y, uc = u * 2.0 - 1.0;
   float taper = pow(max(0.0, 1.0 - uc * uc), 0.45);
-  float shim = 0.75 + 0.5 * n(vec2(u * 70.0, uT * 24.0)) * (0.7 + 0.3 * sin(uT * 53.0 + u * 21.0));
-  float edge = (exp(-v * 26.0) * 1.7 + exp(-v * 7.0) * 0.35) * shim;
+  float edge = exp(-v * 26.0) * 1.7 + exp(-v * 7.0) * 0.35;
   float flow = n(vec2(u * 46.0, v * 2.5 - uT * 9.0)) * 0.65 + n(vec2(u * 120.0, v * 5.0 - uT * 16.0)) * 0.35;
   float streak = smoothstep(0.42, 0.95, flow);
-  float tongue = n(vec2(u * 16.0 + sin(uT * 3.0) * 0.6, v * 2.2 - uT * 13.0));
-  float body = pow(1.0 - v, 1.8) * (0.3 + 1.0 * streak) * mix(1.0, 0.25 + 1.7 * tongue, v);
+  float body = pow(1.0 - v, 1.8) * (0.3 + 1.0 * streak);
   float a = (edge * (1.0 - uGhost * 0.7) + body) * taper * uFade * smoothstep(1.0, 0.7, v);
   vec3 tint = uUltra > 0.5 ? hue(u * 0.9 + uHue + v * 0.3) * 0.85 + 0.15 : vec3(0.55, 0.8, 1.0);
   vec3 col = mix(tint, vec3(1.0), clamp(edge * 0.8 - uGhost, 0.0, 1.0));
@@ -795,7 +807,7 @@ function updTrail() {
   for (let j = 0; j < TH; j++) { const e = trailH[Math.min(j, trailH.length - 1)]; for (let i = 0; i < TK; i++) { const k = (j * TK + i) * 3, q = i * 3; P[k] = e[q]; P[k + 1] = e[q + 1]; P[k + 2] = e[q + 2]; } }
   trailM.geometry.attributes.position.needsUpdate = true;
   // energy shed from the edge
-  if (state === 'chase' && Math.random() < .9) { const q = (Math.random() * TK | 0) * 3, hw = wave.hw; addP({ x: EDGE[q], y: EDGE[q + 1], z: EDGE[q + 2], vx: rr(-.3, .3) * hw, vy: rr(-.1, .5) * hw, vz: -rr(.2, .9) * hw, life: rr(.15, .35), t: 0, k: 'spark', c: ultraCut ? `hsl(${Math.random() * 360 | 0},100%,72%)` : Math.random() < .6 ? '#cfe6ff' : '#ffffff', s: hw * .025, g: 0 }); }
+  if (false) { const q = (Math.random() * TK | 0) * 3, hw = wave.hw; addP({ x: EDGE[q], y: EDGE[q + 1], z: EDGE[q + 2], vx: rr(-.3, .3) * hw, vy: rr(-.1, .5) * hw, vz: -rr(.2, .9) * hw, life: rr(.15, .35), t: 0, k: 'spark', c: ultraCut ? `hsl(${Math.random() * 360 | 0},100%,72%)` : Math.random() < .6 ? '#cfe6ff' : '#ffffff', s: hw * .025, g: 0 }); }
 }
 const shocks = [], DEB = 700; let debM = null; const deb = [];
 if (renderer) {
@@ -842,13 +854,12 @@ function updWave3D() {
     U.uT.value = T; U.uFade.value = wave.fade * m.userData.fa; U.uUltra.value = ultraCut ? 1 : 0; U.uHue.value = (T * .35) % 1;
     const zz = wave.z - zb * hw * stretch;
     for (let i = 0; i < NU; i++) {
-      const ph = zb * 7.1, u = i / (NU - 1) * 2 - 1, W = hw * .62 * stretch * Math.pow(Math.max(0, 1 - u * u), .55) * (.88 + .09 * Math.sin(T * 31 + u * 5 + ph) + .06 * Math.sin(T * 57 - u * 11 + ph));
+      const ph = zb * 7.1, u = i / (NU - 1) * 2 - 1, W = hw * .62 * stretch * Math.pow(Math.max(0, 1 - u * u), .55);
       let ex, ey, ez = zz - u * u * hw * .42, bx, by, bz;
       // blend horizontal arch -> vertical arch by rotating smoothly (vt 0..1)
       const t = wave.vt, an = t * Math.PI * .5, ca = Math.cos(an), sa = Math.sin(an);
       const hx = u * hw, hy = -u * hw * .32 + (1 - u * u) * hw * .26;
-      const wob = (Math.sin(u * 7 + T * 23 + ph) * .012 + Math.sin(u * 13 - T * 37) * .006) * hw;
-      ex = wave.x + hx * ca - hy * sa - wob * sa; ey = wave.y + hy * ca + hx * sa + wob * ca;
+      ex = wave.x + hx * ca - hy * sa; ey = wave.y + hy * ca + hx * sa;
       if (zb === 0 && i % 3 === 0 && (i / 3 | 0) < TK) { const q = (i / 3 | 0) * 3; EDGE[q] = ex; EDGE[q + 1] = ey; EDGE[q + 2] = ez; }
       bx = lerp(-u * .1, .7, t); by = lerp(.78, -u * .1, t); bz = lerp(-.62, -.7, t);
       for (let j = 0; j < NV; j++) {
@@ -1336,7 +1347,7 @@ function camForState(dt) {
       px = lerp(px, cx + Math.sin(a) * D, b); py = lerp(py, cy + D * (.22 + q * .05), b); pz = lerp(pz, cz - Math.cos(a) * D, b);
       tx_ = lerp(tx_, cx, b); ty = lerp(ty, cy - e.R * .05, b); tz = lerp(tz, cz, b); fov = lerp(fov, 1.0, b); roll = lerp(roll, -.04, b);
     }
-    if (trans) { const k = Math.sin(Math.PI * clamp(trans.t / trans.dur, 0, 1)); fov += k * (trans.type === 'warp' ? .55 : trans.type === 'leap' ? .35 : trans.type === 'ground' ? .12 : .22); }
+    if (trans) { const k = Math.sin(Math.PI * clamp(trans.t / trans.dur, 0, 1)); fov += k * (trans.type === 'warp' ? .55 : trans.type === 'leap' ? .35 : trans.type === 'ground' ? .12 : .22); if (trans.type !== 'ground') fov += Math.exp(-Math.pow((trans.t - trans.sw) / .22, 2)) * .5; }
   } else if (state === 'final') {
     const b = finalObj; const c = b.fs; const a = stT * .2;
     px = b.x - 2.6 * c * Math.cos(a) + Math.sin(a) * c; py = b.cutY + (.25 + stT * .2) * c; pz = b.z - 2.4 * c * Math.cos(a) - Math.sin(a) * c * .6;
@@ -1449,7 +1460,7 @@ let chaseT = 0;
 function updChase(dt, rdt) {
   chaseT += dt;
   const accel = 1 + Math.min(1.5, chaseT * .085);
-  if (trans) { updTrans(rdt); if (trans && !trans.done) { wave.v = lerp(wave.v, Math.max(wave.v, cs * scene.kv * (.85 + .35 * power) * accel), 1 - Math.exp(-dt * 3)); wave.z += wave.v * dt; return; } }
+  if (trans) { updTrans(rdt); if (trans && !trans.done) { wave.v = lerp(wave.v, Math.max(wave.v, cs * scene.kv * (.85 + .35 * power) * accel) * (trans.type === 'ground' ? 1 : 1 + .5 * clamp(trans.t / trans.sw, 0, 1)), 1 - Math.exp(-dt * 3)); wave.z += wave.v * dt; return; } }
   blastDeco();
   const objs = scene.objs, o = objs[nextIdx];
   wave.hw = cs * .5 * waveGrow();
@@ -1697,7 +1708,7 @@ function composite() {
   const qx = (Math.sin(T * 37) + Math.sin(T * 21.7) * .7) * qk * 11, qy = (Math.sin(T * 33.3) + Math.sin(T * 19.1) * .7) * qk * 11;
   const tr = trans; let mode = 'layers', splitOff = 0, smear = 0;
   if (tr) {
-    const q = clamp(tr.t / tr.dur, 0, 1); smear = Math.pow(Math.sin(Math.PI * q), 2); zoom *= 1 + smear * .1;
+    const q = clamp(tr.t / tr.dur, 0, 1); smear = Math.pow(Math.sin(Math.PI * q), 2); zoom *= 1 + smear * .1 + (tr.type !== 'ground' ? Math.exp(-Math.pow((tr.t - tr.sw) / .2, 2)) * .12 : 0);
   } else if (split > 0) mode = 'split';
   stageEl.style.visibility = mode === 'layers' ? 'visible' : 'hidden';
   vctx.setTransform(1, 0, 0, 1, 0, 0); vctx.globalAlpha = 1; vctx.globalCompositeOperation = 'source-over';
@@ -1731,6 +1742,15 @@ function composite() {
     if (k > .02) focusLines(fctx, w, h, k);
   }
   if (tr && tr.type === 'ground') { const fa = tr.t < tr.sw ? smooth(clamp((tr.t - (tr.sw - .5)) / .5, 0, 1)) : 1 - smooth(clamp((tr.t - tr.sw) / .5, 0, 1)); if (fa > 0) { fctx.save(); fctx.setTransform(1, 0, 0, 1, 0, 0); fctx.globalAlpha = fa; fctx.fillStyle = '#000'; fctx.fillRect(0, 0, w, h); fctx.restore(); } }
+  if (tr && tr.type !== 'ground') {
+    // whoosh: radial streaks + a soft bloom that peak right at the switch
+    const kb = Math.exp(-Math.pow((tr.t - tr.sw) / .2, 2)), D = Math.hypot(w, h); if (kb > .02) {
+      fctx.save(); fctx.globalCompositeOperation = 'lighter'; fctx.lineCap = 'round';
+      for (let i = 0; i < 110; i++) { const an = i * 2.399 + i * i * .001, ph = (i * .618 + tr.t * 3.2) % 1, r0 = D * (.06 + ph * .5), r1 = r0 * (1.4 + kb * 2.2); fctx.strokeStyle = `rgba(${i % 3 ? '210,230,255' : '255,240,210'},${(kb * (.35 + ph * .6)).toFixed(3)})`; fctx.lineWidth = (1 + ph * 2.5) * DPR; fctx.beginPath(); fctx.moveTo(w / 2 + Math.cos(an) * r0, h * .48 + Math.sin(an) * r0); fctx.lineTo(w / 2 + Math.cos(an) * r1, h * .48 + Math.sin(an) * r1); fctx.stroke(); }
+      const g = fctx.createRadialGradient(w / 2, h * .48, 0, w / 2, h * .48, D * .45); g.addColorStop(0, `rgba(255,255,255,${(kb * .5).toFixed(3)})`); g.addColorStop(.35, `rgba(170,200,255,${(kb * .18).toFixed(3)})`); g.addColorStop(1, 'rgba(0,0,0,0)'); fctx.fillStyle = g; fctx.fillRect(0, 0, w, h);
+      fctx.restore();
+    }
+  }
   if (tr && tr.type === 'warp') {
     const k = tr.t < tr.sw ? tr.t / tr.sw : 1 - (tr.t - tr.sw) / (tr.dur - tr.sw); fctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 70; i++) { const an = i * 2.399, r0 = Math.max(w, h) * (.05 + ((i * .37 + tr.t * 2.5) % 1) * .6); fctx.strokeStyle = `rgba(200,220,255,${k * .6})`; fctx.lineWidth = 1.5 * DPR; fctx.beginPath(); fctx.moveTo(w / 2 + Math.cos(an) * r0, h / 2 + Math.sin(an) * r0); fctx.lineTo(w / 2 + Math.cos(an) * r0 * (1.3 + k), h / 2 + Math.sin(an) * r0 * (1.3 + k)); fctx.stroke(); }
