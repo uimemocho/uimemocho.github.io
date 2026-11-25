@@ -699,7 +699,6 @@ function sync3D() {
   for (const o of scene.deco) {
     const ms = o.mesh; if (!ms) continue; const hw = o.w * .5;
     let vis = !(Math.abs(cam.x - o.x) < hw + .3 && Math.abs(cam.z - o.z) < hw + .3 && cam.y < o.y + o.h);
-    if (vis) { toCam(o.x, o.y + o.h * .3, o.z, tmp); if (tmp[2] < hw * 1.1 + .4 && tmp[2] > -hw) vis = false; }
     ms.visible = vis; ms.position.set(o.x, o.y, o.z); ms.rotation.y = o.yaw;
     if (o.top) {
       const tp = o.top, sh = o.shake ? Math.sin(T * 60) * o.shake * o.w * .02 : 0; tp.visible = vis || o.cut; ms.position.x += sh;
@@ -720,13 +719,13 @@ function sync3D() {
     if (!o.cut) { b.position.set(o.x + sh, o.cutY, o.z); b.rotation.set(0, o.yaw, 0); }
     else { const p = o.piece; b.position.set(p.x, p.y, p.z); qY.setFromAxisAngle(vUp, o.yaw + (p.spin || 0)); qT.setFromAxisAngle(vAx.set(p.kx, 0, p.kz), p.th); b.quaternion.copy(qT).multiply(qY); }
     // never let the chase camera fly through a cut piece
-    if (o.cut) {
-      const rad = o.kind === 'planet' ? o.R * 1.25 : Math.max(o.w, o.h) * .45;
-      const bc = o.kind === 'planet' ? o.y + o.R * .5 : o.y + o.h * o.cutF * .5;
-      a.visible = Math.hypot(cam.x - (o.x + o.bx), cam.y - (o.by + bc), cam.z - (o.z + o.bz)) > rad;
-      const p = o.piece, tc = (o.h - o.h * o.cutF) * .5;
-      b.visible = Math.hypot(cam.x - p.x, cam.y - (p.y + tc), cam.z - p.z) > rad;
-    } else { a.visible = b.visible = true; }
+    if (o.cut && o.kind === 'planet') {
+      // shrink a half smoothly as the chase camera closes in, so it never fills the screen or pops
+      const R0 = o.R, fz = d => { const k = clamp((d - R0 * 1.3) / (R0 * 2.2), 0, 1); return k * k * (3 - 2 * k); };
+      const ka = fz(Math.hypot(cam.x - (o.x + o.bx), cam.y - (o.y + o.by + R0 * .5), cam.z - (o.z + o.bz)));
+      const p = o.piece, kb = fz(Math.hypot(cam.x - p.x, cam.y - (p.y + R0 * .5), cam.z - p.z));
+      a.scale.setScalar(Math.max(.001, ka)); b.scale.setScalar(Math.max(.001, kb)); a.visible = ka > .01; b.visible = kb > .01;
+    } else { a.visible = b.visible = true; a.scale.setScalar(1); b.scale.setScalar(1); }
   }
 }
 // sword pressure: a curved sheet of compressed air with a razor-bright leading edge and wind streaks flowing back
@@ -793,6 +792,7 @@ function updWave3D() {
   for (const m of waveLayers) m.visible = on;
   if (!on) return;
   const hw = wave.hw, stretch = 1 + Math.min(1.2, wave.v / Math.max(1, cs) * .05);
+  wave.vt = lerp(wave.vt, wave.vert ? 1 : 0, 1 - Math.exp(-RDT * 3.2)); if (Math.abs(wave.vt - (wave.vert ? 1 : 0)) < .002) wave.vt = wave.vert ? 1 : 0;
   for (const m of waveLayers) {
     const zb = m.userData.zb, P = m.geometry.attributes.position.array, U = m.material.uniforms;
     U.uT.value = T; U.uFade.value = wave.fade * m.userData.fa; U.uUltra.value = ultraCut ? 1 : 0; U.uHue.value = (T * .35) % 1;
@@ -800,11 +800,14 @@ function updWave3D() {
     for (let i = 0; i < NU; i++) {
       const u = i / (NU - 1) * 2 - 1, W = hw * .62 * stretch * Math.pow(Math.max(0, 1 - u * u), .55);
       let ex, ey, ez = zz - u * u * hw * .42, bx, by, bz;
-      if (wave.vert) { ex = wave.x - u * u * hw * .25 + (1 - u * u) * hw * .2; ey = wave.y + u * hw; bx = .7; by = -u * .1; bz = -.7; }
-      else { ex = wave.x + u * hw; ey = wave.y - u * hw * .32 + (1 - u * u) * hw * .26; bx = -u * .1; by = .78; bz = -.62; }
+      // blend horizontal arch -> vertical arch by rotating smoothly (vt 0..1)
+      const t = wave.vt, an = t * Math.PI * .5, ca = Math.cos(an), sa = Math.sin(an);
+      const hx = u * hw, hy = -u * hw * .32 + (1 - u * u) * hw * .26;
+      ex = wave.x + hx * ca - hy * sa; ey = wave.y + hy * ca + hx * sa;
+      bx = lerp(-u * .1, .7, t); by = lerp(.78, -u * .1, t); bz = lerp(-.62, -.7, t);
       for (let j = 0; j < NV; j++) {
         const v = j / (NV - 1), k = (j * NU + i) * 3, d = v * W, curl = v * v * W * .3;
-        P[k] = ex + bx * d - u * curl * (wave.vert ? 0 : 1); P[k + 1] = ey + by * d - (wave.vert ? u * curl : 0); P[k + 2] = ez + bz * d;
+        P[k] = ex + bx * d - u * curl * ca; P[k + 1] = ey + by * d - u * curl * sa; P[k + 2] = ez + bz * d;
       }
     }
     m.geometry.attributes.position.needsUpdate = true;
@@ -993,7 +996,7 @@ function bolt(c, x1, y1, x2, y2, amp, segs, hue, w) {
   c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = w; c.stroke();
 }
 // slash wave crescent
-const wave = { on: false, x: 0, y: 1, z: 0, v: 0, fade: 1, hw: .6, vert: false };
+const wave = { on: false, x: 0, y: 1, z: 0, v: 0, fade: 1, hw: .6, vert: false, vt: 0 };
 function drawWave() {
   if (!wave.on || !ultraCut || wave.fade < .3) return;
   const hw = wave.hw; const P = u => wave.vert ? [wave.x - u * u * hw * .25, wave.y + u * hw, wave.z - u * u * hw * .5] : [wave.x + u * hw, wave.y - u * hw * .42, wave.z - u * u * hw * .5];
@@ -1064,7 +1067,7 @@ let state = 'title', T = 0, stT = 0;
 let qi = 0, qiFullAt = 0, qiUltraAt = 0, kataIn = 0;
 let timeScale = 1, hitstop = 0, shake = 0, flash = 0, split = 0, splitAng = -.4, slowT = 0;
 let power = 0, perfect = false, ultraCut = false, REACH = 0, rDisp = 0, nextIdx = 0, finalObj = null, stopped = false, galaxyDone = false;
-const fol = { x: -1.1, y: .3, z: -2.2 };
+const fol = { x: -1.1, y: .3, z: -2.2 }, anc = { x: 0, y: 1 }; let galS = 0, RDT = .016;
 let camKick = 0, kickDir = 1, cs = 1.2, shot = 0, cutsInScene = 0, trans = null, shownStage = -1;
 let camS = { px: 0, py: 1.5, pz: -1, tx: 0, ty: 1, tz: 5, fov: 1.05, roll: 0 };
 let best = 0; try { best = +localStorage.getItem('choiai_best') || 0; } catch (e) {}
@@ -1113,7 +1116,7 @@ function startChase() {
   go('chase');
   const o = scene.objs[0];
   wave.on = true; wave.z = .6; wave.x = 0; wave.y = o.cutY; wave.v = 0; wave.fade = 1; wave.vert = false;
-  cs = o.fs; shot = 0; timeScale = .45; shownStage = 0; chaseT = 0; fol.x = -1.1; fol.y = .3; fol.z = -2.2;
+  cs = o.fs; shot = 0; timeScale = .45; shownStage = 0; chaseT = 0; fol.x = -1.1; fol.y = .3; fol.z = -2.2; anc.x = wave.x; anc.y = wave.y; galS = 0; wave.vt = 0;
 }
 function startPiece(o) {
   const fdz = rr(-.5, .2), fl = Math.hypot(1, fdz), dx = 1 / fl, dz = fdz / fl;
@@ -1121,7 +1124,7 @@ function startPiece(o) {
   const L = o.h - o.h * o.cutF, sq = Math.sqrt(o.fs);
   if (o.kind === 'tall') { p.w = .6 + power * .8; p.vx = dx * rr(.8, 1.6) * sq * .8; p.vz = dz * rr(.6, 1.2) * sq * .8; p.vy = (rr(.4, 1) + power) * sq * .5; p.L = L; }
   else if (o.kind === 'wide') { p.vs = (1.2 + 2.6 * power) * sq * .7; p.w = 0; }
-  else if (o.kind === 'planet') { const v = o.R * (.3 + .4 * power); p.vx = Math.abs(dx) * v * .8; p.vz = v * .25; p.vy = o.R * .32; p.w = .18 + power * .15; p.spin = 0; o.bvx = Math.abs(dx) * v * .15; o.bvz = v * .1; o.bvy = -o.R * .26; }
+  else if (o.kind === 'planet') { const v = o.R * (.3 + .4 * power); p.vx = Math.abs(dx) * v * .8; p.vz = v * .25; p.vy = o.R * .7; p.w = .18 + power * .15; p.spin = 0; o.bvx = Math.abs(dx) * v * .15; o.bvz = v * .1; o.bvy = -o.R * .6; }
   o.piece = p;
 }
 function cutObj(o) {
@@ -1132,7 +1135,7 @@ function cutObj(o) {
   burst(o); shockAt(o.x, o.cutY, o.z, o.fs * (o.big ? .75 : .45));
   if (o.kind !== 'galaxy') debris(o.x, o.cutY, o.z, o.kind === 'planet' ? o.R * 1.2 : Math.min(o.w, o.fs * 1.2), o.chip, o.big ? 40 : 18, o.fs * (2.5 + power * 2), !!scene.space);
   camKick = 1; kickDir = -kickDir; flash = Math.max(flash, .1);
-  if (o.big) { A.bigCut(); hitstop = o.kind === 'planet' ? .11 : .04; if (o.kind === 'planet') slowT = .42; shake = 1; flash = Math.max(flash, o.kind === 'planet' ? .22 : .3); vib([20, 30, 40]); } else { A.cut(cutsInScene); shake = Math.max(shake, .3); hitstop = Math.max(hitstop, .012); }
+  if (o.big) { A.bigCut(); timeScale = Math.min(timeScale, o.kind === 'planet' ? .1 : .3); slowT = o.kind === 'planet' ? .22 : .08; shake = Math.max(shake, .5); flash = Math.max(flash, o.kind === 'planet' ? .16 : .2); vib([20, 30, 40]); } else { A.cut(cutsInScene); shake = Math.max(shake, .2); }
   cutsInScene++;
   const n = $('#cNum'); n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump');
 }
@@ -1188,18 +1191,19 @@ function camForState(dt) {
     if (state === 'slash') { fov -= stT * .4; roll = -stT * .15; }
   } else if (state === 'chase') {
     const o = scene.objs[nextIdx] || scene.objs[scene.objs.length - 1];
-    cs = lerp(cs, o.fs, 1 - Math.exp(-dt * 2.4));
+    cs = lerp(cs, o.fs, 1 - Math.exp(-dt * 1.5));
     const sp = clamp(wave.v / Math.max(1, cs), 0, 40);
-    const gal = o.kind === 'galaxy' ? 1 : 0;
-    // desired offset from the slash (in units of cs); one continuous shot, it only breathes with speed
-    const rise = scene.space ? .18 : easeIO(clamp(chaseT / 6, 0, 1)), grow = scene.space ? 1 : waveGrow();
-    const back = lerp((2.15 + sp * .018 + rise * .3) * grow, 1.7, gal), up = lerp((.32 + sp * .006 + rise * 3.9) * grow, 1.05, gal), side = lerp((1.15 - rise * .45) * grow, .5, gal);
+    galS = lerp(galS, o.kind === 'galaxy' ? 1 : 0, 1 - Math.exp(-dt * 1.6)); const gal = galS;
+    // one continuous low chase shot behind the slash; it only breathes with speed and blade size
+    const rise = scene.space ? .15 : .25, grow = scene.space ? 1 : waveGrow();
+    const back = lerp((2.15 + sp * .018) * grow, 1.7, gal), up = lerp((.32 + sp * .006 + rise * .9) * grow, 1.05, gal), side = lerp(1.15 * grow, .5, gal);
     const sway = Math.sin(T * .55) * .18, bob = Math.sin(T * .41) * .06;
     fol.x = lerp(fol.x, -side + sway, 1 - Math.exp(-dt * 3)); fol.y = lerp(fol.y, up + bob, 1 - Math.exp(-dt * 3)); fol.z = lerp(fol.z, -back, 1 - Math.exp(-dt * 3));
-    px = wave.x + fol.x * cs; py = wave.y + fol.y * cs; pz = wave.z + fol.z * cs;
-    tx_ = wave.x + .3 * cs; ty = wave.y + lerp(.18 - rise * .18, -.5, gal) * cs; tz = wave.z + lerp(2.6 - rise * 1.5, 1.6, gal) * cs;
+    anc.x = lerp(anc.x, wave.x, 1 - Math.exp(-dt * 2.2)); anc.y = lerp(anc.y, wave.y, 1 - Math.exp(-dt * 2.2));
+    px = anc.x + fol.x * cs; py = anc.y + fol.y * cs; pz = wave.z + fol.z * cs;
+    tx_ = anc.x + .3 * cs; ty = anc.y + lerp(.12, -.5, gal) * cs; tz = wave.z + lerp(2.6, 1.6, gal) * cs;
     fov = 1.05 + Math.min(.42, sp * .011); roll = -.04 - Math.min(.06, sp * .002);
-    camKick = Math.max(0, camKick - dt * 6); fov -= camKick * camKick * .12;
+    camKick = Math.max(0, camKick - dt * 3); fov -= Math.sin(Math.PI * camKick) * .025;
     if (trans) { const k = Math.sin(Math.PI * clamp(trans.t / trans.dur, 0, 1)); fov += k * (trans.type === 'warp' ? .55 : trans.type === 'leap' ? .35 : .22); }
     snap = stT > .5;
   } else if (state === 'final') {
@@ -1232,12 +1236,12 @@ function announce(stage) {
 // ---------- update ----------
 let capture = null;
 function update(rdt) {
-  T += rdt;
+  T += rdt; RDT = rdt;
   buildStep(state === 'chase' || state === 'slash' || state === 'final' ? 3 : 12);
   if (hitstop > 0) { hitstop -= rdt; camUpdate(); return; }
   if (state === 'chase' || state === 'final') {
-    let target = state === 'final' ? .25 : 1; if (slowT > 0) { slowT -= rdt; target = Math.min(target, .32); }
-    timeScale = lerp(timeScale, target, 1 - Math.exp(-rdt * (state === 'final' || slowT > 0 ? 8 : 2.2)));
+    let target = state === 'final' ? .25 : 1; if (slowT > 0) { slowT -= rdt; target = Math.min(target, timeScale); }
+    timeScale = lerp(timeScale, target, 1 - Math.exp(-rdt * (state === 'final' ? 8 : 3.5)));
   } else timeScale = lerp(timeScale, 1, 1 - Math.exp(-rdt * 4));
   const dt = rdt * timeScale; stT += rdt;
   shake = Math.max(0, shake - rdt * 2.6); flash = Math.max(0, flash - rdt * 3.2); split = Math.max(0, split - rdt * 2.2);
@@ -1320,8 +1324,8 @@ function updChase(dt, rdt) {
   wave.hw = cs * .5 * waveGrow();
   if (o) {
     announce(o.stage);
-    wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * 6)); wave.y = lerp(wave.y, o.cutY, 1 - Math.exp(-dt * 5));
-    if (o.kind === 'galaxy') { wave.vert = true; wave.y = o.y + o.h / 2; }
+    const ty0 = o.kind === 'galaxy' ? o.y + o.h / 2 : o.cutY; if (o.kind === 'galaxy') wave.vert = true;
+    wave.x = lerp(wave.x, o.x, 1 - Math.exp(-dt * 3)); wave.y = lerp(wave.y, ty0, 1 - Math.exp(-dt * 3));
     if (canCut(o)) {
       wave.v = lerp(wave.v, cs * scene.kv * (.85 + .35 * power) * accel, 1 - Math.exp(-dt * 6)); wave.z += wave.v * dt;
       if (wave.z >= o.z - o.w * .12) {
@@ -1352,9 +1356,15 @@ function updTrans(rdt) {
   if (tr.type === 'leap') { const tt = tr.t; while (tr.locks < 4 && tt >= LEAP_LK[tr.locks]) { tr.locks++; A.lock(tr.locks === 4); vib(tr.locks === 4 ? 60 : 18); } if (tt > .15 && tt < LEAP_LK[3] && Math.random() < rdt * 22) A.tick(); }
   if (!tr.done && tr.t >= tr.sw) {
     tr.done = true; loadScene(sceneI + 1);
-    const o = scene.objs[0], ratio = o.fs / Math.max(.01, cs); cs = lerp(cs, o.fs, .6); wave.v *= ratio;
-    wave.z = o.z - Math.max(o.fs * 2.2, wave.v * .35); wave.x = o.x; wave.y = o.cutY; wave.vert = o.kind === 'galaxy'; wave.hw = cs * .5 * waveGrow();
-    flash = Math.max(flash, tr.type === 'leap' ? .18 : .12);
+    const o = scene.objs[0], ratio = o.fs / Math.max(.01, cs);
+    const ox = anc.x, oy = anc.y, oz = wave.z, ocs = cs;
+    cs = o.fs; wave.v *= ratio;
+    wave.z = o.z - Math.max(o.fs * 2.2, wave.v * .35); wave.x = o.x; wave.y = o.cutY; wave.vert = o.kind === 'galaxy'; wave.vt = wave.vert ? 1 : 0; wave.hw = cs * .5 * waveGrow();
+    anc.x = wave.x; anc.y = wave.y;
+    // carry the camera across in slash-relative space so nothing jumps
+    const rm = (v, a, b) => b + (v - a) * ratio;
+    camS.px = rm(camS.px, ox, anc.x); camS.py = rm(camS.py, oy, anc.y); camS.pz = rm(camS.pz, oz, wave.z);
+    camS.tx = rm(camS.tx, ox, anc.x); camS.ty = rm(camS.ty, oy, anc.y); camS.tz = rm(camS.tz, oz, wave.z);
   }
   if (tr.t >= tr.dur) { trans = null; }
 }
@@ -1439,11 +1449,11 @@ function drawLeapFx(c, w, h, tt, tr) {
 let viewFill = '';
 function composite() {
   const w = view.width, h = view.height;
-  const sx = (Math.random() - .5) * shake * 10, sy = (Math.random() - .5) * shake * 10;
+  const sx = (Math.sin(T * 47) + Math.sin(T * 31.7) * .6) * shake * 3, sy = (Math.sin(T * 41.3) + Math.sin(T * 27.1) * .6) * shake * 3;
   const roll = cam.roll; let zoom = 1 + Math.abs(roll) * .35 + shake * .02, rot = 0, tx2 = 0;
   const tr = trans; let mode = 'layers', splitOff = 0, smear = 0;
   if (tr) {
-    smear = 1 - Math.abs(tr.t - tr.sw) / Math.max(tr.sw, tr.dur - tr.sw); zoom *= 1 + Math.pow(Math.max(0, smear), 2) * .16;
+    const q = clamp(tr.t / tr.dur, 0, 1); smear = Math.pow(Math.sin(Math.PI * q), 2); zoom *= 1 + smear * .1;
   } else if (split > 0) mode = 'split';
   stageEl.style.visibility = mode === 'layers' ? 'visible' : 'hidden';
   vctx.setTransform(1, 0, 0, 1, 0, 0); vctx.globalAlpha = 1; vctx.globalCompositeOperation = 'source-over';
@@ -1794,7 +1804,7 @@ function dbgGo(i, reach, ultra) {
   qi = ultra ? 2 : 1; ultraCut = ultra; perfect = false; power = 1; REACH = clamp(Math.max(reach, SC_STAGE[i] + .01), .21, 14);
   loadScene(i); go('chase'); hitstop = 0; split = 0; flash = .6; finalObj = null; stopped = false;
   const o = scene.objs[0]; cs = o.fs; wave.on = true; wave.fade = 1; wave.vert = o.kind === 'galaxy'; wave.x = 0; wave.y = o.cutY; wave.v = cs * scene.kv; wave.z = scene.startZ; wave.hw = cs * .5;
-  chaseT = 0; timeScale = 1; shownStage = -1; rDisp = SC_STAGE[i]; fol.x = -1.1; fol.y = .3; fol.z = -2.2; stT = .6;
+  chaseT = 0; timeScale = 1; shownStage = -1; rDisp = SC_STAGE[i]; fol.x = -1.1; fol.y = .3; fol.z = -2.2; stT = .6; anc.x = wave.x; anc.y = wave.y; galS = wave.vert ? 1 : 0; wave.vt = wave.vert ? 1 : 0;
   camS.px = wave.x + fol.x * cs; camS.py = wave.y + fol.y * cs; camS.pz = wave.z + fol.z * cs; camS.tx = wave.x; camS.ty = wave.y; camS.tz = wave.z + 2.5 * cs;
 }
 $('.logo').addEventListener('click', () => { const t = performance.now(); DBG.taps = DBG.taps.filter(v => t - v < 2500); DBG.taps.push(t); if (DBG.taps.length >= 5) { DBG.taps = []; dbgOpen(); toast('DEBUG MODE'); } });
@@ -1812,6 +1822,7 @@ window.__cho = {
   tri: () => { let t = 0; root.traverse(o => { if (o.isMesh && o.geometry.index) t += o.geometry.index.count / 3; if (o.isPoints) t += o.geometry.attributes.position.count; }); return t; },
   prof: n => { const r = { upd: 0, scene: 0, sky: 0, gl: 0, comp: 0 }; for (let i = 0; i < n; i++) { let t = performance.now(); update(1 / 60); r.upd += performance.now() - t; t = performance.now(); drawSky(); r.sky += performance.now() - t; t = performance.now(); render3D(); r.gl += performance.now() - t; t = performance.now(); renderScene(true); r.scene += performance.now() - t; t = performance.now(); composite(); r.comp += performance.now() - t; } for (const k in r) r[k] = +(r[k] / n).toFixed(1); return r; },
   perf: n => { const t0 = performance.now(); for (let i = 0; i < n; i++) renderScene(true); return (performance.now() - t0) / n; },
+  trace: n => { const r = []; for (let i = 0; i < n; i++) { update(1 / 60); r.push([cam.yaw, cam.pitch, cam.fov, cam.x / cs, cam.y / cs, cam.z / cs, state, trans ? 1 : 0, timeScale]); if (state === 'result' || state === 'wide') break; } return r; },
   skip: t => { for (let i = 0; i < t * 60; i++) update(1 / 60); render(); }, setQi: v => { qi = v; }, buildAll: () => { while (!preDone) prebuildNext(1e15); },
   view: (id, setup) => { loadScene(SCENES.indexOf(id)); state = 'view'; if (setup) setup({ scene, cutObj, lookAt, cam, camS, upd: d => { updPieces(d); updParts(d); } }); },
   ogp: async () => { const sv = scene; loadScene(5); const e = scene.objs[0]; power = .8; cutObj(e); for (let i = 0; i < 90; i++) { updPieces(1 / 60); updParts(1 / 60); } parts = []; slashes = []; const b = await makeShareImage(() => lookAt(e.x - 15, e.y + 9, e.z - 14, e.x + 2, e.y + 4, e.z + 3)); scene = sv; return await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); }
