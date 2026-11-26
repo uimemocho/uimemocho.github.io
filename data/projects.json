@@ -884,5 +884,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-26T14:20:00Z",
     "updatedAt": "2026-11-26T14:20:00Z"
+  },
+  {
+    "slug": "hat-trick",
+    "title": "ハットトリック",
+    "kind": "game",
+    "description": "石畳の街を歩く禿げた紳士の頭めがけて、下から上へスワイプでシルクハットを投げて被せる3Dゲーム。被せた紳士は片眼鏡をきらめかせ、かっこよくなって去っていく。3連続で決めればハットトリック。被せるたびに紳士の動きが複雑になり、45秒で被せた数をE〜SSSのランクで競う。結果は画像つきでXに投稿できる。",
+    "url": "/apps/hat-trick/",
+    "thumbnail": "/project-thumbnails/catalog/hat-trick.webp",
+    "sourceFolder": "261126_ハットトリック",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-26T15:00:00Z",
+    "updatedAt": "2026-11-26T15:00:00Z"
   }
 ]
