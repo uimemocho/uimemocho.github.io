@@ -493,7 +493,7 @@ function doImpact(g){const tier=rankOf(g),k=tier/7;strike.hit=true;
  emitSparks(face,70+tier*85,1.8+k*5.5,tier>=7?PAL_RAIN:PAL_FIRE);if(tier>=4)emitDebris(face,(tier-3)*9,1.2+k*2.4);
  bulbs.forEach(b=>{b.vx+=rnd(-1,1)*k*2.2;b.vz+=rnd(-1,1)*k*2.2});if(tier>=5){flickT=.9}
  excite=Math.max(excite,k);AU.impact(tier);
- const bm=$('#boom');bm.textContent=RANKS[tier].w;bm.className='';void bm.offsetWidth;bm.className='go'+(tier>=4?' hot':'');
+ const bm=$('#boom');bm.textContent=RANKS[tier].w;bm.style.fontSize=Math.min(150,innerWidth*.9/[...RANKS[tier].w].length*1.08)+'px';bm.className='';void bm.offsetWidth;bm.className='go'+(tier>=4?' hot':'');
  $('#flash').style.opacity=Math.min(.85,flash*.9);
  if(tier>=6){const v=PAD_FACE.clone().project(camera);drawCrack((v.x*.5+.5)*innerWidth,(-v.y*.5+.5)*innerHeight,(tier-5)/2)}
  if(navigator.vibrate)try{navigator.vibrate(tier>=5?[60,30,90]:30+tier*10)}catch(e){}
