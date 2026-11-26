@@ -32,14 +32,17 @@ button,a.btn{font:inherit;color:inherit;border:0;background:none;cursor:pointer;
 .tgroup{filter:drop-shadow(0 6px 18px rgba(0,0,0,.85))}
 h1{margin:0;font-weight:900;font-size:clamp(36px,10.6vw,104px);line-height:1.02;letter-spacing:-.02em;white-space:nowrap}
 .en{font-family:Anton,sans-serif;font-size:clamp(16px,4.2vw,26px);letter-spacing:.42em;padding-left:.42em;margin-top:6px;color:var(--acc)}
-.mode{display:flex;margin:34px 0 18px;border:1px solid var(--line);border-radius:999px;padding:4px;background:rgba(0,0,0,.45)}
+.mode{display:flex;margin:28px 0 0;border:1px solid var(--line);border-radius:999px;padding:4px;background:rgba(0,0,0,.45)}
 .mode button{min-height:40px;padding:0 18px;border-radius:999px;font-weight:700;font-size:14px;color:var(--dim)}
 .mode button.on{background:var(--ink);color:#0b0b0a}
-#startBtn{min-width:220px;min-height:58px;padding:0 34px;background:var(--acc);color:#0b0b0a;font-weight:900;font-size:20px;letter-spacing:.06em;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.startWrap{position:absolute;left:0;right:0;bottom:max(34px,calc(env(safe-area-inset-bottom) + 24px));display:flex;justify-content:center;padding:0 24px}
+#startBtn{width:min(100%,360px);min-height:58px;padding:0 34px;background:var(--acc);color:#0b0b0a;font-weight:900;font-size:20px;letter-spacing:.06em;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
 #startBtn:active{transform:scale(.97)}
-.best{margin-top:18px;font-size:14px;color:var(--dim)}
+.best{margin-top:36px;font-size:14px;color:var(--dim)}
 .best b{font-family:Anton,sans-serif;font-weight:400;font-size:20px;color:var(--ink);letter-spacing:.03em;margin:0 4px}
-.howto{position:absolute;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));text-align:center;font-size:12.5px;line-height:1.75;color:var(--dim);padding:0 24px}
+#howto{position:absolute;left:0;right:0;top:max(96px,calc(env(safe-area-inset-top) + 84px));text-align:center;font-size:13px;line-height:1.8;font-weight:700;color:var(--dim);padding:0 24px;opacity:0;transform:translateY(6px);transition:opacity .9s ease,transform .9s ease;pointer-events:none;filter:drop-shadow(0 2px 8px rgba(0,0,0,.9))}
+#howto.on{opacity:1;transform:none}
+#howto span{display:inline-block}
 /* hud */
 #hud{display:none}
 #hud.on{display:block}
@@ -112,7 +115,6 @@ h1{margin:0;font-weight:900;font-size:clamp(36px,10.6vw,104px);line-height:1.02;
 <div id="flash"></div>
 
 <div id="title" class="layer">
-  <div class="kicker">地下二階 指力測定</div>
   <div class="tgroup">
     <h1>フィンガーパワー</h1>
     <div class="en">FINGER POWER</div>
@@ -121,9 +123,8 @@ h1{margin:0;font-weight:900;font-size:clamp(36px,10.6vw,104px);line-height:1.02;
     <button data-m="sensor">センサー判定</button>
     <button data-m="gauge">ゲージ判定</button>
   </div>
-  <button id="startBtn">測定する</button>
   <div class="best">自己ベスト<b id="tBest">0</b>g</div>
-  <div class="howto" id="howto"></div>
+  <div class="startWrap"><button id="startBtn">測定する</button></div>
 </div>
 
 <div id="hud" class="layer">
@@ -131,6 +132,7 @@ h1{margin:0;font-weight:900;font-size:clamp(36px,10.6vw,104px);line-height:1.02;
     <div class="hbest">自己ベスト<b id="hBest">0 g</b></div>
     <button class="chip" id="muteBtn">SOUND ON</button>
   </div>
+  <div id="howto"></div>
   <div id="prompt">
     <div id="gauge" class="hide"><div class="bar"></div><div class="tick" style="left:94%"></div><div id="needle"></div></div>
     <div class="big">叩け</div>
@@ -446,9 +448,9 @@ const timers=[];const later=(s,fn)=>timers.push({at:T+s,fn});
 let strike=null,count=null,gaugePhase=0,gaugeV=0,heartT=0,pendingShot=null,shotURL='',lastResult=null;
 
 function setCam(name){const portrait=innerWidth<innerHeight;
- if(name==='aim'){camPosT.set(portrait?.24:.42,1.4,portrait?3.55:2.95);camLookT.set(0,1.42,.7);camK=2.2}
+ if(name==='aim'){camPosT.set(0,1.45,portrait?3.6:3.0);camLookT.set(0,1.45,.7);camK=2.2}
  if(name==='count'){camPosT.set(0,1.9,portrait?2.55:1.75);camLookT.set(0,1.82,.4);camK=1.6}
- if(name==='result'){camPosT.set(portrait?-.05:-.6,1.75,portrait?4.1:3.6);camLookT.set(0,portrait?1.15:1.55,.3);camK=1.6}}
+ if(name==='result'){camPosT.set(0,1.75,portrait?4.1:3.6);camLookT.set(0,portrait?1.15:1.55,.3);camK=1.6}}
 
 /* motion sensor */
 const samples=[];let motionSeen=0,baseG=null;
@@ -468,7 +470,7 @@ function measureGauge(v){let g=150+Math.pow(v,2.4)*7400+rnd(100);if(v>.985)g+=60
 /* UI */
 function showToast(s){const t=$('#toast');t.textContent=s;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
 function setMode(m){mode=m;document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
- $('#howto').innerHTML=m==='sensor'?'スマホを片手で持ち、もう一方の人差し指で画面を思い切り叩く。<br>叩いた衝撃を加速度センサーで測ります。端末を落とさないよう、ほどほどに。':'右へ流れる針が右端に来た瞬間に、画面を叩く。<br>センサーが使えない環境やPCではこちら。'}
+ $('#howto').innerHTML=m==='sensor'?'<span>スマホを片手で持ち、</span><span>人差し指で思い切り叩け。</span><br><span>落とさないよう、ほどほどに。</span>':'<span>針が右端に来た瞬間に叩け。</span>'}
 document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));setMode(mode);if(!GAUGE_OK)$('#mode').classList.add('hide');
 const updBest=()=>{$('#tBest').textContent=fmt(best);$('#hBest').textContent=fmt(best)+' g'};updBest();
 $('#muteBtn').onclick=e=>{e.stopPropagation();AU.mute(!AU.muted);$('#muteBtn').textContent=AU.muted?'SOUND OFF':'SOUND ON'};
@@ -477,9 +479,9 @@ $('#startBtn').onclick=async()=>{AU.init();if(AU.ctx&&AU.ctx.state==='suspended'
  if(mode==='sensor'){const ok=await enableMotion();const t0=performance.now();await new Promise(r=>setTimeout(r,700));if(!ok||motionSeen<t0){if(!GAUGE_OK){showToast('加速度センサーが使えません。スマホで開いて、センサーを許可してください');return}setMode('gauge');showToast('センサーが取得できないため、ゲージ判定で測ります')}}
  $('#title').classList.add('hide');$('#hud').classList.add('on');state='intro';setCam('aim');later(1.1,toAim)};
 function toAim(){state='aim';$('#prompt').classList.remove('hide');$('#gauge').classList.toggle('hide',mode!=='gauge');
- $('#promptSub').textContent=mode==='gauge'?'針が右端に来た瞬間に叩け':'画面のどこでも、指一本で';$('#tapzone').classList.add('on');gaugePhase=0;drawLED('-----',1);drawLamps(-1)}
+ $('#promptSub').textContent=mode==='gauge'?'':'画面のどこでも、指一本で';$('#tapzone').classList.add('on');$('#howto').classList.add('on');gaugePhase=0;drawLED('-----',1);drawLamps(-1)}
 $('#tapzone').addEventListener('pointerdown',e=>{if(state!=='aim')return;e.preventDefault();doTap()});
-function doTap(forced){state='strike';$('#tapzone').classList.remove('on');$('#prompt').classList.add('hide');AU.whoosh();
+function doTap(forced){state='strike';$('#howto').classList.remove('on');$('#tapzone').classList.remove('on');$('#prompt').classList.add('hide');AU.whoosh();
  const t0=performance.now();strike={t:0,grams:null,hit:false,rec:0};
  if(forced!=null)strike.grams=forced;else if(mode==='gauge')strike.grams=measureGauge(gaugeV);else setTimeout(()=>{strike.grams=measureSensor(t0)},190)}
 
