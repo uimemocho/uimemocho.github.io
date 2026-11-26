@@ -860,5 +860,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-24T14:20:00Z",
     "updatedAt": "2026-11-25T13:20:00Z"
+  },
+  {
+    "slug": "finger-power",
+    "title": "フィンガーパワー",
+    "kind": "game",
+    "description": "地下格闘技場に置かれた指専用のパンチングマシーン。スマホを片手で持ち、人差し指で画面を思い切り叩くと、その衝撃を加速度センサーで測ってg（グラム）で判定する。叩いた瞬間は火花と衝撃波、画面のヒビまで過剰に演出。7セグLEDのカウントアップとランクランプ、E〜SSSのランクと称号つきで、結果画像をXに投稿できる。",
+    "url": "/apps/finger-power/",
+    "thumbnail": "/project-thumbnails/catalog/finger-power.webp",
+    "sourceFolder": "261126_フィンガーパワー",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-26T13:10:00Z",
+    "updatedAt": "2026-11-26T13:10:00Z"
   }
 ]
