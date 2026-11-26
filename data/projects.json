@@ -872,5 +872,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-26T13:10:00Z",
     "updatedAt": "2026-11-26T13:50:00Z"
+  },
+  {
+    "slug": "sero-katsu",
+    "title": "セロ活",
+    "kind": "game",
+    "description": "ドパガキのためのセロ活。夕暮れの床の間で、香立てに立てた線香一本が燃え尽きるのを、ただ待つだけ。画面に触れたりアプリを離れると雑念になり、E〜SSSの静寂ランクに響く。1・3・5・10分を段階解放し、10分達成後は自由時間。続けるほど経験値が溜まって段位が上がり、香立ても黒釉から金銅まで5段階に変わる。リザルトには禅語・仏教の言葉が添えられ、結果をXに投稿できる。",
+    "url": "/apps/sero-katsu/",
+    "thumbnail": "/project-thumbnails/catalog/sero-katsu.webp",
+    "sourceFolder": "261126_セロ活",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-26T14:20:00Z",
+    "updatedAt": "2026-11-26T14:20:00Z"
   }
 ]
