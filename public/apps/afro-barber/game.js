@@ -98,8 +98,8 @@ function finish() {
 }
 function classify(st) {
   if (st.bald > 0.9) return 'skin';
+  if (st.center > 0.55 && st.kept < 0.45 && st.kept > 0.02) return 'mohawk';
   if (st.kept < 0.12) return 'buzz';
-  if (st.center > 0.55 && st.kept < 0.45) return 'mohawk';
   if (st.top > 0.55 && st.side < 0.35) return 'hightop';
   if (st.sym < 0.78) return 'asym';
   if (st.kept > 0.88) return 'same';
