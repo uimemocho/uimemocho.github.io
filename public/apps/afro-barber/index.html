@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#eef2f6"><link rel="canonical" href="https://uimemocho.github.io/apps/afro-barber/">
+<title>アフロバーバー</title>
+<meta name="description" content="アフロバーバー。常連のアフロの男の「いつもの感じでお願い」に、ハサミ・すきバサミ・バリカン・カミソリ・コームで応える3D散髪ゲーム。">
+<meta property="og:type" content="website"><meta property="og:site_name" content="uimemocho"><meta property="og:title" content="アフロバーバー">
+<meta property="og:description" content="「いつもの感じでお願い」。巨大アフロを好きな道具で繊細にカットして、仕上がりと満足度をXに投稿しよう。">
+<meta property="og:url" content="https://uimemocho.github.io/apps/afro-barber/"><meta property="og:image" content="https://uimemocho.github.io/apps/afro-barber/ogp.png">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="アフロバーバー"><meta name="twitter:image" content="https://uimemocho.github.io/apps/afro-barber/ogp.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%230e1a2b%22/%3E%3Crect x=%229%22 y=%227%22 width=%2246%22 height=%2234%22 rx=%2212%22 fill=%22%232a1c15%22/%3E%3Cellipse cx=%2232%22 cy=%2238%22 rx=%2211%22 ry=%2213%22 fill=%22%23d9a98a%22/%3E%3Cpath d=%22M18 60 L24 50 L40 50 L46 60Z%22 fill=%22%23ffd60a%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Oswald:wght@400;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="style.css">
+<link rel="modulepreload" href="game.js"><link rel="modulepreload" href="barber.js">
+</head><body data-screen="title">
+<canvas id="world" aria-label="アフロの男"></canvas><div id="shade"></div>
+<div id="flash" aria-hidden="true"></div>
+<div id="bars" aria-hidden="true"><i></i><i></i></div>
+<div class="pole l" aria-hidden="true"></div><div class="pole r" aria-hidden="true"></div>
+<header>
+ <button id="exitBtn" class="icon-button" data-i18n-aria="back" aria-label="もどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+ <div class="topctl"></div>
+ <div id="brandMini" aria-hidden="true" data-i18n="name">アフロバーバー</div>
+ <div class="headerbuttons">
+  <button id="howtoBtn" class="icon-button howto" data-i18n-aria="howto" aria-label="遊び方"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 8.4a3.5 3.5 0 0 1 6.8 1.1c0 2.4-3.4 2.9-3.4 5.2"/><circle cx="12" cy="18.6" r="1.1" class="dot"/></svg></button>
+  <button id="settingsBtn" class="icon-button gear" data-i18n-aria="settings" aria-label="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
+ </div>
+</header>
+<main>
+<section id="titleScreen" class="screen title-screen" aria-label="タイトル">
+ <div class="title-block">
+  <h1 id="title"><span id="tA">アフロ</span><em id="tB">バーバー</em></h1>
+  <p class="title-sub" data-i18n="sub">AFRO BARBER</p>
+  <p id="bestLine" class="title-best"></p>
+ </div>
+ <div class="title-actions">
+  <button id="playBtn" class="primary" data-i18n="play">開店する</button>
+ </div>
+</section>
+<section id="resultScreen" class="screen result-screen" hidden>
+ <div class="result-heading">
+  <p id="resultLead"></p>
+  <h2 id="resultMain" class="work"><b></b></h2>
+  <div class="score-row">
+   <span class="sat-num"><small id="satLabel" class="sat-label"></small><span><b id="satNum">0</b><i>%</i></span></span>
+   <div id="rankHero" class="rank-row"><strong id="rankGrade">S</strong><div><span class="rank-caption">RANK</span><p id="rankTitle"></p></div></div>
+  </div>
+  <div id="reaction" class="bubble"><small id="reactionTag"></small><p id="reactionText"></p></div>
+ </div>
+ <div class="result-gap" id="resultGap"></div>
+ <div class="result-foot">
+  <p id="usualNote" class="usual-note"></p>
+  <div id="resultStats" class="mini-stats"></div>
+  <div class="pair share-pair">
+   <button id="shareImgBtn" class="share share-x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span data-i18n="shareImg">画像で投稿</span></button>
+   <button id="shareVidBtn" class="share share-v"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span data-i18n="shareVid">動画で投稿</span></button>
+  </div>
+  <div class="pair"><button id="againBtn" class="primary" data-i18n="again">次のお客さん</button><button id="resultTitle" class="primary blue" data-i18n="toTitle">タイトルへ</button></div>
+ </div>
+</section>
+</main>
+<div id="talk" aria-live="polite" hidden><div class="talk-card"><small data-i18n="customer">常連のアフロさん</small><p id="talkText"></p></div></div>
+<div id="hud" hidden>
+
+ <div class="hud-top"><div class="timer"><small data-i18n="time">経過</small><b id="timer">0:00</b></div></div>
+ <p id="hint" class="hint" data-i18n="hint"></p>
+ <div class="toolbar">
+  <div class="tools3"><button id="undoBtn" class="mini icon" data-i18n-aria="undo" aria-label="戻す"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H4V2"/><path d="M4 7a9 9 0 1 1-1 7"/></svg></button><button id="mirrorBtn" class="mini" aria-pressed="true"><span data-i18n="mirror">左右対称</span></button><button id="colorBtn" class="mini icon color-btn" data-i18n-aria="hairColor" aria-label="髪色"><i id="colorDot"></i></button><button id="lockBtn" class="mini lock-btn" aria-pressed="false" data-i18n-aria="viewLock" aria-label="視点ロック"><svg class="lk-off" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><svg class="lk-on" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span data-i18n="viewLock">視点ロック</span></button></div>
+  <div class="tools tools5" role="radiogroup">
+   <button class="tool" data-tool="scissors" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.2 16 18 3M15.8 16 6 3"/></svg><span data-i18n="tool.scissors">ハサミ</span></button>
+   <button class="tool" data-tool="thin" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.2 16 18 3M15.8 16 6 3"/><path d="M10.2 9.5l1.6 1M11.3 8.2l1.6 1M12.4 6.9l1.6 1M13.5 5.6l1.6 1"/></svg><span data-i18n="tool.thin">すきバサミ</span></button>
+   <button class="tool" data-tool="clipper" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="15" rx="3"/><path d="M6 7V3M9 7V3M12 7V3M15 7V3M18 7V3M5 7h14"/></svg><span data-i18n="tool.clipper">バリカン</span></button>
+   <button class="tool" data-tool="razor" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h12l-2 5H3z"/><path d="M15 9l6 9-2 1.5-5.5-6.5"/></svg><span data-i18n="tool.razor">カミソリ</span></button>
+   <button class="tool" data-tool="comb" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h18v4H3z"/><path d="M5 12v7M8 12v7M11 12v7M14 12v7M17 12v7M20 12v7"/></svg><span data-i18n="tool.comb">コーム</span></button>
+  </div>
+  <div class="tools2">
+   
+   <div class="sizes" role="radiogroup" data-i18n-aria="size"><button class="size" data-size="0" aria-pressed="false"><i style="--d:5px"></i></button><button class="size" data-size="1" aria-pressed="true"><i style="--d:10px"></i></button><button class="size" data-size="2" aria-pressed="false"><i style="--d:16px"></i></button></div><button id="guardBtn" class="mini guard" hidden><small data-i18n="guard">長さ</small><b id="guardVal">6mm</b></button>
+  </div>
+  <button id="doneBtn" class="primary done" data-i18n="done">仕上げ</button>
+ </div>
+</div>
+<div id="cut" aria-hidden="true"><div class="cut-lines"></div><strong><span id="cutText">仕上げ</span><em></em></strong><small>AFRO BARBER</small></div>
+<div id="sheet" class="sheet" hidden>
+ <div class="sheet-card" role="dialog" aria-modal="true">
+  <div id="settingsBody" hidden>
+   <h3 data-i18n="settings">設定</h3>
+   <div class="set-row"><span data-i18n="se">効果音</span><button class="toggle" data-key="se"></button></div>
+   <div class="set-row"><span data-i18n="bgm">BGM</span><button class="toggle" data-key="bgm"></button></div>
+   <div class="set-row"><span data-i18n="vib">振動</span><button class="toggle" data-key="vib"></button></div>
+   <div class="set-row set-col"><span data-i18n="hairColor">髪色</span><div class="swatches"></div></div>
+   <div class="set-row"><span data-i18n="quality">高画質</span><button class="toggle" data-key="hq"></button></div>
+   <div class="set-row"><span data-i18n="lang">言語</span><select id="langSelect"></select></div>
+  </div>
+  <div id="colorBody" hidden>
+   <h3 data-i18n="hairColor">髪色</h3>
+   <div class="swatches big"></div>
+  </div>
+  <div id="howtoBody" hidden>
+   <h3 data-i18n="howto">遊び方</h3>
+   <ol class="howto"><li data-i18n="how1"></li><li data-i18n="how2"></li><li data-i18n="how3"></li><li data-i18n="how4"></li></ol>
+  </div>
+  <div id="shareBody" hidden>
+   <h3 data-i18n="shareSheet">投稿用の画像</h3>
+   <img id="sharePreview" class="share-preview" alt=""><video id="shareVideo" class="share-preview" playsinline muted loop controls hidden></video>
+   <p id="shareNote" class="share-note" data-i18n="saveHint"></p>
+   <a id="shareXLink" class="primary share-x" target="_blank" rel="noopener" data-i18n="openX">Xの投稿画面を開く</a>
+   <button id="copyText" class="ghost" data-i18n="copyText">投稿文をコピー</button>
+  </div>
+  <div class="sheet-actions"><button id="sheetClose" class="primary" data-i18n="close">とじる</button></div>
+ </div>
+</div>
+<div id="recOverlay" hidden><div class="rec-card"><b data-i18n="recording">動画を作っています</b><i><span id="recBar"></span></i></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="boot"><strong>アフロ<em><span class="r">バ</span><span class="b">ー</span><span class="r">バ</span><span class="b">ー</span></em></strong><span id="bootMsg">LOADING</span></div>
+<script type="module" src="game.js"></script>
+</body></html>

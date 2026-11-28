@@ -896,5 +896,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-26T15:00:00Z",
     "updatedAt": "2026-11-26T15:00:00Z"
+  },
+  {
+    "slug": "afro-barber",
+    "title": "アフロバーバー",
+    "kind": "game",
+    "description": "常連のアフロさんの「いつもの感じでお願い」に、ハサミ・すきバサミ・バリカン・カミソリ・コームで応える3D散髪ゲーム。巨大アフロを繊細にカットでき、バリカンは1mmまで、髪色も9色から変えられる。仕上がりの満足度でE〜SSSのランク。結果は画像か回転動画つきでXに投稿できる。",
+    "url": "/apps/afro-barber/",
+    "thumbnail": "/project-thumbnails/catalog/afro-barber.webp",
+    "sourceFolder": "261128_アフロバーバー",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-28T03:30:00Z",
+    "updatedAt": "2026-11-28T03:30:00Z"
   }
 ]
