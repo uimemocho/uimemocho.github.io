@@ -908,5 +908,17 @@
     "sourceEntry": "index.html",
     "publishedAt": "2026-11-28T03:30:00Z",
     "updatedAt": "2026-11-28T03:30:00Z"
+  },
+  {
+    "slug": "cola-shake",
+    "title": "コーラシェイク",
+    "kind": "game",
+    "description": "3Dのコーラ缶をスマホのジャイロで振って圧力を溜め、開けて飛ばす。限界は毎回ちがい、欲張りすぎると暴発。缶ごと噴射して大気圏を抜け、宇宙ではメントスでエネルギーを補給しながら隕石をよけて飛距離を伸ばす。到達点でE〜SSSのランク。結果は画像つきでXに投稿できる。",
+    "url": "/apps/cola-shake/",
+    "thumbnail": "/project-thumbnails/catalog/cola-shake.webp",
+    "sourceFolder": "261128_コーラシェイク",
+    "sourceEntry": "index.html",
+    "publishedAt": "2026-11-28T13:17:04Z",
+    "updatedAt": "2026-11-28T13:17:04Z"
   }
 ]
