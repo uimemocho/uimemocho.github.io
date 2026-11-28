@@ -938,6 +938,7 @@ function updPass(dt,cyS,vS){
   for(let i=LMP.list.length-1;i>=0;i--){const o=LMP.list[i];o.z+=Math.max(vS,18)*.75*(o.vk||1)*dt;
     if(o.near&&!o.whoosh&&o.z>-10){o.whoosh=true;noise(.7,{type:'bandpass',f:300,f2:1800,q:.8,g:.3});hitShake=Math.max(hitShake,.35);}
     const rr=(o.rk||1),RR=o.R*(o.sk||1);o.g.position.set(Math.cos(o.an)*(4.2+RR*.85)*rr+plPX*.3,cyS+1.2+Math.sin(o.an)*(3+RR*.7)*rr,o.z);o.g.children.forEach(c=>{if(c.isMesh)c.rotation.y+=o.spin*dt;});
+    o.g.userData.lb.material.opacity=1-smooth(-16,-7,o.z);o.g.userData.lb.visible=o.z<-7;
     if(o.z>14){o.g.visible=false;LMP.list.splice(i,1);}}
 }
 /* ---------- post-processing: HDR bloom + cinematic final pass ---------- */
@@ -1289,6 +1290,7 @@ function showResult(){
 }
 
 /* ---------- share ---------- */
+window.__st=()=>state+':'+(state==='ascend'?asT.toFixed(2):state==='flight'?(spaceMode?'S'+spT.toFixed(2):ft.toFixed(2)):'');
 if(location.hash==='#debug'&&!PUB){window.__bs=()=>buildShare();window.__snap=()=>snap&&snap.toDataURL('image/jpeg',.8);window.__dent=()=>{for(let i=0;i<4;i++)dentCan(i*1.4,-.4+i*.25,.18);};window.__heaven=()=>{document.querySelector('#sTitle').classList.remove('on');canPX=0;canPY=0;startAscend();asT=4.19;};window.__boom=()=>{canPX=0;canPY=.2;explodeCan();};}
 async function buildShare(){
   try{await document.fonts.load('800 italic 100px "Barlow Condensed"');await document.fonts.load('900 40px "Noto Sans JP"');}catch(e){}
